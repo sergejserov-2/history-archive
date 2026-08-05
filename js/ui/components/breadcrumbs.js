@@ -2,28 +2,32 @@
 // Breadcrumbs
 // ======================================
 
-export function renderBreadcrumbs(object, parents) {
+export function renderBreadcrumbs(type, parents) {
 
-    if (!object || !parents || parents.length === 0) {
+    if (!type || !parents || parents.length === 0) {
 
         return "";
 
     }
 
-    // Два уровня выше текущего объекта
-    const level1 = object.level + 1;
+    const currentLevel = Number(
+        type.level
+    );
 
-    const level2 = object.level + 2;
+    // Два уровня выше текущего объекта
+    const nearLevel = currentLevel + 1;
+
+    const farLevel = currentLevel + 2;
 
     let upper = parents.filter(parent =>
 
-        parent.level === level1 ||
+        parent.level === nearLevel ||
 
-        parent.level === level2
+        parent.level === farLevel
 
     );
 
-    // Убираем дубли после нескольких веток (угловой объект)
+    // Убираем дубли (актуально для угловых домов)
     upper = upper.filter((item, index, array) => {
 
         return index === array.findIndex(obj =>
@@ -34,26 +38,27 @@ export function renderBreadcrumbs(object, parents) {
 
     });
 
-    // Группируем по уровням
-    const farLevel = upper.filter(item =>
-        item.level === level2
+    // Сначала дальний уровень (например Красный Холм),
+    // потом ближний (улица)
+    const far = upper.filter(item =>
+        item.level === farLevel
     );
 
-    const nearLevel = upper.filter(item =>
-        item.level === level1
+    const near = upper.filter(item =>
+        item.level === nearLevel
     );
 
     const parts = [];
 
-    // Более высокий уровень
-    farLevel.forEach(item => {
+    far.forEach(item => {
 
-        parts.push(item.title);
+        parts.push(
+            item.title
+        );
 
     });
 
-    // Ближайший уровень с адресом
-    nearLevel.forEach(item => {
+    near.forEach(item => {
 
         if (item.address) {
 
@@ -63,7 +68,9 @@ export function renderBreadcrumbs(object, parents) {
 
         } else {
 
-            parts.push(item.title);
+            parts.push(
+                item.title
+            );
 
         }
 
