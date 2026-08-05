@@ -112,6 +112,10 @@ export async function getAllObjects() {
 // Get parents
 // ======================================
 
+// ======================================
+// Get parents
+// ======================================
+
 export async function getParents(object) {
 
     if (!object || !object.parents || object.parents.length === 0) {
