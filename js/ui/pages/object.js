@@ -26,6 +26,12 @@ import { renderChildren }
 
 from "../components/children.js";
 
+import { getRecords }
+from "../../api/records.js";
+
+import { renderRecords }
+from "../components/records.js";
+
 // ======================================
 // Get object id
 // ======================================
