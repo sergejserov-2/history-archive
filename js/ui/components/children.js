@@ -10,9 +10,6 @@ import {
 import { renderBreadcrumbs }
 from "./breadcrumbs.js";
 
-import { renderObjectTitle }
-from "./objectTitle.js";
-
 // ======================================
 // Render children
 // ======================================
@@ -55,7 +52,6 @@ export async function renderChildren(children) {
                 ?
 
                 `
-
                 <img
 
                     class="child-card__image"
@@ -65,19 +61,16 @@ export async function renderChildren(children) {
                     alt="${child.title}"
 
                 >
-
                 `
 
                 :
 
                 `
-
                 <div class="child-card__placeholder">
 
                     Фото отсутствует
 
                 </div>
-
                 `;
 
             return `
@@ -98,15 +91,23 @@ export async function renderChildren(children) {
 
                     <div class="child-card__body">
 
-                        ${renderObjectTitle(
+                        <div class="child-card__type">
 
-                            type,
+                            ${type?.title ?? ""}
 
-                            child.title,
+                        </div>
 
-                            address
+                        <div class="child-card__name">
 
-                        )}
+                            ${child.title}
+
+                        </div>
+
+                        <div class="child-card__address">
+
+                            ${address}
+
+                        </div>
 
                     </div>
 
