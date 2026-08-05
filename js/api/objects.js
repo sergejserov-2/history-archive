@@ -124,6 +124,10 @@ export async function getAllObjects() {
 // Get parents
 // ======================================
 
+// ======================================
+// Get parents
+// ======================================
+
 export async function getParents(object) {
 
     if (!object || !object.parents || object.parents.length === 0) {
@@ -144,7 +148,6 @@ export async function getParents(object) {
             continue;
         }
 
-        // Получаем родителей улицы (например: город)
         const upperParents = await getParents(parentObject);
 
         result.push(
@@ -165,27 +168,7 @@ export async function getParents(object) {
 
     }
 
-    // Убираем дубли
-    const unique = result.filter((item, index, array) => {
-
-        return index === array.findIndex(obj =>
-            obj.id === item.id
-        );
-
-    });
-
-    // Оставляем только город и адресные объекты
-    const cityIndex = unique.findIndex(item =>
-        item.typeId === "city"
-    );
-
-    if (cityIndex !== -1) {
-
-        return unique.slice(cityIndex);
-
-    }
-
-    return unique;
+    return result;
 
 }
 // ======================================
