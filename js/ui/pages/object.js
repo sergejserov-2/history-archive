@@ -32,7 +32,6 @@ import {
     getRecords
 }
 from "../../api/records.js";
-
 import { renderRecords }
 from "../components/records.js";
 
@@ -40,12 +39,15 @@ import {
     getPhotos
 }
 from "../../api/photos.js";
+import { renderPhotos }
+from "../components/photos.js";
 
 import {
     getSources
 }
 from "../../api/sources.js";
-
+import { renderSources }
+from "../components/sources.js";
 
 
 // ======================================
