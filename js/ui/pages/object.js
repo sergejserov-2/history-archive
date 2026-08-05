@@ -10,13 +10,13 @@ import {
 } from "../../api/objects.js";
 
 import { renderHeader } 
-from "./components/header.js";
+from "../components/header.js";
 
 import { renderBreadcrumbs } 
-from "./components/breadcrumbs.js";
+from "../components/breadcrumbs.js";
 
 import { renderChildren } 
-from "./components/children.js";
+from "../components/children.js";
 
 // ======================================
 // Get object id from URL
