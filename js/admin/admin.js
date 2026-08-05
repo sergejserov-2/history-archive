@@ -5,57 +5,60 @@ import {
 from "./editors/objectEditor.js";
 
 export function initAdmin(
-    object
+
+    object,
+
+    types,
+
+    objects
+
 ) {
 
-    document.addEventListener(
-        "click",
-        event => {
+document.addEventListener(
 
-            const button =
-                event.target.closest(
-                    ".admin-button"
-                );
+"click",
 
-            if (!button) {
+event=>{
 
-                return;
+const button =
+event.target.closest(
+".admin-button"
+);
 
-            }
+if(!button)
+return;
 
-            const action =
-                button.dataset.action;
+const block =
+document.querySelector(
+".object__info"
+);
 
-            if (
-                action === "edit-object"
-            ) {
+block.innerHTML =
 
-                const block =
-                    document.querySelector(
-                        ".object__info"
-                    );
+renderObjectEditor(
 
-                block.innerHTML =
-                    renderObjectEditor(
-                        object
-                    );
+object,
 
-                initObjectEditor(
+types,
 
-                    object,
+objects
 
-                    () => {
+);
 
-                        location.reload();
+initObjectEditor(
 
-                    }
+object,
 
-                );
+types,
 
-            }
+objects,
 
-        }
+()=>location.reload()
 
-    );
+);
+
+}
+
+);
 
 }
