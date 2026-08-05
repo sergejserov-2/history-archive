@@ -6,8 +6,9 @@ import {
     ADMIN_MODE
 }
 from "../../admin/adminMode.js";
-    initAdmin
+
 import {
+    initAdmin
 } from "../../admin/adminMode.js";
 
 import {
