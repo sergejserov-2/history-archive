@@ -2,24 +2,36 @@
 // Object page
 // ======================================
 
-import { 
+import {
+
     getObject,
+
     getType,
+
     getParents,
+
     getChildren
+
 } from "../../api/objects.js";
 
-import { renderHeader } 
+import { renderHeader }
+
 from "../components/header.js";
 
-import { renderBreadcrumbs } 
+import { renderBreadcrumbs }
+
 from "../components/breadcrumbs.js";
 
-import { renderChildren } 
+import { renderChildren }
+
 from "../components/children.js";
 
+import { renderObjectTitle }
+
+from "../components/objectTitle.js";
+
 // ======================================
-// Get object id from URL
+// Get object id
 // ======================================
 
 const params = new URLSearchParams(
@@ -52,11 +64,6 @@ async function loadPage() {
 
     }
 
-    console.log(
-        "OBJECT",
-        object
-    );
-
     const type = await getType(
         object.typeId
     );
@@ -69,34 +76,34 @@ async function loadPage() {
         object.id
     );
 
-    console.log(
-        "PARENTS",
-        parents
-    );
-
-    console.log(
-        "CHILDREN",
-        children
-    );
-
     renderPage(
+
         object,
+
         type,
+
         parents,
+
         children
+
     );
 
 }
 
 // ======================================
-// Render page
+// Render
 // ======================================
 
 async function renderPage(
+
     object,
+
     type,
+
     parents,
+
     children
+
 ) {
 
     const childrenHTML = await renderChildren(
@@ -119,34 +126,27 @@ async function renderPage(
 
                 <div class="object__info">
 
-Ы<div class="object__type">
+                    ${renderObjectTitle(
 
-    ${type?.title ?? ""}
+                        type,
 
-</div>
+                        object.title,
 
-<div class="object__name-line">
+                        renderBreadcrumbs(
 
-    ${
-        object.title
-        ?
-        `<span class="object__name">
-            ${object.title}
-        </span>`
-        :
-        ""
-    }
+                            type,
 
-    <span class="object__address">
+                            parents
 
-        ${renderBreadcrumbs(
-            type,
-            parents
-        )}
+                        )
 
-    </span>
+                    )}
 
-</div>
+                    <div class="object__description">
+
+                        ${object.description ?? ""}
+
+                    </div>
 
                 </div>
 
@@ -155,7 +155,9 @@ async function renderPage(
             <section id="gallery">
 
                 <h2>
+
                     Фотографии
+
                 </h2>
 
             </section>
@@ -163,7 +165,9 @@ async function renderPage(
             <section id="sources">
 
                 <h2>
+
                     Источники
+
                 </h2>
 
             </section>
@@ -171,7 +175,9 @@ async function renderPage(
             <section id="children">
 
                 <h2>
+
                     Дочерние объекты
+
                 </h2>
 
                 ${childrenHTML}
@@ -183,9 +189,5 @@ async function renderPage(
     `;
 
 }
-
-// ======================================
-// Start
-// ======================================
 
 loadPage();
