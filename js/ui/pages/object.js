@@ -167,7 +167,9 @@ async function renderPage(
                         ${object.description ?? ""}
 
                     </div>
-
+            
+                ${renderRecords(records)}
+            
                 </div>
 
             </section>
@@ -190,16 +192,6 @@ async function renderPage(
 
                 </h2>
 
-            </section>
-            
-            <section id="records">
-            
-                <h2>
-                    Сведения
-                </h2>
-            
-                ${renderRecords(records)}
-            
             </section>
             
             <section id="children">
