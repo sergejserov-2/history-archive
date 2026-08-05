@@ -78,6 +78,12 @@ async function loadPage() {
         object.id
     );
 
+    const records = await getRecords(
+        object.id
+    );
+
+
+    
     renderPage(
 
         object,
@@ -86,7 +92,9 @@ async function loadPage() {
 
         parents,
 
-        children
+        children,
+
+        records
 
     );
 
@@ -104,7 +112,9 @@ async function renderPage(
 
     parents,
 
-    children
+    children,
+
+    records
 
 ) {
 
@@ -181,7 +191,17 @@ async function renderPage(
                 </h2>
 
             </section>
-
+            
+            <section id="records">
+            
+                <h2>
+                    Сведения
+                </h2>
+            
+                ${renderRecords(records)}
+            
+            </section>
+            
             <section id="children">
 
                 <h2>
