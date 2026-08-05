@@ -100,31 +100,38 @@ export async function getChildren(parentId) {
 // Get parents
 // ======================================
 
-export async function getParents(object) {
+// ======================================
+// Breadcrumbs / Address component
+// ======================================
 
-    if (!object.parents || object.parents.length === 0) {
-        return [];
+export function renderBreadcrumbs(parents) {
+
+    if (!parents || parents.length === 0) {
+
+        return "";
+
     }
 
-    const result = [];
+    const parts = parents.map(parent => {
 
-    for (const parent of object.parents) {
+        if (parent.address) {
 
-        const parentObject = await getObject(
-            parent.objectId
-        );
-
-        if (parentObject) {
-
-            result.push({
-                ...parentObject,
-                address: parent.address || ""
-            });
+            return `${parent.title}, ${parent.address}`;
 
         }
 
-    }
+        return parent.title;
 
-    return result;
+    });
+
+    return `
+
+        <div class="object__address">
+
+            ${parts.join(" / ")}
+
+        </div>
+
+    `;
 
 }
