@@ -318,6 +318,6 @@ async function renderPage(
 loadPage()
 .then(() => {
     if (ADMIN_MODE) {
-        initAdmin();
+        initAdmin(object);
     }
 });
