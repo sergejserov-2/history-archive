@@ -1,8 +1,12 @@
-// ======================================
-// Admin actions
-// ======================================
+import {
+    renderObjectEditor,
+    initObjectEditor
+}
+from "./editors/objectEditor.js";
 
-export function initAdmin() {
+export function initAdmin(
+    object
+) {
 
     document.addEventListener(
         "click",
@@ -22,12 +26,36 @@ export function initAdmin() {
             const action =
                 button.dataset.action;
 
-            console.log(
-                "ADMIN ACTION:",
-                action
-            );
+            if (
+                action === "edit-object"
+            ) {
+
+                const block =
+                    document.querySelector(
+                        ".object__info"
+                    );
+
+                block.innerHTML =
+                    renderObjectEditor(
+                        object
+                    );
+
+                initObjectEditor(
+
+                    object,
+
+                    () => {
+
+                        location.reload();
+
+                    }
+
+                );
+
+            }
 
         }
+
     );
 
 }
