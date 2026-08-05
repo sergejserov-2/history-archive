@@ -19,17 +19,26 @@ export async function getObject(id) {
 
     if (!id) return null;
 
-    const ref = doc(db, "objects", id);
+    const ref = doc(
+        db,
+        "objects",
+        id
+    );
 
     const snapshot = await getDoc(ref);
 
     if (!snapshot.exists()) {
+
         return null;
+
     }
 
     return {
+
         id: snapshot.id,
+
         ...snapshot.data()
+
     };
 
 }
@@ -42,57 +51,52 @@ export async function getType(typeId) {
 
     if (!typeId) return null;
 
-    const ref = doc(db, "types", typeId);
+    const ref = doc(
+        db,
+        "types",
+        typeId
+    );
 
     const snapshot = await getDoc(ref);
 
     if (!snapshot.exists()) {
+
         return null;
+
     }
 
     return {
+
         id: snapshot.id,
+
         ...snapshot.data()
+
     };
 
 }
 
 // ======================================
 // Get all objects
-// (temporary, will be optimized later)
 // ======================================
 
 export async function getAllObjects() {
 
     const snapshot = await getDocs(
-        collection(db, "objects")
+
+        collection(
+            db,
+            "objects"
+        )
+
     );
 
     return snapshot.docs.map(doc => ({
+
         id: doc.id,
+
         ...doc.data()
+
     }));
-
-}
-
-// ======================================
-// Get children
-// ======================================
-
-export async function getChildren(parentId) {
-
-    const objects = await getAllObjects();
-
-    return objects.filter(object => {
-
-        if (!object.parents)
-            return false;
-
-        return object.parents.some(parent =>
-            parent.objectId === parentId
-        );
-
-    });
 
 }
 
@@ -103,7 +107,9 @@ export async function getChildren(parentId) {
 export async function getParents(object) {
 
     if (!object.parents || object.parents.length === 0) {
+
         return [];
+
     }
 
     const result = [];
@@ -117,8 +123,13 @@ export async function getParents(object) {
         if (parentObject) {
 
             result.push({
-                ...parentObject,
+
+                id: parentObject.id,
+
+                title: parentObject.title,
+
                 address: parent.address || ""
+
             });
 
         }
@@ -128,38 +139,29 @@ export async function getParents(object) {
     return result;
 
 }
+
 // ======================================
-// Breadcrumbs / Address component
+// Get children
 // ======================================
 
-export function renderBreadcrumbs(parents) {
+export async function getChildren(parentId) {
 
-    if (!parents || parents.length === 0) {
+    const objects = await getAllObjects();
 
-        return "";
+    return objects.filter(object => {
 
-    }
+        if (!object.parents) {
 
-    const parts = parents.map(parent => {
-
-        if (parent.address) {
-
-            return `${parent.title}, ${parent.address}`;
+            return false;
 
         }
 
-        return parent.title;
+        return object.parents.some(parent =>
+
+            parent.objectId === parentId
+
+        );
 
     });
-
-    return `
-
-        <div class="object__address">
-
-            ${parts.join(" / ")}
-
-        </div>
-
-    `;
 
 }
