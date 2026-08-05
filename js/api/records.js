@@ -1,41 +1,26 @@
-// ======================================
-// Records API
-// ======================================
-
-import { db } from "../firebase.js";
-console.log("RECORDS", db);
 import {
     collection,
     query,
     where,
-    getDocs,
-    orderBy
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    getDocs
+}
+from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-// ======================================
-// Get object records
-// ======================================
+import { db } from "../firebase.js";
 
 export async function getRecords(objectId) {
 
-    const recordsRef = collection(
-        db,
-        "records"
-    );
-
     const q = query(
 
-        recordsRef,
-
-        where(
-            "objectId",
-            "==",
-            objectId
+        collection(
+            db,
+            "records"
         ),
 
-        orderBy(
-            "dateStart",
-            "asc"
+        where(
+            "parents",
+            "array-contains",
+            objectId
         )
 
     );
