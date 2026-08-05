@@ -52,8 +52,7 @@ export function renderRecords(records) {
 
         else {
 
-            period =
-                "—";
+            period = "—";
 
         }
 
@@ -61,25 +60,21 @@ export function renderRecords(records) {
 
             <div class="record">
 
-                <div class="record__date">
+                <div class="record__title">
 
-                    ${period}
+                    ${record.title ?? ""}
 
                 </div>
 
-                <div class="record__content">
+                <div class="record__description">
 
-                    <div class="record__title">
+                    ${record.description ?? ""}
 
-                        ${record.title ?? ""}
+                </div>
 
-                    </div>
+                <div class="record__date">
 
-                    <div class="record__description">
-
-                        ${record.description ?? ""}
-
-                    </div>
+                    ${period}
 
                 </div>
 
