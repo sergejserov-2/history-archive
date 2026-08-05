@@ -511,3 +511,33 @@ max-width:800px {
     content: ", ";
 
 }
+
+
+
+.child-card__name-line {
+
+    font-size: 15px;
+
+    line-height: 1.45;
+
+}
+
+.child-card__name {
+
+    font-weight: 600;
+
+    color: #eef0f2;
+
+}
+
+.child-card__address {
+
+    color: #b4bac1;
+
+}
+
+.child-card__address::before {
+
+    content: ", ";
+
+}
