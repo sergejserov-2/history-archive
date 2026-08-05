@@ -3,7 +3,7 @@
 // ======================================
 
 import { db } from "../firebase.js";
-
+console.log("RECORDS", db);
 import {
     collection,
     query,
