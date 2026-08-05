@@ -26,10 +26,6 @@ import { renderChildren }
 
 from "../components/children.js";
 
-import { renderObjectTitle }
-
-from "../components/objectTitle.js";
-
 // ======================================
 // Get object id
 // ======================================
@@ -126,21 +122,29 @@ async function renderPage(
 
                 <div class="object__info">
 
-                    ${renderObjectTitle(
+                    <div class="object__type">
 
-                        type,
+                        ${type?.title ?? ""}
 
-                        object.title,
+                    </div>
 
-                        renderBreadcrumbs(
+                    <h1 class="object__title">
+
+                        ${object.title}
+
+                    </h1>
+
+                    <div class="object__address">
+
+                        ${renderBreadcrumbs(
 
                             type,
 
                             parents
 
-                        )
+                        )}
 
-                    )}
+                    </div>
 
                     <div class="object__description">
 
