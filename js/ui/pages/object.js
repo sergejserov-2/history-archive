@@ -143,7 +143,11 @@ async function renderPage(
 
     children,
 
-    records
+    records,
+
+    photos,
+
+    sources
 
 ) {
 
@@ -204,23 +208,23 @@ async function renderPage(
             </section>
 
             <section id="gallery">
-
+            
                 <h2>
-
                     Фотографии
-
                 </h2>
-
+                
+                ${renderPhotos(photos)}
+            
             </section>
 
             <section id="sources">
-
+    
                 <h2>
-
                     Источники
-
                 </h2>
-
+    
+                ${renderSources(sources)}
+    
             </section>
             
             <section id="children">
