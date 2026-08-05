@@ -20,17 +20,15 @@ export function renderObjectTitle(
 
             <div class="object-title-block__line">
 
-                <span class="object-title-block__name">
-
                     ${title}
 
-                </span>
+            </div>
 
-                <span class="object-title-block__address">
+            <div class="object-title-block__address">
 
-                    ${address}
+                ${address}
 
-                </span>
+                </div>
 
             </div>
 
