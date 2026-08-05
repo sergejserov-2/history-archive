@@ -19,9 +19,15 @@ import {
 
     getParents,
 
-    getChildren
+    getChildren,
+
+    getAllObjects
 
 } from "../../api/objects.js";
+
+import {
+    getTypes }
+    from "../../api/types.js";
 
 import { renderHeader }
 
@@ -104,7 +110,7 @@ async function loadPage() {
     );
 
     const types = await getTypes ();
-    const objects = await getObjects ();
+    const objects = await getAllObjects ();
     
     const parents = await getParents(
         object
