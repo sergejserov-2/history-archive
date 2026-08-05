@@ -26,7 +26,7 @@ export async function getSources(objectId) {
     );
 
     const snapshot = await getDocs(q);
-
+console.log("SOURCES DATA", snapshot.docs.map(doc => doc.data()));
     return snapshot.docs.map(
         doc => ({
 
