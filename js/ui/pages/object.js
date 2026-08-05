@@ -26,11 +26,27 @@ import { renderChildren }
 
 from "../components/children.js";
 
-import { getRecords }
+
+
+import {
+    getRecords
+}
 from "../../api/records.js";
 
 import { renderRecords }
 from "../components/records.js";
+
+import {
+    getPhotos
+}
+from "../../api/photos.js";
+
+import {
+    getSources
+}
+from "../../api/sources.js";
+
+
 
 // ======================================
 // Get object id
@@ -81,22 +97,33 @@ async function loadPage() {
     const records = await getRecords(
         object.id
     );
-
+    
+    const photos = await getPhotos(
+        object.id
+    );
+    
+    const sources = await getSources(
+        object.id
+    );
 
     
-    renderPage(
+renderPage(
 
-        object,
+    object,
 
-        type,
+    type,
 
-        parents,
+    parents,
 
-        children,
+    children,
 
-        records
+    records,
 
-    );
+    photos,
+
+    sources
+
+);
 
 }
 
