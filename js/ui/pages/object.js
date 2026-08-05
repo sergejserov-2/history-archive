@@ -7,7 +7,7 @@ import {
     getType,
     getParents,
     getChildren
-} from "../api/objects.js";
+} from "../../api/objects.js";
 
 import { renderHeader } 
 from "./components/header.js";
