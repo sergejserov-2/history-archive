@@ -21,8 +21,6 @@ export function renderObjectEditor(
 
     object,
 
-    type,
-
     types,
 
     objects
