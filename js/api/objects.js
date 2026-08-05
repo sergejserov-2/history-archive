@@ -123,14 +123,20 @@ export async function getParents(object) {
             continue;
         }
 
-        // Получаем верхние уровни
-        const upperParents = await getParents(parentObject);
+        // Получаем тип родителя (там хранится level)
+        const parentType = await getType(
+            parentObject.typeId
+        );
+
+        // Поднимаемся выше по цепочке
+        const upperParents = await getParents(
+            parentObject
+        );
 
         result.push(
             ...upperParents
         );
 
-        // Добавляем текущего родителя
         result.push({
 
             id: parentObject.id,
@@ -139,7 +145,7 @@ export async function getParents(object) {
 
             address: parent.address || "",
 
-            level: parentObject.level
+            level: parentType?.level ?? null
 
         });
 
