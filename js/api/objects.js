@@ -95,3 +95,36 @@ export async function getChildren(parentId) {
     });
 
 }
+
+// ======================================
+// Get parents
+// ======================================
+
+export async function getParents(object) {
+
+    if (!object.parents || object.parents.length === 0) {
+        return [];
+    }
+
+    const result = [];
+
+    for (const parent of object.parents) {
+
+        const parentObject = await getObject(
+            parent.objectId
+        );
+
+        if (parentObject) {
+
+            result.push({
+                ...parentObject,
+                address: parent.address || ""
+            });
+
+        }
+
+    }
+
+    return result;
+
+}
