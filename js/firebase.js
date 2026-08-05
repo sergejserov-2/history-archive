@@ -13,17 +13,17 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-s
 
 const firebaseConfig = {
 
-    apiKey: "YOUR_API_KEY",
+  apiKey: "AIzaSyD3hUrEJpbrKl84fZkEZ3fKA-igKKvoWUw",
 
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
+  authDomain: "history-archive-84fe7.firebaseapp.com",
 
-    projectId: "YOUR_PROJECT_ID",
+  projectId: "history-archive-84fe7",
 
-    storageBucket: "YOUR_PROJECT.appspot.com",
+  storageBucket: "history-archive-84fe7.firebasestorage.app",
 
-    messagingSenderId: "YOUR_SENDER_ID",
+  messagingSenderId: "416658660084",
 
-    appId: "YOUR_APP_ID"
+  appId: "1:416658660084:web:2745b77fce5836b646dca1"
 
 };
 
