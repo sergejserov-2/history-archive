@@ -95,7 +95,7 @@ function renderPage(
 
                     </h1>
 
-                    ${renderBreadcrumbs(object, parents)}
+                    ${renderBreadcrumbs(type, parents)}
 
                     <div class="object__description">
 
