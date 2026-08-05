@@ -28,15 +28,7 @@ const objectId = params.get("id");
 // ======================================
 
 async function loadPage() {
-console.log("OBJECT", object);
 
-const parents = await getParents(object);
-
-console.log("PARENTS", parents);
-
-const children = await getChildren(object.id);
-
-console.log("CHILDREN", children);
     const object = await getObject(objectId);
 
     if (!object) {
@@ -49,9 +41,13 @@ console.log("CHILDREN", children);
 
     }
 
+    console.log("OBJECT", object);
+
     const type = await getType(object.typeId);
 
     const parents = await getParents(object);
+
+    console.log("PARENTS", parents);
 
     renderPage(
         object,
