@@ -103,6 +103,9 @@ async function loadPage() {
         object.typeId
     );
 
+    const types = await getTypes ();
+    const objects = await getObjects ();
+    
     const parents = await getParents(
         object
     );
@@ -142,7 +145,7 @@ async function loadPage() {
     );
 
         if (ADMIN_MODE) {
-        initAdmin(object);
+        initAdmin(object, types, objects);
     }
 
 }
