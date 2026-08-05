@@ -108,6 +108,10 @@ export async function getAllObjects() {
 // Get parents chain (city + address only)
 // ======================================
 
+// ======================================
+// Get parents
+// ======================================
+
 export async function getParents(object) {
 
     if (!object || !object.parents || object.parents.length === 0) {
@@ -128,27 +132,21 @@ export async function getParents(object) {
             continue;
         }
 
-        const upperParents = await getParents(parentObject);
+        result.push({
 
-        result.push(
-            ...upperParents,
-            {
-                id: parentObject.id,
+            id: parentObject.id,
 
-                title: parentObject.title,
+            title: parentObject.title,
 
-                address: parent.address || parentObject.address || ""
+            address: parent.address || ""
 
-            }
-        );
+        });
 
     }
 
-    // Оставляем только город + непосредственный адрес
-    return result.slice(-2);
+    return result;
 
 }
-
 // ======================================
 // Get children
 // ======================================
