@@ -468,3 +468,46 @@ max-width:800px {
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+.object__name-line {
+
+    font-size: 18px;
+
+    color: #dfe2e5;
+
+    margin-bottom: 16px;
+
+    line-height: 1.5;
+
+}
+
+.object__name {
+
+    font-weight: 600;
+
+    color: #f0f1f3;
+
+}
+
+.object__address {
+
+    color: #b4bac1;
+
+}
+
+.object__address::before {
+
+    content: ", ";
+
+}
