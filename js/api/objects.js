@@ -120,6 +120,10 @@ export async function getAllObjects() {
 // Get parents chain
 // ======================================
 
+// ======================================
+// Get parents
+// ======================================
+
 export async function getParents(object) {
 
     if (!object || !object.parents || object.parents.length === 0) {
@@ -140,35 +144,48 @@ export async function getParents(object) {
             continue;
         }
 
-        // Поднимаемся выше (например: улица → город)
+        // Получаем родителей улицы (например: город)
         const upperParents = await getParents(parentObject);
 
-        // Добавляем верхние уровни
         result.push(
             ...upperParents
         );
 
-        // Добавляем текущего родителя с адресом
         result.push({
 
             id: parentObject.id,
 
             title: parentObject.title,
 
-            address: parent.address || ""
+            address: parent.address || "",
+
+            typeId: parentObject.typeId
 
         });
 
     }
 
     // Убираем дубли
-    return result.filter((item, index, array) => {
+    const unique = result.filter((item, index, array) => {
 
         return index === array.findIndex(obj =>
             obj.id === item.id
         );
 
     });
+
+    // Оставляем только город и адресные объекты
+    const cityIndex = unique.findIndex(item =>
+        item.typeId === "city"
+    );
+
+    if (cityIndex !== -1) {
+
+        return unique.slice(cityIndex);
+
+    }
+
+    return unique;
 
 }
 // ======================================
