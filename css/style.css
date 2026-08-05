@@ -176,11 +176,11 @@ body {
 
 .object__info {
 
+   flex: 1;
+   
     display: flex;
 
     flex-direction: column;
-
-    justify-content: center;
 
 }
 
@@ -227,6 +227,8 @@ body {
     color: #c9cdd2;
 
     line-height: 1.5;
+
+   margin-bottom: 20px;
 
 }
 
@@ -399,7 +401,7 @@ section h2 {
 
 .records {
 
-    margin-top: 16px;
+    margin-top: 8px;
 
 }
 
@@ -407,21 +409,55 @@ section h2 {
 
     display: grid;
 
-    grid-template-columns: 150px 1fr;
+    grid-template-columns:
 
-    padding: 7px 0;
+        180px
+        1fr
+        120px;
+
+    gap: 18px;
+
+    align-items: start;
+
+    padding: 10px 0;
+
+    border-top: 1px solid #2a2d31;
+
+}
+
+.record:first-child {
+
+    border-top: none;
 
 }
 
 .record__title {
 
-    color: #9da4ac;
+    font-size: 15px;
+
+    font-weight: 600;
+
+    color: #eef0f2;
 
 }
 
 .record__description {
 
-    color: #e0e2e5;
+    color: #c8ccd0;
+
+    line-height: 1.45;
+
+}
+
+.record__date {
+
+    text-align: right;
+
+    white-space: nowrap;
+
+    color: #9da4ac;
+
+    font-size: 13px;
 
 }
 
