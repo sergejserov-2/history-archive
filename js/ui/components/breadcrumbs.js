@@ -1,22 +1,46 @@
+// ======================================
+// Breadcrumbs
+// ======================================
+
 export function renderBreadcrumbs(parents) {
 
     if (!parents || parents.length === 0) {
+
         return "";
+
     }
 
-    const city = parents[0];
+    // Населённый пункт
+    const place = parents.find(parent =>
 
-    const addresses = parents.map(parent => {
+        parent.level === 3
 
-        return `${parent.title}, ${parent.address}`;
+    );
 
-    });
+    if (!place) {
 
-    let text = city.title;
+        return "";
+
+    }
+
+    // Адресные уровни
+    const addresses = parents.filter(parent =>
+
+        parent.level === 2
+
+    );
+
+    let text = place.title;
 
     if (addresses.length > 0) {
 
-        text += ", " + addresses.join("/");
+        text += ", " +
+
+            addresses.map(address => {
+
+                return `${address.title}, ${address.address}`;
+
+            }).join("/");
 
     }
 
