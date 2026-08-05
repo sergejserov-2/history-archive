@@ -7,8 +7,11 @@ import {
     getParents
 } from "../../api/objects.js";
 
-import { renderBreadcrumbs } 
+import { renderBreadcrumbs }
 from "./breadcrumbs.js";
+
+import { renderObjectTitle }
+from "./objectTitle.js";
 
 // ======================================
 // Render children
@@ -52,28 +55,39 @@ export async function renderChildren(children) {
                 ?
 
                 `
-                <img 
+
+                <img
+
                     class="child-card__image"
+
                     src="${child.coverPhotoId}"
-                    alt="${child.title ?? ""}"
+
+                    alt="${child.title}"
+
                 >
+
                 `
 
                 :
 
                 `
+
                 <div class="child-card__placeholder">
 
                     Фото отсутствует
 
                 </div>
+
                 `;
 
             return `
 
                 <a
+
                     class="child-card"
+
                     href="object.html?id=${child.id}"
+
                 >
 
                     <div class="child-card__media">
@@ -84,40 +98,15 @@ export async function renderChildren(children) {
 
                     <div class="child-card__body">
 
-                        <div class="child-card__type">
+                        ${renderObjectTitle(
 
-                            ${type?.title ?? ""}
+                            type,
 
-                        </div>
+                            child.title,
 
-                        <div class="child-card__name-line">
+                            address
 
-                            ${
-                                child.title
-
-                                ?
-
-                                `
-                                <span class="child-card__name">
-
-                                    ${child.title}
-
-                                </span>
-                                `
-
-                                :
-
-                                ""
-
-                            }
-
-                            <span class="child-card__address">
-
-                                ${address}
-
-                            </span>
-
-                        </div>
+                        )}
 
                     </div>
 
