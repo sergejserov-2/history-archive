@@ -365,15 +365,21 @@ section h2 {
 
 /* child title size */
 
-.child-card .object-title-block__line {
+.child-card .object-title-block__name {
 
-    font-size:14px;
+    font-size: 16px;
+
+}
+
+.child-card .object-title-block__address {
+
+    font-size: 13px;
 
 }
 
 .child-card .object-title-block__type {
 
-    font-size:11px;
+    font-size: 11px;
 
 }
 
