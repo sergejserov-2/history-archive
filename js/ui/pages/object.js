@@ -6,6 +6,9 @@ import {
     ADMIN_MODE
 }
 from "../../admin/adminMode.js";
+    initAdmin
+import {
+} from "../../admin/adminMode.js";
 
 import {
 
@@ -312,3 +315,8 @@ async function renderPage(
 }
 
 loadPage();
+.then(() => {
+    if (ADMIN_MODE) {
+        initAdmin();
+    }
+});
