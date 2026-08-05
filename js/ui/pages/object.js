@@ -7,12 +7,16 @@ import {
     getType,
     getParents,
     getChildren
-} from "../../api/objects.js";
+} from "../api/objects.js";
 
-import { renderHeader } from "../components/header.js";
+import { renderHeader } 
+from "./components/header.js";
 
 import { renderBreadcrumbs } 
-from "../components/breadcrumbs.js";
+from "./components/breadcrumbs.js";
+
+import { renderChildren } 
+from "./components/children.js";
 
 // ======================================
 // Get object id from URL
@@ -30,19 +34,28 @@ const objectId = params.get("id");
 
 async function loadPage() {
 
-    const object = await getObject(objectId);
+    const object = await getObject(
+        objectId
+    );
 
     if (!object) {
 
         document.body.innerHTML = `
-            <h1>Объект не найден</h1>
+
+            <h1>
+                Объект не найден
+            </h1>
+
         `;
 
         return;
 
     }
 
-    console.log("OBJECT", object);
+    console.log(
+        "OBJECT",
+        object
+    );
 
     const type = await getType(
         object.typeId
@@ -56,9 +69,15 @@ async function loadPage() {
         object.id
     );
 
-    console.log("PARENTS", parents);
+    console.log(
+        "PARENTS",
+        parents
+    );
 
-    console.log("CHILDREN", children);
+    console.log(
+        "CHILDREN",
+        children
+    );
 
     renderPage(
         object,
@@ -73,12 +92,16 @@ async function loadPage() {
 // Render page
 // ======================================
 
-function renderPage(
+async function renderPage(
     object,
     type,
     parents,
     children
 ) {
+
+    const childrenHTML = await renderChildren(
+        children
+    );
 
     document.body.innerHTML = `
 
@@ -108,7 +131,10 @@ function renderPage(
 
                     </h1>
 
-                    ${renderBreadcrumbs(type, parents)}
+                    ${renderBreadcrumbs(
+                        type,
+                        parents
+                    )}
 
                     <div class="object__description">
 
@@ -142,41 +168,7 @@ function renderPage(
                     Дочерние объекты
                 </h2>
 
-                ${
-                    children.length > 0
-
-                    ?
-
-                    `
-                    <div class="children-list">
-
-                        ${
-                            children.map(child => `
-
-                                <a
-                                    class="child-card"
-                                    href="object.html?id=${child.id}"
-                                >
-
-                                    ${child.title}
-
-                                </a>
-
-                            `).join("")
-                        }
-
-                    </div>
-                    `
-
-                    :
-
-                    `
-                    <p>
-                        Нет связанных объектов
-                    </p>
-                    `
-
-                }
+                ${childrenHTML}
 
             </section>
 
