@@ -19,7 +19,7 @@ export async function renderChildren(children) {
     if (!children || children.length === 0) {
 
         return `
-            <p>
+            <p class="children-empty">
                 Нет связанных объектов
             </p>
         `;
@@ -38,6 +38,33 @@ export async function renderChildren(children) {
                 child
             );
 
+            const address = renderBreadcrumbs(
+                type,
+                parents
+            );
+
+            const image = child.coverPhotoId
+
+                ?
+
+                `
+                <img 
+                    class="child-card__image"
+                    src="${child.coverPhotoId}"
+                    alt="${child.title}"
+                >
+                `
+
+                :
+
+                `
+                <div class="child-card__placeholder">
+
+                    Фото отсутствует
+
+                </div>
+                `;
+
             return `
 
                 <a
@@ -45,24 +72,31 @@ export async function renderChildren(children) {
                     href="object.html?id=${child.id}"
                 >
 
-                    <div class="child-card__type">
+                    <div class="child-card__media">
 
-                        ${type?.title ?? ""}
-
-                    </div>
-
-                    <div class="child-card__title">
-
-                        ${child.title}
+                        ${image}
 
                     </div>
 
-                    <div class="child-card__address">
+                    <div class="child-card__body">
 
-                        ${renderBreadcrumbs(
-                            type,
-                            parents
-                        )}
+                        <div class="child-card__type">
+
+                            ${type?.title ?? ""}
+
+                        </div>
+
+                        <h3 class="child-card__title">
+
+                            ${child.title}
+
+                        </h3>
+
+                        <div class="child-card__address">
+
+                            ${address}
+
+                        </div>
 
                     </div>
 
