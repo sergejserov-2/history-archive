@@ -128,6 +128,10 @@ export async function getAllObjects() {
 // Get parents
 // ======================================
 
+// ======================================
+// Get parents
+// ======================================
+
 export async function getParents(object) {
 
     if (!object || !object.parents || object.parents.length === 0) {
@@ -148,12 +152,14 @@ export async function getParents(object) {
             continue;
         }
 
+        // Получаем верхние уровни
         const upperParents = await getParents(parentObject);
 
         result.push(
             ...upperParents
         );
 
+        // Добавляем текущего родителя
         result.push({
 
             id: parentObject.id,
@@ -162,7 +168,7 @@ export async function getParents(object) {
 
             address: parent.address || "",
 
-            typeId: parentObject.typeId
+            level: parentObject.level
 
         });
 
