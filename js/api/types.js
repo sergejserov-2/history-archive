@@ -20,7 +20,7 @@ import {
     db
 
 }
-from "../../firebase.js";
+from "../firebase.js";
 
 // ======================================
 // Get all types
