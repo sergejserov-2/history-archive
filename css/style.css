@@ -212,35 +212,31 @@ body {
 
     text-transform: uppercase;
 
-    margin-bottom: 5px;
-
-}
-
-.object-title-block__line {
-
-    font-size: 16px;
-
-    line-height: 1.5;
+    margin-bottom: 4px;
 
 }
 
 .object-title-block__name {
 
+    font-size: 20px;
+
+    line-height: 1.35;
+
     font-weight: 600;
 
     color: #eef0f2;
+
+    margin-bottom: 4px;
 
 }
 
 .object-title-block__address {
 
+    font-size: 15px;
+
+    line-height: 1.45;
+
     color: #b4bac1;
-
-}
-
-.object-title-block__address::before {
-
-    content: ", ";
 
 }
 
