@@ -131,7 +131,7 @@ body {
 }
 
 /* ==========================================
-   OBJECT
+   MAIN OBJECT
 ========================================== */
 
 .object {
@@ -148,7 +148,9 @@ body {
 
 }
 
-/* photo */
+/* ==========================================
+   OBJECT PHOTO
+========================================== */
 
 .object__cover {
 
@@ -172,7 +174,9 @@ body {
 
 }
 
-/* info */
+/* ==========================================
+   OBJECT INFO
+========================================== */
 
 .object__info {
 
@@ -184,7 +188,23 @@ body {
 
 }
 
-.object__type {
+.object__description {
+
+    margin-top: 16px;
+
+    color: #c9cdd2;
+
+    line-height: 1.5;
+
+    max-width: 700px;
+
+}
+
+/* ==========================================
+   OBJECT TITLE COMPONENT
+========================================== */
+
+.object-title-block__type {
 
     color: #9da4ac;
 
@@ -196,35 +216,31 @@ body {
 
 }
 
-.object__title {
+.object-title-block__line {
 
-    font-size: 27px;
-
-    font-weight: 600;
-
-    color: #f0f1f3;
-
-    margin-bottom: 5px;
-
-}
-
-.breadcrumbs {
-
-    color: #b4bac1;
-
-    font-size: 15px;
-
-    margin-bottom: 12px;
-
-}
-
-.object__description {
-
-    color: #c9cdd2;
+    font-size: 16px;
 
     line-height: 1.5;
 
-    max-width: 700px;
+}
+
+.object-title-block__name {
+
+    font-weight: 600;
+
+    color: #eef0f2;
+
+}
+
+.object-title-block__address {
+
+    color: #b4bac1;
+
+}
+
+.object-title-block__address::before {
+
+    content: ", ";
 
 }
 
@@ -274,6 +290,8 @@ section h2 {
     gap: 14px;
 
 }
+
+/* card */
 
 .child-card {
 
@@ -349,46 +367,17 @@ section h2 {
 
 }
 
-/* text */
+/* child title size */
 
-.child-card__body {
+.child-card .object-title-block__line {
 
-    display:flex;
-
-    flex-direction:column;
-
-    justify-content:center;
+    font-size:14px;
 
 }
 
-.child-card__type {
-
-    color:#9da4ac;
+.child-card .object-title-block__type {
 
     font-size:11px;
-
-    text-transform:uppercase;
-
-    margin-bottom:5px;
-
-}
-
-.child-card__title {
-   color:#eef0f2;
-
-    font-size:17px;
-
-    font-weight:600;
-
-    margin-bottom:5px;
-
-}
-
-.child-card__address {
-
-    color:#b4bac1;
-
-    font-size:13px;
 
 }
 
@@ -466,78 +455,5 @@ max-width:800px {
         grid-template-columns:1fr;
 
     }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-.object__name-line {
-
-    font-size: 18px;
-
-    color: #dfe2e5;
-
-    margin-bottom: 16px;
-
-    line-height: 1.5;
-
-}
-
-.object__name {
-
-    font-weight: 600;
-
-    color: #f0f1f3;
-
-}
-
-.object__address {
-
-    color: #b4bac1;
-
-}
-
-.object__address::before {
-
-    content: ", ";
-
-}
-
-
-
-.child-card__name-line {
-
-    font-size: 15px;
-
-    line-height: 1.45;
-
-}
-
-.child-card__name {
-
-    font-weight: 600;
-
-    color: #eef0f2;
-
-}
-
-.child-card__address {
-
-    color: #b4bac1;
-
-}
-
-.child-card__address::before {
-
-    content: ", ";
 
 }
