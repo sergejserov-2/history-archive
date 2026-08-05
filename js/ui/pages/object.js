@@ -3,6 +3,11 @@
 // ======================================
 
 import {
+    ADMIN_MODE
+}
+from "../../admin/adminMode.js";
+
+import {
 
     getObject,
 
@@ -26,29 +31,35 @@ import { renderChildren }
 
 from "../components/children.js";
 
-
-
 import {
     getRecords
 }
 from "../../api/records.js";
-import { renderRecords }
+
+import {
+    renderRecords
+}
 from "../components/records.js";
 
 import {
     getPhotos
 }
 from "../../api/photos.js";
-import { renderPhotos }
+
+import {
+    renderPhotos
+}
 from "../components/photos.js";
 
 import {
     getSources
 }
 from "../../api/sources.js";
-import { renderSources }
-from "../components/sources.js";
 
+import {
+    renderSources
+}
+from "../components/sources.js";
 
 // ======================================
 // Get object id
@@ -99,33 +110,32 @@ async function loadPage() {
     const records = await getRecords(
         object.id
     );
-    
+
     const photos = await getPhotos(
         object.id
     );
-    
+
     const sources = await getSources(
         object.id
     );
 
-    
-renderPage(
+    renderPage(
 
-    object,
+        object,
 
-    type,
+        type,
 
-    parents,
+        parents,
 
-    children,
+        children,
 
-    records,
+        records,
 
-    photos,
+        photos,
 
-    sources
+        sources
 
-);
+    );
 
 }
 
@@ -152,7 +162,11 @@ async function renderPage(
 ) {
 
     const childrenHTML = await renderChildren(
-        children
+
+        children,
+
+        ADMIN_MODE
+
     );
 
     document.body.innerHTML = `
@@ -181,6 +195,30 @@ async function renderPage(
 
                         ${object.title}
 
+                        ${
+                            ADMIN_MODE
+
+                            ?
+
+                            `
+
+                            <button
+                                class="admin-button"
+                                data-action="edit-object"
+                            >
+
+                                ✏
+
+                            </button>
+
+                            `
+
+                            :
+
+                            ""
+
+                        }
+
                     </h1>
 
                     <div class="object__address">
@@ -200,33 +238,61 @@ async function renderPage(
                         ${object.description ?? ""}
 
                     </div>
-            
-                ${renderRecords(records)}
-            
+
+                    ${
+                        renderRecords(
+
+                            records,
+
+                            ADMIN_MODE
+
+                        )
+                    }
+
                 </div>
 
             </section>
 
             <section id="gallery">
-            
+
                 <h2>
+
                     Фотографии
+
                 </h2>
-                
-                ${renderPhotos(photos)}
-            
+
+                ${
+                    renderPhotos(
+
+                        photos,
+
+                        ADMIN_MODE
+
+                    )
+                }
+
             </section>
 
             <section id="sources">
-    
+
                 <h2>
+
                     Источники
+
                 </h2>
-    
-                ${renderSources(sources)}
-    
+
+                ${
+                    renderSources(
+
+                        sources,
+
+                        ADMIN_MODE
+
+                    )
+                }
+
             </section>
-            
+
             <section id="children">
 
                 <h2>
