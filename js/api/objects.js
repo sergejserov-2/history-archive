@@ -104,6 +104,10 @@ export async function getAllObjects() {
 // Get parents chain
 // ======================================
 
+// ======================================
+// Get parents chain (city + address only)
+// ======================================
+
 export async function getParents(object) {
 
     if (!object || !object.parents || object.parents.length === 0) {
@@ -140,7 +144,8 @@ export async function getParents(object) {
 
     }
 
-    return result;
+    // Оставляем только город + непосредственный адрес
+    return result.slice(-2);
 
 }
 
