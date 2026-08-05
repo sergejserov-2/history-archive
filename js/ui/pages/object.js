@@ -5,7 +5,8 @@
 import { 
     getObject,
     getType,
-    getParents
+    getParents,
+    getChildren
 } from "../../api/objects.js";
 
 import { renderHeader } from "../components/header.js";
@@ -43,16 +44,27 @@ async function loadPage() {
 
     console.log("OBJECT", object);
 
-    const type = await getType(object.typeId);
+    const type = await getType(
+        object.typeId
+    );
 
-    const parents = await getParents(object);
+    const parents = await getParents(
+        object
+    );
+
+    const children = await getChildren(
+        object.id
+    );
 
     console.log("PARENTS", parents);
+
+    console.log("CHILDREN", children);
 
     renderPage(
         object,
         type,
-        parents
+        parents,
+        children
     );
 
 }
@@ -64,7 +76,8 @@ async function loadPage() {
 function renderPage(
     object,
     type,
-    parents
+    parents,
+    children
 ) {
 
     document.body.innerHTML = `
@@ -128,6 +141,42 @@ function renderPage(
                 <h2>
                     Дочерние объекты
                 </h2>
+
+                ${
+                    children.length > 0
+
+                    ?
+
+                    `
+                    <div class="children-list">
+
+                        ${
+                            children.map(child => `
+
+                                <a
+                                    class="child-card"
+                                    href="object.html?id=${child.id}"
+                                >
+
+                                    ${child.title}
+
+                                </a>
+
+                            `).join("")
+                        }
+
+                    </div>
+                    `
+
+                    :
+
+                    `
+                    <p>
+                        Нет связанных объектов
+                    </p>
+                    `
+
+                }
 
             </section>
 
