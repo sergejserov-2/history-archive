@@ -1,35 +1,29 @@
-// ======================================
-// Breadcrumbs / Address component
-// ======================================
-
 export function renderBreadcrumbs(parents) {
 
     if (!parents || parents.length === 0) {
-
         return "";
-
     }
 
-    const parts = parents.map(parent => {
+    const city = parents[0];
 
-        if (parent.address) {
+    const addresses = parents.map(parent => {
 
-            return `${parent.title}, ${parent.address}`;
-
-        }
-
-        return parent.title;
+        return `${parent.title}, ${parent.address}`;
 
     });
 
+    let text = city.title;
+
+    if (addresses.length > 0) {
+
+        text += ", " + addresses.join("/");
+
+    }
+
     return `
-
-        <div class="object__address">
-
-            ${parts.join(" / ")}
-
+        <div class="breadcrumbs">
+            ${text}
         </div>
-
     `;
 
 }
