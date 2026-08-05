@@ -11,7 +11,7 @@ from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 import {
     db
 }
-from "../../api/firebase.js";
+from "../../firebase.js";
 
 // ======================================
 // Render editor
