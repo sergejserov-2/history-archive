@@ -141,6 +141,10 @@ async function loadPage() {
 
     );
 
+        if (ADMIN_MODE) {
+        initAdmin(object);
+    }
+
 }
 
 // ======================================
@@ -315,9 +319,4 @@ async function renderPage(
 
 }
 
-loadPage()
-.then(() => {
-    if (ADMIN_MODE) {
-        initAdmin(object);
-    }
-});
+loadPage();
