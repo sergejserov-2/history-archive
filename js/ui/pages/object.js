@@ -2,16 +2,24 @@
 // Object page
 // ======================================
 
-import { getObject } from "../../api/objects.js";
-import { getType } from "../../api/objects.js";
+import { 
+    getObject,
+    getType,
+    getParents
+} from "../../api/objects.js";
 
 import { renderHeader } from "../components/header.js";
+
+import { renderBreadcrumbs } 
+from "../components/breadcrumbs.js";
 
 // ======================================
 // Get object id from URL
 // ======================================
 
-const params = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(
+    window.location.search
+);
 
 const objectId = params.get("id");
 
@@ -35,7 +43,13 @@ async function loadPage() {
 
     const type = await getType(object.typeId);
 
-    renderPage(object, type);
+    const parents = await getParents(object);
+
+    renderPage(
+        object,
+        type,
+        parents
+    );
 
 }
 
@@ -43,7 +57,11 @@ async function loadPage() {
 // Render page
 // ======================================
 
-function renderPage(object, type) {
+function renderPage(
+    object,
+    type,
+    parents
+) {
 
     document.body.innerHTML = `
 
@@ -63,7 +81,7 @@ function renderPage(object, type) {
 
                     <div class="object__type">
 
-                        ${type.title}
+                        ${type?.title ?? ""}
 
                     </div>
 
@@ -73,11 +91,7 @@ function renderPage(object, type) {
 
                     </h1>
 
-                    <div
-                        id="objectAddress"
-                        class="object__address">
-
-                    </div>
+                    ${renderBreadcrumbs(parents)}
 
                     <div class="object__description">
 
@@ -91,13 +105,25 @@ function renderPage(object, type) {
 
             <section id="gallery">
 
+                <h2>
+                    Фотографии
+                </h2>
+
             </section>
 
             <section id="sources">
 
+                <h2>
+                    Источники
+                </h2>
+
             </section>
 
             <section id="children">
+
+                <h2>
+                    Дочерние объекты
+                </h2>
 
             </section>
 
@@ -107,6 +133,8 @@ function renderPage(object, type) {
 
 }
 
+// ======================================
+// Start
 // ======================================
 
 loadPage();
