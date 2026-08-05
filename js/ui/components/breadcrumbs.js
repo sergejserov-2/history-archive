@@ -26,7 +26,7 @@ export function renderBreadcrumbs(parents) {
 
         <div class="object__address">
 
-            ${parts.join(" → ")}
+            ${parts.join(" / ")}
 
         </div>
 
