@@ -101,12 +101,12 @@ export async function getAllObjects() {
 }
 
 // ======================================
-// Get parents
+// Get parents chain
 // ======================================
 
 export async function getParents(object) {
 
-    if (!object.parents || object.parents.length === 0) {
+    if (!object || !object.parents || object.parents.length === 0) {
 
         return [];
 
@@ -120,19 +120,23 @@ export async function getParents(object) {
             parent.objectId
         );
 
-        if (parentObject) {
+        if (!parentObject) {
+            continue;
+        }
 
-            result.push({
+        const upperParents = await getParents(parentObject);
 
+        result.push(
+            ...upperParents,
+            {
                 id: parentObject.id,
 
                 title: parentObject.title,
 
-                address: parent.address || ""
+                address: parent.address || parentObject.address || ""
 
-            });
-
-        }
+            }
+        );
 
     }
 
