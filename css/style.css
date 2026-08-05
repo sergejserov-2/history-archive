@@ -1,4 +1,379 @@
-grid-template-columns:180px 1fr;
+/* ==========================================
+   RESET
+========================================== */
+
+* {
+
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+}
+
+html {
+
+    font-size: 16px;
+
+}
+
+body {
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    background: #111820;
+
+    color: #d7dde3;
+
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.header {
+
+    height: 64px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 25px;
+
+    padding: 0 30px;
+
+    background: #151e27;
+
+}
+
+.header__logo a {
+
+    color: #e6edf3;
+
+    text-decoration: none;
+
+    font-size: 21px;
+
+}
+
+.header__search {
+
+    flex: 1;
+
+}
+
+.header__search input {
+
+    width: 100%;
+
+    max-width: 500px;
+
+    padding: 9px 14px;
+
+    background: #0d1319;
+
+    border: none;
+
+    color: #ddd;
+
+    font-family: inherit;
+
+}
+
+.header__buttons button {
+
+    padding: 8px 18px;
+
+    background: #24313d;
+
+    border: none;
+
+    color: #dbe5ed;
+
+    cursor: pointer;
+
+}
+
+/* ==========================================
+   PAGE
+========================================== */
+
+.page {
+
+    max-width: 1200px;
+
+    margin: 35px auto;
+
+    padding: 0 25px;
+
+}
+
+/* ==========================================
+   MAIN OBJECT
+========================================== */
+
+.object {
+
+    display: flex;
+
+    gap: 35px;
+
+    background: #18232d;
+
+    padding: 30px;
+
+}
+
+/* photo */
+
+.object__cover {
+
+    width: 300px;
+
+    height: 300px;
+
+    flex-shrink: 0;
+
+    background: #24313d;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    color: #7f8b96;
+
+}
+
+/* information */
+
+.object__info {
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+}
+
+.object__type {
+
+    color: #7fa8c7;
+
+    font-size: 14px;
+
+    text-transform: uppercase;
+
+    margin-bottom: 8px;
+
+}
+
+.object__title {
+
+    font-size: 32px;
+
+    font-weight: normal;
+
+    color: #edf2f6;
+
+    margin-bottom: 8px;
+
+}
+
+.breadcrumbs {
+
+    color: #b6c1ca;
+
+    font-size: 18px;
+
+    margin-bottom: 25px;
+
+}
+
+.object__description {
+
+    max-width: 650px;
+
+    color: #c5ced6;
+
+    line-height: 1.7;
+
+}
+
+/* ==========================================
+   SECTIONS
+========================================== */
+
+section {
+
+    margin-top: 35px;
+
+    background: #18232d;
+
+    padding: 25px;
+
+}
+
+section h2 {
+
+    color: #e3eaf0;
+
+    font-size: 22px;
+
+    font-weight: normal;
+
+    margin-bottom: 20px;
+
+}
+
+/* ==========================================
+   CHILDREN
+========================================== */
+
+.children-list {
+
+    display: grid;
+
+    grid-template-columns: repeat(
+        2,
+        1fr
+    );
+
+    gap: 25px;
+
+}
+
+/* child card */
+
+.child-card {
+
+    display: flex;
+
+    gap: 20px;
+
+    padding: 15px;
+
+    background: #202d38;
+
+    text-decoration: none;
+
+    color: inherit;
+
+}
+
+.child-card:hover {
+
+    background: #263744;
+
+}
+
+/* photo */
+
+.child-card__media {
+
+    width: 140px;
+
+    height: 140px;
+
+    flex-shrink: 0;
+
+    background: #293845;
+
+}
+
+.child-card__image {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
+.child-card__placeholder {
+
+    width:100%;
+
+    height:100%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    text-align:center;
+
+    color:#81909c;
+
+    font-size:12px;
+
+}
+
+/* text */
+
+.child-card__body {
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+}
+
+.child-card__type {
+
+    color:#7fa8c7;
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    margin-bottom:7px;
+
+}
+
+.child-card__title {
+
+    color:#edf2f6;
+
+    font-size:20px;
+
+    font-weight:normal;
+
+    margin-bottom:8px;
+
+}
+
+.child-card__address {
+
+    color:#b6c1ca;
+
+    font-size:15px;
+
+}
+
+/* ==========================================
+   RECORDS (будущий блок)
+========================================== */
+
+.records {
+
+    margin-top:25px;
+
+}
+
+.record {
+
+    display:grid;
+    grid-template-columns:180px 1fr;
 
     padding:10px 0;
 
