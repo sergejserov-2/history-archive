@@ -119,28 +119,34 @@ async function renderPage(
 
                 <div class="object__info">
 
-                    <div class="object__type">
+Ы<div class="object__type">
 
-                        ${type?.title ?? ""}
+    ${type?.title ?? ""}
 
-                    </div>
+</div>
 
-                    <h1 class="object__title">
+<div class="object__name-line">
 
-                        ${object.title}
+    ${
+        object.title
+        ?
+        `<span class="object__name">
+            ${object.title}
+        </span>`
+        :
+        ""
+    }
 
-                    </h1>
+    <span class="object__address">
 
-                    ${renderBreadcrumbs(
-                        type,
-                        parents
-                    )}
+        ${renderBreadcrumbs(
+            type,
+            parents
+        )}
 
-                    <div class="object__description">
+    </span>
 
-                        ${object.description ?? ""}
-
-                    </div>
+</div>
 
                 </div>
 
