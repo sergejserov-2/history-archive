@@ -19,9 +19,13 @@ export async function renderChildren(children) {
     if (!children || children.length === 0) {
 
         return `
+
             <p class="children-empty">
+
                 Нет связанных объектов
+
             </p>
+
         `;
 
     }
@@ -51,7 +55,7 @@ export async function renderChildren(children) {
                 <img 
                     class="child-card__image"
                     src="${child.coverPhotoId}"
-                    alt="${child.title}"
+                    alt="${child.title ?? ""}"
                 >
                 `
 
@@ -86,15 +90,32 @@ export async function renderChildren(children) {
 
                         </div>
 
-                        <h3 class="child-card__title">
+                        <div class="child-card__name-line">
 
-                            ${child.title}
+                            ${
+                                child.title
 
-                        </h3>
+                                ?
 
-                        <div class="child-card__address">
+                                `
+                                <span class="child-card__name">
 
-                            ${address}
+                                    ${child.title}
+
+                                </span>
+                                `
+
+                                :
+
+                                ""
+
+                            }
+
+                            <span class="child-card__address">
+
+                                ${address}
+
+                            </span>
 
                         </div>
 
