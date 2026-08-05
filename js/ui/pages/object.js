@@ -314,7 +314,7 @@ async function renderPage(
 
 }
 
-loadPage();
+loadPage()
 .then(() => {
     if (ADMIN_MODE) {
         initAdmin();
