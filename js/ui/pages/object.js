@@ -9,7 +9,7 @@ from "../../admin/adminMode.js";
 
 import {
     initAdmin
-} from "../../admin/adminMode.js";
+} from "../../admin/admin.js";
 
 import {
 
