@@ -1,43 +1,71 @@
-// ======================================
-// Header component
-// ======================================
+ard__type {
 
-export function renderHeader() {
+    color: #a89778;
 
-    return `
+    font-size: 11px;
 
-<header class="header">
+    text-transform: uppercase;
 
-    <div class="header__logo">
+    margin-bottom: 5px;
 
-        <a href="index.html">
-            История района
-        </a>
+}
 
-    </div>
+.child-card__title {
 
-    <div class="header__search">
+    color: #f0e5d2;
 
-        <input
-            type="text"
-            id="searchInput"
-            placeholder="Поиск..."
-        >
+    font-size: 18px;
 
-    </div>
+    font-weight: normal;
 
-    <div class="header__buttons">
+    margin-bottom: 8px;
 
-        <button id="loginButton">
+}
 
-            Войти
+.child-card__address {
 
-        </button>
+    color: #b5a58d;
 
-    </div>
+    font-size: 13px;
 
-</header>
+}
 
-`;
+/* ==========================================
+   Mobile
+========================================== */
+
+max-width:800px {
+
+    .header {
+
+        height: auto;
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+        padding: 15px;
+
+    }
+
+    .object {
+
+        flex-direction: column;
+
+    }
+
+    .object__cover {
+
+        width: 100%;
+
+        height: 220px;
+
+    }
+
+    .children-list {
+
+        grid-template-columns: 1fr;
+
+    }
 
 }
