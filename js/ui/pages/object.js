@@ -254,9 +254,19 @@ async function renderPage(
                                 class="admin-button"
                                 data-action="edit-object"
                             >
-
-                                ✏
-
+                            
+                            ✏
+                            
+                            </button>
+                            
+                            <button
+                                class="admin-button"
+                                data-action="delete-object"
+                                data-id="${object.id}"
+                            >
+                            
+                            🗑
+                            
                             </button>
 
                             `
