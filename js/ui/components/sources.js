@@ -112,7 +112,7 @@ export function renderSources(
 
             <div
 
-                class="source source--add"
+                class="source source--add admin-button"
 
                 data-action="add-source"
 
