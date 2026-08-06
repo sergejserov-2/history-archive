@@ -408,6 +408,7 @@ o.title
 
 });
 
+    
 results.innerHTML=
 
 candidates.map(o=>`
@@ -564,11 +565,6 @@ renderParentBlock();
 
 }
 
-};
-
-
-
-
 document.getElementById(
 
 "saveObjectButton"
@@ -694,4 +690,4 @@ document.getElementById(
 
 ).onclick = onSave;
 
-}
+};
