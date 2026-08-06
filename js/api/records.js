@@ -2,7 +2,9 @@ import {
     collection,
     query,
     where,
-    getDocs
+    getDocs,
+    doc,
+    updateDoc
 }
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
@@ -28,6 +30,7 @@ export async function getRecords(objectId) {
     const snapshot = await getDocs(q);
 
     return snapshot.docs.map(
+
         doc => ({
 
             id: doc.id,
@@ -35,6 +38,33 @@ export async function getRecords(objectId) {
             ...doc.data()
 
         })
+
+    );
+
+}
+
+export async function updateRecord(
+
+    id,
+
+    data
+
+){
+
+    await updateDoc(
+
+        doc(
+
+            db,
+
+            "records",
+
+            id
+
+        ),
+
+        data
+
     );
 
 }
