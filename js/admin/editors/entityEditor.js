@@ -517,7 +517,7 @@ function renderForm(
 
         CONFIG[type];
 
-    entity = entity ?? ();
+    entity = entity ?? {};
 
     return `
 
