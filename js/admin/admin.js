@@ -8,6 +8,11 @@ import {
 }
 from "./editors/objectEditor.js";
 
+import {
+    openEntityEditor
+}
+from "./editors/entityEditor.js";
+
 // ======================================
 // Init
 // ======================================
@@ -21,6 +26,10 @@ export function initAdmin(
     objects,
 
     photos,
+
+    sources,
+
+    records,
 
     children
 
@@ -50,27 +59,45 @@ export function initAdmin(
 
                 button.dataset.action;
 
+            const id =
+
+                button.dataset.id;
+
+            // ======================================
+            // Object
+            // ======================================
+
             if(
 
-                action !== "edit-object"
+                action === "edit-object"
 
             ){
 
-                return;
+                const block =
 
-            }
+                    document.querySelector(
 
-            const block =
+                        ".object__info"
 
-                document.querySelector(
+                    );
 
-                    ".object__info"
+                block.innerHTML =
 
-                );
+                    renderObjectEditor(
 
-            block.innerHTML =
+                        object,
 
-                renderObjectEditor(
+                        types,
+
+                        objects,
+
+                        photos,
+
+                        children
+
+                    );
+
+                initObjectEditor(
 
                     object,
 
@@ -80,29 +107,167 @@ export function initAdmin(
 
                     photos,
 
-                    children
+                    children,
+
+                    ()=>{
+
+                        location.reload();
+
+                    }
 
                 );
 
-            initObjectEditor(
+                return;
 
-                object,
+            }
 
-                types,
+            // ======================================
+            // Photo
+            // ======================================
 
-                objects,
+            if(
 
-                photos,
+                action === "edit-photo"
 
-                children,
+            ){
 
-                () => {
+                const photo =
 
-                    location.reload();
+                    photos.find(
+
+                        p =>
+
+                        p.id === id
+
+                    );
+
+                if(!photo){
+
+                    return;
 
                 }
 
-            );
+                openEntityEditor(
+
+                    "photo",
+
+                    photo,
+
+                    {
+
+                        objects
+
+                    },
+
+                    ()=>{
+
+                        location.reload();
+
+                    }
+
+                );
+
+                return;
+
+            }
+
+            // ======================================
+            // Source
+            // ======================================
+
+            if(
+
+                action === "edit-source"
+
+            ){
+
+                const source =
+
+                    sources.find(
+
+                        s =>
+
+                        s.id === id
+
+                    );
+
+                if(!source){
+
+                    return;
+
+                }
+
+                openEntityEditor(
+
+                    "source",
+
+                    source,
+
+                    {
+
+                        objects
+
+                    },
+
+                    ()=>{
+
+                        location.reload();
+
+                    }
+
+                );
+
+                return;
+
+            }
+
+            // ======================================
+            // Record
+            // ======================================
+
+            if(
+
+                action === "edit-record"
+
+            ){
+
+                const record =
+
+                    records.find(
+
+                        r =>
+
+                        r.id === id
+
+                    );
+
+                if(!record){
+
+                    return;
+
+                }
+
+                openEntityEditor(
+
+                    "record",
+
+                    record,
+
+                    {
+
+                        objects
+
+                    },()=>{
+
+                        location.reload();
+
+                    }
+
+                );
+
+                return;
+
+            }
 
         }
 
