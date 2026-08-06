@@ -14,6 +14,12 @@ import {
 from "./editors/entityEditor.js";
 
 import {
+    createObject,
+    deleteObject
+}
+from "../api/objects.js";
+
+import {
     deletePhoto
 }
 from "../api/photos.js";
@@ -66,7 +72,7 @@ event.target.closest(
 
 if(!button){
 
-return;
+    return;
 
 }
 
@@ -87,7 +93,7 @@ const context = {
 };
 
 // ======================================
-// Object
+// Object edit
 // ======================================
 
 if(
@@ -145,6 +151,88 @@ return;
 }
 
 // ======================================
+// Object delete
+// ======================================
+
+if(
+
+action==="delete-object"
+
+){
+
+const ok = confirm(
+
+"Удалить объект и все дочерние сущности?"
+
+);
+
+if(!ok){
+
+    return;
+
+}
+
+await deleteObject(
+
+id
+
+);
+
+location.reload();
+
+return;
+
+}
+
+// ======================================
+// Add object
+// ======================================
+
+if(
+
+action==="add-object"
+
+){
+
+const data = {
+
+    title:"Новый объект",
+
+    description:"",
+
+    typeId:"",
+
+    parents:[
+
+        {
+
+            objectId: object.id,
+
+            address:""
+
+        }
+
+    ]
+
+};
+
+const newObjectId =
+
+await createObject(
+
+    data
+
+);
+
+location.href =
+
+`object.html?id=${newObjectId}`;
+
+return;
+
+}
+
+// ======================================
 // Add photo
 // ======================================
 
@@ -194,7 +282,7 @@ p=>p.id===id
 
 if(!photo){
 
-return;
+    return;
 
 }
 
@@ -238,7 +326,7 @@ if(
 
 ){
 
-return;
+    return;
 
 }
 
@@ -300,7 +388,7 @@ s=>s.id===id
 
 if(!source){
 
-return;
+    return;
 
 }
 
@@ -344,7 +432,7 @@ if(
 
 ){
 
-return;
+    return;
 
 }
 
@@ -406,7 +494,7 @@ r=>r.id===id
 
 if(!record){
 
-return;
+    return;
 
 }
 
@@ -450,7 +538,7 @@ if(
 
 ){
 
-return;
+    return;
 
 }
 
