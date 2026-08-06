@@ -6,57 +6,49 @@ export function renderPhotos(
 
     photos,
 
-    ADMIN_MODE = false
+    ADMIN_MODE = false,
+
+    context = {}
 
 ) {
 
-    if (!photos || photos.length === 0) {
+    const cards =
 
-        return `
+        (photos ?? [])
 
-            <p class="photos-empty">
+        .map(photo => {
 
-                Нет фотографий
+            const image = photo.storagePath
 
-            </p>
+                ?
 
-        `;
+                `
 
-    }
+                <img
 
-    const cards = photos.map(photo => {
+                    class="photo-card__image"
 
-        const image = photo.storagePath
+                    src="${photo.storagePath}"
 
-            ?
+                    alt="${photo.title ?? ""}"
 
-            `
+                >
 
-            <img
+                `
 
-                class="photo-card__image"
+                :
 
-                src="${photo.storagePath}"
+                `
 
-                alt="${photo.title ?? ""}"
+                <div class="photo-card__placeholder">
 
-            >
+                    Фото отсутствует
 
-            `
+                </div>
 
-            :
+                `;
 
-            `
-
-            <div class="photo-card__placeholder">
-
-                Фото отсутствует
-
-            </div>
-
-            `;
-
-        return `
+            return `
 
             <div class="photo-card">
 
@@ -91,6 +83,20 @@ export function renderPhotos(
 
                         </button>
 
+                        <button
+
+                            class="admin-button"
+
+                            data-action="delete-photo"
+
+                            data-id="${photo.id}"
+
+                        >
+
+                            🗑
+
+                        </button>
+
                         `
 
                         :
@@ -108,7 +114,6 @@ export function renderPhotos(
                 </div>
 
                 ${
-
                     photo.author
 
                     ?
@@ -131,9 +136,43 @@ export function renderPhotos(
 
             </div>
 
+            `;
+
+        });
+
+    if(ADMIN_MODE){
+
+        cards.push(`
+
+            <div
+
+                class="photo-card photo-card--add"
+
+                data-action="add-photo"
+
+            >
+
+                + Добавить фото
+
+            </div>
+
+        `);
+
+    }
+
+    if(cards.length === 0){
+
+        return `
+
+            <p class="photos-empty">
+
+                Нет фотографий
+
+            </p>
+
         `;
 
-    });
+    }
 
     return `
 
