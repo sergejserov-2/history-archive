@@ -6,7 +6,12 @@ import {
     doc,
     updateDoc
 }
-from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+from "...";
+
+import {
+    createObject
+}
+from "../../api/objects.js";
 
 import {
     db
@@ -31,27 +36,20 @@ export function renderObjectEditor(
 
 ) {
 
-    const currentType =
+const currentType =
+    object
+        ? types.find(
+            t => t.id === object?.typeId
+        )
+        : null;
 
-        types.find(
-
-            t => t.id === object.typeId
-
-        );
-
-    const objectPhotos =
-    
-        photos.filter(
-    
+const objectPhotos =
+    object
+        ? photos.filter(
             photo =>
-    
-            photo.parents?.includes(
-    
-                object.id
-    
-            )
-    
-        );
+                photo.parents?.includes(object.id)
+        )
+        : [];
 
     return `
 
@@ -77,7 +75,7 @@ objectPhotos.map(photo=>`
 value="${photo.id}"
 
 ${
-photo.id === object.coverPhotoId
+photo.id === object?.coverPhotoId
 ?
 "selected"
 :
@@ -105,7 +103,7 @@ ${photo.title ?? photo.id}
 
 id="objectTitleInput"
 
-value="${object.title ?? ""}"
+value="${object?.title ?? "" ?? ""}"
 
 >
 
@@ -119,7 +117,7 @@ value="${object.title ?? ""}"
 
 id="objectDescriptionInput"
 
->${object.description ?? ""}</textarea>
+>${object?.description ?? "" ?? ""}</textarea>
 
 </label>
 
@@ -137,7 +135,7 @@ types.map(type=>`
 value="${type.id}"
 
 ${
-type.id === object.typeId
+type.id === object?.typeId
 ?
 "selected"
 :
@@ -306,7 +304,7 @@ object.parents ?? []
 
 let coverPhotoId =
 
-object.coverPhotoId ?? null;
+object?.coverPhotoId ?? null;
 
 const parentsBox =
 
@@ -651,162 +649,129 @@ e.target.value || null;
 // ======================================
 
 document.getElementById(
+    "saveObjectButton"
+).onclick = async ()=>{
 
-"saveObjectButton"
+    if(parents.length===0){
 
-).onclick=async()=>{
+        alert("Нужен хотя бы один родитель");
 
-if(parents.length===0){
+        return;
 
-alert(
+    }
 
-"Нужен хотя бы один родитель"
+    const newTypeId =
+        document.getElementById(
+            "objectTypeInput"
+        ).value;
 
-);
-
-return;
-
-}
-
-const newTypeId =
-
-document.getElementById(
-
-"objectTypeInput"
-
-).value;
-
-const newType =
-
-types.find(
-
-t=>t.id===newTypeId
-
-);
-
-const oldType =
-
-types.find(
-
-t=>t.id===object.typeId
-
-);
-
-if(
-
-children.length>0 &&
-
-newType.level < oldType.level
-
-){
-
-alert(
-
-"Нельзя выбрать тип ниже текущего"
-
-);
-
-return;
-
-}
-
-// Проверка родителей при смене уровня
-
-let resetParents = false;
-
-if(parents.length){
-
-    const firstParent =
-
-        objects.find(
-
-            o =>
-
-            o.id === parents[0].objectId
-
-        );
-
-    const parentType =
-
+    const newType =
         types.find(
-
-            t =>
-
-            t.id === firstParent.typeId
-
+            t=>t.id===newTypeId
         );
 
-    if(parentType){
+    if(object){
+
+        const oldType =
+            types.find(
+                t=>t.id===object.typeId
+            );
 
         if(
-            newType.level >= parentType.level
+            children.length>0 &&
+            newType.level < oldType.level
         ){
 
-            resetParents = true;
+            alert(
+                "Нельзя выбрать тип ниже текущего"
+            );
+
+            return;
+
+        }
+
+        let resetParents = false;
+
+        if(parents.length){
+
+            const firstParent =
+                objects.find(
+                    o=>o.id===parents[0].objectId
+                );
+
+            const parentType =
+                types.find(
+                    t=>t.id===firstParent.typeId
+                );
+
+            if(
+                parentType &&
+                newType.level >= parentType.level
+            ){
+                resetParents = true;
+            }
+
+        }
+
+        if(resetParents){
+
+            parents = [];
+
+            updateParents();
+
+            alert(
+                "Новый тип конфликтует с уровнем родителей."
+            );
+
+            return;
 
         }
 
     }
 
-}
+    const data = {
 
-if(resetParents){
+        title:
+            document.getElementById(
+                "objectTitleInput"
+            ).value,
 
-    parents = [];
+        description:
+            document.getElementById(
+                "objectDescriptionInput"
+            ).value,
 
-    updateParents();
+        typeId:newTypeId,
 
-    alert(
+        coverPhotoId,
 
-        "Новый тип конфликтует с уровнем родителей. Выберите родителей заново."
+        parents
 
-    );
+    };
 
-    return;
+    if(object){
 
-}
+        await updateDoc(
 
-await updateDoc(
+            doc(
+                db,
+                "objects",
+                object.id
+            ),
 
-doc(
+            data
 
-db,
+        );
 
-"objects",
+    }else{
 
-object.id
+        await createObject(
+            data
+        );
 
-),
+    }
 
-{
-
-title:
-
-document.getElementById(
-
-"objectTitleInput"
-
-).value,
-
-description:
-
-document.getElementById(
-
-"objectDescriptionInput"
-
-).value,
-
-typeId:newTypeId,
-
-coverPhotoId,
-
-parents
-
-}
-
-);
-
-onSave();
+    onSave();
 
 };
 
