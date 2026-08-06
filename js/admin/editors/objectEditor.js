@@ -40,19 +40,17 @@ export function renderObjectEditor(
         );
 
     const objectPhotos =
-
+    
         photos.filter(
-
+    
             photo =>
-
-            photo.parents?.some(
-
-                p =>
-
-                p.objectId === object.id
-
+    
+            photo.parents?.includes(
+    
+                object.id
+    
             )
-
+    
         );
 
     return `
@@ -712,23 +710,59 @@ return;
 
 }
 
-if(
+// Проверка родителей при смене уровня
 
-newType.level >= oldType.level
+let resetParents = false;
 
-){
+if(parents.length){
 
-parents=[];
+    const firstParent =
 
-updateParents();
+        objects.find(
 
-alert(
+            o =>
 
-"Уровень изменился. Выберите родителей заново."
+            o.id === parents[0].objectId
 
-);
+        );
 
-return;
+    const parentType =
+
+        types.find(
+
+            t =>
+
+            t.id === firstParent.typeId
+
+        );
+
+    if(parentType){
+
+        if(
+            newType.level >= parentType.level
+        ){
+
+            resetParents = true;
+
+        }
+
+    }
+
+}
+
+if(resetParents){
+
+    parents = [];
+
+    updateParents();
+
+    alert(
+
+        "Новый тип конфликтует с уровнем родителей. Выберите родителей заново."
+
+    );
+
+    return;
 
 }
 
