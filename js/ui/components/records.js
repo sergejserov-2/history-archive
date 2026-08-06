@@ -6,73 +6,65 @@ export function renderRecords(
 
     records,
 
-    ADMIN_MODE = false
+    ADMIN_MODE = false,
+
+    context = {}
 
 ) {
 
-    if (!records || records.length === 0) {
+    const rows =
 
-        return `
+        (records ?? [])
 
-            <p class="records-empty">
+        .map(record => {
 
-                Нет сведений
+            let period = "";
 
-            </p>
+            if (
 
-        `;
+                record.dateStart &&
 
-    }
+                record.dateEnd
 
-    const rows = records.map(record => {
+            ) {
 
-        let period = "";
+                period =
 
-        if (
+                    `${record.dateStart}–${record.dateEnd}`;
 
-            record.dateStart &&
+            }
 
-            record.dateEnd
+            else if (
 
-        ) {
+                record.dateStart
 
-            period =
+            ) {
 
-                `${record.dateStart}–${record.dateEnd}`;
+                period =
 
-        }
+                    `с ${record.dateStart}`;
 
-        else if (
+            }
 
-            record.dateStart
+            else if (
 
-        ) {
+                record.dateEnd
 
-            period =
+            ) {
 
-                `с ${record.dateStart}`;
+                period =
 
-        }
+                    `до ${record.dateEnd}`;
 
-        else if (
+            }
 
-            record.dateEnd
+            else {
 
-        ) {
+                period = "—";
 
-            period =
+            }
 
-                `до ${record.dateEnd}`;
-
-        }
-
-        else {
-
-            period = "—";
-
-        }
-
-        return `
+            return `
 
             <div class="record">
 
@@ -81,6 +73,7 @@ export function renderRecords(
                     ${record.title ?? ""}
 
                     ${
+
                         ADMIN_MODE
 
                         ?
@@ -98,6 +91,20 @@ export function renderRecords(
                         >
 
                             ✏
+
+                        </button>
+
+                        <button
+
+                            class="admin-button"
+
+                            data-action="delete-record"
+
+                            data-id="${record.id}"
+
+                        >
+
+                            🗑
 
                         </button>
 
@@ -125,9 +132,43 @@ export function renderRecords(
 
             </div>
 
+            `;
+
+        });
+
+    if(ADMIN_MODE){
+
+        rows.push(`
+
+            <div
+
+                class="record record--add"
+
+                data-action="add-record"
+
+            >
+
+                + Добавить запись
+
+            </div>
+
+        `);
+
+    }
+
+    if(rows.length === 0){
+
+        return `
+
+            <p class="records-empty">
+
+                Нет сведений
+
+            </p>
+
         `;
 
-    });
+    }
 
     return `
 
