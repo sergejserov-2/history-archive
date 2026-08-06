@@ -146,7 +146,7 @@ export function renderPhotos(
 
             <div
 
-                class="photo-card photo-card--add"
+                class="photo-card photo-card--add admin-button"
 
                 data-action="add-photo"
 
