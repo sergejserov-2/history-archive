@@ -14,17 +14,20 @@ import {
 from "../../api/storage.js";
 
 import {
-    updatePhoto
+    updatePhoto,
+    createPhoto
 }
 from "../../api/photos.js";
 
 import {
-    updateSource
+    updateSource,
+    createSource
 }
 from "../../api/sources.js";
 
 import {
-    updateRecord
+    updateRecord,
+    createRecord
 }
 from "../../api/records.js";
 
@@ -39,6 +42,7 @@ const CONFIG = {
         title: "Фото",
 
         update: updatePhoto,
+        create: createPhoto,
 
         upload: uploadPhotoOriginal,
 
@@ -59,6 +63,7 @@ const CONFIG = {
         title: "Источник",
 
         update: updateSource,
+        create: createSource,
 
         upload: uploadSourceDocument,
 
@@ -79,6 +84,7 @@ const CONFIG = {
         title: "Запись",
 
         update: updateRecord,
+        create: createRecord,
 
         file: false,
 
@@ -125,7 +131,7 @@ export function openEntityEditor(
 
     let parents = [
 
-        ...(entity.parents ?? [])
+        ...(entity?.parents ?? [])
 
     ];
 
@@ -277,7 +283,7 @@ export function openEntityEditor(
 
                 o=>
 
-                    o.id!==entity.id &&
+                    o.id!==entity?.id &&
 
                     !parents.includes(o.id) &&
 
@@ -421,13 +427,27 @@ saveButton.onclick = async()=>{
 
         }
 
-        await cfg.update(
+if(entity){
 
-            entity.id,
+    await cfg.update(
 
-            data
+        entity.id,
 
-        );
+        data
+
+    );
+
+}
+
+else{
+
+    await cfg.create(
+
+        data
+
+    );
+
+}
 
         modal.close();
 
