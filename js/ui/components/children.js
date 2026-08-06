@@ -12,7 +12,9 @@ import {
 }
 from "../../api/photos.js";
 
-import { renderBreadcrumbs }
+import { 
+    renderBreadcrumbs 
+}
 from "./breadcrumbs.js";
 
 // ======================================
@@ -27,23 +29,9 @@ export async function renderChildren(
 
 ) {
 
-    if (!children || children.length === 0) {
-
-        return `
-
-            <p class="children-empty">
-
-                Нет связанных объектов
-
-            </p>
-
-        `;
-
-    }
-
     const cards = await Promise.all(
 
-        children.map(async child => {
+        (children ?? []).map(async child => {
 
             const type = await getType(
                 child.typeId
@@ -142,27 +130,54 @@ export async function renderChildren(
 
     );
 
+    // ======================================
+    // Add object card
+    // ======================================
 
     if(ADMIN_MODE){
-    
+
         cards.unshift(`
-    
+
             <div
-    
+
                 class="child-card child-card--add"
-    
+
                 data-action="add-object"
-    
+
             >
-    
+
                 + Добавить объект
-    
+
             </div>
-    
+
         `);
-    
+
     }
-    
+
+    // ======================================
+    // Empty state
+    // ======================================
+
+    if(
+
+        cards.length === 0 &&
+
+        !ADMIN_MODE
+
+    ){
+
+        return `
+
+            <p class="children-empty">
+
+                Нет связанных объектов
+
+            </p>
+
+        `;
+
+    }
+
     return `
 
         <div class="children-list">
