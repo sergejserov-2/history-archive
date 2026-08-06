@@ -10,7 +10,9 @@ export function initAdmin(
 
     types,
 
-    objects
+    objects,
+
+    photos
 
 ) {
 
