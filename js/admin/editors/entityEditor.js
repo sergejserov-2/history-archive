@@ -517,6 +517,8 @@ function renderForm(
 
         CONFIG[type];
 
+    entity = entity ?? ();
+
     return `
 
 <div class="entity-editor">
