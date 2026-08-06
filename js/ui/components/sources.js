@@ -2,7 +2,13 @@
 // Sources component
 // ======================================
 
-export function renderSources(sources) {
+export function renderSources(
+
+    sources,
+
+    ADMIN_MODE = false
+
+) {
 
     if (!sources || sources.length === 0) {
 
@@ -42,6 +48,35 @@ export function renderSources(sources) {
                         }
 
                         ${source.title ?? ""}
+
+                        ${
+                            ADMIN_MODE
+
+                            ?
+
+                            `
+
+                            <button
+
+                                class="admin-button"
+
+                                data-action="edit-source"
+
+                                data-id="${source.id}"
+
+                            >
+
+                                ✏
+
+                            </button>
+
+                            `
+
+                            :
+
+                            ""
+
+                        }
 
                     </div>
 
