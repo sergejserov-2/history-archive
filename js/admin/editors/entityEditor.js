@@ -129,11 +129,17 @@ export function openEntityEditor(
 
     }
 
-    let parents = [
-
-        ...(entity?.parents ?? [])
-
-    ];
+    let parents =
+    
+        entity
+    
+        ?
+    
+        [...(entity.parents ?? [])]
+    
+        :
+    
+        [context.parentId];
 
     let file = null;
 
@@ -440,7 +446,19 @@ if(entity){
 }
 
 else{
-
+    if(
+        !entity &&
+        parents.length===0
+    ){
+    
+        alert(
+            "Нужен хотя бы один родитель"
+        );
+    
+        return;
+    
+    }
+    
     await cfg.create(
 
         data
