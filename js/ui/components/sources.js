@@ -6,27 +6,19 @@ export function renderSources(
 
     sources,
 
-    ADMIN_MODE = false
+    ADMIN_MODE = false,
+
+    context = {}
 
 ) {
 
-    if (!sources || sources.length === 0) {
+    const rows =
 
-        return `
+        (sources ?? [])
 
-            <p class="sources-empty">
+        .map(source => {
 
-                Нет источников
-
-            </p>
-
-        `;
-
-    }
-
-    const rows = sources.map(source => {
-
-        return `
+            return `
 
             <div class="source">
 
@@ -70,6 +62,20 @@ export function renderSources(
 
                             </button>
 
+                            <button
+
+                                class="admin-button"
+
+                                data-action="delete-source"
+
+                                data-id="${source.id}"
+
+                            >
+
+                                🗑
+
+                            </button>
+
                             `
 
                             :
@@ -96,9 +102,43 @@ export function renderSources(
 
             </div>
 
+            `;
+
+        });
+
+    if(ADMIN_MODE){
+
+        rows.push(`
+
+            <div
+
+                class="source source--add"
+
+                data-action="add-source"
+
+            >
+
+                + Добавить источник
+
+            </div>
+
+        `);
+
+    }
+
+    if(rows.length === 0){
+
+        return `
+
+            <p class="sources-empty">
+
+                Нет источников
+
+            </p>
+
         `;
 
-    });
+    }
 
     return `
 
