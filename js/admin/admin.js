@@ -60,7 +60,7 @@ const button =
 
 event.target.closest(
 
-"[admin-button]"
+".admin-button"
 
 );
 
