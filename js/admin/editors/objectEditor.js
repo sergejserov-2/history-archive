@@ -478,11 +478,17 @@ return;
 
 }
 
+const selectedTypeId =
+
+document.getElementById(
+"objectTypeInput"
+).value;
+    
 const objectType =
 
 types.find(
 
-t=>t.id===object.typeId
+t=>t.id===selectedTypeId
 
 );
 
@@ -708,11 +714,13 @@ return;
 
 if(
 
-newType.level !== oldType.level
+newType.level >= oldType.level
 
 ){
 
 parents=[];
+
+updateParents();
 
 alert(
 
