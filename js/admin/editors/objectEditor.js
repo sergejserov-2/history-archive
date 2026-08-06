@@ -1,20 +1,6 @@
 // ======================================
 // Object editor
-// ======================================
-
-import {
-    doc,
-    updateDoc
-}
-from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-import {
-    db
-}
-from "../../firebase.js";
-
-// ======================================
-// Render
+// Part 1 — Render
 // ======================================
 
 export function renderObjectEditor(
@@ -23,13 +9,76 @@ export function renderObjectEditor(
 
     types,
 
-    objects
+    objects,
+
+    photos
 
 ) {
+
+    const currentType =
+
+        types.find(
+
+            t => t.id === object.typeId
+
+        );
 
     return `
 
     <div class="object-editor">
+
+        <!-- =========================
+             Cover photo
+        ========================== -->
+
+        <label>
+
+            Обложка
+
+            <select id="objectCoverInput">
+
+                <option value="">
+
+                    Без фотографии
+
+                </option>
+
+                ${
+                    photos.map(photo => `
+
+                        <option
+
+                            value="${photo.id}"
+
+                            ${
+                                photo.id === object.coverPhotoId
+
+                                ?
+
+                                "selected"
+
+                                :
+
+                                ""
+
+                            }
+
+                        >
+
+                            ${photo.title ?? photo.id}
+
+                        </option>
+
+                    `).join("")
+                }
+
+            </select>
+
+        </label>
+
+        <!-- =========================
+             Title
+        ========================== -->
 
         <label>
 
@@ -45,6 +94,10 @@ export function renderObjectEditor(
 
         </label>
 
+        <!-- =========================
+             Description
+        ========================== -->
+
         <label>
 
             Описание
@@ -57,22 +110,29 @@ export function renderObjectEditor(
 
         </label>
 
+        <!-- =========================
+             Type
+        ========================== -->
+
         <label>
 
             Тип
 
-            <select id="objectTypeInput">
+            <select
+
+                id="objectTypeInput"
+
+            >
 
             ${
-                types.map(t => `
+                types.map(type => `
 
                     <option
 
-                        value="${t.id}"
+                        value="${type.id}"
 
                         ${
-
-                            t.id === object.typeId
+                            type.id === object.typeId
 
                             ?
 
@@ -86,7 +146,7 @@ export function renderObjectEditor(
 
                     >
 
-                        ${t.title}
+                        ${type.title}
 
                     </option>
 
@@ -97,57 +157,77 @@ export function renderObjectEditor(
 
         </label>
 
+        <!-- =========================
+             Parents
+        ========================== -->
+
         <label>
 
             Родители
 
-            <div id="parentsContainer">
+            <div
 
-            ${
-                renderParents(
+                id="parentsContainer"
 
-                    object,
+            >
 
-                    objects
+                ${
 
-                )
-            }
+                    renderParentList(
+
+                        object,
+
+                        objects
+
+                    )
+
+                }
 
             </div>
 
         </label>
 
-<div class="parent-search">
+        <div class="parent-search">
 
-    <input
+            <input
 
-        id="parentSearchInput"
+                id="parentSearchInput"
 
-        placeholder="Добавить родителя..."
+                placeholder="Добавить родителя..."
 
-        autocomplete="off"
+                autocomplete="off"
 
-    >
+            >
 
-    <div
+            <div
 
-        id="parentSearchResults"
+                id="parentSearchResults"
 
-        class="parent-search-results"
+            ></div>
 
-    ></div>
+        </div>
 
-</div>
+        <!-- =========================
+             Buttons
+        ========================== -->
 
         <div class="object-editor__buttons">
 
-            <button id="saveObjectButton">
+            <button
+
+                id="saveObjectButton"
+
+            >
 
                 Сохранить
 
             </button>
 
-            <button id="cancelObjectButton">
+            <button
+
+                id="cancelObjectButton"
+
+            >
 
                 Отмена
 
@@ -162,532 +242,83 @@ export function renderObjectEditor(
 }
 
 // ======================================
-// Parents render
+// Parent list
 // ======================================
 
-function renderParents(
+function renderParentList(
 
     object,
 
     objects
 
-){
+) {
 
-    return (object.parents ?? [])
+    if (
 
-        .map(id => {
+        !object.parents ||
 
-            const parent =
-                objects.find(
-                    o=>o.id===id
-                );
+        object.parents.length === 0
 
-            return `
+    ) {
 
-            <div class="parent-item">
+        return `
 
-                ${parent?.title ?? id}
+            <div class="parents-empty">
 
-                <button
-
-                    data-remove-parent="${id}"
-
-                >
-
-                    ×
-
-                </button>
+                Нет родителей
 
             </div>
 
-            `;
+        `;
 
-        })
+    }
 
-        .join("");
+    return object.parents.map(parent => {
 
-}
+        const obj =
 
-// ======================================
-// Init
-// ======================================
+            objects.find(
 
-export function initObjectEditor(
+                o =>
 
-    object,
+                o.id === parent.objectId
 
-    types,
+            );
 
-    objects,
+        return `
 
-    onSave
+        <div class="parent-item">
 
-){
+            <div class="parent-item__title">
 
-let parents =
-    [...(object.parents ?? [])];
+                ${obj?.title ?? parent.objectId}
 
-document.addEventListener(
+            </div>
 
-"click",
+            <input
 
-event=>{
+                class="parent-address-input"
 
-const remove =
-event.target.dataset.removeParent;
+                data-parent="${parent.objectId}"
 
-if(remove){
+                value="${parent.address ?? ""}"
 
-parents =
-parents.filter(
-id=>id!==remove
-);
+            >
 
-renderParentBlock();
+            <button
 
-}
+                data-remove-parent="${parent.objectId}"
 
-}
+            >
 
-);
+                ×
 
-function renderParentBlock(){
+            </button>
 
-document.getElementById(
+        </div>
 
-"parentsContainer"
+        `;
 
-).innerHTML =
-
-parents.map(id=>{
-
-const p =
-objects.find(
-o=>o.id===id
-);
-
-return `
-
-<div class="parent-item">
-
-${p.title}
-
-<button
-
-data-remove-parent="${id}"
-
->
-
-×
-
-</button>
-
-</div>
-
-`;
-
-}).join("");
+    }).join("");
 
 }
-
-const searchInput =
-
-document.getElementById(
-
-"parentSearchInput"
-
-);
-
-const results =
-
-document.getElementById(
-
-"parentSearchResults"
-
-);
-
-searchInput.oninput = ()=>{
-
-const text =
-searchInput.value
-.trim()
-.toLowerCase();
-
-if(!text){
-
-results.style.display="none";
-
-return;
-
-}
-
-const currentType =
-
-types.find(
-
-t=>
-
-t.id===
-
-document.getElementById(
-
-"objectTypeInput"
-
-).value
-
-);
-
-const currentLevel =
-currentType.level;
-
-let parentLevel=null;
-
-if(parents.length){
-
-const first=
-objects.find(
-o=>o.id===parents[0]
-);
-
-const firstType=
-types.find(
-t=>t.id===first.typeId
-);
-
-parentLevel=
-firstType.level;
-
-}
-
-const candidates=
-
-objects.filter(o=>{
-
-if(o.id===object.id)
-
-return false;
-
-if(parents.includes(o.id))
-
-return false;
-
-const type=
-types.find(
-t=>t.id===o.typeId
-);
-
-if(!type)
-
-return false;
-
-if(parentLevel){
-
-if(type.level!==parentLevel)
-
-return false;
-
-}
-
-else{
-
-if(type.level<=currentLevel)
-
-return false;
-
-}
-
-return (
-
-o.title
-
-.toLowerCase()
-
-.includes(text)
-
-);
-
-});
-
-    
-results.innerHTML=
-
-candidates.map(o=>`
-
-<div
-
-class="parent-result"
-
-data-parent="${o.id}"
-
->
-
-${o.title}
-
-</div>
-
-`).join("");
-
-results.style.display=
-
-candidates.length
-
-?
-
-"block"
-
-:
-
-"none";
-
-};
-
-results.onclick = event=>{
-
-const item=
-
-event.target.closest(
-
-".parent-result"
-
-);
-
-if(!item)
-
-return;
-
-parents.push(
-
-item.dataset.parent
-
-);
-
-renderParentBlock();
-
-searchInput.value="";
-
-results.innerHTML="";
-
-results.style.display="none";
-
-};
-
-const currentLevel =
-currentType.level;
-
-let parentLevel = null;
-
-if(parents.length){
-
-const first =
-objects.find(
-
-o=>
-
-o.id===parents[0]
-
-);
-
-const firstType =
-types.find(
-
-t=>
-
-t.id===first.typeId
-
-);
-
-parentLevel =
-firstType.level;
-
-}
-
-const candidates =
-
-objects.filter(o=>{
-
-if(
-o.id===object.id
-)
-
-return false;
-    
-    const t =
-types.find(
-
-x=>
-
-x.id===o.typeId
-
-);
-
-if(!t)
-
-return false;
-
-if(parentLevel)
-
-return t.level===parentLevel;
-
-return t.level > currentLevel;
-
-});
-
-const id =
-prompt(
-
-"Введите ID родителя:\n\n"
-
-+
-
-candidates
-
-.map(
-x=>`${x.id} — ${x.title}`
-)
-
-.join("\n")
-
-);
-
-if(
-
-id &&
-
-candidates.some(
-x=>x.id===id
-)
-
-){
-
-parents.push(id);
-
-renderParentBlock();
-
-}
-
-document.getElementById(
-
-"saveObjectButton"
-
-).onclick = async ()=>{
-
-const newTypeId =
-
-document.getElementById(
-
-"objectTypeInput"
-
-).value;
-
-const oldType =
-
-types.find(
-
-t=>t.id===object.typeId
-
-);
-
-const newType =
-
-types.find(
-
-t=>t.id===newTypeId
-
-);
-
-let newParents =
-parents;
-
-// если уровень изменился
-
-if(
-
-oldType.level !== newType.level
-
-){
-
-const valid =
-
-parents.every(id=>{
-
-const p =
-objects.find(
-o=>o.id===id
-);
-
-const pt =
-types.find(
-
-t=>
-
-t.id===p.typeId
-
-);
-
-return pt.level > newType.level;
-
-});
-
-if(!valid){
-
-newParents=[];
-
-alert(
-
-"Уровень изменился. Родители сброшены."
-
-);
-
-}
-
-}
-
-await updateDoc(
-
-doc(
-
-db,
-
-"objects",
-
-object.id
-
-),
-
-{
-
-title:
-
-document.getElementById(
-
-"objectTitleInput"
-
-).value,
-
-description:
-
-document.getElementById(
-
-"objectDescriptionInput"
-
-).value,
-
-typeId:newTypeId,
-
-parents:newParents
-
-}
-
-);
-
-onSave();
-
-};
-
-document.getElementById(
-
-"cancelObjectButton"
-
-).onclick = onSave;
-
-};
