@@ -1,6 +1,20 @@
 // ======================================
 // Object editor
-// Part 1 — Render
+// ======================================
+
+import {
+    doc,
+    updateDoc
+}
+from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+import {
+    db
+}
+from "../../firebase.js";
+
+// ======================================
+// Render
 // ======================================
 
 export function renderObjectEditor(
@@ -11,7 +25,9 @@ export function renderObjectEditor(
 
     objects,
 
-    photos
+    photos,
+
+    children
 
 ) {
 
@@ -23,309 +39,243 @@ export function renderObjectEditor(
 
         );
 
+    const objectPhotos =
+
+        photos.filter(
+
+            photo =>
+
+            photo.parents?.some(
+
+                p =>
+
+                p.objectId === object.id
+
+            )
+
+        );
+
     return `
 
-    <div class="object-editor">
+<div class="object-editor">
 
-        <!-- =========================
-             Cover photo
-        ========================== -->
+<label>
 
-        <label>
+Обложка
 
-            Обложка
+<select id="objectCoverInput">
 
-            <select id="objectCoverInput">
+<option value="">
 
-                <option value="">
+Без фотографии
 
-                    Без фотографии
+</option>
 
-                </option>
+${
+objectPhotos.map(photo=>`
 
-                ${
-                    photos.map(photo => `
+<option
 
-                        <option
+value="${photo.id}"
 
-                            value="${photo.id}"
+${
+photo.id === object.coverPhotoId
+?
+"selected"
+:
+""
+}
 
-                            ${
-                                photo.id === object.coverPhotoId
+>
 
-                                ?
+${photo.title ?? photo.id}
 
-                                "selected"
+</option>
 
-                                :
+`).join("")
+}
 
-                                ""
+</select>
 
-                            }
+</label>
 
-                        >
+<label>
 
-                            ${photo.title ?? photo.id}
+Название
 
-                        </option>
+<input
 
-                    `).join("")
-                }
+id="objectTitleInput"
 
-            </select>
+value="${object.title ?? ""}"
 
-        </label>
+>
 
-        <!-- =========================
-             Title
-        ========================== -->
+</label>
 
-        <label>
+<label>
 
-            Название
+Описание
 
-            <input
+<textarea
 
-                id="objectTitleInput"
+id="objectDescriptionInput"
 
-                value="${object.title ?? ""}"
+>${object.description ?? ""}</textarea>
 
-            >
+</label>
 
-        </label>
+<label>
 
-        <!-- =========================
-             Description
-        ========================== -->
+Тип
 
-        <label>
+<select id="objectTypeInput">
 
-            Описание
+${
+types.map(type=>`
 
-            <textarea
+<option
 
-                id="objectDescriptionInput"
+value="${type.id}"
 
-            >${object.description ?? ""}</textarea>
+${
+type.id === object.typeId
+?
+"selected"
+:
+""
+}
 
-        </label>
+${
+children.length > 0 &&
+type.level < currentType.level
+?
+"disabled"
+:
+""
+}
 
-        <!-- =========================
-             Type
-        ========================== -->
+>
 
-        <label>
+${type.title}
 
-            Тип
+</option>
 
-            <select
+`).join("")
+}
 
-                id="objectTypeInput"
+</select>
 
-            >
+</label>
 
-            ${
-                types.map(type => `
+<label>
 
-                    <option
+Родители
 
-                        value="${type.id}"
+<div id="parentsContainer">
 
-                        ${
-                            type.id === object.typeId
+${renderParents(object,objects)}
 
-                            ?
+</div>
 
-                            "selected"
+</label>
 
-                            :
+<input
 
-                            ""
+id="parentSearchInput"
 
-                        }
+placeholder="Добавить родителя"
 
-                    >
+>
 
-                        ${type.title}
+<div id="parentSearchResults">
 
-                    </option>
+</div>
 
-                `).join("")
-            }
+<button id="saveObjectButton">
 
-            </select>
+Сохранить
 
-        </label>
+</button>
 
-        <!-- =========================
-             Parents
-        ========================== -->
+<button id="cancelObjectButton">
 
-        <label>
+Отмена
 
-            Родители
+</button>
 
-            <div
+</div>
 
-                id="parentsContainer"
-
-            >
-
-                ${
-
-                    renderParentList(
-
-                        object,
-
-                        objects
-
-                    )
-
-                }
-
-            </div>
-
-        </label>
-
-        <div class="parent-search">
-
-            <input
-
-                id="parentSearchInput"
-
-                placeholder="Добавить родителя..."
-
-                autocomplete="off"
-
-            >
-
-            <div
-
-                id="parentSearchResults"
-
-            ></div>
-
-        </div>
-
-        <!-- =========================
-             Buttons
-        ========================== -->
-
-        <div class="object-editor__buttons">
-
-            <button
-
-                id="saveObjectButton"
-
-            >
-
-                Сохранить
-
-            </button>
-
-            <button
-
-                id="cancelObjectButton"
-
-            >
-
-                Отмена
-
-            </button>
-
-        </div>
-
-    </div>
-
-    `;
+`;
 
 }
 
 // ======================================
-// Parent list
+// Render parents
 // ======================================
 
-function renderParentList(
+function renderParents(
 
     object,
 
     objects
 
-) {
+){
 
-    if (
+return (object.parents ?? [])
 
-        !object.parents ||
+.map(parent=>{
 
-        object.parents.length === 0
+const obj =
 
-    ) {
+objects.find(
 
-        return `
+o=>o.id === parent.objectId
 
-            <div class="parents-empty">
+);
 
-                Нет родителей
+return `
 
-            </div>
+<div class="parent-item">
 
-        `;
+<div>
 
-    }
+${obj?.title ?? parent.objectId}
 
-    return object.parents.map(parent => {
+</div>
 
-        const obj =
+<input
 
-            objects.find(
+class="parent-address"
 
-                o =>
+data-id="${parent.objectId}"
 
-                o.id === parent.objectId
+value="${parent.address ?? ""}"
 
-            );
+>
 
-        return `
+<button
 
-        <div class="parent-item">
+data-remove="${parent.objectId}"
 
-            <div class="parent-item__title">
+>
 
-                ${obj?.title ?? parent.objectId}
+×
 
-            </div>
+</button>
 
-            <input
+</div>
 
-                class="parent-address-input"
+`;
 
-                data-parent="${parent.objectId}"
+})
 
-                value="${parent.address ?? ""}"
-
-            >
-
-            <button
-
-                data-remove-parent="${parent.objectId}"
-
-            >
-
-                ×
-
-            </button>
-
-        </div>
-
-        `;
-
-    }).join("");
+.join("");
 
 }
 
 // ======================================
-// Object editor
-// Part 2 — Interaction
+// Init
 // ======================================
 
 export function initObjectEditor(
@@ -338,623 +288,492 @@ export function initObjectEditor(
 
     photos,
 
+    children,
+
     onSave
 
-) {
+){
 
-    let parents =
+let parents =
 
-        JSON.parse(
+JSON.parse(
 
-            JSON.stringify(
+JSON.stringify(
 
-                object.parents ?? []
+object.parents ?? []
 
-            )
+)
 
-        );
+);
 
-    let coverPhotoId =
+let coverPhotoId =
 
-        object.coverPhotoId ?? null;
+object.coverPhotoId ?? null;
 
-    const searchInput =
+const parentsBox =
 
-        document.getElementById(
+document.getElementById(
 
-            "parentSearchInput"
+"parentsContainer"
 
-        );
+);
 
-    const searchResults =
+const search =
 
-        document.getElementById(
+document.getElementById(
 
-            "parentSearchResults"
+"parentSearchInput"
 
-        );
+);
 
-    const parentsContainer =
+const results =
 
-        document.getElementById(
+document.getElementById(
 
-            "parentsContainer"
+"parentSearchResults"
 
-        );
+);
 
-    // ==================================
-    // Render parents from state
-    // ==================================
+// ======================================
+// Update parents UI
+// ======================================
 
-    function updateParentsUI(){
+function updateParents(){
 
-        parentsContainer.innerHTML =
+parentsBox.innerHTML =
 
-            parents.map(parent => {
+parents.map(parent=>{
 
-                const obj =
+const obj =
 
-                    objects.find(
+objects.find(
 
-                        o =>
+o=>o.id===parent.objectId
 
-                        o.id === parent.objectId
+);
 
-                    );
+return `
 
-                return `
+<div class="parent-item">
 
-                <div class="parent-item">
+<div>
 
-                    <div>
+${obj?.title ?? parent.objectId}
 
-                        ${
+</div>
 
-                            obj?.title ??
+<input
 
-                            parent.objectId
+class="parent-address"
 
-                        }
+data-id="${parent.objectId}"
 
-                    </div>
+value="${parent.address ?? ""}"
 
-                    <input
+>
 
-                        class="parent-address-input"
+<button
 
-                        data-parent="${parent.objectId}"
+data-remove="${parent.objectId}"
 
-                        value="${parent.address ?? ""}"
+>
 
-                    >
+×
 
-                    <button
+</button>
 
-                        data-remove-parent="${parent.objectId}"
+</div>
 
-                    >
+`;
 
-                        ×
+})
 
-                    </button>
+.join("");
 
-                </div>
+}
 
-                `;
+// ======================================
+// Remove parent
+// ======================================
 
-            }).join("");
+parentsBox.onclick = e=>{
 
-    }
+const id =
 
-    // ==================================
-    // Remove parent
-    // ==================================
+e.target.dataset.remove;
 
-    document.addEventListener(
+if(!id)
 
-        "click",
+return;
 
-        event => {
+parents =
 
-            const id =
+parents.filter(
 
-                event.target.dataset.removeParent;
+p=>p.objectId !== id
 
-            if(!id){
+);
 
-                return;
+updateParents();
 
-            }
+};
 
-            parents =
+// ======================================
+// Address change
+// ======================================
 
-                parents.filter(
+parentsBox.oninput = e=>{
 
-                    p =>
+if(
 
-                    p.objectId !== id
+!e.target.classList.contains(
 
-                );
+"parent-address"
 
-            updateParentsUI();
+)
 
-        }
+)
 
-    );
+return;
 
-    // ==================================
-    // Address change
-    // ==================================
+const parent =
 
-    document.addEventListener(
+parents.find(
 
-        "input",
+p=>
 
-        event => {
+p.objectId ===
 
-            if(
+e.target.dataset.id
 
-                !event.target.classList.contains(
+);
 
-                    "parent-address-input"
+if(parent)
 
-                )
+parent.address =
 
-            ){
+e.target.value;
 
-                return;
+};
 
-            }
+// ======================================
+// Parent search
+// ======================================
 
-            const id =
+search.oninput = ()=>{
 
-                event.target.dataset.parent;
+const text =
 
-            const parent =
+search.value
 
-                parents.find(
+.toLowerCase()
 
-                    p =>
+.trim();
 
-                    p.objectId === id
+if(!text){
 
-                );
+results.innerHTML="";
 
-            if(parent){
+return;
 
-                parent.address =
+}
 
-                    event.target.value;
+const objectType =
 
-            }
+types.find(
 
-        }
+t=>t.id===object.typeId
 
-    );
+);
 
-    // ==================================
-    // Parent search
-    // ==================================
+let level = null;
 
-    searchInput.oninput = () => {
+if(parents.length){
 
-        const text =
+const first =
 
-            searchInput.value
+objects.find(
 
-            .trim()
+o=>
 
-            .toLowerCase();
+o.id===parents[0].objectId
 
-        if(!text){
+);
 
-            searchResults.innerHTML="";
+level =
 
-            return;
+types.find(
 
-        }
+t=>
 
-        const currentType =
+t.id===first.typeId
 
-            types.find(
+)?.level;
 
-                t =>
+}
 
-                t.id ===
+const list =
 
-                document
+objects.filter(o=>{
 
-                .getElementById(
+if(o.id===object.id)
 
-                    "objectTypeInput"
+return false;
 
-                )
+if(
 
-                .value
+parents.some(
 
-            );
+p=>
 
-        const currentLevel =
+p.objectId===o.id
 
-            currentType?.level;
+)
 
-        let parentLevel = null;
+)
 
-        if(parents.length){
+return false;
 
-            const first =
+const type =
 
-                objects.find(
+types.find(
 
-                    o =>
+t=>t.id===o.typeId
 
-                    o.id ===
+);
 
-                    parents[0].objectId
+if(!type)
 
-                );
+return false;
 
-            const firstType =
+if(level !== null)
 
-                types.find(
+return type.level === level;
 
-                    t =>
+return type.level >
 
-                    t.id === first?.typeId
+objectType.level;
 
-                );
+});
 
-            parentLevel =
+results.innerHTML =
 
-                firstType?.level;
+list
 
-        }
+.filter(
 
-        const candidates =
+o=>
 
-            objects.filter(o => {
+o.title
 
-                if(
+.toLowerCase()
 
-                    o.id === object.id
+.includes(text)
 
-                ){
+)
 
-                    return false;
+.map(o=>`
 
-                }
+<div
 
-                if(
+class="parent-result"
 
-                    parents.some(
+data-id="${o.id}"
 
-                        p =>
+>
 
-                        p.objectId === o.id
+${o.title}
 
-                    )
+</div>
 
-                ){
+`)
 
-                    return false;
+.join("");
 
-                }
+};
 
-                const type =
+// ======================================
+// Select parent
+// ======================================
 
-                    types.find(
+results.onclick=e=>{
 
-                        t =>
+const item =
 
-                        t.id === o.typeId
+e.target.closest(
 
-                    );
+".parent-result"
 
-                if(!type){
+);
 
-                    return false;
+if(!item)
 
-                }
+return;
 
-                if(parentLevel){
+parents.push({
 
-                    if(
+objectId:item.dataset.id,
 
-                        type.level !== parentLevel
+address:""
 
-                    ){
+});
 
-                        return false;
+updateParents();
 
-                    }
+search.value="";
 
-                }
+results.innerHTML="";
 
-                else{
+};
 
-                    if(
+// ======================================
+// Cover
+// ======================================
 
-                        type.level <= currentLevel
+document.getElementById(
 
-                    ){
+"objectCoverInput"
 
-                        return false;
+).onchange=e=>{
 
-                    }
+coverPhotoId =
 
-                }
+e.target.value || null;
 
-                return o.title
+};
 
-                    .toLowerCase()
+// ======================================
+// Save
+// ======================================
 
-                    .includes(text);
+document.getElementById(
 
-            });
+"saveObjectButton"
 
-        searchResults.innerHTML =
+).onclick=async()=>{
 
-            candidates.map(o => `
+if(parents.length===0){
 
-                <div
+alert(
 
-                    class="parent-search-item"
+"Нужен хотя бы один родитель"
 
-                    data-parent="${o.id}"
+);
 
-                >
+return;
 
-                    ${o.title}
+}
 
-                </div>
+const newTypeId =
 
-            `)
+document.getElementById(
 
-            .join("");
+"objectTypeInput"
 
-    };
+).value;
 
-    // ==================================
-    // Select parent
-    // ==================================
+const newType =
 
-    searchResults.onclick = event => {
+types.find(
 
-        const item =
+t=>t.id===newTypeId
 
-            event.target.closest(
+);
 
-                ".parent-search-item"
+const oldType =
 
-            );
+types.find(
 
-        if(!item){
+t=>t.id===object.typeId
 
-            return;
+);
 
-        }
+if(
 
-        parents.push({
+children.length>0 &&
 
-            objectId:
+newType.level < oldType.level
 
-                item.dataset.parent,
+){
 
-            address:
+alert(
 
-                ""
+"Нельзя выбрать тип ниже текущего"
 
-        });
+);
 
-        updateParentsUI();
+return;
 
-        searchInput.value="";
+}
 
-        searchResults.innerHTML="";
+if(
 
-    };
+newType.level !== oldType.level
 
-// ==================================
-    // Cover photo change
-    // ==================================
+){
 
-    document.getElementById(
+parents=[];
 
-        "objectCoverInput"
+alert(
 
-    ).onchange = event => {
+"Уровень изменился. Выберите родителей заново."
 
-        coverPhotoId =
+);
 
-            event.target.value || null;
+return;
 
-    };
+}
 
-    // ==================================
-    // Save
-    // ==================================
+await updateDoc(
 
-    document.getElementById(
+doc(
 
-        "saveObjectButton"
+db,
 
-    ).onclick = async () => {
+"objects",
 
-        // ------------------------------
-        // Parents check
-        // ------------------------------
+object.id
 
-        if(
+),
 
-            parents.length === 0
+{
 
-        ){
+title:
 
-            alert(
+document.getElementById(
 
-                "Необходимо выбрать хотя бы одного родителя."
+"objectTitleInput"
 
-            );
+).value,
 
-            return;
+description:
 
-        }
+document.getElementById(
 
-        // ------------------------------
-        // Type check
-        // ------------------------------
+"objectDescriptionInput"
 
-        const newTypeId =
+).value,
 
-            document.getElementById(
+typeId:newTypeId,
 
-                "objectTypeInput"
+coverPhotoId,
 
-            ).value;
+parents
 
-        const oldType =
+}
 
-            types.find(
+);
 
-                t =>
+onSave();
 
-                t.id === object.typeId
+};
 
-            );
+document.getElementById(
 
-        const newType =
+"cancelObjectButton"
 
-            types.find(
+).onclick=
 
-                t =>
+onSave;
 
-                t.id === newTypeId
-
-            );
-
-        let newParents =
-
-            [...parents];
-
-        // уровень изменился
-
-        if(
-
-            oldType?.level !== newType?.level
-
-        ){
-
-            newParents = [];
-
-            alert(
-
-                "Уровень объекта изменился. Родители сброшены. Выберите их заново."
-
-            );
-
-            updateParentsUI();
-
-            return;
-
-        }
-
-        // ------------------------------
-        // Children restriction
-        // ------------------------------
-
-        if(
-
-            object.childrenCount &&
-
-            newType.level < oldType.level
-
-        ){
-
-            alert(
-
-                "Объект с дочерними элементами нельзя переместить ниже уровня."
-
-            );
-
-            return;
-
-        }
-
-        // ------------------------------
-        // Save object
-        // ------------------------------
-
-        await updateDoc(
-
-            doc(
-
-                db,
-
-                "objects",
-
-                object.id
-
-            ),
-
-            {
-
-                title:
-
-                    document
-
-                    .getElementById(
-
-                        "objectTitleInput"
-
-                    )
-
-                    .value,
-
-                description:
-
-                    document
-
-                    .getElementById(
-
-                        "objectDescriptionInput"
-
-                    )
-
-                    .value,
-
-                typeId:
-
-                    newTypeId,
-
-                coverPhotoId:
-
-                    coverPhotoId,
-
-                parents:
-
-                    newParents
-
-            }
-
-        );
-
-        onSave();
-
-    };
-
-    // ==================================
-    // Cancel
-    // ==================================
-
-    document.getElementById(
-
-        "cancelObjectButton"
-
-    ).onclick = () => {
-
-        onSave();
-
-    };
-
-    
 }
