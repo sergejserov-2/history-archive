@@ -2,7 +2,13 @@
 // Photos component
 // ======================================
 
-export function renderPhotos(photos) {
+export function renderPhotos(
+
+    photos,
+
+    ADMIN_MODE = false
+
+) {
 
     if (!photos || photos.length === 0) {
 
@@ -25,6 +31,7 @@ export function renderPhotos(photos) {
             ?
 
             `
+
             <img
 
                 class="photo-card__image"
@@ -34,16 +41,19 @@ export function renderPhotos(photos) {
                 alt="${photo.title ?? ""}"
 
             >
+
             `
 
             :
 
             `
+
             <div class="photo-card__placeholder">
 
                 Фото отсутствует
 
             </div>
+
             `;
 
         return `
@@ -60,6 +70,35 @@ export function renderPhotos(photos) {
 
                     ${photo.title ?? ""}
 
+                    ${
+                        ADMIN_MODE
+
+                        ?
+
+                        `
+
+                        <button
+
+                            class="admin-button"
+
+                            data-action="edit-photo"
+
+                            data-id="${photo.id}"
+
+                        >
+
+                            ✏
+
+                        </button>
+
+                        `
+
+                        :
+
+                        ""
+
+                    }
+
                 </div>
 
                 <div class="photo-card__date">
@@ -69,16 +108,19 @@ export function renderPhotos(photos) {
                 </div>
 
                 ${
+
                     photo.author
 
                     ?
 
                     `
+
                     <div class="photo-card__author">
 
                         ${photo.author}
 
                     </div>
+
                     `
 
                     :
