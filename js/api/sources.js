@@ -26,7 +26,7 @@ export async function getSources(objectId) {
     );
 
     const snapshot = await getDocs(q);
-console.log("SOURCES DATA", snapshot.docs.map(doc => doc.data()));
+
     return snapshot.docs.map(
         doc => ({
 
@@ -35,6 +35,32 @@ console.log("SOURCES DATA", snapshot.docs.map(doc => doc.data()));
             ...doc.data()
 
         })
+    );
+
+}
+
+export async function updateSource(
+
+    id,
+
+    data
+
+){
+
+    await updateDoc(
+
+        doc(
+
+            db,
+
+            "sources",
+
+            id
+
+        ),
+
+        data
+
     );
 
 }
