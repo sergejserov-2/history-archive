@@ -8,7 +8,9 @@ import {
     doc,
     getDoc,
     collection,
-    getDocs
+    getDocs,
+    addDoc,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 // ======================================
@@ -177,5 +179,44 @@ export async function getChildren(parentId) {
         );
 
     });
+
+}
+
+// ======================================
+// Create object
+// ======================================
+
+export async function createObject(data){
+
+    const ref = await addDoc(
+
+        collection(
+            db,
+            "objects"
+        ),
+
+        data
+
+    );
+
+    return ref.id;
+
+}
+
+// ======================================
+// Delete object
+// ======================================
+
+export async function deleteObject(id){
+
+    await deleteDoc(
+
+        doc(
+            db,
+            "objects",
+            id
+        )
+
+    );
 
 }
