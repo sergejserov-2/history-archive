@@ -151,7 +151,7 @@ async function loadPage() {
     );
 
         if (ADMIN_MODE) {
-        initAdmin(object, types, objects, photos, children);
+        initAdmin(object, types, objects, photos, children, records, sources);
     }
 
 }
