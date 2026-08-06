@@ -178,11 +178,11 @@ body {
 
 .object__cover img {
 
-    width: 100%;
+    width:100%;
 
-    height: 100%;
+    height:100%;
 
-    object-fit: cover;
+    object-fit:cover;
 
 }
 
@@ -192,59 +192,59 @@ body {
 
 .object__info {
 
-    flex: 1;
+    flex:1;
 
-    display: flex;
+    display:flex;
 
-    flex-direction: column;
+    flex-direction:column;
 
 }
 
 .object__type {
 
-    color: #9da4ac;
+    color:#9da4ac;
 
-    font-size: 12px;
+    font-size:12px;
 
-    text-transform: uppercase;
+    text-transform:uppercase;
 
-    margin-bottom: 5px;
+    margin-bottom:5px;
 
 }
 
 .object__title {
 
-    font-size: 24px;
+    font-size:24px;
 
-    line-height: 1.3;
+    line-height:1.3;
 
-    font-weight: 600;
+    font-weight:600;
 
-    color: #eef0f2;
+    color:#eef0f2;
 
-    margin-bottom: 5px;
+    margin-bottom:5px;
 
 }
 
 .object__address {
 
-    font-size: 15px;
+    font-size:15px;
 
-    color: #b4bac1;
+    color:#b4bac1;
 
-    margin-bottom: 15px;
+    margin-bottom:15px;
 
 }
 
 .object__description {
 
-    max-width: 700px;
+    max-width:700px;
 
-    color: #c9cdd2;
+    color:#c9cdd2;
 
-    line-height: 1.5;
+    line-height:1.5;
 
-    margin-bottom: 20px;
+    margin-bottom:20px;
 
 }
 
@@ -254,25 +254,25 @@ body {
 
 section {
 
-    margin-top: 16px;
+    margin-top:16px;
 
-    padding: 16px;
+    padding:16px;
 
-    background: #1d2024;
+    background:#1d2024;
 
-    border-radius: 8px;
+    border-radius:8px;
 
 }
 
 section h2 {
 
-    font-size: 18px;
+    font-size:18px;
 
-    font-weight: 600;
+    font-weight:600;
 
-    color: #eef0f2;
+    color:#eef0f2;
 
-    margin-bottom: 12px;
+    margin-bottom:12px;
 
 }
 
@@ -280,19 +280,27 @@ section h2 {
    ADMIN BUTTONS
 ========================================== */
 
+/*
+   ВАЖНО:
+   Эти параметры специально усилены,
+   чтобы не перебивались карточками,
+   ссылками и кнопками компонентов.
+*/
+
+button.admin-button,
 .admin-button {
 
     background:
-
-        rgba(220,170,40,.18);
+        rgba(240,190,50,.18)
+        !important;
 
     border:
-
-        1px solid rgba(240,190,50,.8);
+        1px solid rgba(240,190,50,.9)
+        !important;
 
     color:
-
-        #f2c94c;
+        #f2c94c
+        !important;
 
     cursor:pointer;
 
@@ -304,31 +312,39 @@ section h2 {
 
 }
 
+button.admin-button:hover,
 .admin-button:hover {
 
     background:
-
-        rgba(240,190,50,.35);
+        rgba(240,190,50,.38)
+        !important;
 
     border-color:
-
-        #f2c94c;
+        #f2c94c
+        !important;
 
 }
+
+/* маленькие ✏ 🗑 */
 
 button.admin-button {
 
     padding:
 
-        3px 8px;
+        3px 8px
+        !important;
 
     border-radius:
 
-        5px;
+        5px
+        !important;
+   font-size:
+
+        14px;
 
 }
 
-/* большие кнопки добавления */
+/* большие добавления */
 
 .record--add,
 .photo-card--add,
@@ -336,23 +352,26 @@ button.admin-button {
 .child-card--add {
 
     background:
-
-        rgba(220,170,40,.18);
+        rgba(240,190,50,.18)
+        !important;
 
     border:
 
-        1px dashed rgba(240,190,50,.8);
+        1px dashed rgba(240,190,50,.9)
+        !important;
 
     color:
 
-        #f2c94c;
+        #f2c94c
+        !important;
 
     cursor:pointer;
 
     transition:
 
         background .15s ease,
-       border-color .15s ease;
+
+        border-color .15s ease;
 
 }
 
@@ -363,11 +382,13 @@ button.admin-button {
 
     background:
 
-        rgba(240,190,50,.35);
+        rgba(240,190,50,.38)
+        !important;
 
     border-color:
 
-        #f2c94c;
+        #f2c94c
+        !important;
 
 }
 
@@ -412,18 +433,6 @@ button.admin-button {
 .child-card:hover {
 
     background:#2b3037;
-
-}
-
-.child-card--add {
-
-    min-height:110px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
 
 }
 
@@ -477,7 +486,7 @@ button.admin-button {
 
     color:#9da4ac;
 
-    font-size:11px;
+    font-size:12px;
 
     text-transform:uppercase;
 
@@ -487,7 +496,7 @@ button.admin-button {
 
 .child-card__name {
 
-    font-size:16px;
+    font-size:15px;
 
     font-weight:600;
 
@@ -531,7 +540,9 @@ button.admin-button {
 
     grid-template-columns:
 
-        1fr auto;
+        180px 1fr auto;
+
+    align-items:center;
 
     gap:20px;
 
@@ -547,13 +558,19 @@ button.admin-button {
 
 }
 
-.record__title {
+.record__title,
+.record__description,
+.record__date {
 
-    font-size:15px;
-
-    font-weight:600;
+    font-size:14px;
 
     line-height:1.3;
+
+}
+
+.record__title {
+
+    font-weight:600;
 
     color:#eef0f2;
 
@@ -561,11 +578,7 @@ button.admin-button {
 
 .record__description {
 
-    margin-top:4px;
-
-    font-size:14px;
-
-    line-height:1.45;
+    font-weight:400;
 
     color:#c9cdd2;
 
@@ -573,11 +586,9 @@ button.admin-button {
 
 .record__date {
 
-    font-size:13px;
-
     font-style:italic;
 
-    color:#9da4ac;
+    color:#8f969f;
 
     white-space:nowrap;
 
@@ -653,6 +664,8 @@ button.admin-button {
 
     justify-content:center;
 
+    text-align:center;
+
     color:#8b9199;
 
     font-size:12px;
@@ -683,6 +696,8 @@ button.admin-button {
 
     font-size:13px;
 
+    font-weight:400;
+
     color:#b4bac1;
 
 }
@@ -695,7 +710,7 @@ button.admin-button {
 
     font-style:italic;
 
-    color:#9da4ac;
+    color:#8f969f;
 
 }
 
@@ -751,7 +766,7 @@ button.admin-button {
 
 .source__title {
 
-    font-size:15px;
+    font-size:14px;
 
     color:#eef0f2;
 
@@ -773,11 +788,11 @@ button.admin-button {
 
     flex-shrink:0;
 
-    font-size:13px;
+    font-size:14px;
 
     font-style:italic;
 
-    color:#9da4ac;
+    color:#8f969f;
 
 }
 
@@ -797,27 +812,54 @@ button.admin-button {
 
     padding:12px;
 
-    border-radius:8px;
-
 }
 
 /* ==========================================
-   EMPTY STATES
+   PARENT BADGE
 ========================================== */
 
-.children-empty,
-.photos-empty,
-.sources-empty,
-.records-empty {
+.parent-item {
 
-    color:#8b9199;
+    display:flex;
 
-    font-size:13px;
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.parent-item > div {
+
+    display:inline-flex;
+
+    align-items:center;
+
+    padding:
+
+        6px 10px;
+
+    background:
+
+        rgba(240,190,50,.18);
+
+    border:
+
+        1px solid rgba(240,190,50,.8);
+
+    border-radius:6px;
+
+    color:#f2c94c;
+
+}
+
+.parent-address {
+
+    flex:1;
 
 }
 
 /* ==========================================
-   EDITORS
+   MODAL
 ========================================== */
 
 .modal-overlay {
@@ -884,11 +926,13 @@ button.admin-button {
 
     border-radius:50%;
 
-    border:1px solid rgba(240,190,50,.8);
+    border:
+
+        1px solid rgba(240,190,50,.9);
 
     background:
 
-        rgba(220,170,40,.18);
+        rgba(240,190,50,.18);
 
     color:#f2c94c;
 
@@ -900,13 +944,17 @@ button.admin-button {
 
 }
 
-.modal__close:hover{
+.modal__close:hover {
 
     background:
 
-        rgba(240,190,50,.35);
+        rgba(240,190,50,.4);
 
 }
+
+/* ==========================================
+   EDITORS
+========================================== */
 
 .modal__content {
 
@@ -949,11 +997,15 @@ button.admin-button {
 
     width:100%;
 
-    padding:8px 10px;
+    padding:
+
+        8px 10px;
 
     background:#111316;
 
-    border:1px solid #30343a;
+    border:
+
+        1px solid #30343a;
 
     border-radius:6px;
 
@@ -982,15 +1034,19 @@ input[type="file"]::file-selector-button {
 
     margin-right:10px;
 
-    padding:7px 12px;
+    padding:
+
+        7px 12px;
 
     border-radius:6px;
 
-    border:1px solid rgba(240,190,50,.8);
+    border:
+
+        1px solid rgba(240,190,50,.9);
 
     background:
 
-        rgba(220,170,40,.18);
+        rgba(240,190,50,.18);
 
     color:#f2c94c;
 
@@ -1002,16 +1058,18 @@ input[type="file"]::file-selector-button:hover {
 
     background:
 
-        rgba(240,190,50,.35);
+        rgba(240,190,50,.4);
 
 }
 
-/* обычные кнопки формы */
+/* обычные кнопки */
 
 .entity-editor button:not(.admin-button),
 .object-editor button:not(.admin-button) {
 
-    padding:8px 14px;
+    padding:
+
+        8px 14px;
 
     border-radius:6px;
 
@@ -1076,6 +1134,8 @@ max-width:800px{
     .record {
 
         grid-template-columns:1fr;
+
+        gap:6px;
 
     }
 
