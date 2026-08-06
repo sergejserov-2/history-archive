@@ -2,7 +2,13 @@
 // Records component
 // ======================================
 
-export function renderRecords(records) {
+export function renderRecords(
+
+    records,
+
+    ADMIN_MODE
+
+) {
 
     if (!records || records.length === 0) {
 
@@ -23,29 +29,39 @@ export function renderRecords(records) {
         let period = "";
 
         if (
+
             record.dateStart &&
+
             record.dateEnd
+
         ) {
 
             period =
+
                 `${record.dateStart}–${record.dateEnd}`;
 
         }
 
         else if (
+
             record.dateStart
+
         ) {
 
             period =
+
                 `с ${record.dateStart}`;
 
         }
 
         else if (
+
             record.dateEnd
+
         ) {
 
             period =
+
                 `до ${record.dateEnd}`;
 
         }
@@ -63,6 +79,36 @@ export function renderRecords(records) {
                 <div class="record__title">
 
                     ${record.title ?? ""}
+
+                    ${
+
+                        ADMIN_MODE
+
+                        ?
+
+                        `
+
+                        <button
+
+                            class="admin-button"
+
+                            data-action="edit-record"
+
+                            data-id="${record.id}"
+
+                        >
+
+                            ✏
+
+                        </button>
+
+                        `
+
+                        :
+
+                        ""
+
+                    }
 
                 </div>
 
