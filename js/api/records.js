@@ -4,7 +4,9 @@ import {
     where,
     getDocs,
     doc,
-    updateDoc
+    updateDoc,
+    addDoc,
+    deleteDoc
 }
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
@@ -64,6 +66,60 @@ export async function updateRecord(
         ),
 
         data
+
+    );
+
+}
+
+export async function createRecord(
+
+    data
+
+){
+
+    const ref =
+
+        await addDoc(
+
+            collection(
+
+                db,
+
+                "records"
+
+            ),
+
+            data
+
+        );
+
+    return {
+
+        id: ref.id,
+
+        ...data
+
+    };
+
+}
+
+export async function deleteRecord(
+
+    id
+
+){
+
+    await deleteDoc(
+
+        doc(
+
+            db,
+
+            "records",
+
+            id
+
+        )
 
     );
 
