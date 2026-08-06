@@ -142,7 +142,7 @@ export function renderRecords(
 
             <div
 
-                class="record record--add"
+                class="record record--add admin-button"
 
                 data-action="add-record"
 
