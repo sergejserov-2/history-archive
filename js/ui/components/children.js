@@ -19,7 +19,13 @@ from "./breadcrumbs.js";
 // Render children
 // ======================================
 
-export async function renderChildren(children) {
+export async function renderChildren(
+
+    children,
+
+    ADMIN_MODE = false
+
+) {
 
     if (!children || children.length === 0) {
 
@@ -136,6 +142,27 @@ export async function renderChildren(children) {
 
     );
 
+
+    if(ADMIN_MODE){
+    
+        cards.unshift(`
+    
+            <div
+    
+                class="child-card child-card--add"
+    
+                data-action="add-object"
+    
+            >
+    
+                + Добавить объект
+    
+            </div>
+    
+        `);
+    
+    }
+    
     return `
 
         <div class="children-list">
