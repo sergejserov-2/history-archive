@@ -27,6 +27,31 @@ body {
 }
 
 /* ==========================================
+   COMMON
+========================================== */
+
+button,
+input,
+textarea,
+select {
+
+    font-family: inherit;
+
+}
+
+button {
+
+    cursor: pointer;
+
+}
+
+a {
+
+    color: inherit;
+
+}
+
+/* ==========================================
    HEADER
 ========================================== */
 
@@ -43,6 +68,10 @@ body {
     align-items: center;
 
     gap: 20px;
+
+    background: #1d2024;
+
+    border-radius: 8px;
 
 }
 
@@ -74,11 +103,11 @@ body {
 
     width: 100%;
 
-    padding: 8px 12px;
+    padding: 9px 12px;
 
     background: #111316;
 
-    border: none;
+    border: 1px solid #30343a;
 
     border-radius: 6px;
 
@@ -102,13 +131,11 @@ body {
 
     background: #30343a;
 
-    border: none;
+    border: 1px solid #555b63;
 
     border-radius: 6px;
 
     color: #e5e7e9;
-
-    cursor: pointer;
 
 }
 
@@ -144,21 +171,19 @@ body {
 
 }
 
-/* ==========================================
-   OBJECT PHOTO
-========================================== */
-
 .object__cover {
 
-    width: 200px;
+    width: 220px;
 
-    height: 200px;
+    aspect-ratio: 1 / 1;
 
     flex-shrink: 0;
 
     background: #292d33;
 
     border-radius: 6px;
+
+    overflow: hidden;
 
     display: flex;
 
@@ -170,14 +195,24 @@ body {
 
 }
 
+.object__cover img {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
 /* ==========================================
    OBJECT INFO
 ========================================== */
 
 .object__info {
 
-   flex: 1;
-   
+    flex: 1;
+
     display: flex;
 
     flex-direction: column;
@@ -197,6 +232,12 @@ body {
 }
 
 .object__title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
 
     font-size: 24px;
 
@@ -227,8 +268,6 @@ body {
     color: #c9cdd2;
 
     line-height: 1.5;
-
-   margin-bottom: 20px;
 
 }
 
@@ -261,6 +300,74 @@ section h2 {
 }
 
 /* ==========================================
+   ADMIN BUTTONS
+========================================== */
+
+.admin-button {
+
+    color: #d6a900;
+
+    background: rgba(214,169,0,0.12);
+
+    border: 1px solid rgba(214,169,0,0.7);
+
+    border-radius: 5px;
+
+    font-size: 14px;
+
+    line-height: 1;
+
+    padding: 5px 7px;
+
+    transition:
+        background .15s ease,
+        border-color .15s ease;
+
+}
+
+.admin-button:hover {
+
+    background: rgba(214,169,0,0.22);
+
+    border-color: #d6a900;
+
+}
+
+/* Большие кнопки добавления */
+
+.child-card--add,
+.photo-card--add,
+.record--add,
+.source--add {
+
+    border: 1px dashed rgba(214,169,0,0.7);
+
+    background: rgba(214,169,0,0.08);
+
+    color: #d6a900;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    cursor: pointer;
+
+}
+
+.child-card--add:hover,
+.photo-card--add:hover,
+.record--add:hover,
+.source--add:hover {
+
+    background:
+
+        rgba(214,169,0,0.18);
+
+}
+
+/* ==========================================
    CHILDREN
 ========================================== */
 
@@ -279,10 +386,6 @@ section h2 {
 
 }
 
-/* ==========================================
-   CHILD CARD
-========================================== */
-
 .child-card {
 
     display: flex;
@@ -297,9 +400,9 @@ section h2 {
 
     text-decoration: none;
 
-    color: inherit;
+    transition:
 
-    transition: background .15s ease;
+        background .15s ease;
 
 }
 
@@ -313,7 +416,7 @@ section h2 {
 
     width: 90px;
 
-    height: 90px;
+    aspect-ratio: 1 / 1;
 
     flex-shrink: 0;
 
@@ -347,7 +450,7 @@ section h2 {
 
     justify-content: center;
 
-    text-align:center;
+    text-align: center;
 
     font-size: 12px;
 
@@ -355,9 +458,15 @@ section h2 {
 
 }
 
-/* ==========================================
-   CHILD TEXT
-========================================== */
+.child-card__body {
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+}
 
 .child-card__type {
 
@@ -429,8 +538,6 @@ section h2 {
 
     border-top: 1px solid #24282d;
 
-    transition: background .15s ease;
-
 }
 
 .record:first-child {
@@ -460,6 +567,14 @@ section h2 {
     color: #c8ccd0;
 
     line-height: 1.5;
+
+}
+
+.record__date {
+
+    color: #9da4ac;
+
+    font-size: 13px;
 
 }
 
@@ -495,9 +610,11 @@ section h2 {
 
     width: 150px;
 
-    height: 120px;
+    aspect-ratio: 1 / 1;
 
     background: #292d33;
+
+    overflow: hidden;
 
 }
 
@@ -533,13 +650,11 @@ section h2 {
 
 .photo-card__title {
 
-    padding: 8px 8px 2px;
+    padding: 8px 8px 3px;
 
     font-size: 13px;
 
     color: #eef0f2;
-
-    line-height: 1.3;
 
 }
 
@@ -636,11 +751,226 @@ section h2 {
 }
 
 /* ==========================================
+   EDITORS
+========================================== */
+
+.object-editor,
+.entity-editor {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+
+}
+
+.object-editor label,
+.entity-editor label {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+
+    color: #b4bac1;
+
+    font-size: 13px;
+
+}
+
+.object-editor input,
+.object-editor textarea,
+.object-editor select,
+
+.entity-editor input,
+.entity-editor textarea,
+.entity-editor select {
+
+    width: 100%;
+
+    padding: 8px 10px;
+
+    background: #111316;
+
+    border: 1px solid #30343a;
+
+    border-radius: 6px;
+
+    color: #e5e7e9;
+
+}
+
+.object-editor textarea,
+.entity-editor textarea {
+
+    min-height: 90px;
+
+    resize: vertical;
+
+}
+
+/* ==========================================
+   PARENTS
+========================================== */
+
+.parent-item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 6px;
+
+    background: #25292f;
+
+    border-radius: 5px;
+
+    margin-bottom: 6px;
+
+}
+
+.parent-item input {
+
+    flex: 1;
+
+}
+
+.parent-item button {
+
+    color: #d6a900;
+
+    background: none;
+
+    border: none;
+
+    font-size: 18px;
+
+}
+
+/* ==========================================
+   PARENT SEARCH
+========================================== */
+
+#parentSearchResults,
+#entityParentResults {
+
+    margin-top: 5px;
+
+    background: #25292f;
+
+    border-radius: 6px;
+
+    overflow: hidden;
+
+}
+
+.parent-result {
+
+    padding: 8px 10px;
+
+    cursor: pointer;
+
+    color: #d8dadd;
+
+}
+
+.parent-result:hover {
+
+    background: #30343a;
+
+}
+
+/* ==========================================
+   MODAL
+========================================== */
+
+.modal-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    background:
+
+        rgba(0,0,0,0.65);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    z-index: 1000;
+
+}
+
+.modal {
+
+    width: min(
+        500px,
+        calc(100vw - 30px)
+    );
+
+    background: #1d2024;
+
+    border-radius: 8px;
+
+    overflow: hidden;
+
+}
+
+.modal__header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 14px 16px;
+
+    background: #25292f;
+
+}
+
+.modal__header h2 {
+
+    color: #eef0f2;
+
+    font-size: 18px;
+
+}
+
+.modal__close {
+
+    background: none;
+
+    border: none;
+
+    color: #d6a900;
+
+    font-size: 22px;
+
+}
+
+.modal__content {
+
+    padding: 16px;
+
+}
+
+/* ==========================================
    EMPTY STATES
 ========================================== */
 
+.children-empty,
 .photos-empty,
-.sources-empty {
+.sources-empty,
+.records-empty {
 
     color: #8b9199;
 
@@ -648,57 +978,61 @@ section h2 {
 
 }
 
-
-
-
-
-
-
-
-
-
-
 /* ==========================================
    MOBILE
 ========================================== */
 
-max-width: 800px {
+max-width:800px{
 
-    .header {
+.header {
 
-        flex-direction: column;
+    flex-direction: column;
 
-        align-items: stretch;
+    align-items: stretch;
 
-    }
+}
 
-    .header__logo,
-    .header__buttons {
+.header__logo,
+.header__buttons {
 
-        width: auto;
+    width: auto;
 
-        text-align: left;
+    text-align: left;
 
-    }
+}
 
-    .object {
+.object {
 
-        flex-direction: column;
+    flex-direction: column;
 
-    }
+}
 
-    .object__cover {
+.object__cover {
 
-        width: 100%;
+    width: 100%;
 
-        height: 220px;
+}
 
-    }
+.children-list {
 
-    .children-list {
+    grid-template-columns:
 
-        grid-template-columns: 1fr;
+        1fr;
 
-    }
+}
+
+.record {
+
+    grid-template-columns:
+
+        1fr;
+
+}
+
+.photos-list {
+
+    overflow-x: auto;
+
+}
 
 }
