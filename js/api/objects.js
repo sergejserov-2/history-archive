@@ -10,8 +10,11 @@ import {
     collection,
     getDocs,
     addDoc,
-    deleteDoc
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+    deleteDoc,
+    updateDoc,
+    arrayRemove
+}
+from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 // ======================================
 // Get object by id
@@ -207,14 +210,86 @@ export async function createObject(data){
 // Delete object
 // ======================================
 
+// ======================================
+// Delete object
+// ======================================
+
 export async function deleteObject(id){
+
+    const objects = await getAllObjects();
+
+    const children = objects.filter(object =>
+
+        object.parents?.some(
+
+            parent => parent.objectId === id
+
+        )
+
+    );
+
+    // Удаляем детей или отвязываем родителя
+
+    for(const child of children){
+
+        const otherParents =
+
+            child.parents.filter(
+
+                parent =>
+
+                parent.objectId !== id
+
+            );
+
+        if(otherParents.length === 0){
+
+            await deleteObject(
+
+                child.id
+
+            );
+
+        }
+
+        else{
+
+            await updateDoc(
+
+                doc(
+
+                    db,
+
+                    "objects",
+
+                    child.id
+
+                ),
+
+                {
+
+                    parents: otherParents
+
+                }
+
+            );
+
+        }
+
+    }
+
+    // Удаляем сам объект
 
     await deleteDoc(
 
         doc(
+
             db,
+
             "objects",
+
             id
+
         )
 
     );
