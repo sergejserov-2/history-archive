@@ -140,7 +140,7 @@ export async function renderChildren(
 
             <div
 
-                class="child-card child-card--add"
+                class="child-card child-card--add admin-button"
 
                 data-action="add-object"
 
