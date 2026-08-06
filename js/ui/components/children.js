@@ -7,6 +7,11 @@ import {
     getParents
 } from "../../api/objects.js";
 
+import {
+    getPhotos
+}
+from "../../api/photos.js";
+
 import { renderBreadcrumbs }
 from "./breadcrumbs.js";
 
@@ -42,12 +47,24 @@ export async function renderChildren(children) {
                 child
             );
 
+            const photos = await getPhotos(
+                child.id
+            );
+
+            const coverPhoto = photos.find(
+
+                photo =>
+
+                photo.id === child.coverPhotoId
+
+            );
+
             const address = renderBreadcrumbs(
                 type,
                 parents
             );
 
-            const image = child.coverPhotoId
+            const image = coverPhoto?.storagePath
 
                 ?
 
@@ -56,7 +73,7 @@ export async function renderChildren(children) {
 
                     class="child-card__image"
 
-                    src="${child.coverPhotoId}"
+                    src="${coverPhoto.storagePath}"
 
                     alt="${child.title}"
 
