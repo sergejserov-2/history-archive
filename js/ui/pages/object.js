@@ -186,6 +186,12 @@ async function renderPage(
 
     );
 
+    const coverPhoto =
+        photos.find(
+            photo =>
+                photo.id === object.coverPhotoId
+                );
+
     document.body.innerHTML = `
 
         ${renderHeader()}
@@ -195,9 +201,34 @@ async function renderPage(
             <section class="object">
 
                 <div class="object__cover">
-
+                
+                ${
+                    coverPhoto?.storagePath
+                
+                    ?
+                
+                    `
+                
+                    <img
+                
+                        src="${coverPhoto.storagePath}"
+                
+                        alt="${coverPhoto.title ?? ""}"
+                
+                    >
+                
+                    `
+                
+                    :
+                
+                    `
+                
                     Фото
-
+                
+                    `
+                
+                }
+                
                 </div>
 
                 <div class="object__info">
