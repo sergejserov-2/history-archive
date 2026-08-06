@@ -6,7 +6,7 @@ export function renderRecords(
 
     records,
 
-    ADMIN_MODE
+    ADMIN_MODE = false
 
 ) {
 
@@ -81,7 +81,6 @@ export function renderRecords(
                     ${record.title ?? ""}
 
                     ${
-
                         ADMIN_MODE
 
                         ?
