@@ -34,7 +34,7 @@ body {
 
     max-width: 1200px;
 
-    margin: 0 auto;
+    margin: 20px auto 0;
 
     padding: 12px 25px;
 
@@ -284,17 +284,17 @@ section h2 {
 
     background:
 
-        rgba(220, 170, 40, .18);
+        rgba(220,170,40,.18);
 
     border:
 
-        1px solid rgba(240, 190, 50, .75);
+        1px solid rgba(240,190,50,.8);
 
     color:
 
         #f2c94c;
 
-    cursor: pointer;
+    cursor:pointer;
 
     transition:
 
@@ -308,7 +308,7 @@ section h2 {
 
     background:
 
-        rgba(240, 190, 50, .35);
+        rgba(240,190,50,.35);
 
     border-color:
 
@@ -316,13 +316,11 @@ section h2 {
 
 }
 
-/* маленькие кнопки */
-
 button.admin-button {
 
     padding:
 
-        3px 7px;
+        3px 8px;
 
     border-radius:
 
@@ -337,13 +335,13 @@ button.admin-button {
 .source--add,
 .child-card--add {
 
-    border:
-
-        1px dashed rgba(240,190,50,.8);
-
     background:
 
         rgba(220,170,40,.18);
+
+    border:
+
+        1px dashed rgba(240,190,50,.8);
 
     color:
 
@@ -353,7 +351,8 @@ button.admin-button {
 
     transition:
 
-        background .15s ease;
+        background .15s ease,
+       border-color .15s ease;
 
 }
 
@@ -365,6 +364,10 @@ button.admin-button {
     background:
 
         rgba(240,190,50,.35);
+
+    border-color:
+
+        #f2c94c;
 
 }
 
@@ -400,11 +403,27 @@ button.admin-button {
 
     color:inherit;
 
+    transition:
+
+        background .15s ease;
+
 }
 
 .child-card:hover {
 
     background:#2b3037;
+
+}
+
+.child-card--add {
+
+    min-height:110px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
 
 }
 
@@ -472,13 +491,19 @@ button.admin-button {
 
     font-weight:600;
 
+    line-height:1.3;
+
     color:#eef0f2;
+
+    margin-bottom:4px;
 
 }
 
 .child-card__address {
 
     font-size:13px;
+
+    line-height:1.4;
 
     color:#b4bac1;
 
@@ -494,7 +519,7 @@ button.admin-button {
 
     background:#181b1f;
 
-    border-radius:6px;
+    border-radius:8px;
 
     overflow:hidden;
 
@@ -506,13 +531,13 @@ button.admin-button {
 
     grid-template-columns:
 
-        180px 1fr 120px;
+        1fr auto;
 
-    gap:18px;
+    gap:20px;
 
     padding:12px 16px;
 
-    border-top:1px solid #24282d;
+    border-top:1px solid #25292f;
 
 }
 
@@ -522,13 +547,49 @@ button.admin-button {
 
 }
 
+.record__title {
+
+    font-size:15px;
+
+    font-weight:600;
+
+    line-height:1.3;
+
+    color:#eef0f2;
+
+}
+
+.record__description {
+
+    margin-top:4px;
+
+    font-size:14px;
+
+    line-height:1.45;
+
+    color:#c9cdd2;
+
+}
+
+.record__date {
+
+    font-size:13px;
+
+    font-style:italic;
+
+    color:#9da4ac;
+
+    white-space:nowrap;
+
+}
+
 .record--add {
 
-    display:block;
+    display:flex;
 
-    padding:12px 16px;
+    align-items:center;
 
-    border-top:1px dashed rgba(240,190,50,.8);
+    min-height:45px;
 
 }
 
@@ -544,6 +605,8 @@ button.admin-button {
 
     overflow-x:auto;
 
+    padding-bottom:6px;
+
 }
 
 .photo-card {
@@ -552,7 +615,7 @@ button.admin-button {
 
     background:#181b1f;
 
-    border-radius:6px;
+    border-radius:8px;
 
     overflow:hidden;
 
@@ -578,6 +641,64 @@ button.admin-button {
 
 }
 
+.photo-card__placeholder {
+
+    width:100%;
+
+    height:100%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#8b9199;
+
+    font-size:12px;
+
+}
+
+.photo-card__title {
+
+    padding:
+
+        8px 8px 3px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    line-height:1.3;
+
+    color:#eef0f2;
+
+}
+
+.photo-card__author {
+
+    padding:
+
+        0 8px;
+
+    font-size:13px;
+
+    color:#b4bac1;
+
+}
+
+.photo-card__date {
+
+    display:inline;
+
+    font-size:13px;
+
+    font-style:italic;
+
+    color:#9da4ac;
+
+}
+
 .photo-card--add {
 
     display:flex;
@@ -594,6 +715,14 @@ button.admin-button {
    SOURCES
 ========================================== */
 
+.sources-list {
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
 .source {
 
     padding:10px 0;
@@ -608,14 +737,87 @@ button.admin-button {
 
 }
 
+.source__header {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:baseline;
+
+    gap:20px;
+
+}
+
+.source__title {
+
+    font-size:15px;
+
+    color:#eef0f2;
+
+}
+
+.source__title strong {
+
+    font-weight:600;
+
+}
+
+.source__author {
+
+    font-weight:400;
+
+}
+
+.source__date {
+
+    flex-shrink:0;
+
+    font-size:13px;
+
+    font-style:italic;
+
+    color:#9da4ac;
+
+}
+
+.source__description {
+
+    margin-top:5px;
+
+    font-size:14px;
+
+    line-height:1.45;
+
+    color:#c9cdd2;
+
+}
+
 .source--add {
 
     padding:12px;
 
+    border-radius:8px;
+
 }
 
 /* ==========================================
-   EDITORS / MODAL
+   EMPTY STATES
+========================================== */
+
+.children-empty,
+.photos-empty,
+.sources-empty,
+.records-empty {
+
+    color:#8b9199;
+
+    font-size:13px;
+
+}
+
+/* ==========================================
+   EDITORS
 ========================================== */
 
 .modal-overlay {
@@ -634,17 +836,81 @@ button.admin-button {
 
     justify-content:center;
 
+    z-index:1000;
+
 }
 
 .modal {
 
     width:420px;
 
+    max-width:90vw;
+
     background:#1d2024;
 
     border-radius:8px;
 
-    padding:18px;
+    overflow:hidden;
+
+}
+
+.modal__header {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:14px 16px;
+
+    background:#24282d;
+
+}
+
+.modal__header h2 {
+
+    font-size:18px;
+
+    color:#eef0f2;
+
+}
+
+.modal__close {
+
+    width:28px;
+
+    height:28px;
+
+    border-radius:50%;
+
+    border:1px solid rgba(240,190,50,.8);
+
+    background:
+
+        rgba(220,170,40,.18);
+
+    color:#f2c94c;
+
+    font-size:20px;
+
+    line-height:1;
+
+    cursor:pointer;
+
+}
+
+.modal__close:hover{
+
+    background:
+
+        rgba(240,190,50,.35);
+
+}
+
+.modal__content {
+
+    padding:16px;
 
 }
 
@@ -659,20 +925,35 @@ button.admin-button {
 
 }
 
+.entity-editor label,
+.object-editor label {
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:5px;
+
+    font-size:14px;
+
+    color:#b4bac1;
+
+}
+
 .entity-editor input,
 .entity-editor textarea,
+.entity-editor select,
 .object-editor input,
 .object-editor textarea,
-.entity-editor select,
 .object-editor select {
 
     width:100%;
 
-    padding:8px;
+    padding:8px 10px;
 
     background:#111316;
 
-    border:none;
+    border:1px solid #30343a;
 
     border-radius:6px;
 
@@ -680,16 +961,63 @@ button.admin-button {
 
 }
 
-.entity-editor button,
-.object-editor button {
+.entity-editor textarea,
+.object-editor textarea {
+
+    min-height:90px;
+
+    resize:vertical;
+
+}
+
+/* file button */
+
+input[type="file"] {
+
+    color:#b4bac1;
+
+}
+
+input[type="file"]::file-selector-button {
+
+    margin-right:10px;
+
+    padding:7px 12px;
+
+    border-radius:6px;
+
+    border:1px solid rgba(240,190,50,.8);
+
+    background:
+
+        rgba(220,170,40,.18);
+
+    color:#f2c94c;
+
+    cursor:pointer;
+
+}
+
+input[type="file"]::file-selector-button:hover {
+
+    background:
+
+        rgba(240,190,50,.35);
+
+}
+
+/* обычные кнопки формы */
+
+.entity-editor button:not(.admin-button),
+.object-editor button:not(.admin-button) {
 
     padding:8px 14px;
 
-    background:#30343a;
+    border-radius:6px;
 
     border:none;
 
-    border-radius:6px;
+    background:#30343a;
 
     color:#e5e7e9;
 
@@ -697,8 +1025,8 @@ button.admin-button {
 
 }
 
-.entity-editor button:hover,
-.object-editor button:hover {
+.entity-editor button:not(.admin-button):hover,
+.object-editor button:not(.admin-button):hover {
 
     background:#41464d;
 
@@ -715,6 +1043,15 @@ max-width:800px{
         flex-direction:column;
 
         align-items:stretch;
+
+    }
+
+    .header__logo,
+    .header__buttons {
+
+        width:auto;
+
+        text-align:left;
 
     }
 
@@ -739,6 +1076,12 @@ max-width:800px{
     .record {
 
         grid-template-columns:1fr;
+
+    }
+
+    .record__date {
+
+        margin-top:4px;
 
     }
 
