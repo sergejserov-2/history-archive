@@ -9,7 +9,7 @@ export function renderPhotos(
     ADMIN_MODE = false,
 
     context = {}
-
+    
 ) {
 
     const cards =
