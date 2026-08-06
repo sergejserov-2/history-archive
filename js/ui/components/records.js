@@ -6,135 +6,11 @@ export function renderRecords(
 
     records,
 
-    ADMIN_MODE = false,
-
-    context = {}
+    ADMIN_MODE = false
 
 ) {
 
-    const rows =
-
-        (records ?? [])
-
-        .map(record => {
-
-            let period = "";
-
-            if (
-
-                record.dateStart &&
-
-                record.dateEnd
-
-            ) {
-
-                period =
-
-                    `${record.dateStart}–${record.dateEnd}`;
-
-            }
-
-            else if (
-
-                record.dateStart
-
-            ) {
-
-                period =
-
-                    `с ${record.dateStart}`;
-
-            }
-
-            else if (
-
-                record.dateEnd
-
-            ) {
-
-                period =
-
-                    `до ${record.dateEnd}`;
-
-            }
-
-            else {
-
-                period = "—";
-
-            }
-
-            return `
-
-            <div class="record">
-
-                <div class="record__title">
-
-                    ${record.title ?? ""}
-
-                    ${
-
-                        ADMIN_MODE
-
-                        ?
-
-                        `
-
-                        <button
-
-                            class="admin-button"
-
-                            data-action="edit-record"
-
-                            data-id="${record.id}"
-
-                        >
-
-                            ✏
-
-                        </button>
-
-                        <button
-
-                            class="admin-button"
-
-                            data-action="delete-record"
-
-                            data-id="${record.id}"
-
-                        >
-
-                            🗑
-
-                        </button>
-
-                        `
-
-                        :
-
-                        ""
-
-                    }
-
-                </div>
-
-                <div class="record__description">
-
-                    ${record.description ?? ""}
-
-                </div>
-
-                <div class="record__date">
-
-                    ${period}
-
-                </div>
-
-            </div>
-
-            `;
-
-        });
+    const rows = [];
 
     if(ADMIN_MODE){
 
@@ -156,15 +32,126 @@ export function renderRecords(
 
     }
 
+    (records ?? [])
+
+    .forEach(record=>{
+
+        let period = "";
+
+        if(
+            record.dateStart &&
+            record.dateEnd
+        ){
+
+            period =
+                `${record.dateStart}–${record.dateEnd}`;
+
+        }
+
+        else if(record.dateStart){
+
+            period =
+                `с ${record.dateStart}`;
+
+        }
+
+        else if(record.dateEnd){
+
+            period =
+                `до ${record.dateEnd}`;
+
+        }
+
+        else {
+
+            period = "—";
+
+        }
+
+        rows.push(`
+
+        <div class="record">
+
+            <div>
+
+                <div class="record__title">
+
+                    ${record.title ?? ""}
+
+                    ${
+                    ADMIN_MODE
+
+                    ?
+
+                    `
+
+                    <button
+
+                        class="admin-button"
+
+                        data-action="edit-record"
+
+                        data-id="${record.id}"
+
+                    >
+
+                        ✏
+
+                    </button>
+
+                    <button
+
+                        class="admin-button"
+
+                        data-action="delete-record"
+
+                        data-id="${record.id}"
+
+                    >
+
+                        🗑
+
+                    </button>
+
+                    `
+
+                    :
+
+                    ""
+
+                    }
+
+                </div>
+
+                <div class="record__description">
+
+                    ${record.description ?? ""}
+
+                </div>
+
+            </div>
+
+            <div class="record__date">
+
+                ${period}
+
+            </div>
+
+        </div>
+
+        `);
+
+    });
+
     if(rows.length === 0){
 
         return `
 
-            <p class="records-empty">
+        <p class="records-empty">
 
-                Нет сведений
+            Нет сведений
 
-            </p>
+        </p>
 
         `;
 
@@ -172,11 +159,11 @@ export function renderRecords(
 
     return `
 
-        <div class="records">
+    <div class="records">
 
-            ${rows.join("")}
+        ${rows.join("")}
 
-        </div>
+    </div>
 
     `;
 
