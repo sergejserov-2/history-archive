@@ -38,3 +38,29 @@ export async function getPhotos(objectId) {
     );
 
 }
+
+export async function updatePhoto(
+
+    id,
+
+    data
+
+){
+
+    await updateDoc(
+
+        doc(
+
+            db,
+
+            "photos",
+
+            id
+
+        ),
+
+        data
+
+    );
+
+}
