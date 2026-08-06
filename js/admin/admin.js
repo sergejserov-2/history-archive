@@ -1,8 +1,16 @@
+// ======================================
+// Admin
+// ======================================
+
 import {
     renderObjectEditor,
     initObjectEditor
 }
 from "./editors/objectEditor.js";
+
+// ======================================
+// Init
+// ======================================
 
 export function initAdmin(
 
@@ -12,55 +20,92 @@ export function initAdmin(
 
     objects,
 
-    photos
+    photos,
+
+    children
 
 ) {
 
-document.addEventListener(
+    document.addEventListener(
 
-"click",
+        "click",
 
-event=>{
+        event => {
 
-const button =
-event.target.closest(
-".admin-button"
-);
+            const button =
 
-if(!button)
-return;
+                event.target.closest(
 
-const block =
-document.querySelector(
-".object__info"
-);
+                    ".admin-button"
 
-block.innerHTML =
+                );
 
-renderObjectEditor(
+            if(!button){
 
-object,
+                return;
 
-types,
+            }
 
-objects
+            const action =
 
-);
+                button.dataset.action;
 
-initObjectEditor(
+            if(
 
-object,
+                action !== "edit-object"
 
-types,
+            ){
 
-objects,
+                return;
 
-()=>location.reload()
+            }
 
-);
+            const block =
 
-}
+                document.querySelector(
 
-);
+                    ".object__info"
+
+                );
+
+            block.innerHTML =
+
+                renderObjectEditor(
+
+                    object,
+
+                    types,
+
+                    objects,
+
+                    photos,
+
+                    children
+
+                );
+
+            initObjectEditor(
+
+                object,
+
+                types,
+
+                objects,
+
+                photos,
+
+                children,
+
+                () => {
+
+                    location.reload();
+
+                }
+
+            );
+
+        }
+
+    );
 
 }
