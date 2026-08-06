@@ -13,6 +13,21 @@ import {
 }
 from "./editors/entityEditor.js";
 
+import {
+    deletePhoto
+}
+from "../api/photos.js";
+
+import {
+    deleteSource
+}
+from "../api/sources.js";
+
+import {
+    deleteRecord
+}
+from "../api/records.js";
+
 // ======================================
 // Init
 // ======================================
@@ -33,244 +48,422 @@ export function initAdmin(
 
     children
 
-) {
+){
 
-    document.addEventListener(
+document.addEventListener(
 
-        "click",
+"click",
 
-        event => {
+async event=>{
 
-            const button =
+const button =
 
-                event.target.closest(
+event.target.closest(
 
-                    ".admin-button"
+".admin-button"
 
-                );
+);
 
-            if(!button){
+if(!button){
 
-                return;
+return;
 
-            }
+}
 
-            const action =
+const action =
 
-                button.dataset.action;
+button.dataset.action;
 
-            const id =
+const id =
 
-                button.dataset.id;
+button.dataset.id;
 
-            // ======================================
-            // Object
-            // ======================================
+const context = {
 
-            if(
+    objects,
 
-                action === "edit-object"
+    parentId: object.id
 
-            ){
+};
 
-                const block =
+// ======================================
+// Object
+// ======================================
 
-                    document.querySelector(
+if(
 
-                        ".object__info"
+action==="edit-object"
 
-                    );
+){
 
-                block.innerHTML =
+const block =
 
-                    renderObjectEditor(
+document.querySelector(
 
-                        object,
+".object__info"
 
-                        types,
+);
 
-                        objects,
+block.innerHTML =
 
-                        photos,
+renderObjectEditor(
 
-                        children
+object,
 
-                    );
+types,
 
-                initObjectEditor(
+objects,
 
-                    object,
+photos,
 
-                    types,
+children
 
-                    objects,
+);
 
-                    photos,
+initObjectEditor(
 
-                    children,
+object,
 
-                    ()=>{
+types,
 
-                        location.reload();
+objects,
 
-                    }
+photos,
 
-                );
+children,
 
-                return;
+()=>{
 
-            }
+location.reload();
 
-            // ======================================
-            // Photo
-            // ======================================
+}
 
-            if(
+);
 
-                action === "edit-photo"
+return;
 
-            ){
+}
 
-                const photo =
+// ======================================
+// Add photo
+// ======================================
 
-                    photos.find(
+if(
 
-                        p =>
+action==="add-photo"
 
-                        p.id === id
+){
 
-                    );
+openEntityEditor(
 
-                if(!photo){
+"photo",
 
-                    return;
+null,
 
-                }
+context,
 
-                openEntityEditor(
+()=>{
 
-                    "photo",
+location.reload();
 
-                    photo,
+}
 
-                    {
+);
 
-                        objects
+return;
 
-                    },
+}
 
-                    ()=>{
+// ======================================
+// Edit photo
+// ======================================
 
-                        location.reload();
+if(
 
-                    }
+action==="edit-photo"
 
-                );
+){
 
-                return;
+const photo =
 
-            }
+photos.find(
 
-            // ======================================
-            // Source
-            // ======================================
+p=>p.id===id
 
-            if(
+);
 
-                action === "edit-source"
+if(!photo){
 
-            ){
+return;
 
-                const source =
+}
 
-                    sources.find(
+openEntityEditor(
 
-                        s =>
+"photo",
 
-                        s.id === id
+photo,
 
-                    );
+context,
 
-                if(!source){
+()=>{
 
-                    return;
+location.reload();
 
-                }
+}
 
-                openEntityEditor(
+);
 
-                    "source",
+return;
 
-                    source,
+}
 
-                    {
+// ======================================
+// Delete photo
+// ======================================
 
-                        objects
+if(
 
-                    },
+action==="delete-photo"
 
-                    ()=>{
+){
 
-                        location.reload();
+if(
 
-                    }
+!confirm(
 
-                );
+"Удалить фотографию?"
 
-                return;
+)
 
-            }
+){
 
-            // ======================================
-            // Record
-            // ======================================
+return;
 
-            if(
+}
 
-                action === "edit-record"
+await deletePhoto(id);
 
-            ){
+location.reload();
 
-                const record =
+return;
 
-                    records.find(
+}
 
-                        r =>
+// ======================================
+// Add source
+// ======================================
 
-                        r.id === id
+if(
 
-                    );
+action==="add-source"
 
-                if(!record){
+){
 
-                    return;
+openEntityEditor(
 
-                }
+"source",
 
-                openEntityEditor(
+null,
 
-                    "record",
+context,
 
-                    record,
+()=>{
 
-                    {
+location.reload();
 
-                        objects
+}
 
-                    },()=>{
+);
 
-                        location.reload();
+return;
 
-                    }
+}
 
-                );
+// ======================================
+// Edit source
+// ======================================
 
-                return;
+if(
 
-            }
+action==="edit-source"
 
-        }
+){
 
-    );
+const source =
+
+sources.find(
+
+s=>s.id===id
+
+);
+
+if(!source){
+
+return;
+
+}
+
+openEntityEditor(
+
+"source",
+
+source,
+
+context,
+
+()=>{
+
+location.reload();
+
+}
+
+);
+
+return;
+
+}
+
+// ======================================
+// Delete source
+// ======================================
+
+if(
+
+action==="delete-source"
+
+){
+
+if(
+
+!confirm(
+
+"Удалить источник?"
+
+)
+
+){
+
+return;
+
+}
+
+await deleteSource(id);
+
+location.reload();
+
+return;
+
+}
+
+// ======================================
+// Add record
+// ======================================
+
+if(
+
+action==="add-record"
+
+){
+
+openEntityEditor(
+
+"record",
+
+null,
+
+context,
+
+()=>{
+
+location.reload();
+
+}
+
+);
+
+return;
+
+}
+
+// ======================================
+// Edit record
+// ======================================
+
+if(
+
+action==="edit-record"
+
+){
+
+const record =
+
+records.find(
+
+r=>r.id===id
+
+);
+
+if(!record){
+
+return;
+
+}
+
+openEntityEditor(
+
+"record",
+
+record,
+
+context,
+
+()=>{
+
+location.reload();
+
+}
+
+);
+
+return;
+
+}
+
+// ======================================
+// Delete record
+// ======================================
+
+if(
+
+action==="delete-record"
+
+){
+
+if(
+
+!confirm(
+
+"Удалить запись?"
+
+)
+
+){
+
+return;
+
+}
+
+await deleteRecord(id);
+
+location.reload();
+
+return;
+
+}
+
+}
+
+);
 
 }
