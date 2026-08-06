@@ -117,11 +117,27 @@ export function renderObjectEditor(
 
         </label>
 
-        <button id="addParentButton">
+<div class="parent-search">
 
-            + Добавить родителя
+    <input
 
-        </button>
+        id="parentSearchInput"
+
+        placeholder="Добавить родителя..."
+
+        autocomplete="off"
+
+    >
+
+    <div
+
+        id="parentSearchResults"
+
+        class="parent-search-results"
+
+    ></div>
+
+</div>
 
         <div class="object-editor__buttons">
 
@@ -274,18 +290,44 @@ data-remove-parent="${id}"
 
 }
 
+const searchInput =
+
 document.getElementById(
 
-"addParentButton"
+"parentSearchInput"
 
-).onclick = ()=>{
+);
+
+const results =
+
+document.getElementById(
+
+"parentSearchResults"
+
+);
+
+searchInput.oninput = ()=>{
+
+const text =
+searchInput.value
+.trim()
+.toLowerCase();
+
+if(!text){
+
+results.style.display="none";
+
+return;
+
+}
 
 const currentType =
+
 types.find(
 
 t=>
 
-t.id ===
+t.id===
 
 document.getElementById(
 
@@ -294,6 +336,139 @@ document.getElementById(
 ).value
 
 );
+
+const currentLevel =
+currentType.level;
+
+let parentLevel=null;
+
+if(parents.length){
+
+const first=
+objects.find(
+o=>o.id===parents[0]
+);
+
+const firstType=
+types.find(
+t=>t.id===first.typeId
+);
+
+parentLevel=
+firstType.level;
+
+}
+
+const candidates=
+
+objects.filter(o=>{
+
+if(o.id===object.id)
+
+return false;
+
+if(parents.includes(o.id))
+
+return false;
+
+const type=
+types.find(
+t=>t.id===o.typeId
+);
+
+if(!type)
+
+return false;
+
+if(parentLevel){
+
+if(type.level!==parentLevel)
+
+return false;
+
+}
+
+else{
+
+if(type.level<=currentLevel)
+
+return false;
+
+}
+
+return (
+
+o.title
+
+.toLowerCase()
+
+.includes(text)
+
+);
+
+});
+
+results.innerHTML=
+
+candidates.map(o=>`
+
+<div
+
+class="parent-result"
+
+data-parent="${o.id}"
+
+>
+
+${o.title}
+
+</div>
+
+`).join("");
+
+results.style.display=
+
+candidates.length
+
+?
+
+"block"
+
+:
+
+"none";
+
+};
+
+results.onclick = event=>{
+
+const item=
+
+event.target.closest(
+
+".parent-result"
+
+);
+
+if(!item)
+
+return;
+
+parents.push(
+
+item.dataset.parent
+
+);
+
+renderParentBlock();
+
+searchInput.value="";
+
+results.innerHTML="";
+
+results.style.display="none";
+
+};
 
 const currentLevel =
 currentType.level;
@@ -390,6 +565,9 @@ renderParentBlock();
 }
 
 };
+
+
+
 
 document.getElementById(
 
