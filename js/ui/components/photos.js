@@ -97,7 +97,7 @@ export function renderPhotos(
 
                 >
 
-    <img src="../../../icons/edit.svg" class="admin-icon">
+    <img src="icons/edit.svg" class="admin-icon">
 
                 </button>
 
@@ -111,7 +111,7 @@ export function renderPhotos(
 
                 >
 
-    <img src="../../../icons/delete.svg" class="admin-icon">
+    <img src="icons/delete.svg" class="admin-icon">
 
                 </button>
 
