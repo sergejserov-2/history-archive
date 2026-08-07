@@ -394,27 +394,19 @@ button.admin-button {
 ========================================== */
 
 .icon{
-    display:inline-flex;
-    width:14px;
-    height:14px;
+    display:flex;
     align-items:center;
     justify-content:center;
+
+    width:8px;
+    height:8px;
 }
 
 .icon img{
+    width:8px;
+    height:8px;
     display:block;
-    width:14px;
-    height:14px;
-
-    filter:
-        brightness(0)
-        saturate(100%)
-        invert(83%)
-        sepia(48%)
-        saturate(933%)
-        hue-rotate(351deg)
-        brightness(101%)
-        contrast(93%);
+   color:#f2c94c;
 }
 
 /* ==========================================
