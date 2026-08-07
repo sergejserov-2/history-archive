@@ -284,12 +284,6 @@ if(fileOpen){
 
 if(fileInput){
 
-    fileSelect.onclick = ()=>{
-
-        fileInput.click();
-
-    };
-
     fileInput.onchange = e=>{
 
         file =
@@ -812,16 +806,20 @@ cfg.file
 
 <div class="entity-file">
 
-    <!-- Состояние: выбрать файл -->
-
-    <div
+    <label
         id="entityFileSelect"
         class="entity-file__select admin-button"
     >
-        Выбрать файл
-    </div>
 
-    <!-- Состояние: файл выбран -->
+        Выбрать файл
+
+        <input
+            id="entityFile"
+            type="file"
+            hidden
+        >
+
+    </label>
 
     <div
         id="entityFileCurrent"
@@ -829,10 +827,7 @@ cfg.file
         hidden
     >
 
-        <span
-            id="entityFileName"
-        >
-        </span>
+        <span id="entityFileName"></span>
 
         <span
             id="entityFileRemove"
@@ -842,12 +837,6 @@ cfg.file
         </span>
 
     </div>
-
-    <input
-        id="entityFile"
-        type="file"
-        hidden
-    >
 
 </div>
 
