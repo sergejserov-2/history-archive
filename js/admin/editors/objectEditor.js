@@ -301,16 +301,16 @@ document.getElementById(
     
     }
 
-const data =
+const fieldsData =
     fieldsEditor.getData();
 
 const newTypeId =
-    data.typeId;
-    
-    const newType =
-        types.find(
-            t=>t.id===newTypeId
-        );
+    fieldsData.typeId;
+
+const newType =
+    types.find(
+        t => t.id === newTypeId
+    );
 
     if(object){
 
@@ -371,7 +371,7 @@ const newTypeId =
 
 const data = {
 
-    ...fieldsEditor.getData(),
+    ...fieldsData,
 
     coverPhotoId,
 
@@ -379,7 +379,7 @@ const data = {
         parentsEditor.getParents()
 
 };
-
+    
     if(object){
 
         await updateDoc(
