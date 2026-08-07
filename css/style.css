@@ -944,6 +944,7 @@ button.admin-button {
 #entityParentSearch {
 
     margin-top:0;
+    font-size:13px;
 
 }
 
@@ -969,9 +970,9 @@ button.admin-button {
 
     flex-wrap:wrap;
 
-    gap:6px;
+    gap:4px;
 
-    margin-top:6px;
+    margin-top:4px;
 
 }
 
