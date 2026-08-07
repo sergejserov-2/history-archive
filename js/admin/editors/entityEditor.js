@@ -217,8 +217,6 @@ export function openEntityEditor(
 
                 return `
 
-   return `
-
 <div class="parent-item">
 
     <div class="parent-badge">
@@ -238,8 +236,6 @@ export function openEntityEditor(
 
 </div>
 `;
-
-                `;
 
             })
 
