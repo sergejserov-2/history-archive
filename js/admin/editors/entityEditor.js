@@ -248,11 +248,6 @@ fileName.textContent = "";
             "#entityFile"
         );
 
-const fileInput =
-    root.querySelector(
-        "#entityFile"
-    );
-
 if(fileInput){
 
     const fileSelect =
