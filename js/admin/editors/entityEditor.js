@@ -141,7 +141,8 @@ export function openEntityEditor(
     
         [context.parentId];
 
-    let file = null;
+let file = null;
+let removeOldFile = false;
 
     const form = renderForm(
 
@@ -226,6 +227,37 @@ const fileClear =
     fileClear.hidden = false;
 
 }
+
+const fileButton =
+    root.querySelector(".entity-file__button");
+
+if(fileButton){
+
+    fileButton.onclick = ()=>{
+
+        if(
+            entity?.storagePath &&
+            !removeOldFile &&
+            !file
+        ){
+
+            removeOldFile = true;
+
+            fileText.textContent =
+                "Выбрать файл";
+
+            fileClear.hidden = true;
+
+            return;
+
+        }
+
+        fileInput.click();
+
+    };
+
+}
+
     
     renderParents();
 
@@ -391,6 +423,8 @@ fileInput.onchange = e=>{
 
     if(file){
 
+        removeOldFile = false;
+
         fileText.textContent =
             file.name;
 
@@ -403,6 +437,7 @@ fileInput.onchange = e=>{
 fileClear.onclick = e=>{
 
     e.stopPropagation();
+    e.preventDefault();
 
     file = null;
 
@@ -469,25 +504,35 @@ saveButton.onclick = async()=>{
 
         });
 
-        if(cfg.file && file){
+if(cfg.file){
 
-            const result =
+    if(removeOldFile){
 
-                await cfg.upload(
+        data.storagePath = null;
 
-                    file
+    }
 
-                );
+    if(file){
 
-            if(result?.storagePath){
+        const result =
 
-                data.storagePath =
+            await cfg.upload(
 
-                    result.storagePath;
+                file
 
-            }
+            );
+
+        if(result?.storagePath){
+
+            data.storagePath =
+
+                result.storagePath;
 
         }
+
+    }
+
+}
 
 if(entity){
 
