@@ -163,10 +163,6 @@ object.parents ?? []
 
 );
 
-let coverPhotoId =
-
-object?.coverPhotoId ?? null;
-
 const parentsEditor = setupParentsEditor(
 
     document,
@@ -267,23 +263,13 @@ const fieldsEditor =
 
     );
     
+const coverEditor =
+    setupCoverEditor(
+        document,
+        photos,
+        object
+    );
 
-
-// ======================================
-// Cover
-// ======================================
-
-document.getElementById(
-
-"objectCoverInput"
-
-).onchange=e=>{
-
-coverPhotoId =
-
-e.target.value || null;
-
-};
 
 // ======================================
 // Save
@@ -366,14 +352,14 @@ setupEditorButtons(
         }
 
         const data = {
-
+        
             ...fieldsData,
-
-            coverPhotoId,
-
+        
+            ...coverEditor.getData(),
+        
             parents:
                 parentsEditor.getParents()
-
+        
         };
 
         if(object){
