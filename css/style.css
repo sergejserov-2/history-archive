@@ -983,23 +983,21 @@ button.admin-button {
 
 .parent-remove{
 
-    display:inline-flex;
-
-    align-items:center;
-
-    justify-content:center;
-
     margin:0;
 
     padding:0;
 
-    width:14px;
+    width:auto;
 
-    height:14px;
+    height:auto;
+
+    border:none;
+
+    background:none;
 
     color:#f2c94c;
 
-    font-size:12px;
+    font-size:15px;
 
     line-height:1;
 
