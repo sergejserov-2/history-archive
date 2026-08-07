@@ -1111,77 +1111,7 @@ button.admin-button {
 
 }
 
-/* ==========================================
-   PARENT BADGE
-========================================== */
 
-.parent-item{
-
-    display:flex;
-
-    margin-bottom:6px;
-
-}
-
-.parent-badge{
-
-    display:inline-flex;
-
-    align-items:center;
-
-    gap:6px;
-
-    padding:5px 8px;
-
-    background:rgba(240,190,50,.18);
-
-    border:1px solid rgba(240,190,50,.9);
-
-    border-radius:7px;
-
-    color:#f2c94c;
-
-    width:auto;
-
-    max-width:100%;
-
-}
-
-.parent-title{
-
-    white-space:nowrap;
-
-}
-
-.parent-remove{
-
-    margin:0;
-
-    padding:0;
-
-    width:auto;
-
-    height:auto;
-
-    border:none;
-
-    background:none;
-
-    color:#f2c94c;
-
-    font-size:15px;
-
-    line-height:1;
-
-    cursor:pointer;
-
-}
-
-.parent-address {
-
-    flex:1;
-
-}
 
 /* ==========================================
    MODAL
