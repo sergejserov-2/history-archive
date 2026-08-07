@@ -1100,6 +1100,38 @@ button.admin-button {
 
 }
 
+/* строки полей */
+
+.entity-row {
+
+    display:flex;
+
+    gap:12px;
+
+}
+
+/* автор + дата */
+
+.entity-row--author-date label:first-child {
+
+    flex:3;
+
+}
+
+.entity-row--author-date label:last-child {
+
+    flex:1;
+
+}
+
+/* даты периода */
+
+.entity-row--dates label {
+
+    flex:1;
+
+}
+
 .entity-editor__buttons{
 
     display:flex;
