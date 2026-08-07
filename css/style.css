@@ -1324,15 +1324,21 @@ button.admin-button {
 
     border-radius:7px;
 
-    width:auto;
+    width:max-content;
 
     max-width:100%;
+
+    white-space:nowrap;
 
 }
 
 .entity-file__text{
 
-    white-space:nowrap;
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    max-width:350px;
 
 }
 
