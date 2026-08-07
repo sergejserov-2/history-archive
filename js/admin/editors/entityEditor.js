@@ -148,41 +148,47 @@ let removeOldFile = false;
 function renderFileState(){
 
     if(file){
-
+    
         fileSelect.hidden = true;
-
+    
         fileCurrent.hidden = false;
-
+    
+        fileInput.disabled = true;
+    
         fileName.textContent =
             file.name;
-
+    
         return;
-
+    
     }
 
-    if(
-        entity?.storagePath &&
-        !removeOldFile
-    ){
+if(
+    entity?.storagePath &&
+    !removeOldFile
+){
 
-        fileSelect.hidden = true;
+    fileSelect.hidden = true;
 
-        fileCurrent.hidden = false;
+    fileCurrent.hidden = false;
 
-        fileName.textContent =
-            entity.storagePath
-                .split("/")
-                .pop();
+    fileInput.disabled = true;
 
-        return;
+    fileName.textContent =
+        entity.storagePath
+            .split("/")
+            .pop();
 
-    }
+    return;
 
-    fileSelect.hidden = false;
+}
 
-    fileCurrent.hidden = true;
+fileSelect.hidden = false;
 
-    fileName.textContent = "";
+fileCurrent.hidden = true;
+
+fileInput.disabled = false;
+
+fileName.textContent = "";
 
 }
 
@@ -247,6 +253,20 @@ const fileSelect =
         "#entityFileSelect"
     );
 
+
+fileSelect.onclick = ()=>{
+
+    if(
+        !fileInput.disabled
+    ){
+
+        fileInput.click();
+
+    }
+
+};
+
+    
 const fileCurrent =
     root.querySelector(
         "#entityFileCurrent"
@@ -806,20 +826,20 @@ cfg.file
 
 <div class="entity-file">
 
-    <label
+    <div
         id="entityFileSelect"
         class="entity-file__select admin-button"
     >
-
+    
         Выбрать файл
-
-        <input
-            id="entityFile"
-            type="file"
-            hidden
-        >
-
-    </label>
+    
+    </div>
+    
+    <input
+        id="entityFile"
+        type="file"
+        hidden
+    >
 
     <div
         id="entityFileCurrent"
