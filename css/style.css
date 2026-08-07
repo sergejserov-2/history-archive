@@ -1109,35 +1109,11 @@ button.admin-button {
 
 .modal__close {
 
-    width:28px;
-
-    height:28px;
-
-    border-radius:50%;
-
-    border:
-
-        1px solid rgba(240,190,50,.9);
-
-    background:
-
-        rgba(240,190,50,.18);
-
-    color:#f2c94c;
-
     font-size:20px;
 
     line-height:1;
 
     cursor:pointer;
-
-}
-
-.modal__close:hover {
-
-    background:
-
-        rgba(240,190,50,.4);
 
 }
 
@@ -1158,7 +1134,7 @@ button.admin-button {
 
     flex-direction:column;
 
-    gap:12px;
+    gap:10px;
 
 }
 
@@ -1168,7 +1144,7 @@ button.admin-button {
 
     display:flex;
 
-    gap:12px;
+    gap:10px;
 
 }
 
@@ -1199,6 +1175,7 @@ button.admin-button {
     display:flex;
 
     gap:10px;
+   margin-top: 10px;
 
 }
 
