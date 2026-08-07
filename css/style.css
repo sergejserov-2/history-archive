@@ -1293,6 +1293,9 @@ button.admin-button {
 
     color:#e0e3e6;
 
+   font-size: 14px;
+    font-family: inherit;
+
 }
 
 .entity-editor textarea,
@@ -1306,7 +1309,6 @@ button.admin-button {
 
     line-height:1.45;
 
-    font-family: inherit;
 
 }
 
