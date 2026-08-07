@@ -914,6 +914,52 @@ button.admin-button {
 }
 
 /* ==========================================
+   ENTITY PARENTS GROUP
+========================================== */
+
+.parents-group {
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:4px;
+
+}
+
+/* выбранные родители */
+
+#entityParents {
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:4px;
+
+}
+
+/* поиск */
+
+#entityParentSearch {
+
+    margin-top:0;
+
+}
+
+/* найденные родители */
+
+#entityParentResults {
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:4px;
+
+}
+
+/* ==========================================
    PARENT SEARCH RESULTS
 ========================================== */
 
