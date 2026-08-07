@@ -3,8 +3,7 @@
 // ======================================
 
 import {
-    renderObjectEditor,
-    initObjectEditor
+    openObjectEditor
 }
 from "./editors/objectEditor.js";
 
@@ -102,31 +101,7 @@ action==="edit-object"
 
 ){
 
-const block =
-
-document.querySelector(
-
-".object__info"
-
-);
-
-block.innerHTML =
-
-renderObjectEditor(
-
-object,
-
-types,
-
-objects,
-
-photos,
-
-children
-
-);
-
-initObjectEditor(
+openObjectEditor(
 
 object,
 
