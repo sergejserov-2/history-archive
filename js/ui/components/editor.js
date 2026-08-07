@@ -2,6 +2,170 @@
 // Entity editor UI
 // ======================================
 
+export function setupFileEditor(
+    root,
+    entity
+){
+
+    const fileInput =
+        root.querySelector(
+            "#entityFile"
+        );
+
+    if(!fileInput){
+
+        return null;
+
+    }
+
+    let file = null;
+
+    let removeOldFile = false;
+
+    const fileSelect =
+        root.querySelector(
+            "#entityFileSelect"
+        );
+
+    const fileCurrent =
+        root.querySelector(
+            "#entityFileCurrent"
+        );
+
+    const fileName =
+        root.querySelector(
+            "#entityFileName"
+        );
+
+    const fileRemove =
+        root.querySelector(
+            "#entityFileRemove"
+        );
+
+    function renderFileState(){
+
+        if(file){
+
+            fileSelect.hidden = true;
+
+            fileCurrent.hidden = false;
+
+            fileInput.disabled = true;
+
+            fileName.textContent =
+                file.name;
+
+            return;
+
+        }
+
+        if(
+            entity?.storagePath &&
+            !removeOldFile
+        ){
+
+            fileSelect.hidden = true;
+
+            fileCurrent.hidden = false;
+
+            fileInput.disabled = true;
+
+            fileName.textContent =
+                entity.storagePath
+                .split("/")
+                .pop();
+
+            return;
+
+        }
+
+        fileSelect.hidden = false;
+
+        fileCurrent.hidden = true;
+
+        fileInput.disabled = false;
+
+        fileName.textContent = "";
+
+    }
+
+    fileSelect.onclick = ()=>{
+
+        if(!fileInput.disabled){
+
+            fileInput.click();
+
+        }
+
+    };
+
+    fileInput.onchange = e=>{
+
+        file =
+            e.target.files[0] || null;
+
+        if(file){
+
+            removeOldFile = false;
+
+        }
+
+        renderFileState();
+
+    };
+
+    fileRemove.onclick = e=>{
+
+        e.stopPropagation();
+
+        file = null;
+
+        fileInput.value = "";
+
+        removeOldFile = true;
+
+        renderFileState();
+
+    };
+
+    renderFileState();
+
+    return {
+
+        async getData(){
+
+            if(removeOldFile){
+
+                return {
+
+                    storagePath:null
+
+                };
+
+            }
+
+            if(file){
+
+                // загрузка будет добавлена следующим шагом
+
+                return {
+
+                    file
+
+                };
+
+            }
+
+            return null;
+
+        }
+
+    };
+
+}
+
+
+
 export function renderEntityEditor(
 
     cfg,
