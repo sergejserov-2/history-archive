@@ -393,56 +393,29 @@ button.admin-button {
    ADMIN ICONS
 ========================================== */
 
-.admin-button--icon{
-
-    width:24px;
-    height:24px;
-
+.icon{
     display:inline-flex;
+    width:14px;
+    height:14px;
     align-items:center;
     justify-content:center;
-
-    padding:0 !important;
-
 }
 
-.admin-button__icon{
-
+.icon img{
+    display:block;
     width:14px;
     height:14px;
 
-    background:#f2c94c;
-
-    -webkit-mask-repeat:no-repeat;
-    -webkit-mask-position:center;
-    -webkit-mask-size:contain;
-
-    mask-repeat:no-repeat;
-    mask-position:center;
-    mask-size:contain;
-
+    filter:
+        brightness(0)
+        saturate(100%)
+        invert(83%)
+        sepia(48%)
+        saturate(933%)
+        hue-rotate(351deg)
+        brightness(101%)
+        contrast(93%);
 }
-
-.admin-button--icon:hover .admin-button__icon{
-
-    background:#ffd95a;
-
-}
-
-.admin-button__icon--edit{
-
-    -webkit-mask-image:url("../icons/edit.svg");
-    mask-image:url("../icons/edit.svg");
-
-}
-
-.admin-button__icon--delete{
-
-    -webkit-mask-image:url("../icons/delete.svg");
-    mask-image:url("../icons/delete.svg");
-
-}
-
 
 /* ==========================================
    CHILDREN
