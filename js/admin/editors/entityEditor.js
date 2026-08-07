@@ -188,35 +188,88 @@ const fieldsEditor = setupEntityFieldsEditor(
     cfg
 );
 
-// ======================================
-// Save
-// ======================================
+setupEditorButtons(
 
-const saveButton =
+    root,
 
-    root.querySelector(
-        "#entitySave"
-    );
+    async()=>{
 
-const cancelButton =
+        try{
 
-    root.querySelector(
-        "#entityCancel"
-    );
+            const data = {
 
-saveButton.onclick = async()=>{
+                ...fieldsEditor.getData(),
 
-    try{
+                parents:
+                    parentsEditor.getParents()
 
-const data = {
+            };
 
-    ...fieldsEditor.getData(),
+            const fileData =
+                await fileEditor?.getData();
 
-    parents:
-        parentsEditor.getParents()
+            if(fileData){
 
-};
+                Object.assign(
+                    data,
+                    fileData
+                );
 
+            }
+
+            if(entity){
+
+                await cfg.update(
+                    entity.id,
+                    data
+                );
+
+            }
+            else{
+
+                if(
+                    parentsEditor.getParents().length===0
+                ){
+
+                    alert(
+                        "Нужен хотя бы один родитель"
+                    );
+
+                    return;
+
+                }
+
+                await cfg.create(
+                    data
+                );
+
+            }
+
+            modal.close();
+
+            onSave?.();
+
+        }
+        catch(error){
+
+            console.error(error);
+
+            alert(
+                "Ошибка сохранения"
+            );
+
+        }
+
+    },
+
+    ()=>{
+
+        modal.close();
+
+    }
+
+);
+    
 const fileData = await fileEditor?.getData();
 
 if(fileData){
@@ -283,12 +336,6 @@ modal.close();
         );
 
     }
-
-};
-
-cancelButton.onclick = ()=>{
-
-    modal.close();
 
 };
 
