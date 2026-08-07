@@ -167,10 +167,11 @@ const form = renderEntityEditor(
 
     const root = modal.root;
 
-    const fileEditor = setupFileEditor(
-        root,
-        entity
-        );
+const fileEditor = setupFileEditor(
+    root,
+    entity,
+    cfg.upload
+);
 
     const titleInput =
 
