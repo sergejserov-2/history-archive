@@ -4,7 +4,8 @@
 
 export function setupFileEditor(
     root,
-    entity
+    entity,
+    upload
 ){
 
     const fileInput =
@@ -145,15 +146,21 @@ export function setupFileEditor(
             }
 
             if(file){
-
-                // загрузка будет добавлена следующим шагом
-
-                return {
-
+            
+                const result = await upload(
                     file
-
-                };
-
+                );
+            
+                if(result?.storagePath){
+            
+                    return {
+            
+                        storagePath: result.storagePath
+            
+                    };
+            
+                }
+            
             }
 
             return null;
