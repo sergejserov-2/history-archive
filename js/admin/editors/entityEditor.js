@@ -319,17 +319,20 @@ if(fileInput){
 
     };
 
-    fileRemove.onclick = ()=>{
+fileRemove.onclick = e=>{
 
-        file = null;
+    e.preventDefault();
+    e.stopPropagation();
 
-        fileInput.value = "";
+    file = null;
 
-        removeOldFile = true;
+    fileInput.value = "";
 
-        renderFileState();
+    removeOldFile = true;
 
-    };
+    renderFileState();
+
+};
 
 }
 
