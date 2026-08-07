@@ -8,7 +8,8 @@ import {
 from "../../ui/components/modal.js";
 
 import {
-    renderEntityEditor
+    renderEntityEditor,
+    setupFileEditor
 }
 from "../../ui/components/editor.js";
 
@@ -146,56 +147,7 @@ export function openEntityEditor(
     
         [context.parentId];
 
-let file = null;
-let removeOldFile = false;
 
-
-function renderFileState(){
-
-    if(file){
-    
-        fileSelect.hidden = true;
-    
-        fileCurrent.hidden = false;
-    
-        fileInput.disabled = true;
-    
-        fileName.textContent =
-            file.name;
-    
-        return;
-    
-    }
-
-if(
-    entity?.storagePath &&
-    !removeOldFile
-){
-
-    fileSelect.hidden = true;
-
-    fileCurrent.hidden = false;
-
-    fileInput.disabled = true;
-
-    fileName.textContent =
-        entity.storagePath
-            .split("/")
-            .pop();
-
-    return;
-
-}
-
-fileSelect.hidden = false;
-
-fileCurrent.hidden = true;
-
-fileInput.disabled = false;
-
-fileName.textContent = "";
-
-}
 
 const form = renderEntityEditor(
 
@@ -214,6 +166,11 @@ const form = renderEntityEditor(
     });
 
     const root = modal.root;
+
+    const fileEditor = setupFileEditor(
+        root,
+        entity
+        );
 
     const titleInput =
 
@@ -244,79 +201,6 @@ const form = renderEntityEditor(
         root.querySelector(
             "#entityParentResults"
         );
-
-    const fileInput =
-
-        root.querySelector(
-            "#entityFile"
-        );
-
-if(fileInput){
-
-    const fileSelect =
-        root.querySelector(
-            "#entityFileSelect"
-        );
-
-    const fileCurrent =
-        root.querySelector(
-            "#entityFileCurrent"
-        );
-
-    const fileName =
-        root.querySelector(
-            "#entityFileName"
-        );
-
-    const fileRemove =
-        root.querySelector(
-            "#entityFileRemove"
-        );
-
-    fileSelect.onclick = ()=>{
-
-        if(
-            !fileInput.disabled
-        ){
-
-            fileInput.click();
-
-        }
-
-    };
-
-    fileInput.onchange = e=>{
-
-        file =
-            e.target.files[0] || null;
-
-        if(file){
-
-            removeOldFile = false;
-
-        }
-
-        renderFileState();
-
-    };
-
-    fileRemove.onclick = e=>{
-
-        e.stopPropagation();
-
-        file = null;
-
-        fileInput.value = "";
-
-        removeOldFile = true;
-
-        renderFileState();
-
-    };
-
-    renderFileState();
-
-}
 
 
     
@@ -525,33 +409,14 @@ saveButton.onclick = async()=>{
 
         });
 
-if(cfg.file){
+const fileData = await fileEditor?.getData();
 
-    if(removeOldFile){
+if(fileData){
 
-        data.storagePath = null;
-
-    }
-
-    if(file){
-
-        const result =
-
-            await cfg.upload(
-
-                file
-
-            );
-
-        if(result?.storagePath){
-
-            data.storagePath =
-
-                result.storagePath;
-
-        }
-
-    }
+    Object.assign(
+        data,
+        fileData
+    );
 
 }
 
