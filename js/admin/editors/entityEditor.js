@@ -348,7 +348,335 @@ renderFileState();
             ${obj?.title ?? id}
         </span>
 
-        <spanmodal.close();
+        <spanclass="parent-remove"
+            data-remove="${id}"
+        >
+            ×
+        </span>
+
+    </div>
+
+</div>
+`;
+
+            })
+
+            .join("");
+
+    }
+
+    parentsBox.onclick=e=>{
+
+        const id =
+
+            e.target.dataset.remove;
+
+        if(!id)
+
+            return;
+
+        parents =
+
+            parents.filter(
+
+                p=>p!==id
+
+            );
+
+        renderParents();
+
+    };
+
+    searchInput.oninput=()=>{
+
+        const text =
+
+            searchInput.value
+
+            .toLowerCase()
+
+            .trim();
+
+        if(!text){
+
+            resultsBox.innerHTML="";
+
+            return;
+
+        }
+
+        resultsBox.innerHTML =
+
+            context.objects
+
+            .filter(
+
+                o=>
+
+                    o.id!==entity?.id &&
+
+                    !parents.includes(o.id) &&
+
+                    o.title
+
+                    .toLowerCase()
+
+                    .includes(text)
+
+            )
+
+            .slice(0,20)
+
+            .map(o=>`
+
+                <div
+
+                    class="parent-result"
+
+                    data-id="${o.id}"
+
+                >
+
+                    ${o.title}</div>
+
+            `)
+
+            .join("");
+
+    };
+
+    resultsBox.onclick=e=>{
+
+        const item =
+
+            e.target.closest(
+
+                ".parent-result"
+
+            );
+
+        if(!item)
+
+            return;
+
+        parents.push(
+
+            item.dataset.id
+
+        );
+
+        renderParents();
+
+        searchInput.value="";
+
+        resultsBox.innerHTML="";
+
+    };
+
+if(fileInput){
+
+    const text = root.querySelector(".entity-file__text");
+    const clear = root.querySelector("#entityFileClear");
+
+fileInput.onchange = e=>{
+
+    file =
+        e.target.files[0] || null;
+
+    if(file){
+
+        removeOldFile = false;
+
+const oldText =
+    fileButton.querySelector(
+        ".entity-file__text"
+    );
+
+if(oldText){
+
+    oldText.remove();
+
+}
+
+const filename =
+    fileButton.querySelector(
+        ".entity-file__name"
+    )
+    ||
+    document.createElement("div");
+
+filename.className =
+    "entity-file__name";
+
+filename.textContent =
+    file.name;
+
+if(!filename.parentNode){
+
+    fileButton.prepend(filename);
+
+}
+
+        fileClear.hidden = false;
+
+    }
+
+};
+
+fileClear.onclick = e=>{
+
+    e.stopPropagation();
+    e.preventDefault();
+
+    file = null;
+
+    fileInput.value = "";
+
+const filename =
+    fileButton.querySelector(
+        ".entity-file__name"
+    );
+
+if(filename){
+
+    filename.remove();
+
+}
+
+const text =
+    document.createElement("span");
+
+text.className =
+    "entity-file__text";
+
+text.textContent =
+    "Выбрать файл";
+
+fileButton.prepend(text);
+
+    fileClear.hidden = true;
+
+};
+
+}
+  
+// ======================================
+// Save
+// ======================================
+
+const saveButton =
+
+    root.querySelector(
+        "#entitySave"
+    );
+
+const cancelButton =
+
+    root.querySelector(
+        "#entityCancel"
+    );
+
+saveButton.onclick = async()=>{
+
+    try{
+
+        const data = {
+
+            title:
+
+                titleInput.value.trim(),
+
+            description:
+
+                descriptionInput.value.trim(),
+
+            parents
+
+        };
+
+        cfg.fields.forEach(field=>{
+
+            const input =
+
+                root.querySelector(
+                    `#entity_${field}`
+                );
+
+            if(input){
+
+                data[field] =
+
+                    input.value.trim();
+
+            }
+
+        });
+
+if(cfg.file){
+
+    if(removeOldFile){
+
+        data.storagePath = null;
+
+    }
+
+    if(file){
+
+        const result =
+
+            await cfg.upload(
+
+                file
+
+            );
+
+        if(result?.storagePath){
+
+            data.storagePath =
+
+                result.storagePath;
+
+        }
+
+    }
+
+}
+
+if(entity){
+
+    await cfg.update(
+
+        entity.id,
+
+        data
+
+    );
+
+}
+
+else{
+    if(
+        !entity &&
+        parents.length===0
+    ){
+    
+        alert(
+            "Нужен хотя бы один родитель"
+        );
+    
+        return;
+    
+    }
+    
+    await cfg.create(
+
+        data
+
+    );
+
+}
+        
+        modal.close();
 
         onSave?.();
 
