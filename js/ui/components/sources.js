@@ -84,7 +84,7 @@ export function renderSources(
 
                     >
 
-<span class="admin-button__icon admin-button__icon--edit"></span>
+    <img src="../../../icons/edit.svg" class="admin-icon">
 
                     </button>
 
@@ -98,7 +98,7 @@ export function renderSources(
 
                     >
 
-<span class="admin-button__icon admin-button__icon--delete"></span>
+    <img src="../../../icons/delete.svg" class="admin-icon">
 
                     </button>
 
