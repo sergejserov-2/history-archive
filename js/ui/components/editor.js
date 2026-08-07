@@ -127,8 +127,12 @@ export function setupParentsEditor(
     root,
     objects,
     entity,
-    parents
+    parents,
+    options = {}
 ){
+
+    const withAddress =
+        options.address === true;
 
     const parentsBox =
         root.querySelector(
@@ -145,11 +149,22 @@ export function setupParentsEditor(
             "#entityParentResults"
         );
 
+    function getParentId(parent){
+
+        return withAddress
+            ? parent.objectId
+            : parent;
+
+    }
+
     function renderParents(){
 
         parentsBox.innerHTML =
 
-            parents.map(id=>{
+            parents.map(parent=>{
+
+                const id =
+                    getParentId(parent);
 
                 const obj =
 
@@ -168,6 +183,33 @@ export function setupParentsEditor(
         <span class="parent-title">
             ${obj?.title ?? id}
         </span>
+
+        ${
+            withAddress
+
+            ?
+
+            `
+
+            <input
+
+                class="parent-address"
+
+                data-id="${id}"
+
+                value="${parent.address ?? ""}"
+
+                placeholder="Адрес"
+
+            >
+
+            `
+
+            :
+
+            ""
+
+        }
 
         <span
             class="parent-remove"
@@ -197,25 +239,55 @@ export function setupParentsEditor(
 
             return;
 
-        const index =
-            parents.indexOf(id);
+        parents =
 
-        if(index !== -1){
+            parents.filter(parent=>{
 
-            parents.splice(
-                index,
-                1
-            );
+                return getParentId(parent)!==id;
 
-        }
+            });
 
         renderParents();
 
     };
 
+    if(withAddress){
+
+        parentsBox.oninput = e=>{
+
+            if(
+                !e.target.classList.contains(
+                    "parent-address"
+                )
+            )
+
+                return;
+
+            const parent =
+
+                parents.find(
+
+                    p=>
+
+                    p.objectId === e.target.dataset.id
+
+                );
+
+            if(parent){
+
+                parent.address =
+                    e.target.value;
+
+            }
+
+        };
+
+    }
+
     searchInput.oninput = ()=>{
 
         const text =
+
             searchInput.value
             .toLowerCase()
             .trim();
@@ -232,27 +304,44 @@ export function setupParentsEditor(
 
             objects
 
-            .filter(o=>
+            .filter(o=>{
 
-                o.id !== entity?.id &&
+                if(
+                    o.id === entity?.id
+                )
 
-                !parents.includes(o.id) &&
+                    return false;
 
-                o.title
+                const exists =
 
-                .toLowerCase()
+                    parents.some(parent=>{
 
-                .includes(text)
+                        return getParentId(parent)===o.id;
 
-            )
+                    });
+
+                if(exists)
+
+                    return false;
+
+                return o.title
+
+                    .toLowerCase()
+
+                    .includes(text);
+
+            })
 
             .slice(0,20)
 
             .map(o=>`
 
 <div
+
     class="parent-result"
+
     data-id="${o.id}"
+
 >
 
 ${o.title}
@@ -277,9 +366,25 @@ ${o.title}
 
             return;
 
-        parents.push(
-            item.dataset.id
-        );
+        if(withAddress){
+
+            parents.push({
+
+                objectId:
+                    item.dataset.id,
+
+                address:""
+
+            });
+
+        }
+        else{
+
+            parents.push(
+                item.dataset.id
+            );
+
+        }
 
         renderParents();
 
