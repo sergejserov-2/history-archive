@@ -97,7 +97,7 @@ export function renderPhotos(
 
                 >
 
-                    ✏
+<span class="admin-button__icon admin-button__icon--edit"></span>
 
                 </button>
 
@@ -111,7 +111,7 @@ export function renderPhotos(
 
                 >
 
-                    🗑
+<span class="admin-button__icon admin-button__icon--delete"></span>
 
                 </button>
 
