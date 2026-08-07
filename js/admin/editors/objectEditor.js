@@ -86,8 +86,7 @@ export function renderObjectEditor(
 
 
 export function openObjectEditor(
-    root,
-
+    
     object,
 
     types,
@@ -218,11 +217,9 @@ setupParentsEditor(
 
             const selectedTypeId =
 
-                document.getElementById(
-
-                    "entityType"
-
-                ).value;
+root.querySelector(
+    "#entityType"
+).value;
 
             const objectType =
 
