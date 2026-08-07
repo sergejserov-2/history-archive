@@ -12,13 +12,14 @@ import {
     db
 }
 from "../../firebase.js";
+
 import {
     createObject
 }
 from "../../api/objects.js";
 
 import {
-    renderObjectFieldsEditor,
+    renderEntityEditor,
     setupEntityFieldsEditor,
     setupEditorButtons,
     setupParentsEditor
@@ -41,26 +42,44 @@ export function renderObjectEditor(
 
     children
 
-) {
-
-const currentType =
-    object
-        ? types.find(
-            t => t.id === object?.typeId
-        )
-        : null;
+){
 
 const objectPhotos =
     object
-        ? photos.filter(
-            photo =>
-                photo.parents?.includes(object.id)
-        )
-        : [];
+    ?
+    photos.filter(
+        photo =>
+            photo.parents?.includes(object.id)
+    )
+    :
+    [];
 
-    return `
+const cfg = {
+
+    fields:[],
+
+    options:{
+
+        typeSelector:true,
+
+        types
+
+    }
+
+};
+
+return `
 
 <div class="object-editor">
+
+${
+
+renderEntityEditor(
+    cfg,
+    object
+)
+
+}
 
 <label>
 
@@ -102,97 +121,11 @@ ${photo.title ?? photo.id}
 
 </label>
 
-${renderObjectFieldsEditor(object)}
-
-<label>
-
-Тип
-
-<select id="objectTypeInput">
-
-${
-types.map(type=>`
-
-<option
-
-value="${type.id}"
-
-${
-type.id === object?.typeId
-?
-"selected"
-:
-""
-}
-
-${
-children.length > 0 &&
-type.level < currentType.level
-?
-"disabled"
-:
-""
-}
-
->
-
-${type.title}
-
-</option>
-
-`).join("")
-}
-
-</select>
-
-</label>
-
-<label>
-
-Родители
-
-<div class="parents-group">
-
-    <div id="entityParents">
-
-    </div>
-
-    <input
-
-        id="entityParentSearch"
-
-        placeholder="Добавить родителя"
-
-    >
-
-    <div
-
-        id="entityParentResults"
-
-    >
-
-    </div>
-
-</div>
-
-<button id="saveObjectButton">
-
-Сохранить
-
-</button>
-
-<button id="cancelObjectButton">
-
-Отмена
-
-</button>
-
 </div>
 
 `;
 
 }
-
 
 // ======================================
 // Init
@@ -254,9 +187,9 @@ const parentsEditor = setupParentsEditor(
             }
 
             const selectedTypeId =
-                document.getElementById(
-                    "objectTypeInput"
-                ).value;
+document.getElementById(
+    "entityType"
+).value;
 
             const objectType =
                 types.find(
@@ -316,10 +249,18 @@ const parentsEditor = setupParentsEditor(
     
 const fieldsEditor =
     setupEntityFieldsEditor(
+
         document,
+
         {
             fields:[]
+        },
+
+        {
+            typeId:"#entityType"
+
         }
+
     );
     
 
@@ -360,11 +301,12 @@ document.getElementById(
     
     }
 
-    const newTypeId =
-        document.getElementById(
-            "objectTypeInput"
-        ).value;
+const data =
+    fieldsEditor.getData();
 
+const newTypeId =
+    data.typeId;
+    
     const newType =
         types.find(
             t=>t.id===newTypeId
@@ -431,12 +373,10 @@ const data = {
 
     ...fieldsEditor.getData(),
 
-    typeId:newTypeId,
-
     coverPhotoId,
 
     parents:
-    parentsEditor.getParents()
+        parentsEditor.getParents()
 
 };
 
