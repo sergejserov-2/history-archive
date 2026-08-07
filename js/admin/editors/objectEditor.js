@@ -145,6 +145,7 @@ export function openObjectEditor(
         modal.root;
 
     initObjectEditor(
+        root,
 
         object,
 
