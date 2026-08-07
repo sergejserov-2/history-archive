@@ -10,7 +10,8 @@ from "../../ui/components/modal.js";
 import {
     renderEntityEditor,
     setupFileEditor,
-    setupParentsEditor
+    setupParentsEditor,
+    setupEntityFieldsEditor
 }
 from "../../ui/components/editor.js";
 
@@ -174,19 +175,6 @@ const fileEditor = setupFileEditor(
     cfg.upload
 );
 
-    const titleInput =
-
-        root.querySelector(
-            "#entityTitle"
-        );
-
-    const descriptionInput =
-
-        root.querySelector(
-            "#entityDescription"
-        );
-
-
 const parentsEditor = setupParentsEditor(
     root,
     context.objects,
@@ -194,7 +182,11 @@ const parentsEditor = setupParentsEditor(
     parents
 );
 
-  
+const fieldsEditor = setupEntityFieldsEditor(
+    root,
+    cfg
+);
+
 // ======================================
 // Save
 // ======================================
@@ -217,34 +209,12 @@ saveButton.onclick = async()=>{
 
 const data = {
 
-    title:
-        titleInput.value.trim(),
-
-    description:
-        descriptionInput.value.trim(),
+    ...fieldsEditor.getData(),
 
     parents:
         parentsEditor.getParents()
 
 };
-
-        cfg.fields.forEach(field=>{
-
-            const input =
-
-                root.querySelector(
-                    `#entity_${field}`
-                );
-
-            if(input){
-
-                data[field] =
-
-                    input.value.trim();
-
-            }
-
-        });
 
 const fileData = await fileEditor?.getData();
 
