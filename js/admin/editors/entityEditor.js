@@ -225,12 +225,12 @@ export function openEntityEditor(
             ${obj?.title ?? id}
         </span>
 
-        <button
+        <span
             class="parent-remove"
             data-remove="${id}"
         >
             ×
-        </button>
+        </span>
 
     </div>
 
@@ -672,14 +672,14 @@ cfg.file
             hidden
         >
 
-        <button
+        <span
             id="entityFileClear"
             class="entity-file__remove"
             type="button"
             hidden
         >
             ×
-        </button>
+        </span>
 
     </label>
 
