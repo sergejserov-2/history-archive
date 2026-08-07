@@ -141,7 +141,8 @@ export function openEntityEditor(
     
         [context.parentId];
 
-    let file = null;
+let file = null;
+let removeOldFile = false;
 
     const form = renderForm(
 
@@ -199,6 +200,82 @@ export function openEntityEditor(
             "#entityFile"
         );
 
+const fileName =
+    root.querySelector(".entity-file__name");
+
+fileName.onclick = ()=>{
+
+    if(!entity?.storagePath && !file){
+
+        fileInput.click();
+
+    }
+
+};
+    
+    const fileClear =
+    root.querySelector(
+        "#entityFileClear"
+    );
+
+if(
+    entity &&
+    entity.storagePath &&
+    fileButton
+){
+
+    const name =
+        entity.storagePath
+            .split("/")
+            .pop();
+
+    const text =
+        fileButton.querySelector(
+            ".entity-file__text"
+        );
+
+    if(text){
+
+        text.remove();
+
+    }
+
+    const filename =
+        document.createElement("div");
+
+    filename.className =
+        "entity-file__name";
+
+    filename.textContent =
+        name;
+
+    fileButton.prepend(filename);
+
+    fileClear.hidden = false;
+
+}
+
+const fileOpen =
+    root.querySelector("#entityFileOpen");
+
+if(fileOpen){
+
+    fileOpen.onclick = ()=>{
+
+        if(
+            !entity?.storagePath ||
+            removeOldFile
+        ){
+
+            fileInput.click();
+
+        }
+
+    };
+
+}
+
+    
     renderParents();
 
     function renderParents(){
@@ -225,274 +302,7 @@ export function openEntityEditor(
             ${obj?.title ?? id}
         </span>
 
-        <span
-            class="parent-remove"
-            data-remove="${id}"
-        >
-            ×
-        </span>
-
-    </div>
-
-</div>
-`;
-
-            })
-
-            .join("");
-
-    }
-
-    parentsBox.onclick=e=>{
-
-        const id =
-
-            e.target.dataset.remove;
-
-        if(!id)
-
-            return;
-
-        parents =
-
-            parents.filter(
-
-                p=>p!==id
-
-            );
-
-        renderParents();
-
-    };
-
-    searchInput.oninput=()=>{
-
-        const text =
-
-            searchInput.value
-
-            .toLowerCase()
-
-            .trim();
-
-        if(!text){
-
-            resultsBox.innerHTML="";
-
-            return;
-
-        }
-
-        resultsBox.innerHTML =
-
-            context.objects
-
-            .filter(
-
-                o=>
-
-                    o.id!==entity?.id &&
-
-                    !parents.includes(o.id) &&
-
-                    o.title
-
-                    .toLowerCase()
-
-                    .includes(text)
-
-            )
-
-            .slice(0,20)
-
-            .map(o=>`
-
-                <div
-
-                    class="parent-result"
-
-                    data-id="${o.id}"
-
-                >
-
-                    ${o.title}</div>
-
-            `)
-
-            .join("");
-
-    };
-
-    resultsBox.onclick=e=>{
-
-        const item =
-
-            e.target.closest(
-
-                ".parent-result"
-
-            );
-
-        if(!item)
-
-            return;
-
-        parents.push(
-
-            item.dataset.id
-
-        );
-
-        renderParents();
-
-        searchInput.value="";
-
-        resultsBox.innerHTML="";
-
-    };
-
-if(fileInput){
-
-    const text = root.querySelector(".entity-file__text");
-    const clear = root.querySelector("#entityFileClear");
-
-    fileInput.onchange = e=>{
-
-        file = e.target.files[0] || null;
-
-        if(file){
-
-            text.textContent = file.name;
-            clear.hidden = false;
-
-        }else{
-
-            text.textContent = "Выбрать файл";
-            clear.hidden = true;
-
-        }
-
-    };
-
-    clear.onclick = ()=>{
-
-        file = null;
-        fileInput.value = "";
-
-        text.textContent = "Выбрать файл";
-        clear.hidden = true;
-
-    };
-
-}
-  
-// ======================================
-// Save
-// ======================================
-
-const saveButton =
-
-    root.querySelector(
-        "#entitySave"
-    );
-
-const cancelButton =
-
-    root.querySelector(
-        "#entityCancel"
-    );
-
-saveButton.onclick = async()=>{
-
-    try{
-
-        const data = {
-
-            title:
-
-                titleInput.value.trim(),
-
-            description:
-
-                descriptionInput.value.trim(),
-
-            parents
-
-        };
-
-        cfg.fields.forEach(field=>{
-
-            const input =
-
-                root.querySelector(
-                    `#entity_${field}`
-                );
-
-            if(input){
-
-                data[field] =
-
-                    input.value.trim();
-
-            }
-
-        });
-
-        if(cfg.file && file){
-
-            const result =
-
-                await cfg.upload(
-
-                    file
-
-                );
-
-            if(result?.storagePath){
-
-                data.storagePath =
-
-                    result.storagePath;
-
-            }
-
-        }
-
-if(entity){
-
-    await cfg.update(
-
-        entity.id,
-
-        data
-
-    );
-
-}
-
-else{
-    if(
-        !entity &&
-        parents.length===0
-    ){
-    
-        alert(
-            "Нужен хотя бы один родитель"
-        );
-    
-        return;
-    
-    }
-    
-    await cfg.create(
-
-        data
-
-    );
-
-}
-
-        modal.close();
+        <spanmodal.close();
 
         onSave?.();
 
@@ -716,9 +526,11 @@ cfg.file
         class="entity-file__button admin-button"
     >
 
-        <span class="entity-file__text">
+        <div
+            class="entity-file__name"
+        >
             Выбрать файл
-        </span>
+        </div>
 
         <input
             id="entityFile"
@@ -726,14 +538,13 @@ cfg.file
             hidden
         >
 
-        <span
+        <div
             id="entityFileClear"
             class="entity-file__remove"
-            type="button"
             hidden
         >
             ×
-        </span>
+        </div>
 
     </div>
 
@@ -763,4 +574,43 @@ cfg.file
 
 `;
 
-}
+}<div class="entity-file">
+
+    <!-- Состояние: выбрать файл -->
+
+    <div
+        id="entityFileSelect"
+        class="entity-file__select admin-button"
+    >
+        Выбрать файл
+    </div>
+
+    <!-- Состояние: файл выбран -->
+
+    <div
+        id="entityFileCurrent"
+        class="entity-file__current"
+        hidden
+    >
+
+        <span
+            id="entityFileName"
+        >
+        </span>
+
+        <span
+            id="entityFileRemove"
+            class="entity-file__remove"
+        >
+            ×
+        </span>
+
+    </div>
+
+    <input
+        id="entityFile"
+        type="file"
+        hidden
+    >
+
+</div>
