@@ -601,46 +601,96 @@ id="entityParentResults"
 </div>
 
 ${
+cfg.fields.includes("author") && cfg.fields.includes("date")
 
-cfg.fields.map(field=>{
+?
 
-let label = field;
+`
 
-if(field==="author")
-
-    label="Автор";
-
-if(field==="date")
-
-    label="Дата";
-
-if(field==="dateStart")
-
-    label="Дата начала";
-
-if(field==="dateEnd")
-
-    label="Дата окончания";
-
-return `
+<div class="entity-row entity-row--author-date">
 
 <label>
 
-${label}
+Автор
 
 <input
 
-id="entity_${field}"
+id="entity_author"
 
-value="${entity[field] ?? ""}"
+value="${entity.author ?? ""}"
 
 >
 
 </label>
 
-`;
+<label>
 
-}).join("")
+Дата
+
+<input
+
+id="entity_date"
+
+value="${entity.date ?? ""}"
+
+>
+
+</label>
+
+</div>
+
+`
+
+:
+
+""
+
+}
+
+${
+cfg.fields.includes("dateStart") && cfg.fields.includes("dateEnd")
+
+?
+
+`
+
+<div class="entity-row entity-row--dates">
+
+<label>
+
+Дата начала
+
+<input
+
+id="entity_dateStart"
+
+value="${entity.dateStart ?? ""}"
+
+>
+
+</label>
+
+<label>
+
+Дата окончания
+
+<input
+
+id="entity_dateEnd"
+
+value="${entity.dateEnd ?? ""}"
+
+>
+
+</label>
+
+</div>
+
+`
+
+:
+
+""
 
 }
 
