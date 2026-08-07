@@ -241,7 +241,75 @@ const parentsEditor = setupParentsEditor(
     parents,
 
     {
-        address:true
+        address:true,
+
+        filter(parent){
+
+            if(
+                parent.id === object?.id
+            ){
+
+                return false;
+
+            }
+
+            const selectedTypeId =
+                document.getElementById(
+                    "objectTypeInput"
+                ).value;
+
+            const objectType =
+                types.find(
+                    t=>t.id===selectedTypeId
+                );
+
+            const parentType =
+                types.find(
+                    t=>t.id===parent.typeId
+                );
+
+            if(
+                !objectType ||
+                !parentType
+            ){
+
+                return false;
+
+            }
+
+            // Если родители уже есть —
+            // только тот же уровень
+
+            if(parents.length){
+
+                const firstParent =
+                    objects.find(
+                        o=>
+                        o.id === parents[0]
+                    );
+
+                const firstParentType =
+                    types.find(
+                        t=>
+                        t.id === firstParent.typeId
+                    );
+
+                return (
+                    parentType.level ===
+                    firstParentType.level
+                );
+
+            }
+
+            // Новый родитель должен быть выше
+
+            return (
+                parentType.level >
+                objectType.level
+            );
+
+        }
+
     }
 
 );
@@ -280,12 +348,16 @@ document.getElementById(
     "saveObjectButton"
 ).onclick = async ()=>{
 
-    if(parents.length===0){
-
-        alert("Нужен хотя бы один родитель");
-
+    if(
+        parentsEditor.getParents().length===0
+    ){
+    
+        alert(
+            "Нужен хотя бы один родитель"
+        );
+    
         return;
-
+    
     }
 
     const newTypeId =
