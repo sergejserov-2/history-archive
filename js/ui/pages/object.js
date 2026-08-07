@@ -255,7 +255,7 @@ async function renderPage(
                                 data-action="edit-object"
                             >
                             
-    <img src="../../../icons/edit.svg" class="admin-icon">
+    <img src="icons/edit.svg" class="admin-icon">
                             
                             </button>
                             
@@ -265,7 +265,7 @@ async function renderPage(
                                 data-id="${object.id}"
                             >
                             
-    <img src="../../../icons/delete.svg" class="admin-icon">
+    <img src="icons/delete.svg" class="admin-icon">
                             
                             </button>
 
