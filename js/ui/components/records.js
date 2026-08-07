@@ -44,7 +44,7 @@ export function renderRecords(
         ){
 
             period =
-                `${record.dateStart}–${record.dateEnd}`;
+                `${record.dateStart} – ${record.dateEnd}`;
 
         }
 
@@ -72,62 +72,58 @@ export function renderRecords(
 
         <div class="record">
 
-            <div>
+            <div class="record__title">
 
-                <div class="record__title">
+                ${record.title ?? ""}
 
-                    ${record.title ?? ""}
+                ${
+                ADMIN_MODE
 
-                    ${
-                    ADMIN_MODE
+                ?
 
-                    ?
+                `
 
-                    `
+                <button
 
-                    <button
+                    class="admin-button"
 
-                        class="admin-button"
+                    data-action="edit-record"
 
-                        data-action="edit-record"
+                    data-id="${record.id}"
 
-                        data-id="${record.id}"
+                >
 
-                    >
+                    ✏
 
-                        ✏
+                </button>
 
-                    </button>
+                <button
 
-                    <button
+                    class="admin-button"
 
-                        class="admin-button"
+                    data-action="delete-record"
 
-                        data-action="delete-record"
+                    data-id="${record.id}"
 
-                        data-id="${record.id}"
+                >
 
-                    >
+                    🗑
 
-                        🗑
+                </button>
 
-                    </button>
+                `
 
-                    `
+                :
 
-                    :
+                ""
 
-                    ""
+                }
 
-                    }
+            </div>
 
-                </div>
+            <div class="record__description">
 
-                <div class="record__description">
-
-                    ${record.description ?? ""}
-
-                </div>
+                ${record.description ?? ""}
 
             </div>
 
