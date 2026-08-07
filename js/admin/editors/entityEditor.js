@@ -282,6 +282,46 @@ if(fileOpen){
 
 }
 
+if(fileInput){
+
+    fileSelect.onclick = ()=>{
+
+        fileInput.click();
+
+    };
+
+    fileInput.onchange = e=>{
+
+        file =
+            e.target.files[0] || null;
+
+        if(file){
+
+            removeOldFile = false;
+
+        }
+
+        renderFileState();
+
+    };
+
+    fileRemove.onclick = ()=>{
+
+        file = null;
+
+        fileInput.value = "";
+
+        removeOldFile = true;
+
+        renderFileState();
+
+    };
+
+}
+
+renderFileState();
+
+
     
     renderParents();
 
@@ -434,44 +474,7 @@ if(fileOpen){
 
     };
 
-if(fileInput){
 
-    fileSelect.onclick = ()=>{
-
-        fileInput.click();
-
-    };
-
-    fileInput.onchange = e=>{
-
-        file =
-            e.target.files[0] || null;
-
-        if(file){
-
-            removeOldFile = false;
-
-        }
-
-        renderFileState();
-
-    };
-
-    fileRemove.onclick = ()=>{
-
-        file = null;
-
-        fileInput.value = "";
-
-        removeOldFile = true;
-
-        renderFileState();
-
-    };
-
-}
-
-renderFileState();
   
 // ======================================
 // Save
