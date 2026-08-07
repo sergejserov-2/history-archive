@@ -22,7 +22,8 @@ import {
     renderEntityEditor,
     setupEntityFieldsEditor,
     setupEditorButtons,
-    setupParentsEditor
+    setupParentsEditor,
+    setupCoverEditor
 }
 from "../../ui/components/editor.js";
 
