@@ -144,6 +144,7 @@ export function openEntityEditor(
 let file = null;
 let removeOldFile = false;
 
+
 function renderFileState(){
 
     if(file){
@@ -184,7 +185,7 @@ function renderFileState(){
     fileName.textContent = "";
 
 }
-    
+
     const form = renderForm(
 
         type,
@@ -260,7 +261,7 @@ const fileRemove =
     root.querySelector(
         "#entityFileRemove"
     );
-
+    
 const fileOpen =
     root.querySelector("#entityFileOpen");
 
@@ -280,46 +281,6 @@ if(fileOpen){
     };
 
 }
-
-if(fileInput){
-
-    fileSelect.onclick = ()=>{
-
-        fileInput.click();
-
-    };
-
-    fileInput.onchange = e=>{
-
-        file =
-            e.target.files[0] || null;
-
-        if(file){
-
-            removeOldFile = false;
-
-        }
-
-        renderFileState();
-
-    };
-
-    fileRemove.onclick = ()=>{
-
-        file = null;
-
-        fileInput.value = "";
-
-        removeOldFile = true;
-
-        renderFileState();
-
-    };
-
-}
-
-renderFileState();
-
 
     
     renderParents();
@@ -348,7 +309,7 @@ renderFileState();
             ${obj?.title ?? id}
         </span>
 
-        <spanclass="parent-remove"
+        <span class="parent-remove"
             data-remove="${id}"
         >
             ×
@@ -475,90 +436,42 @@ renderFileState();
 
 if(fileInput){
 
-    const text = root.querySelector(".entity-file__text");
-    const clear = root.querySelector("#entityFileClear");
+    fileSelect.onclick = ()=>{
 
-fileInput.onchange = e=>{
+        fileInput.click();
 
-    file =
-        e.target.files[0] || null;
+    };
 
-    if(file){
+    fileInput.onchange = e=>{
 
-        removeOldFile = false;
+        file =
+            e.target.files[0] || null;
 
-const oldText =
-    fileButton.querySelector(
-        ".entity-file__text"
-    );
+        if(file){
 
-if(oldText){
+            removeOldFile = false;
 
-    oldText.remove();
+        }
 
-}
+        renderFileState();
 
-const filename =
-    fileButton.querySelector(
-        ".entity-file__name"
-    )
-    ||
-    document.createElement("div");
+    };
 
-filename.className =
-    "entity-file__name";
+    fileRemove.onclick = ()=>{
 
-filename.textContent =
-    file.name;
+        file = null;
 
-if(!filename.parentNode){
+        fileInput.value = "";
 
-    fileButton.prepend(filename);
+        removeOldFile = true;
+
+        renderFileState();
+
+    };
 
 }
 
-        fileClear.hidden = false;
-
-    }
-
-};
-
-fileClear.onclick = e=>{
-
-    e.stopPropagation();
-    e.preventDefault();
-
-    file = null;
-
-    fileInput.value = "";
-
-const filename =
-    fileButton.querySelector(
-        ".entity-file__name"
-    );
-
-if(filename){
-
-    filename.remove();
-
-}
-
-const text =
-    document.createElement("span");
-
-text.className =
-    "entity-file__text";
-
-text.textContent =
-    "Выбрать файл";
-
-fileButton.prepend(text);
-
-    fileClear.hidden = true;
-
-};
-
-}
+renderFileState();
   
 // ======================================
 // Save
@@ -675,8 +588,8 @@ else{
     );
 
 }
-        
-        modal.close();
+
+modal.close();
 
         onSave?.();
 
@@ -959,43 +872,4 @@ cfg.file
 
 `;
 
-}<div class="entity-file">
-
-    <!-- Состояние: выбрать файл -->
-
-    <div
-        id="entityFileSelect"
-        class="entity-file__select admin-button"
-    >
-        Выбрать файл
-    </div>
-
-    <!-- Состояние: файл выбран -->
-
-    <div
-        id="entityFileCurrent"
-        class="entity-file__current"
-        hidden
-    >
-
-        <span
-            id="entityFileName"
-        >
-        </span>
-
-        <span
-            id="entityFileRemove"
-            class="entity-file__remove"
-        >
-            ×
-        </span>
-
-    </div>
-
-    <input
-        id="entityFile"
-        type="file"
-        hidden
-    >
-
-</div>
+}
