@@ -853,16 +853,14 @@ cfg.file
 
     </div>
 
+</div>
+
+</label>
     <input
         id="entityFile"
         type="file"
         hidden
     >
-
-</div>
-
-</label>
-
 `
 
 :
