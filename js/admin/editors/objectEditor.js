@@ -285,133 +285,126 @@ e.target.value || null;
 // Save
 // ======================================
 
-document.getElementById(
-    "saveObjectButton"
-).onclick = async ()=>{
+setupEditorButtons(
 
-    if(
-        parentsEditor.getParents().length===0
-    ){
-    
-        alert(
-            "Нужен хотя бы один родитель"
-        );
-    
-        return;
-    
-    }
+    document,
 
-const fieldsData =
-    fieldsEditor.getData();
-
-const newTypeId =
-    fieldsData.typeId;
-
-const newType =
-    types.find(
-        t => t.id === newTypeId
-    );
-
-    if(object){
-
-        const oldType =
-            types.find(
-                t=>t.id===object.typeId
-            );
+    async()=>{
 
         if(
-            children.length>0 &&
-            newType.level < oldType.level
+            parentsEditor.getParents().length===0
         ){
 
             alert(
-                "Нельзя выбрать тип ниже текущего"
+                "Нужен хотя бы один родитель"
             );
 
             return;
 
         }
 
-        let resetParents = false;
+        const fieldsData =
+            fieldsEditor.getData();
 
-        if(parents.length){
+        const newTypeId =
+            fieldsData.typeId;
+
+        const newType =
+            types.find(
+                t=>t.id===newTypeId
+            );
+
+        if(object){
+
+            const oldType =
+                types.find(
+                    t=>t.id===object.typeId
+                );
+
+            if(
+                children.length>0 &&
+                newType.level < oldType.level
+            ){
+
+                alert(
+                    "Нельзя выбрать тип ниже текущего"
+                );
+
+                return;
+
+            }
 
             const firstParent =
                 objects.find(
-                    o=>o.id===parents[0].objectId
+                    o=>
+                    o.id === parentsEditor.getParents()[0]
                 );
 
             const parentType =
                 types.find(
-                    t=>t.id===firstParent.typeId
+                    t=>
+                    t.id===firstParent?.typeId
                 );
 
             if(
                 parentType &&
                 newType.level >= parentType.level
             ){
-                resetParents = true;
+
+                alert(
+                    "Новый тип конфликтует с уровнем родителей."
+                );
+
+                return;
+
             }
 
         }
 
-        if(resetParents){
+        const data = {
 
-            parents.length = 0;
+            ...fieldsData,
 
-            alert(
-                "Новый тип конфликтует с уровнем родителей."
+            coverPhotoId,
+
+            parents:
+                parentsEditor.getParents()
+
+        };
+
+        if(object){
+
+            await updateDoc(
+
+                doc(
+                    db,
+                    "objects",
+                    object.id
+                ),
+
+                data
+
             );
 
-            return;
+        }
+        else{
+
+            await createObject(
+                data
+            );
 
         }
 
-    }
+        onSave();
 
-const data = {
+    },
 
-    ...fieldsData,
+    ()=>{
 
-    coverPhotoId,
-
-    parents:
-        parentsEditor.getParents()
-
-};
-    
-    if(object){
-
-        await updateDoc(
-
-            doc(
-                db,
-                "objects",
-                object.id
-            ),
-
-            data
-
-        );
-
-    }else{
-
-        await createObject(
-            data
-        );
+        onSave();
 
     }
 
-    onSave();
-
-};
-
-document.getElementById(
-
-"cancelObjectButton"
-
-).onclick=
-
-onSave;
+);
 
 }
