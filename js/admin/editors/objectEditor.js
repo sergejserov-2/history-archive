@@ -58,6 +58,8 @@ const cfg = {
 
     fields:[],
 
+    cover:true,
+
     options:{
 
         typeSelector:true,
@@ -76,9 +78,11 @@ ${
 
 renderEntityEditor(
     cfg,
-    object
+    object,
+    {
+        photos: objectPhotos
+    }
 )
-
 }
 
 <label>
