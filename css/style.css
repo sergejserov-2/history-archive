@@ -431,15 +431,15 @@ button.admin-button {
 
 .admin-button__icon--edit{
 
-    -webkit-mask-image:url("icons/edit.svg");
-    mask-image:url("icons/edit.svg");
+    -webkit-mask-image:url("../icons/edit.svg");
+    mask-image:url("../icons/edit.svg");
 
 }
 
 .admin-button__icon--delete{
 
-    -webkit-mask-image:url("icons/delete.svg");
-    mask-image:url("icons/delete.svg");
+    -webkit-mask-image:url("../icons/delete.svg");
+    mask-image:url("../icons/delete.svg");
 
 }
 
