@@ -617,7 +617,7 @@ export function renderEntityEditor(
 
     entity,
 
-    extra = {}
+    options = {}
 
 ){
 
