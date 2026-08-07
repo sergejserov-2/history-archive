@@ -84,7 +84,7 @@ export function renderSources(
 
                     >
 
-                        ✏
+<span class="admin-button__icon admin-button__icon--edit"></span>
 
                     </button>
 
@@ -98,7 +98,7 @@ export function renderSources(
 
                     >
 
-                        🗑
+<span class="admin-button__icon admin-button__icon--delete"></span>
 
                     </button>
 
