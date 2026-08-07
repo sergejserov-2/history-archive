@@ -9,7 +9,8 @@ from "../../ui/components/modal.js";
 
 import {
     renderEntityEditor,
-    setupFileEditor
+    setupFileEditor,
+    setupParentsEditor
 }
 from "../../ui/components/editor.js";
 
@@ -185,177 +186,13 @@ const fileEditor = setupFileEditor(
             "#entityDescription"
         );
 
-    const parentsBox =
 
-        root.querySelector(
-            "#entityParents"
-        );
-
-    const searchInput =
-
-        root.querySelector(
-            "#entityParentSearch"
-        );
-
-    const resultsBox =
-
-        root.querySelector(
-            "#entityParentResults"
-        );
-
-
-    
-    renderParents();
-
-    function renderParents(){
-
-        parentsBox.innerHTML =
-
-            parents.map(id=>{
-
-                const obj =
-
-                    context.objects.find(
-
-                        o=>o.id===id
-
-                    );
-
-                return `
-
-<div class="parent-item">
-
-    <div class="parent-badge">
-
-        <span class="parent-title">
-            ${obj?.title ?? id}
-        </span>
-
-        <span class="parent-remove"
-            data-remove="${id}"
-        >
-            ×
-        </span>
-
-    </div>
-
-</div>
-`;
-
-            })
-
-            .join("");
-
-    }
-
-    parentsBox.onclick=e=>{
-
-        const id =
-
-            e.target.dataset.remove;
-
-        if(!id)
-
-            return;
-
-        parents =
-
-            parents.filter(
-
-                p=>p!==id
-
-            );
-
-        renderParents();
-
-    };
-
-    searchInput.oninput=()=>{
-
-        const text =
-
-            searchInput.value
-
-            .toLowerCase()
-
-            .trim();
-
-        if(!text){
-
-            resultsBox.innerHTML="";
-
-            return;
-
-        }
-
-        resultsBox.innerHTML =
-
-            context.objects
-
-            .filter(
-
-                o=>
-
-                    o.id!==entity?.id &&
-
-                    !parents.includes(o.id) &&
-
-                    o.title
-
-                    .toLowerCase()
-
-                    .includes(text)
-
-            )
-
-            .slice(0,20)
-
-            .map(o=>`
-
-                <div
-
-                    class="parent-result"
-
-                    data-id="${o.id}"
-
-                >
-
-                    ${o.title}</div>
-
-            `)
-
-            .join("");
-
-    };
-
-    resultsBox.onclick=e=>{
-
-        const item =
-
-            e.target.closest(
-
-                ".parent-result"
-
-            );
-
-        if(!item)
-
-            return;
-
-        parents.push(
-
-            item.dataset.id
-
-        );
-
-        renderParents();
-
-        searchInput.value="";
-
-        resultsBox.innerHTML="";
-
-    };
-
+const parentsEditor = setupParentsEditor(
+    root,
+    context.objects,
+    entity,
+    parents
+);
 
   
 // ======================================
@@ -378,19 +215,18 @@ saveButton.onclick = async()=>{
 
     try{
 
-        const data = {
+const data = {
 
-            title:
+    title:
+        titleInput.value.trim(),
 
-                titleInput.value.trim(),
+    description:
+        descriptionInput.value.trim(),
 
-            description:
+    parents:
+        parentsEditor.getParents()
 
-                descriptionInput.value.trim(),
-
-            parents
-
-        };
+};
 
         cfg.fields.forEach(field=>{
 
