@@ -11,7 +11,8 @@ import {
     renderEntityEditor,
     setupFileEditor,
     setupParentsEditor,
-    setupEntityFieldsEditor
+    setupEntityFieldsEditor,
+    setupEditorButtons
 }
 from "../../ui/components/editor.js";
 
