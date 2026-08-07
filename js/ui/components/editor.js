@@ -2,6 +2,28 @@
 // Entity editor UI
 // ======================================
 
+export function setupEditorButtons(
+    root,
+    onSave,
+    onCancel
+){
+
+    const saveButton =
+        root.querySelector(
+            "#entitySave"
+        );
+
+    const cancelButton =
+        root.querySelector(
+            "#entityCancel"
+        );
+
+    saveButton.onclick = onSave;
+
+    cancelButton.onclick = onCancel;
+
+}
+
 export function setupEntityFieldsEditor(
 
     root,
