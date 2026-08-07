@@ -75,31 +75,33 @@ export function renderObjectEditor(
         [];
 
     const cfg = {
-
+    
         title:"Объект",
-
+    
         fields:[],
-
+    
         cover:true,
-
+    
         options:{
-
+    
             typeSelector:true,
-
-            types,
-
-            coverPhotos:objectPhotos
-
+    
+            types
+    
         }
-
+    
     };
-
+    
     return renderEntityEditor(
-
+    
         cfg,
-
-        object
-
+    
+        object,
+    
+        {
+            photos: objectPhotos
+        }
+    
     );
 
 }
