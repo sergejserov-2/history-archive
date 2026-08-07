@@ -28,7 +28,9 @@ export function setupEntityFieldsEditor(
 
     root,
 
-    cfg
+    cfg = {},
+
+    extraFields = {}
 
 ){
 
@@ -50,15 +52,22 @@ export function setupEntityFieldsEditor(
                     "#entityDescription"
                 );
 
-            data.title =
+            if(titleInput){
 
-                titleInput.value.trim();
+                data.title =
+                    titleInput.value.trim();
 
-            data.description =
+            }
 
-                descriptionInput.value.trim();
+            if(descriptionInput){
 
-            cfg.fields.forEach(field=>{
+                data.description =
+                    descriptionInput.value.trim();
+
+            }
+
+            (cfg.fields ?? [])
+            .forEach(field=>{
 
                 const input =
 
@@ -69,57 +78,37 @@ export function setupEntityFieldsEditor(
                 if(input){
 
                     data[field] =
-
                         input.value.trim();
 
                 }
 
             });
 
+            Object.entries(extraFields)
+            .forEach(
+                ([field, selector])=>{
+
+                    const input =
+
+                        root.querySelector(
+                            selector
+                        );
+
+                    if(input){
+
+                        data[field] =
+                            input.value;
+
+                    }
+
+                }
+            );
+
             return data;
 
         }
 
     };
-
-}
-
-
-export function renderObjectFieldsEditor(
-
-    object
-
-){
-
-    return `
-
-<label>
-
-Название
-
-<input
-
-id="entityTitle"
-
-value="${object?.title ?? ""}"
-
->
-
-</label>
-
-<label>
-
-Описание
-
-<textarea
-
-id="entityDescription"
-
->${object?.description ?? ""}</textarea>
-
-</label>
-
-`;
 
 }
 
@@ -589,9 +578,78 @@ export function renderEntityEditor(
 
     entity = entity ?? {};
 
+    const options = cfg.options ?? {};
+
     return `
 
 <div class="entity-editor">
+
+${
+options.typeSelector
+
+?
+
+`
+
+<div class="entity-row entity-row--title-type">
+
+<label class="entity-type">
+
+Тип
+
+<select id="entityType">
+
+${
+
+options.types.map(type=>`
+
+<option
+
+value="${type.id}"
+
+${
+type.id === entity.typeId
+?
+"selected"
+:
+""
+}
+
+>
+
+${type.title}
+
+</option>
+
+`).join("")
+
+}
+
+</select>
+
+</label>
+
+<label class="entity-title">
+
+Название
+
+<input
+
+id="entityTitle"
+
+value="${entity.title ?? ""}"
+
+>
+
+</label>
+
+</div>
+
+`
+
+:
+
+`
 
 <label>
 
@@ -606,6 +664,10 @@ value="${entity.title ?? ""}"
 >
 
 </label>
+
+`
+
+}
 
 <label>
 
@@ -625,25 +687,25 @@ id="entityDescription"
 
 <div class="parents-group">
 
-    <div id="entityParents">
+<div id="entityParents">
 
-    </div>
+</div>
 
-    <input
+<input
 
-        id="entityParentSearch"
+id="entityParentSearch"
 
-        placeholder="Добавить родителя"
+placeholder="Добавить родителя"
 
-    >
+>
 
-    <div
+<div
 
-        id="entityParentResults"
+id="entityParentResults"
 
-    >
+>
 
-    </div>
+</div>
 
 </div>
 
@@ -744,7 +806,6 @@ value="${entity.dateEnd ?? ""}"
 }
 
 ${
-
 cfg.file
 
 ?
@@ -757,29 +818,43 @@ cfg.file
 
 <div class="entity-file">
 
-    <div
-        id="entityFileSelect"
-        class="entity-file__select admin-button"
-    >
-        Выбрать файл
-    </div>
+<div
 
-    <div
-        id="entityFileCurrent"
-        class="entity-file__current"
-        hidden
-    >
+id="entityFileSelect"
 
-        <span id="entityFileName"></span>
+class="entity-file__select admin-button"
 
-        <span
-            id="entityFileRemove"
-            class="entity-file__remove"
-        >
-            ×
-        </span>
+>
 
-    </div>
+Выбрать файл
+
+</div>
+
+<div
+
+id="entityFileCurrent"
+
+class="entity-file__current"
+
+hidden
+
+>
+
+<span id="entityFileName"></span>
+
+<span
+
+id="entityFileRemove"
+
+class="entity-file__remove"
+
+>
+
+×
+
+</span>
+
+</div>
 
 </div>
 
@@ -787,11 +862,11 @@ cfg.file
 
 <input
 
-    id="entityFile"
+id="entityFile"
 
-    type="file"
+type="file"
 
-    hidden
+hidden
 
 >
 
@@ -805,13 +880,19 @@ cfg.file
 
 <div class="entity-editor__buttons">
 
-    <button id="entitySave">
-        Сохранить
-    </button>
+<button id="entitySave">
 
-    <button id="entityCancel">
-        Отмена
-    </button>
+Сохранить
+
+</button>
+
+<button id="entityCancel">
+
+Отмена
+
+</button>
+
+</div>
 
 </div>
 
