@@ -84,6 +84,45 @@ export function setupEntityFieldsEditor(
 
 }
 
+
+export function renderObjectFieldsEditor(
+
+    object
+
+){
+
+    return `
+
+<label>
+
+Название
+
+<input
+
+id="entityTitle"
+
+value="${object?.title ?? ""}"
+
+>
+
+</label>
+
+<label>
+
+Описание
+
+<textarea
+
+id="entityDescription"
+
+>${object?.description ?? ""}</textarea>
+
+</label>
+
+`;
+
+}
+
 export function setupParentsEditor(
     root,
     objects,
