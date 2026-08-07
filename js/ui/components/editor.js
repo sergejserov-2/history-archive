@@ -2,6 +2,186 @@
 // Entity editor UI
 // ======================================
 
+export function setupParentsEditor(
+    root,
+    objects,
+    entity,
+    parents
+){
+
+    const parentsBox =
+        root.querySelector(
+            "#entityParents"
+        );
+
+    const searchInput =
+        root.querySelector(
+            "#entityParentSearch"
+        );
+
+    const resultsBox =
+        root.querySelector(
+            "#entityParentResults"
+        );
+
+    function renderParents(){
+
+        parentsBox.innerHTML =
+
+            parents.map(id=>{
+
+                const obj =
+
+                    objects.find(
+
+                        o=>o.id===id
+
+                    );
+
+                return `
+
+<div class="parent-item">
+
+    <div class="parent-badge">
+
+        <span class="parent-title">
+            ${obj?.title ?? id}
+        </span>
+
+        <span
+            class="parent-remove"
+            data-remove="${id}"
+        >
+            ×
+        </span>
+
+    </div>
+
+</div>
+
+`;
+
+            })
+
+            .join("");
+
+    }
+
+    parentsBox.onclick = e=>{
+
+        const id =
+            e.target.dataset.remove;
+
+        if(!id)
+
+            return;
+
+        const index =
+            parents.indexOf(id);
+
+        if(index !== -1){
+
+            parents.splice(
+                index,
+                1
+            );
+
+        }
+
+        renderParents();
+
+    };
+
+    searchInput.oninput = ()=>{
+
+        const text =
+            searchInput.value
+            .toLowerCase()
+            .trim();
+
+        if(!text){
+
+            resultsBox.innerHTML="";
+
+            return;
+
+        }
+
+        resultsBox.innerHTML =
+
+            objects
+
+            .filter(o=>
+
+                o.id !== entity?.id &&
+
+                !parents.includes(o.id) &&
+
+                o.title
+
+                .toLowerCase()
+
+                .includes(text)
+
+            )
+
+            .slice(0,20)
+
+            .map(o=>`
+
+<div
+    class="parent-result"
+    data-id="${o.id}"
+>
+
+${o.title}
+
+</div>
+
+`)
+
+            .join("");
+
+    };
+
+    resultsBox.onclick = e=>{
+
+        const item =
+
+            e.target.closest(
+                ".parent-result"
+            );
+
+        if(!item)
+
+            return;
+
+        parents.push(
+            item.dataset.id
+        );
+
+        renderParents();
+
+        searchInput.value="";
+
+        resultsBox.innerHTML="";
+
+    };
+
+    renderParents();
+
+    return {
+
+        getParents(){
+
+            return parents;
+
+        }
+
+    };
+
+}
+
 export function setupFileEditor(
     root,
     entity,
