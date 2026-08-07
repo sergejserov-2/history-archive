@@ -578,27 +578,31 @@ id="entityDescription"
 
 Родители
 
-<div id="entityParents">
+<div class="parents-group">
+
+    <div id="entityParents">
+
+    </div>
+
+    <input
+
+        id="entityParentSearch"
+
+        placeholder="Добавить родителя"
+
+    >
+
+    <div
+
+        id="entityParentResults"
+
+    >
+
+    </div>
 
 </div>
 
 </label>
-
-<input
-
-id="entityParentSearch"
-
-placeholder="Добавить родителя"
-
->
-
-<div
-
-id="entityParentResults"
-
->
-
-</div>
 
 ${
 cfg.fields.includes("author") && cfg.fields.includes("date")
