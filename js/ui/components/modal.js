@@ -34,7 +34,7 @@ export function createModal({
 
             </h2>
 
-            <button
+            <span
 
                 class="modal__close"
 
@@ -42,7 +42,7 @@ export function createModal({
 
                 ×
 
-            </button>
+            </span>
 
         </div>
 
