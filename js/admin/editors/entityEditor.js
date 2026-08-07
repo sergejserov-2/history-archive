@@ -200,12 +200,20 @@ let removeOldFile = false;
             "#entityFile"
         );
 
-const fileButton =
-    root.querySelector(
-        ".entity-file__button"
-    );
+const fileName =
+    root.querySelector(".entity-file__name");
 
-const fileClear =
+fileName.onclick = ()=>{
+
+    if(!entity?.storagePath && !file){
+
+        fileInput.click();
+
+    }
+
+};
+    
+    const fileClear =
     root.querySelector(
         "#entityFileClear"
     );
@@ -847,12 +855,11 @@ cfg.file
         class="entity-file__button admin-button"
     >
 
-<span 
-    class="entity-file__text"
-    id="entityFileOpen"
->
-    Выбрать файл
-</span>
+        <div
+            class="entity-file__name"
+        >
+            Выбрать файл
+        </div>
 
         <input
             id="entityFile"
@@ -860,14 +867,13 @@ cfg.file
             hidden
         >
 
-        <span
+        <div
             id="entityFileClear"
             class="entity-file__remove"
-            type="button"
             hidden
         >
             ×
-        </span>
+        </div>
 
     </div>
 
