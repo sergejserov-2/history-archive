@@ -20,7 +20,8 @@ from "../../api/objects.js";
 import {
     renderObjectFieldsEditor,
     setupEntityFieldsEditor,
-    setupEditorButtons
+    setupEditorButtons,
+    setupParentsEditor
 }
 from "../../ui/components/editor.js";
 
@@ -150,23 +151,27 @@ ${type.title}
 
 Родители
 
-<div id="parentsContainer">
+<div class="parents-group">
 
-${renderParents(object,objects)}
+    <div id="entityParents">
 
-</div>
+    </div>
 
-</label>
+    <input
 
-<input
+        id="entityParentSearch"
 
-id="parentSearchInput"
+        placeholder="Добавить родителя"
 
-placeholder="Добавить родителя"
+    >
 
->
+    <div
 
-<div id="parentSearchResults">
+        id="entityParentResults"
+
+    >
+
+    </div>
 
 </div>
 
@@ -188,69 +193,6 @@ placeholder="Добавить родителя"
 
 }
 
-// ======================================
-// Render parents
-// ======================================
-
-function renderParents(
-
-    object,
-
-    objects
-
-){
-
-return (object.parents ?? [])
-
-.map(parent=>{
-
-const obj =
-
-objects.find(
-
-o=>o.id === parent.objectId
-
-);
-
-return `
-
-<div class="parent-item">
-
-<div>
-
-${obj?.title ?? parent.objectId}
-
-</div>
-
-<input
-
-class="parent-address"
-
-data-id="${parent.objectId}"
-
-value="${parent.address ?? ""}"
-
->
-
-<button
-
-data-remove="${parent.objectId}"
-
->
-
-×
-
-</button>
-
-</div>
-
-`;
-
-})
-
-.join("");
-
-}
 
 // ======================================
 // Init
@@ -288,6 +230,22 @@ let coverPhotoId =
 
 object?.coverPhotoId ?? null;
 
+const parentsEditor = setupParentsEditor(
+
+    document,
+
+    objects,
+
+    object,
+
+    parents,
+
+    {
+        address:true
+    }
+
+);
+    
 const fieldsEditor =
     setupEntityFieldsEditor(
         document,
@@ -296,327 +254,7 @@ const fieldsEditor =
         }
     );
     
-const parentsBox =
 
-document.getElementById(
-
-"parentsContainer"
-
-);
-
-const search =
-
-document.getElementById(
-
-"parentSearchInput"
-
-);
-
-const results =
-
-document.getElementById(
-
-"parentSearchResults"
-
-);
-
-// ======================================
-// Update parents UI
-// ======================================
-
-function updateParents(){
-
-parentsBox.innerHTML =
-
-parents.map(parent=>{
-
-const obj =
-
-objects.find(
-
-o=>o.id===parent.objectId
-
-);
-
-return `
-
-<div class="parent-item">
-
-<div>
-
-${obj?.title ?? parent.objectId}
-
-</div>
-
-<input
-
-class="parent-address"
-
-data-id="${parent.objectId}"
-
-value="${parent.address ?? ""}"
-
->
-
-<button
-
-data-remove="${parent.objectId}"
-
->
-
-×
-
-</button>
-
-</div>
-
-`;
-
-})
-
-.join("");
-
-}
-
-// ======================================
-// Remove parent
-// ======================================
-
-parentsBox.onclick = e=>{
-
-const id =
-
-e.target.dataset.remove;
-
-if(!id)
-
-return;
-
-parents =
-
-parents.filter(
-
-p=>p.objectId !== id
-
-);
-
-updateParents();
-
-};
-
-// ======================================
-// Address change
-// ======================================
-
-parentsBox.oninput = e=>{
-
-if(
-
-!e.target.classList.contains(
-
-"parent-address"
-
-)
-
-)
-
-return;
-
-const parent =
-
-parents.find(
-
-p=>
-
-p.objectId ===
-
-e.target.dataset.id
-
-);
-
-if(parent)
-
-parent.address =
-
-e.target.value;
-
-};
-
-// ======================================
-// Parent search
-// ======================================
-
-search.oninput = ()=>{
-
-const text =
-
-search.value
-
-.toLowerCase()
-
-.trim();
-
-if(!text){
-
-results.innerHTML="";
-
-return;
-
-}
-
-const selectedTypeId =
-
-document.getElementById(
-"objectTypeInput"
-).value;
-    
-const objectType =
-
-types.find(
-
-t=>t.id===selectedTypeId
-
-);
-
-let level = null;
-
-if(parents.length){
-
-const first =
-
-objects.find(
-
-o=>
-
-o.id===parents[0].objectId
-
-);
-
-level =
-
-types.find(
-
-t=>
-
-t.id===first.typeId
-
-)?.level;
-
-}
-
-const list =
-
-objects.filter(o=>{
-
-if(o.id===object.id)
-
-return false;
-
-if(
-
-parents.some(
-
-p=>
-
-p.objectId===o.id
-
-)
-
-)
-
-return false;
-
-const type =
-
-types.find(
-
-t=>t.id===o.typeId
-
-);
-
-if(!type)
-
-return false;
-
-if(level !== null)
-
-return type.level === level;
-
-return type.level >
-
-objectType.level;
-
-});
-
-results.innerHTML =
-
-list
-
-.filter(
-
-o=>
-
-o.title
-
-.toLowerCase()
-
-.includes(text)
-
-)
-
-.map(o=>`
-
-<div
-
-class="parent-result"
-
-data-id="${o.id}"
-
->
-
-${o.title}
-
-</div>
-
-`)
-
-.join("");
-
-};
-
-// ======================================
-// Select parent
-// ======================================
-
-results.onclick=e=>{
-
-const item =
-
-e.target.closest(
-
-".parent-result"
-
-);
-
-if(!item)
-
-return;
-
-parents.push({
-
-objectId:item.dataset.id,
-
-address:""
-
-});
-
-updateParents();
-
-search.value="";
-
-results.innerHTML="";
-
-};
 
 // ======================================
 // Cover
@@ -705,9 +343,7 @@ document.getElementById(
 
         if(resetParents){
 
-            parents = [];
-
-            updateParents();
+            parents.length = 0;
 
             alert(
                 "Новый тип конфликтует с уровнем родителей."
@@ -727,7 +363,8 @@ const data = {
 
     coverPhotoId,
 
-    parents
+    parents:
+    parentsEditor.getParents()
 
 };
 
