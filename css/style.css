@@ -331,7 +331,7 @@ button.admin-button {
 
     padding:
 
-        3px 8px
+        2px 2px
         !important;
 
     border-radius:
@@ -398,13 +398,13 @@ button.admin-button {
     align-items:center;
     justify-content:center;
 
-    width:8px;
-    height:8px;
+    width:16px;
+    height:16px;
 }
 
 .admin-icon img{
-    width:8px;
-    height:8px;
+    width:16px;
+    height:16px;
     display:block;
     color:#f2c94c;
 }
