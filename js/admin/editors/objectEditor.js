@@ -40,21 +40,37 @@ from "../../ui/components/editor.js";
 // ======================================
 
 export function renderObjectEditor(
+
     object,
+
     types,
+
     objects,
+
     photos,
+
     children
+
 ){
 
     const objectPhotos =
+
         object
+
         ?
+
         photos.filter(
+
             photo =>
-                photo.parents?.includes(object.id)
+
+                photo.parents?.includes(
+                    object.id
+                )
+
         )
+
         :
+
         [];
 
     const cfg = {
@@ -63,27 +79,31 @@ export function renderObjectEditor(
 
         fields:[],
 
-        cover:true,
+        cover:{
+
+            photos: objectPhotos
+
+        },
 
         options:{
 
             typeSelector:true,
 
-            types,
-
-            coverPhotos: objectPhotos
+            types
 
         }
 
     };
 
     return renderEntityEditor(
+
         cfg,
+
         object
+
     );
 
 }
-
 
 export function openObjectEditor(
     
