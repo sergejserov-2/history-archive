@@ -615,7 +615,9 @@ export function renderEntityEditor(
 
     cfg,
 
-    entity
+    entity,
+
+    extra = {}
 
 ){
 
@@ -922,7 +924,6 @@ hidden
 }
 
 ${
-
 cfg.cover
 ?
 
@@ -938,7 +939,7 @@ cfg.cover
 </option>
 
 ${
-cfg.cover.photos.map(photo=>`
+(extra.photos ?? []).map(photo=>`
 
 <option
 
