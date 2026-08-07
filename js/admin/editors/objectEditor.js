@@ -9,14 +9,20 @@ import {
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 import {
+    db
+}
+from "../../firebase.js";
+import {
     createObject
 }
 from "../../api/objects.js";
 
 import {
-    db
+    renderObjectFieldsEditor,
+    setupEntityFieldsEditor,
+    setupEditorButtons
 }
-from "../../firebase.js";
+from "../../ui/components/editor.js";
 
 // ======================================
 // Render
@@ -95,31 +101,7 @@ ${photo.title ?? photo.id}
 
 </label>
 
-<label>
-
-Название
-
-<input
-
-id="objectTitleInput"
-
-value="${object?.title ?? "" ?? ""}"
-
->
-
-</label>
-
-<label>
-
-Описание
-
-<textarea
-
-id="objectDescriptionInput"
-
->${object?.description ?? "" ?? ""}</textarea>
-
-</label>
+${renderObjectFieldsEditor(object)}
 
 <label>
 
@@ -306,6 +288,14 @@ let coverPhotoId =
 
 object?.coverPhotoId ?? null;
 
+const fieldsEditor =
+    setupEntityFieldsEditor(
+        document,
+        {
+            fields:[]
+        }
+    );
+    
 const parentsBox =
 
 document.getElementById(
@@ -729,25 +719,17 @@ document.getElementById(
 
     }
 
-    const data = {
+const data = {
 
-        title:
-            document.getElementById(
-                "objectTitleInput"
-            ).value,
+    ...fieldsEditor.getData(),
 
-        description:
-            document.getElementById(
-                "objectDescriptionInput"
-            ).value,
+    typeId:newTypeId,
 
-        typeId:newTypeId,
+    coverPhotoId,
 
-        coverPhotoId,
+    parents
 
-        parents
-
-    };
+};
 
     if(object){
 
