@@ -926,7 +926,6 @@ hidden
 ${
 cfg.cover
 ?
-
 `
 <label>
 
@@ -939,7 +938,7 @@ cfg.cover
 </option>
 
 ${
-(extra.photos ?? []).map(photo=>`
+options.photos.map(photo=>`
 
 <option
 
@@ -966,11 +965,8 @@ ${photo.title ?? photo.id}
 
 </label>
 `
-
 :
-
 ""
-
 }
 
 
