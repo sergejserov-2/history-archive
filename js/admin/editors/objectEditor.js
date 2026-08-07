@@ -79,11 +79,7 @@ export function renderObjectEditor(
 
         fields:[],
 
-        cover:{
-
-            photos: objectPhotos
-
-        },
+        cover:true,
 
         options:{
 
@@ -99,7 +95,13 @@ export function renderObjectEditor(
 
         cfg,
 
-        object
+        object,
+
+        {
+
+            photos:objectPhotos
+
+        }
 
     );
 
