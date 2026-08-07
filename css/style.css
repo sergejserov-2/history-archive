@@ -881,10 +881,12 @@ button.admin-button {
 
 }
 
-.source--add {
-
+.source--add{
     padding:12px;
 
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
 }
 
 /* ==========================================
