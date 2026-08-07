@@ -1310,9 +1310,12 @@ button.admin-button {
 
     display:flex;
 
+    width:max-content;
+
 }
 
-.entity-file__button{
+.entity-file__select,
+.entity-file__current{
 
     display:inline-flex;
 
@@ -1320,19 +1323,21 @@ button.admin-button {
 
     gap:6px;
 
-    padding:5px 8px !important;
+    padding:4px 8px;
+
+    background:rgba(240,190,50,.18);
+
+    border:1px solid rgba(240,190,50,.9);
 
     border-radius:7px;
 
+    color:#f2c94c;
+
     width:max-content;
-
-    max-width:100%;
-
-    white-space:nowrap;
 
 }
 
-.entity-file__name{
+#entityFileName{
 
     white-space:nowrap;
 
