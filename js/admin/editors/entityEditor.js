@@ -248,50 +248,37 @@ fileName.textContent = "";
             "#entityFile"
         );
 
-const fileSelect =
+const fileInput =
     root.querySelector(
-        "#entityFileSelect"
+        "#entityFile"
     );
 
+if(fileInput){
 
-fileSelect.onclick = ()=>{
+    const fileSelect =
+        root.querySelector(
+            "#entityFileSelect"
+        );
 
-    if(
-        !fileInput.disabled
-    ){
+    const fileCurrent =
+        root.querySelector(
+            "#entityFileCurrent"
+        );
 
-        fileInput.click();
+    const fileName =
+        root.querySelector(
+            "#entityFileName"
+        );
 
-    }
+    const fileRemove =
+        root.querySelector(
+            "#entityFileRemove"
+        );
 
-};
-
-    
-const fileCurrent =
-    root.querySelector(
-        "#entityFileCurrent"
-    );
-
-const fileName =
-    root.querySelector(
-        "#entityFileName"
-    );
-
-const fileRemove =
-    root.querySelector(
-        "#entityFileRemove"
-    );
-    
-const fileOpen =
-    root.querySelector("#entityFileOpen");
-
-if(fileOpen){
-
-    fileOpen.onclick = ()=>{
+    fileSelect.onclick = ()=>{
 
         if(
-            !entity?.storagePath ||
-            removeOldFile
+            !fileInput.disabled
         ){
 
             fileInput.click();
@@ -299,10 +286,6 @@ if(fileOpen){
         }
 
     };
-
-}
-
-if(fileInput){
 
     fileInput.onchange = e=>{
 
@@ -319,24 +302,23 @@ if(fileInput){
 
     };
 
-fileRemove.onclick = e=>{
+    fileRemove.onclick = e=>{
 
-    e.preventDefault();
-    e.stopPropagation();
+        e.stopPropagation();
 
-    file = null;
+        file = null;
 
-    fileInput.value = "";
+        fileInput.value = "";
 
-    removeOldFile = true;
+        removeOldFile = true;
+
+        renderFileState();
+
+    };
 
     renderFileState();
 
-};
-
 }
-
-renderFileState();
 
 
     
