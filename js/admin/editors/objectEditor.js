@@ -19,11 +19,10 @@ import {
 from "../../api/objects.js";
 
 import {
-
     createModal
-
 }
 from "../../ui/components/modal.js";
+
 
 import {
 
@@ -41,6 +40,53 @@ from "../../ui/components/editor.js";
 // ======================================
 
 export function renderObjectEditor(
+    object,
+    types,
+    objects,
+    photos,
+    children
+){
+
+    const objectPhotos =
+        object
+        ?
+        photos.filter(
+            photo =>
+                photo.parents?.includes(object.id)
+        )
+        :
+        [];
+
+    const cfg = {
+
+        title:"Объект",
+
+        fields:[],
+
+        cover:true,
+
+        options:{
+
+            typeSelector:true,
+
+            types,
+
+            coverPhotos: objectPhotos
+
+        }
+
+    };
+
+    return renderEntityEditor(
+        cfg,
+        object
+    );
+
+}
+
+
+export function openObjectEditor(
+    root,
 
     object,
 
@@ -50,67 +96,67 @@ export function renderObjectEditor(
 
     photos,
 
-    children
+    children,
+
+    onSave
 
 ){
 
-    const objectPhotos =
+    const form =
+        renderObjectEditor(
+            object,
+            types,
+            objects,
+            photos,
+            children
+        );
 
-        object
+    const modal =
+        createModal({
 
-        ?
+            title:"Объект",
 
-        photos.filter(
+            content:form
 
-            photo =>
+        });
 
-                photo.parents?.includes(
-                    object.id
-                )
+    const root =
+        modal.root;
 
-        )
+    initObjectEditor(
 
-        :
-
-        [];
-
-    const cfg = {
-    
-        title:"Объект",
-    
-        fields:[],
-    
-        cover:true,
-    
-        options:{
-    
-            typeSelector:true,
-    
-            types
-    
-        }
-    
-    };
-    
-    return renderEntityEditor(
-    
-        cfg,
-    
         object,
-    
-        {
-            photos: objectPhotos
+
+        types,
+
+        objects,
+
+        photos,
+
+        children,
+
+        ()=>{
+
+            modal.close();
+
+            onSave?.();
+
         }
-    
+
     );
 
 }
+
+
+
+
 
 // ======================================
 // Init
 // ======================================
 
 export function initObjectEditor(
+    root,
 
     object,
 
@@ -146,7 +192,7 @@ const parentsEditor =
 
 setupParentsEditor(
 
-    document,
+    root,
 
     objects,
 
@@ -273,7 +319,7 @@ const fieldsEditor =
 
 setupEntityFieldsEditor(
 
-    document,
+    root,
 
     {
 
@@ -297,7 +343,7 @@ const coverEditor =
 
 setupCoverEditor(
 
-    document,
+    root,
 
     photos,
 
@@ -311,7 +357,7 @@ setupCoverEditor(
 
 setupEditorButtons(
 
-    document,
+    root,
 
     async()=>{try{
 
