@@ -200,34 +200,35 @@ async function renderPage(
 
             <section class="object">
 
-                <div class="object__cover">
+                 <div class="object__cover">
                 
-                ${
-                    coverPhoto?.storagePath
+                    ${
+                        coverPhoto?.storagePath
                 
-                    ?
+                        ?
                 
-                    `
+                        `
                 
-                    <img
+                        <div
+                            class="object__cover-bg"
+                            style="background-image:url('${coverPhoto.storagePath}')"
+                        ></div>
                 
-                        src="${coverPhoto.storagePath}"
+                        <img
+                            class="object__cover-image"
+                            src="${coverPhoto.storagePath}"
+                            alt="${coverPhoto.title ?? ""}"
+                        >
                 
-                        alt="${coverPhoto.title ?? ""}"
+                        `
                 
-                    >
+                        :
                 
-                    `
+                        `<div class="object__cover-placeholder">
+                            Фото отсутствует
+                        </div>`
                 
-                    :
-                
-                    `
-                
-                    Фото
-                
-                    `
-                
-                }
+                    }
                 
                 </div>
 
