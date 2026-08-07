@@ -393,7 +393,7 @@ button.admin-button {
    ADMIN ICONS
 ========================================== */
 
-.icon{
+.admin-icon{
     display:flex;
     align-items:center;
     justify-content:center;
@@ -402,7 +402,7 @@ button.admin-button {
     height:8px;
 }
 
-.icon img{
+.admin-icon img{
     width:8px;
     height:8px;
     display:block;
