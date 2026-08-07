@@ -255,7 +255,7 @@ async function renderPage(
                                 data-action="edit-object"
                             >
                             
-                            ✏
+<span class="admin-button__icon admin-button__icon--edit"></span>
                             
                             </button>
                             
@@ -265,7 +265,7 @@ async function renderPage(
                                 data-id="${object.id}"
                             >
                             
-                            🗑
+<span class="admin-button__icon admin-button__icon--delete"></span>
                             
                             </button>
 
