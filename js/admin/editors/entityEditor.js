@@ -712,7 +712,7 @@ cfg.file
 
 <div class="entity-file">
 
-    <label
+    <div
         class="entity-file__button admin-button"
     >
 
@@ -735,7 +735,7 @@ cfg.file
             ×
         </span>
 
-    </label>
+    </div>
 
 </div>
 
