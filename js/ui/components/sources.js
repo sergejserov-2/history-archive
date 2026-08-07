@@ -84,7 +84,7 @@ export function renderSources(
 
                     >
 
-    <img src="../../../icons/edit.svg" class="admin-icon">
+    <img src="icons/edit.svg" class="admin-icon">
 
                     </button>
 
@@ -98,7 +98,7 @@ export function renderSources(
 
                     >
 
-    <img src="../../../icons/delete.svg" class="admin-icon">
+    <img src="icons/delete.svg" class="admin-icon">
 
                     </button>
 
