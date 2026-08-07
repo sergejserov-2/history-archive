@@ -830,16 +830,8 @@ cfg.file
         id="entityFileSelect"
         class="entity-file__select admin-button"
     >
-    
         Выбрать файл
-    <input
-        id="entityFile"
-        type="file"
-        hidden
-    >
     </div>
-    
-
 
     <div
         id="entityFileCurrent"
@@ -857,6 +849,12 @@ cfg.file
         </span>
 
     </div>
+
+    <input
+        id="entityFile"
+        type="file"
+        hidden
+    >
 
 </div>
 
