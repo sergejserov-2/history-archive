@@ -217,21 +217,27 @@ export function openEntityEditor(
 
                 return `
 
-                <div class="parent-item">
+   return `
 
-                    ${obj?.title ?? id}
+<div class="parent-item">
 
-                    <button
+    <div class="parent-badge">
 
-                        data-remove="${id}"
+        <span class="parent-title">
+            ${obj?.title ?? id}
+        </span>
 
-                    >
+        <button
+            class="parent-remove"
+            data-remove="${id}"
+        >
+            ×
+        </button>
 
-                        ×
+    </div>
 
-                    </button>
-
-                </div>
+</div>
+`;
 
                 `;
 
@@ -349,17 +355,40 @@ export function openEntityEditor(
 
     };
 
-    if(fileInput){
+if(fileInput){
 
-        fileInput.onchange=e=>{
+    const text = root.querySelector(".entity-file__text");
+    const clear = root.querySelector("#entityFileClear");
 
-            file =
+    fileInput.onchange = e=>{
 
-                e.target.files[0] || null;
+        file = e.target.files[0] || null;
 
-        };
+        if(file){
 
-    }
+            text.textContent = file.name;
+            clear.hidden = false;
+
+        }else{
+
+            text.textContent = "Выбрать файл";
+            clear.hidden = true;
+
+        }
+
+    };
+
+    clear.onclick = ()=>{
+
+        file = null;
+        fileInput.value = "";
+
+        text.textContent = "Выбрать файл";
+        clear.hidden = true;
+
+    };
+
+}
   
 // ======================================
 // Save
@@ -631,13 +660,34 @@ cfg.file
 
 Файл
 
-<input
+<div class="entity-file">
 
-id="entityFile"
+    <label
+        class="entity-file__button admin-button"
+    >
 
-type="file"
+        <span class="entity-file__text">
+            Выбрать файл
+        </span>
 
->
+        <input
+            id="entityFile"
+            type="file"
+            hidden
+        >
+
+        <button
+            id="entityFileClear"
+            class="entity-file__remove"
+            type="button"
+            hidden
+        >
+            ×
+        </button>
+
+    </label>
+
+</div>
 
 </label>
 
@@ -649,25 +699,15 @@ type="file"
 
 }
 
-<button
+<div class="entity-editor__buttons">
 
-id="entitySave"
+    <button id="entitySave">
+        Сохранить
+    </button>
 
->
-
-Сохранить
-
-</button>
-
-<button
-
-id="entityCancel"
-
->
-
-Отмена
-
-</button>
+    <button id="entityCancel">
+        Отмена
+    </button>
 
 </div>
 
