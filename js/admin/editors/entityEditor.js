@@ -832,14 +832,14 @@ cfg.file
     >
     
         Выбрать файл
-    
-    </div>
-    
     <input
         id="entityFile"
         type="file"
         hidden
     >
+    </div>
+    
+
 
     <div
         id="entityFileCurrent"
