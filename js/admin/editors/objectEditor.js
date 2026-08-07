@@ -19,11 +19,20 @@ import {
 from "../../api/objects.js";
 
 import {
+
+    createModal
+
+}
+from "../../ui/components/modal.js";
+
+import {
+
     renderEntityEditor,
     setupEntityFieldsEditor,
     setupEditorButtons,
     setupParentsEditor,
     setupCoverEditor
+
 }
 from "../../ui/components/editor.js";
 
@@ -45,90 +54,53 @@ export function renderObjectEditor(
 
 ){
 
-const objectPhotos =
-    object
-    ?
-    photos.filter(
-        photo =>
-            photo.parents?.includes(object.id)
-    )
-    :
-    [];
+    const objectPhotos =
 
-const cfg = {
+        object
 
-    fields:[],
+        ?
 
-    cover:true,
+        photos.filter(
 
-    options:{
+            photo =>
 
-        typeSelector:true,
+                photo.parents?.includes(
+                    object.id
+                )
 
-        types
+        )
 
-    }
+        :
 
-};
+        [];
 
-return `
+    const cfg = {
 
-<div class="object-editor">
+        title:"Объект",
 
-${
+        fields:[],
 
-renderEntityEditor(
-    cfg,
-    object,
-    {
-        photos: objectPhotos
-    }
-)
-}
+        cover:true,
 
-<label>
+        options:{
 
-Обложка
+            typeSelector:true,
 
-<select id="objectCoverInput">
+            types,
 
-<option value="">
+            coverPhotos:objectPhotos
 
-Без фотографии
+        }
 
-</option>
+    };
 
-${
-objectPhotos.map(photo=>`
+    return renderEntityEditor(
 
-<option
+        cfg,
 
-value="${photo.id}"
+        object
 
-${
-photo.id === object?.coverPhotoId
-?
-"selected"
-:
-""
-}
-
->
-
-${photo.title ?? photo.id}
-
-</option>
-
-`).join("")
-}
-
-</select>
-
-</label>
-
-</div>
-
-`;
+    );
 
 }
 
@@ -154,17 +126,23 @@ export function initObjectEditor(
 
 let parents =
 
-JSON.parse(
+    JSON.parse(
 
-JSON.stringify(
+        JSON.stringify(
 
-object.parents ?? []
+            object?.parents ?? []
 
-)
+        )
 
-);
+    );
 
-const parentsEditor = setupParentsEditor(
+// ======================================
+// Parents
+// ======================================
+
+const parentsEditor =
+
+setupParentsEditor(
 
     document,
 
@@ -175,12 +153,15 @@ const parentsEditor = setupParentsEditor(
     parents,
 
     {
+
         address:true,
 
         filter(parent){
 
             if(
+
                 parent.id === object?.id
+
             ){
 
                 return false;
@@ -188,23 +169,39 @@ const parentsEditor = setupParentsEditor(
             }
 
             const selectedTypeId =
-document.getElementById(
-    "entityType"
-).value;
+
+                document.getElementById(
+
+                    "entityType"
+
+                ).value;
 
             const objectType =
+
                 types.find(
-                    t=>t.id===selectedTypeId
+
+                    t =>
+
+                    t.id === selectedTypeId
+
                 );
 
             const parentType =
+
                 types.find(
-                    t=>t.id===parent.typeId
+
+                    t =>
+
+                    t.id === parent.typeId
+
                 );
 
             if(
+
                 !objectType ||
+
                 !parentType
+
             ){
 
                 return false;
@@ -214,32 +211,50 @@ document.getElementById(
             // Если родители уже есть —
             // только тот же уровень
 
-            if(parents.length){
+            if(
+
+                parents.length
+
+            ){
 
                 const firstParent =
+
                     objects.find(
-                        o=>
+
+                        o =>
+
                         o.id === parents[0]
+
                     );
 
                 const firstParentType =
+
                     types.find(
-                        t=>
-                        t.id === firstParent.typeId
+
+                        t =>
+
+                        t.id === firstParent?.typeId
+
                     );
 
                 return (
+
                     parentType.level ===
+
                     firstParentType.level
+
                 );
 
             }
 
-            // Новый родитель должен быть выше
+            // Первый родитель выше объекта
 
             return (
+
                 parentType.level >
+
                 objectType.level
+
             );
 
         }
@@ -247,146 +262,235 @@ document.getElementById(
     }
 
 );
-    
-const fieldsEditor =
-    setupEntityFieldsEditor(
-
-        document,
-
-        {
-            fields:[]
-        },
-
-        {
-            typeId:"#entityType"
-
-        }
-
-    );
-    
-const coverEditor =
-    setupCoverEditor(
-        document,
-        photos,
-        object
-    );
-
 
 // ======================================
-// Save
+// Fields
+// ======================================
+
+const fieldsEditor =
+
+setupEntityFieldsEditor(
+
+    document,
+
+    {
+
+        fields:[]
+
+    },
+
+    {
+
+        typeId:"#entityType"
+
+    }
+
+);
+
+// ======================================
+// Cover
+// ======================================
+
+const coverEditor =
+
+setupCoverEditor(
+
+    document,
+
+    photos,
+
+    object
+
+);
+
+// ======================================
+// Buttons
 // ======================================
 
 setupEditorButtons(
 
     document,
 
-    async()=>{
+    async()=>{try{
 
-        if(
-            parentsEditor.getParents().length===0
-        ){
+            if(
+
+                parentsEditor
+                .getParents()
+                .length === 0
+
+            ){
+
+                alert(
+
+                    "Нужен хотя бы один родитель"
+
+                );
+
+                return;
+
+            }
+
+            const fieldsData =
+
+                fieldsEditor.getData();
+
+            const newTypeId =
+
+                fieldsData.typeId;
+
+            const newType =
+
+                types.find(
+
+                    t =>
+
+                    t.id === newTypeId
+
+                );
+
+            if(!newType){
+
+                alert(
+
+                    "Не выбран тип"
+
+                );
+
+                return;
+
+            }
+
+            if(object){
+
+                const oldType =
+
+                    types.find(
+
+                        t =>
+
+                        t.id === object.typeId
+
+                    );
+
+                if(
+
+                    children.length > 0 &&
+
+                    newType.level < oldType.level
+
+                ){
+
+                    alert(
+
+                        "Нельзя выбрать тип ниже текущего"
+
+                    );
+
+                    return;
+
+                }
+
+                const firstParent =
+
+                    objects.find(
+
+                        o =>
+
+                        o.id ===
+
+                        parentsEditor
+                        .getParents()[0]
+
+                    );
+
+                const parentType =
+
+                    types.find(
+
+                        t =>
+
+                        t.id === firstParent?.typeId
+
+                    );
+
+                if(
+
+                    parentType &&
+
+                    newType.level >= parentType.level
+
+                ){
+
+                    alert(
+
+                        "Новый тип конфликтует с уровнем родителей."
+
+                    );
+
+                    return;
+
+                }
+
+            }
+
+            const data = {
+
+                ...fieldsData,
+
+                ...coverEditor.getData(),
+
+                parents:
+
+                    parentsEditor.getParents()
+
+            };
+
+            if(object){
+
+                await updateDoc(
+
+                    doc(
+
+                        db,
+
+                        "objects",
+
+                        object.id
+
+                    ),
+
+                    data
+
+                );
+
+            }
+
+            else{
+
+                await createObject(
+
+                    data
+
+                );
+
+            }
+
+            onSave();
+
+        }
+
+        catch(error){
+
+            console.error(error);
 
             alert(
-                "Нужен хотя бы один родитель"
-            );
 
-            return;
-
-        }
-
-        const fieldsData =
-            fieldsEditor.getData();
-
-        const newTypeId =
-            fieldsData.typeId;
-
-        const newType =
-            types.find(
-                t=>t.id===newTypeId
-            );
-
-        if(object){
-
-            const oldType =
-                types.find(
-                    t=>t.id===object.typeId
-                );
-
-            if(
-                children.length>0 &&
-                newType.level < oldType.level
-            ){
-
-                alert(
-                    "Нельзя выбрать тип ниже текущего"
-                );
-
-                return;
-
-            }
-
-            const firstParent =
-                objects.find(
-                    o=>
-                    o.id === parentsEditor.getParents()[0]
-                );
-
-            const parentType =
-                types.find(
-                    t=>
-                    t.id===firstParent?.typeId
-                );
-
-            if(
-                parentType &&
-                newType.level >= parentType.level
-            ){
-
-                alert(
-                    "Новый тип конфликтует с уровнем родителей."
-                );
-
-                return;
-
-            }
-
-        }
-
-        const data = {
-        
-            ...fieldsData,
-        
-            ...coverEditor.getData(),
-        
-            parents:
-                parentsEditor.getParents()
-        
-        };
-
-        if(object){
-
-            await updateDoc(
-
-                doc(
-                    db,
-                    "objects",
-                    object.id
-                ),
-
-                data
+                "Ошибка сохранения"
 
             );
 
         }
-        else{
-
-            await createObject(
-                data
-            );
-
-        }
-
-        onSave();
 
     },
 
