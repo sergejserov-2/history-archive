@@ -152,37 +152,87 @@ body {
    OBJECT COVER
 ========================================== */
 
-.object__cover {
+.object__cover{
 
-    width: 200px;
+    position:relative;
 
-    aspect-ratio: 1 / 1;
+    width:200px;
 
-    flex-shrink: 0;
+    min-height:200px;
 
-    background: #292d33;
+    flex-shrink:0;
 
-    border-radius: 6px;
+    border-radius:6px;
 
-    overflow: hidden;
+    overflow:hidden;
 
-    display: flex;
+    display:flex;
 
-    align-items: center;
+    align-items:center;
 
-    justify-content: center;
+    justify-content:center;
 
-    color: #8b9199;
+    background:#292d33;
 
 }
 
-.object__cover img {
+.object__cover-bg{
 
-    width:100%;
+    position:absolute;
 
-    height:100%;
+    inset:0;
+
+    background-size:cover;
+
+    background-position:center;
+
+    filter:blur(18px) brightness(.45);
+
+    transform:scale(1.15);
+
+}
+
+.object__cover-image{
+
+    position:relative;
+
+    z-index:1;
+
+    width:200px;
+
+    aspect-ratio:1/1;
 
     object-fit:cover;
+
+    border-radius:6px;
+
+    box-shadow:0 0 18px rgba(0,0,0,.35);
+
+}
+
+.object__cover-placeholder{
+
+    position:relative;
+
+    z-index:1;
+
+    width:200px;
+
+    aspect-ratio:1/1;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    text-align:center;
+
+    color:#8b9199;
+
+    background:#292d33;
+
+    border-radius:6px;
 
 }
 
