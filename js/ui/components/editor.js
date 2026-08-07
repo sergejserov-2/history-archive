@@ -2,6 +2,66 @@
 // Entity editor UI
 // ======================================
 
+export function setupEntityFieldsEditor(
+
+    root,
+
+    cfg
+
+){
+
+    return {
+
+        getData(){
+
+            const data = {};
+
+            const titleInput =
+
+                root.querySelector(
+                    "#entityTitle"
+                );
+
+            const descriptionInput =
+
+                root.querySelector(
+                    "#entityDescription"
+                );
+
+            data.title =
+
+                titleInput.value.trim();
+
+            data.description =
+
+                descriptionInput.value.trim();
+
+            cfg.fields.forEach(field=>{
+
+                const input =
+
+                    root.querySelector(
+                        `#entity_${field}`
+                    );
+
+                if(input){
+
+                    data[field] =
+
+                        input.value.trim();
+
+                }
+
+            });
+
+            return data;
+
+        }
+
+    };
+
+}
+
 export function setupParentsEditor(
     root,
     objects,
