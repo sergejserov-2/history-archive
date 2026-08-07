@@ -200,9 +200,9 @@ let removeOldFile = false;
             "#entityFile"
         );
 
-const fileText =
+const fileButton =
     root.querySelector(
-        ".entity-file__text"
+        ".entity-file__button"
     );
 
 const fileClear =
@@ -210,10 +210,10 @@ const fileClear =
         "#entityFileClear"
     );
 
-    if(
+if(
     entity &&
     entity.storagePath &&
-    fileText
+    fileButton
 ){
 
     const name =
@@ -221,8 +221,27 @@ const fileClear =
             .split("/")
             .pop();
 
-    fileText.textContent =
+    const text =
+        fileButton.querySelector(
+            ".entity-file__text"
+        );
+
+    if(text){
+
+        text.remove();
+
+    }
+
+    const filename =
+        document.createElement("div");
+
+    filename.className =
+        "entity-file__name";
+
+    filename.textContent =
         name;
+
+    fileButton.prepend(filename);
 
     fileClear.hidden = false;
 
@@ -415,8 +434,35 @@ fileInput.onchange = e=>{
 
         removeOldFile = false;
 
-        fileText.textContent =
-            file.name;
+const oldText =
+    fileButton.querySelector(
+        ".entity-file__text"
+    );
+
+if(oldText){
+
+    oldText.remove();
+
+}
+
+const filename =
+    fileButton.querySelector(
+        ".entity-file__name"
+    )
+    ||
+    document.createElement("div");
+
+filename.className =
+    "entity-file__name";
+
+filename.textContent =
+    file.name;
+
+if(!filename.parentNode){
+
+    fileButton.prepend(filename);
+
+}
 
         fileClear.hidden = false;
 
@@ -433,8 +479,27 @@ fileClear.onclick = e=>{
 
     fileInput.value = "";
 
-    fileText.textContent =
-        "Выбрать файл";
+const filename =
+    fileButton.querySelector(
+        ".entity-file__name"
+    );
+
+if(filename){
+
+    filename.remove();
+
+}
+
+const text =
+    document.createElement("span");
+
+text.className =
+    "entity-file__text";
+
+text.textContent =
+    "Выбрать файл";
+
+fileButton.prepend(text);
 
     fileClear.hidden = true;
 
