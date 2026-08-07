@@ -199,6 +199,34 @@ export function openEntityEditor(
             "#entityFile"
         );
 
+const fileText =
+    root.querySelector(
+        ".entity-file__text"
+    );
+
+const fileClear =
+    root.querySelector(
+        "#entityFileClear"
+    );
+
+    if(
+    entity &&
+    entity.storagePath &&
+    fileText
+){
+
+    const name =
+        entity.storagePath
+            .split("/")
+            .pop();
+
+    fileText.textContent =
+        name;
+
+    fileClear.hidden = false;
+
+}
+    
     renderParents();
 
     function renderParents(){
@@ -356,33 +384,36 @@ if(fileInput){
     const text = root.querySelector(".entity-file__text");
     const clear = root.querySelector("#entityFileClear");
 
-    fileInput.onchange = e=>{
+fileInput.onchange = e=>{
 
-        file = e.target.files[0] || null;
+    file =
+        e.target.files[0] || null;
 
-        if(file){
+    if(file){
 
-            text.textContent = file.name;
-            clear.hidden = false;
+        fileText.textContent =
+            file.name;
 
-        }else{
+        fileClear.hidden = false;
 
-            text.textContent = "Выбрать файл";
-            clear.hidden = true;
+    }
 
-        }
+};
 
-    };
+fileClear.onclick = e=>{
 
-    clear.onclick = ()=>{
+    e.stopPropagation();
 
-        file = null;
-        fileInput.value = "";
+    file = null;
 
-        text.textContent = "Выбрать файл";
-        clear.hidden = true;
+    fileInput.value = "";
 
-    };
+    fileText.textContent =
+        "Выбрать файл";
+
+    fileClear.hidden = true;
+
+};
 
 }
   
