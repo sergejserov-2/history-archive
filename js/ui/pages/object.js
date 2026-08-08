@@ -186,21 +186,27 @@ async function renderPage(
 
     );
 
-const coverPhoto =
-    photos.find(
-        photo =>
-            photo.id === object.coverPhotoId
-    );
+    const breadcrumbsHTML =
+        await renderBreadcrumbs(
+            object
+        );
 
-document.body.innerHTML = `
+    const coverPhoto =
+        photos.find(
+            photo =>
+                photo.id === object.coverPhotoId
+        );
+
+    document.body.innerHTML = `
 
         ${renderHeader()}
 
-        <main class="page">
-        
-${await renderBreadcrumbs(object)}
-        
-            <section class="object">
+
+<main class="page">
+
+    ${breadcrumbsHTML}
+
+    <section class="object">
 
                  <div class="object__cover">
                 
