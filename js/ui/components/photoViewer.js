@@ -9,7 +9,7 @@ import {
 from "./modal.js";
 
 import {
-    getPhoto
+    getPhotos
 }
 from "../api/photos.js";
 
@@ -37,7 +37,7 @@ registerModal(
 
         load: async params => {
 
-            return await getPhoto(
+            return await getPhotos(
                 params.modalId
             );
 
