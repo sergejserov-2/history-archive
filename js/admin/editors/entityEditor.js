@@ -186,13 +186,20 @@ const form = renderEntityEditor(
 
 );
 
-    const modal = createModal({
+const modal = createModal({
 
-        title: cfg.title,
+    title:
+        entity
+        ?
+        `Изменить ${cfg.title.toLowerCase()}`
+        :
+        `Добавить ${cfg.title.toLowerCase()}`,
 
-        content: form
+    content: form
 
-    });
+});
+
+const root = modal.root;
 
     const root = modal.root;
 
