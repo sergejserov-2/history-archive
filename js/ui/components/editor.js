@@ -715,7 +715,7 @@ export function renderEntityEditor(
 
             if(levelA !== levelB){
 
-                return levelA - levelB;
+                return levelB - levelA;
 
             }
 
