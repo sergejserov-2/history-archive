@@ -16,17 +16,17 @@ export function renderSources(
 
         rows.push(`
 
-            <div
+        <div
 
-                class="source source--add admin-button"
+            class="source source--add admin-button"
 
-                data-action="add-source"
+            data-action="add-source"
 
-            >
+        >
 
-                + Добавить источник
+            + Добавить источник
 
-            </div>
+        </div>
 
         `);
 
@@ -120,7 +120,7 @@ export function renderSources(
 
                 <div class="source__date">
 
-                    ${source.date ?? "—"}
+                    ${source.date ?? ""}
 
                 </div>
 
@@ -139,19 +139,21 @@ export function renderSources(
 
             `
 
-            <div class="source__file">
+            <div class="source__download">
 
                 <a
 
-                    class="source__download"
+                    class="source__download-button"
 
                     href="${source.storagePath}"
 
-                    download
+                    target="_blank"
+
+                    rel="noopener"
 
                 >
 
-                    Скачать полный текст
+                    Скачать
 
                 </a>
 
@@ -171,7 +173,7 @@ export function renderSources(
 
     });
 
-    if(rows.length === 0){
+    if(rows.length===0){
 
         return `
 
