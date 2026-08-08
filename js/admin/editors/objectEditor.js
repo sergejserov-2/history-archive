@@ -817,17 +817,53 @@ if(children.length > 0){
 
 }
 
-            const data = {
+// ======================================
+// Parents + auto address
+// ======================================
 
-                ...fieldsData,
+const currentParents =
+    parentsEditor.getParents();
 
-                ...coverEditor.getData(),
+const title =
+    fieldsData.title ?? "";
 
-                parents:
+const parentsWithAddress =
 
-                    parentsEditor.getParents()
+    currentParents.map(
 
-            };
+        parent => ({
+
+            ...parent,
+
+            // Если адрес пустой —
+            // используем название объекта.
+            //
+            // Если адрес уже введён —
+            // оставляем его без изменений.
+
+            address:
+                parent.address?.trim()
+                ||
+                title
+
+        })
+
+    );
+
+// ======================================
+// Data
+// ======================================
+
+const data = {
+
+    ...fieldsData,
+
+    ...coverEditor.getData(),
+
+    parents:
+        parentsWithAddress
+
+};
 
             if(object){
 
