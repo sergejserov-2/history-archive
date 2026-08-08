@@ -91,22 +91,37 @@ export function renderObjectEditor(
 
         null;
 
-    const parentType =
+   const parentType =
 
-        parent
+    parent
 
-        ?
+    ?
 
-        types.find(
+    types.find(
 
-            t =>
-            t.id === parent.typeId
+        t =>
+        t.id === parent.typeId
 
-        )
+    )
 
-        :
+    :
 
-        null;
+    null;
+
+console.log(
+    "OBJECT EDITOR PARENT:",
+    parent
+);
+
+console.log(
+    "OBJECT EDITOR PARENT TYPE:",
+    parentType
+);
+
+console.log(
+    "OBJECT EDITOR PARENT LEVEL:",
+    parentType?.level
+);
 
 // ======================================
 // Default type
@@ -139,6 +154,23 @@ else if(parentType){
     const targetLevel =
 
         Number(parentType.level) - 1;
+
+    console.log(
+    "OBJECT EDITOR TARGET LEVEL:",
+    targetLevel
+);
+
+console.log(
+    "OBJECT EDITOR AVAILABLE TYPES:",
+    types.filter(
+
+        type =>
+
+            Number(type.level) ===
+            targetLevel
+
+    )
+);
 
     // ==================================
     // Берём только типы нужного уровня
@@ -239,7 +271,10 @@ else if(parentType){
                 }
 
             );
-
+console.log(
+    "OBJECT EDITOR DEFAULT TYPE:",
+    sortedTypes[0]
+);
         defaultTypeId =
             sortedTypes[0].id;
 
