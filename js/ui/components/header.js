@@ -6,6 +6,11 @@ import {
 }
 from "../../admin/adminMode.js";
 
+import {
+    createModal
+}
+from "./modal.js";
+
 // ======================================
 // Header component
 // ======================================
@@ -97,77 +102,248 @@ export function renderHeader() {
 
         button.onclick = async()=>{
 
-            if(isAdmin()){
+    // ======================================
+    // Logout
+    // ======================================
 
-                try{
+    if(isAdmin()){
 
-                    await logout();
+        try{
 
-                }
-                catch(error){
+            await logout();
 
-                    console.error(
-                        error
-                    );
+        }
+        catch(error){
 
-                    alert(
-                        "Не удалось выйти"
-                    );
+            console.error(
+                error
+            );
 
-                }
+            alert(
+                "Не удалось выйти"
+            );
 
-                return;
+        }
 
-            }
+        return;
 
-            const email =
+    }
 
-                prompt(
-                    "Email администратора"
-                );
+    // ======================================
+    // Saved login data
+    // ======================================
 
-            if(!email){
+    const savedEmail =
+        localStorage.getItem(
+            "adminEmail"
+        ) ?? "";
 
-                return;
+    const savedPassword =
+        localStorage.getItem(
+            "adminPassword"
+        ) ?? "";
 
-            }
+    // ======================================
+    // Login form
+    // ======================================
 
-            const password =
+    const form = `
 
-                prompt(
-                    "Пароль"
-                );
+        <div class="login-form">
 
-            if(!password){
+            <label>
 
-                return;
+                Email
 
-            }
+                <input
+                    id="adminLoginEmail"
+                    type="email"
+                    autocomplete="username"
+                    value="${savedEmail}"
+                >
 
-            try{
+            </label>
 
-                await login(
+            <label>
 
-                    email,
-                    password
+                Пароль
 
-                );
+                <input
+                    id="adminLoginPassword"
+                    type="password"
+                    autocomplete="current-password"
+                    value="${savedPassword}"
+                >
 
-            }
-            catch(error){
+            </label>
 
-                console.error(
-                    error
-                );
+            <div class="entity-editor__buttons">
 
-                alert(
-                    "Неверный email или пароль"
-                );
+                <button
+                    id="adminLoginSubmit"
+                >
 
-            }
+                    Войти
 
-        };
+                </button>
 
+                <button
+                    id="adminLoginCancel"
+                >
+
+                    Отмена
+
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+    const modal =
+
+        createModal({
+
+            title:"Вход в админку",
+
+            content:form
+
+        });
+
+    const root =
+        modal.root;
+
+    const emailInput =
+        root.querySelector(
+            "#adminLoginEmail"
+        );
+
+    const passwordInput =
+        root.querySelector(
+            "#adminLoginPassword"
+        );
+
+    const loginButton =
+        root.querySelector(
+            "#adminLoginSubmit"
+        );
+
+    const cancelButton =
+        root.querySelector(
+            "#adminLoginCancel"
+        );
+
+    // ======================================
+    // Cancel
+    // ======================================
+
+    cancelButton.onclick = ()=>{
+
+        modal.close();
+
+    };
+
+    // ======================================
+    // Login
+    // ======================================
+
+    loginButton.onclick = async()=>{
+
+        const email =
+            emailInput.value.trim();
+
+        const password =
+            passwordInput.value;
+
+        if(!email){
+
+            alert(
+                "Введите email"
+            );
+
+            emailInput.focus();
+
+            return;
+
+        }
+
+        if(!password){
+
+            alert(
+                "Введите пароль"
+            );
+
+            passwordInput.focus();
+
+            return;
+
+        }
+
+        loginButton.disabled = true;
+
+        try{
+
+            await login(
+
+                email,
+                password
+
+            );
+
+            // ==================================
+            // Запоминаем данные
+            // ==================================
+
+            localStorage.setItem(
+                "adminEmail",
+                email
+            );
+
+            localStorage.setItem(
+                "adminPassword",
+                password
+            );
+
+            modal.close();
+
+        }
+        catch(error){
+
+            console.error(
+                error
+            );
+
+            alert(
+                "Неверный email или пароль"
+            );
+
+            passwordInput.focus();
+
+        }
+        finally{
+
+            loginButton.disabled = false;
+
+        }
+
+    };
+
+    // ======================================
+    // Enter
+    // ======================================
+
+    passwordInput.onkeydown = event=>{
+
+        if(event.key === "Enter"){
+
+            loginButton.click();
+
+        }
+
+    };
+
+};
     },0);
 
     return html;
