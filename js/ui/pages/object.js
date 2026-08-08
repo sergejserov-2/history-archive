@@ -3,7 +3,10 @@
 // ======================================
 
 import {
-    ADMIN_MODE
+    isAdmin,
+    onAdminStateChanged,
+    logout,
+    login
 }
 from "../../admin/adminMode.js";
 
@@ -132,28 +135,49 @@ async function loadPage() {
         object.id
     );
 
-    renderPage(
+onAdminStateChanged(
 
-        object,
+    ADMIN_MODE => {
 
-        type,
+        renderPage(
 
-        parents,
+            object,
 
-        children,
+            type,
 
-        records,
+            parents,
 
-        photos,
+            children,
 
-        sources
+            records,
 
-    );
+            photos,
+
+            sources,
+
+            ADMIN_MODE
+
+        );
 
         if (ADMIN_MODE) {
-        initAdmin(object, types, objects, photos, sources, records, children);
+
+            initAdmin(
+
+                object,
+                types,
+                objects,
+                photos,
+                sources,
+                records,
+                children
+
+            );
+
+        }
+
     }
 
+);
 }
 
 // ======================================
@@ -174,7 +198,9 @@ async function renderPage(
 
     photos,
 
-    sources
+    sources,
+
+    ADMIN_MODE
 
 ) {
 
