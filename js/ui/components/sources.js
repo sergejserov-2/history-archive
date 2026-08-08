@@ -32,9 +32,127 @@ export function renderSources(
 
     }
 
-    (sources ?? [])
+    // ======================================
+    // Sort sources
+    //
+    // 1. date
+    // 2. author
+    // 3. title
+    //
+    // От нового к старому
+    // ======================================
 
-    .forEach(source=>{
+    const sortedSources =
+
+        [...(sources ?? [])].sort(
+
+            (a, b) => {
+
+                const dateA =
+                    a.date || "";
+
+                const dateB =
+                    b.date || "";
+
+                // Источники без даты — в конец
+
+                if(!dateA && !dateB){
+
+                    const authorCompare =
+
+                        (a.author ?? "").localeCompare(
+
+                            b.author ?? "",
+
+                            "ru"
+
+                        );
+
+                    if(authorCompare !== 0){
+
+                        return authorCompare;
+
+                    }
+
+                    return (
+
+                        a.title ?? ""
+
+                    ).localeCompare(
+
+                        b.title ?? "",
+
+                        "ru"
+
+                    );
+
+                }
+
+                if(!dateA){
+
+                    return 1;
+
+                }
+
+                if(!dateB){
+
+                    return -1;
+
+                }
+
+                // От нового к старому
+
+                const dateCompare =
+
+                    String(dateB)
+                        .localeCompare(
+                            String(dateA)
+                        );
+
+                if(dateCompare !== 0){
+
+                    return dateCompare;
+
+                }
+
+                // Одинаковая дата →
+                // автор A → Я
+
+                const authorCompare =
+
+                    (a.author ?? "").localeCompare(
+
+                        b.author ?? "",
+
+                        "ru"
+
+                    );
+
+                if(authorCompare !== 0){
+
+                    return authorCompare;
+
+                }
+
+                // Затем название A → Я
+
+                return (
+
+                    a.title ?? ""
+
+                ).localeCompare(
+
+                    b.title ?? "",
+
+                    "ru"
+
+                );
+
+            }
+
+        );
+
+    sortedSources.forEach(source=>{
 
         rows.push(`
 
@@ -106,9 +224,7 @@ export function renderSources(
                             class="admin-icon"
                         >
 
-                    </button>
-
-                    `
+                    </button>`
 
                     :
 
