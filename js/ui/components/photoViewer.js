@@ -25,23 +25,21 @@ export function openPhotoViewer(
 
     const form = `
 
-        <div class="photo-viewer">
+<div class="photo-viewer__image-area">
 
-            <div class="photo-viewer__image-area">
+    <div
+        class="photo-viewer__image-bg"
+        style="background-image:url('${photo.storagePath ?? ""}')"
+    ></div>
 
-                <img
+    <img
+        id="photoViewerImage"
+        src="${photo.storagePath ?? ""}"
+        alt="${photo.title ?? ""}"
+        draggable="false"
+    >
 
-                    id="photoViewerImage"
-
-                    src="${photo.storagePath ?? ""}"
-
-                    alt="${photo.title ?? ""}"
-
-                    draggable="false"
-
-                >
-
-            </div>
+</div>
 
             <div class="photo-viewer__info">
 
