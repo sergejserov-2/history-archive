@@ -2,6 +2,11 @@
 // Photos component
 // ======================================
 
+import {
+    openPhotoViewer
+}
+from "./photoViewer.js";
+
 export function renderPhotos(
 
     photos,
@@ -184,73 +189,76 @@ export function renderPhotos(
 
         `;
 
-        cards.push(`
+cards.push(`
 
-        <div class="photo-card">
+<div
+    class="photo-card"
+    data-photo-id="${photo.id}"
+>
 
-            <div class="photo-card__media">
+    <div class="photo-card__media">
 
-                ${image}
+        ${image}
 
-            </div>
+    </div>
 
-            <div class="photo-card__title">
+    <div class="photo-card__title">
 
-                ${photo.title ?? ""}
+        ${photo.title ?? ""}
 
-                ${
-                ADMIN_MODE
+        ${
+        ADMIN_MODE
 
-                ?
+        ?
 
-                `
+        `
 
-                <button
+        <button
 
-                    class="admin-button"
+            class="admin-button"
 
-                    data-action="edit-photo"
+            data-action="edit-photo"
 
-                    data-id="${photo.id}"
+            data-id="${photo.id}"
 
-                >
+        >
 
-                    <img
-                        src="icons/edit.svg"
-                        class="admin-icon"
-                    >
+            <img
+                src="icons/edit.svg"
+                class="admin-icon"
+            >
 
-                </button>
+        </button>
 
-                <button
+        <button
 
-                    class="admin-button"
+            class="admin-button"
 
-                    data-action="delete-photo"
+            data-action="delete-photo"
 
-                    data-id="${photo.id}"
+            data-id="${photo.id}"
 
-                >
+        >
 
-                    <img
-                        src="icons/delete.svg"
-                        class="admin-icon"
-                    >
+            <img
+                src="icons/delete.svg"
+                class="admin-icon"
+            >
 
-                </button>
+        </button>
 
-                `
+        `
 
-                :
+        :
 
-                ""}
+        ""}
 
-            </div>
+    </div>
 
-            <div class="photo-card__author">
+    <div class="photo-card__author">
 
-                ${photo.author ?? ""}
-
+        ${photo.author ?? ""}
+        
                 ${
                 photo.date
 
@@ -290,14 +298,76 @@ export function renderPhotos(
 
     }
 
-    return `
+const html = `
 
-    <div class="photos-list">
+<div class="photos-list">
 
-        ${cards.join("")}
+    ${cards.join("")}
 
-    </div>
+</div>
 
-    `;
+`;
+
+setTimeout(()=>{
+
+    const photosList =
+        document.querySelector(
+            ".photos-list"
+        );
+
+    if(!photosList){
+
+        return;
+
+    }
+
+    photosList.onclick = event => {
+
+        // Админские кнопки не должны
+        // открывать просмотрщик
+
+        if(
+            event.target.closest(
+                ".admin-button"
+            )
+        ){
+
+            return;
+
+        }
+
+        const card =
+            event.target.closest(
+                ".photo-card"
+            );
+
+        if(!card){
+
+            return;
+
+        }
+
+        const photoId =
+            card.dataset.photoId;
+
+        const photo =
+            sortedPhotos.find(
+                photo =>
+                    photo.id === photoId
+            );
+
+        if(!photo){
+
+            return;
+
+        }
+
+        openPhotoViewer(photo);
+
+    };
+
+}, 0);
+
+return html;
 
 }
