@@ -127,6 +127,174 @@ export function createModal({
 }
 
 // ======================================
+// Set modal URL
+// ======================================
+//
+// Пример:
+//
+// setModalUrl(
+//     "photo-preview",
+//     {
+//         photoId: "PHOTO_ID"
+//     }
+// );
+//
+// URL:
+//
+// object.html
+// ?id=OBJECT_ID
+// &modal=photo-preview
+// &photoId=PHOTO_ID
+//
+// Страница НЕ перезагружается.
+//
+// ======================================
+
+export function setModalUrl(
+
+    type,
+
+    params = {}
+
+){
+
+    const url =
+        new URL(
+            window.location.href
+        );
+
+    // ==================================
+    // Modal type
+    // ==================================
+
+    url.searchParams.set(
+        "modal",
+        type
+    );
+
+    // ==================================
+    // Modal parameters
+    // ==================================
+
+    Object.entries(
+        params
+    ).forEach(
+
+        ([key, value]) => {
+
+            if(
+                value === null ||
+                value === undefined ||
+                value === ""
+            ){
+
+                url.searchParams.delete(
+                    key
+                );
+
+                return;
+
+            }
+
+            url.searchParams.set(
+                key,
+                String(value)
+            );
+
+        }
+
+    );
+
+    // ==================================
+    // Update browser URL
+    // ==================================
+
+    window.history.pushState(
+
+        {},
+
+        "",
+
+        url
+
+    );
+
+}
+
+// ======================================
+// Clear modal URL
+// ======================================
+
+export function clearModalUrl(){
+
+    const url =
+        new URL(
+            window.location.href
+        );
+
+    // ==================================
+    // Получаем текущую регистрацию
+    // ==================================
+
+    const type =
+        url.searchParams.get(
+            "modal"
+        );
+
+    if(!type){
+
+        return;
+
+    }
+
+    const registration =
+        modalRegistry.find(
+
+            modal =>
+                modal.type === type
+
+        );
+
+    // ==================================
+    // Удаляем modal
+    // ==================================
+
+    url.searchParams.delete(
+        "modal"
+    );
+
+    // ==================================
+    // Удаляем параметры модалки
+    // ==================================
+
+    for(
+        const key of
+        registration?.params ?? []
+    ){
+
+        url.searchParams.delete(
+            key
+        );
+
+    }
+
+    // ==================================
+    // Update browser URL
+    // ==================================
+
+    window.history.pushState(
+
+        {},
+
+        "",
+
+        url
+
+    );
+
+}
+
+// ======================================
 // Restore modal from URL
 // ======================================
 //
@@ -264,11 +432,30 @@ export async function restoreModalFromUrl(){
     if(
         registration.open
     ){
+
         await registration.open(
             data
         );
 
     }
+
+}
+
+// ======================================
+// Close current modal
+// ======================================
+
+function closeCurrentModal(){
+
+    if(!currentModal){
+
+        return;
+
+    }
+
+    currentModal.overlay.remove();
+
+    currentModal = null;
 
 }
 
@@ -287,3 +474,15 @@ window.addEventListener(
     }
 
 );
+
+// ======================================
+// Initial URL
+// ======================================
+//
+// Если страница открыта сразу
+// с ?modal=...
+// модалка восстанавливается.
+//
+// ======================================
+
+restoreModalFromUrl();
