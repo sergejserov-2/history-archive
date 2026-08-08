@@ -32,9 +32,95 @@ export function renderRecords(
 
     }
 
-    (records ?? [])
+    // ======================================
+    // Sort records
+    //
+    // 1. dateStart
+    // 2. dateEnd
+    // 3. title
+    //
+    // От старого к новому
+    // ======================================
 
-    .forEach(record=>{
+    const sortedRecords =
+
+        [...(records ?? [])].sort(
+
+            (a, b) => {
+
+                const dateA =
+                    a.dateStart ||
+                    a.dateEnd ||
+                    "";
+
+                const dateB =
+                    b.dateStart ||
+                    b.dateEnd ||
+                    "";
+
+                // Записи без даты — в конец
+
+                if(!dateA && !dateB){
+
+                    return (
+                        a.title ?? ""
+                    ).localeCompare(
+
+                        b.title ?? "",
+
+                        "ru"
+
+                    );
+
+                }
+
+                if(!dateA){
+
+                    return 1;
+
+                }
+
+                if(!dateB){
+
+                    return -1;
+
+                }
+
+                // От старого к новому
+
+                const dateCompare =
+
+                    String(dateA)
+                        .localeCompare(
+                            String(dateB)
+                        );
+
+                if(dateCompare !== 0){
+
+                    return dateCompare;
+
+                }
+
+                // Если дата одинаковая —
+                // сортируем по названию
+
+                return (
+
+                    a.title ?? ""
+
+                ).localeCompare(
+
+                    b.title ?? "",
+
+                    "ru"
+
+                );
+
+            }
+
+        );
+
+    sortedRecords.forEach(record=>{
 
         let period = "";
 
@@ -93,7 +179,10 @@ export function renderRecords(
 
                 >
 
-    <img src="icons/edit.svg" class="admin-icon">
+                    <img
+                        src="icons/edit.svg"
+                        class="admin-icon"
+                    >
 
                 </button>
 
@@ -107,7 +196,10 @@ export function renderRecords(
 
                 >
 
-    <img src="icons/delete.svg" class="admin-icon">
+                    <img
+                        src="icons/delete.svg"
+                        class="admin-icon"
+                    >
 
                 </button>
 
