@@ -27,7 +27,7 @@ export function openPhotoViewer(
 
         <div class="photo-viewer">
 
-            <div class="photo-viewer__image">
+            <div class="photo-viewer__image-area">
 
                 <img
 
