@@ -85,7 +85,13 @@ export const photoPreviewModal = {
         }
 
         openPhotoViewer(
-            photo
+
+            photo,
+
+            {
+                fromUrl: true
+            }
+
         );
 
     }
