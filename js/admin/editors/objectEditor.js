@@ -368,14 +368,18 @@ filter(parent){
         parents.length > 0
     ){
 
-        const firstParent =
+const firstParent =
 
-            objects.find(
+    objects.find(
 
-                o =>
-                o.id === parents[0].objectId
+        o =>
 
-            );
+        o.id ===
+
+        parentsEditor
+        .getParents()[0]?.objectId
+
+    );
 
         const firstParentType =
 
