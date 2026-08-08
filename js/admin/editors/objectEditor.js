@@ -428,15 +428,17 @@ export function openObjectEditor(
 
         );
 
-    const modal =
+const modal =
+    createModal({
 
-        createModal({
+        title:
+            object
+            ? "Изменить объект"
+            : "Добавить объект",
 
-            title:"Объект",
+        content:form
 
-            content:form
-
-        });
+    });
 
     const root =
         modal.root;
