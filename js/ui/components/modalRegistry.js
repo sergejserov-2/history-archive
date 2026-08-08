@@ -19,7 +19,28 @@
 // ======================================
 
 // ======================================
+// Imports
+// ======================================
+
+import {
+    getPhotos
+}
+from "../../api/photos.js";
+
+import {
+    openPhotoViewer
+}
+from "./photoViewer.js";
+
+// ======================================
 // PHOTO PREVIEW
+// ======================================
+//
+// URL:
+//
+// ?modal=photo-preview
+// &photoId=PHOTO_ID
+//
 // ======================================
 
 export const photoPreviewModal = {
@@ -27,12 +48,47 @@ export const photoPreviewModal = {
     type: "photo-preview",
 
     params: [
+
         "photoId"
+
     ],
 
-    load: null,
+    load: async params => {
 
-    open: null
+        if(
+            !params.photoId
+        ){
+
+            return null;
+
+        }
+
+        const photos =
+            await getPhotos();
+
+        return photos.find(
+
+            photo =>
+                photo.id ===
+                params.photoId
+
+        ) ?? null;
+
+    },
+
+    open: async photo => {
+
+        if(!photo){
+
+            return;
+
+        }
+
+        openPhotoViewer(
+            photo
+        );
+
+    }
 
 };
 
@@ -45,8 +101,11 @@ export const entityEditorModal = {
     type: "entity-editor",
 
     params: [
+
         "entityId",
+
         "entityType"
+
     ],
 
     load: null,
@@ -64,7 +123,9 @@ export const objectEditorModal = {
     type: "object-editor",
 
     params: [
+
         "objectId"
+
     ],
 
     load: null,
@@ -91,11 +152,6 @@ export const loginModal = {
 
 // ======================================
 // ALL MODALS
-// ======================================
-//
-// modal.js будет работать только
-// с этим массивом.
-//
 // ======================================
 
 export const modalRegistry = [
