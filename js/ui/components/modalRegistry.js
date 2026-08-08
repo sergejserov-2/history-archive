@@ -45,56 +45,61 @@ from "./photoViewer.js";
 
 export const photoPreviewModal = {
 
-    type: "photo-preview",
+type: "photo-preview",
 
-    params: [
+params: [
 
-        "photoId"
+    "objectId",
 
-    ],
+    "photoId"
 
-    load: async params => {
+],
 
-        if(
-            !params.photoId
-        ){
+load: async params => {
 
-            return null;
+    if(
+        !params.objectId ||
+        !params.photoId
+    ){
 
-        }
-
-        const photos =
-            await getPhotos();
-
-        return photos.find(
-
-            photo =>
-                photo.id ===
-                params.photoId
-
-        ) ?? null;
-
-    },
-
-    open: async photo => {
-
-        if(!photo){
-
-            return;
-
-        }
-
-        openPhotoViewer(
-
-            photo,
-
-            {
-                fromUrl: true
-            }
-
-        );
+        return null;
 
     }
+
+    const photos =
+        await getPhotos(
+            params.objectId
+        );
+
+    return photos.find(
+
+        photo =>
+            photo.id ===
+            params.photoId
+
+    ) ?? null;
+
+},
+
+open: async photo => {
+
+    if(!photo){
+
+        return;
+
+    }
+
+    openPhotoViewer(
+
+        photo,
+
+        {
+            fromUrl: true
+        }
+
+    );
+
+}
 
 };
 
