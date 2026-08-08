@@ -3,113 +3,9 @@
 // ======================================
 
 import {
-    getObject
+    getParents
 }
 from "../../api/objects.js";
-
-// ======================================
-// Build all chains
-// ======================================
-
-async function buildAllChains(object){
-
-    if(!object){
-
-        return [];
-
-    }
-
-    // ======================================
-    // Root object
-    // ======================================
-
-    if(
-        !object.parents ||
-        object.parents.length === 0
-    ){
-
-        return [[
-
-            {
-                id:
-                    object.id,
-
-                title:
-                    object.title ?? "",
-
-                // У корневого объекта
-                // адреса нет
-                address:""
-            }
-
-        ]];
-
-    }
-
-    const result = [];
-
-    // ======================================
-    // Для каждого родителя строим
-    // отдельную цепочку
-    // ======================================
-
-    for(
-        const parent
-        of object.parents
-    ){
-
-        const parentObject =
-            await getObject(
-                parent.objectId
-            );
-
-        if(!parentObject){
-
-            continue;
-
-        }
-
-        const parentChains =
-            await buildAllChains(
-                parentObject
-            );
-
-        for(
-            const chain
-            of parentChains
-        ){
-
-            result.push(
-
-                [
-
-                    ...chain,
-
-                    {
-
-                        id:
-                            object.id,
-
-                        title:
-                            object.title ?? "",
-
-                        // Адрес берём именно
-                        // из связи с этим родителем
-                        address:
-                            parent.address ?? ""
-                    }
-
-                ]
-
-            );
-
-        }
-
-    }
-
-    return result;
-
-}
 
 // ======================================
 // Render
@@ -127,10 +23,195 @@ export async function renderBreadcrumbs(
 
     }
 
-    const chains =
-        await buildAllChains(
+    // ======================================
+    // Получаем всех родителей
+    // ======================================
+
+    const parents =
+
+        await getParents(
             object
         );
+
+    // ======================================
+    // Если родителей нет —
+    // показываем только текущий объект
+    // ======================================
+
+    if(
+        !parents ||
+        parents.length === 0
+    ){
+
+        return `
+
+            <nav
+                class="breadcrumbs"
+                aria-label="Навигация по объектам"
+            >
+
+                <div class="breadcrumbs__chain">
+
+                    <a
+                        class="breadcrumbs__item"
+                        href="object.html?id=${object.id}"
+                    >
+
+                        ${object.title ?? ""}
+
+                    </a>
+
+                </div>
+
+            </nav>
+
+        `;
+
+    }
+
+    // ======================================
+    // Группируем родителей по цепочкам
+    //
+    // getParents() возвращает родителей
+    // от дальнего к ближнему.
+    //
+    // Для нескольких родителей текущего
+    // объекта строим отдельные цепочки.
+    // ======================================
+
+    const chains = [];
+
+    const uniqueParentIds = [];
+
+    parents.forEach(parent => {
+
+        if(
+            !uniqueParentIds.includes(
+                parent.id
+            )
+        ){
+
+            uniqueParentIds.push(
+                parent.id
+            );
+
+        }
+
+    });
+
+    // ======================================
+    // Если у текущего объекта несколько
+    // родителей одного уровня —
+    // строим цепочку для каждого.
+    //
+    // На этом этапе используем родителей,
+    // которые уже подготовлены getParents().
+    // ======================================
+
+    const nearestLevel =
+
+        Math.min(
+
+            ...parents
+
+                .filter(
+                    parent =>
+                        parent.level !== null
+                )
+
+                .map(
+                    parent =>
+                        Number(parent.level)
+                )
+
+        );
+
+    const nearestParents =
+
+        parents.filter(
+
+            parent =>
+
+                Number(parent.level) ===
+                nearestLevel
+
+        );
+
+    // ======================================
+    // Для каждого ближайшего родителя
+    // формируем путь.
+    // ======================================
+
+    nearestParents.forEach(
+        nearestParent => {
+
+            const chain =
+
+                parents.filter(
+
+                    parent =>
+
+                        parent.level >
+                        nearestParent.level
+
+                        ||
+
+                        parent.id ===
+                        nearestParent.id
+
+                );
+
+            // ==================================
+            // Убираем дубли
+            // ==================================
+
+            const unique = [];
+
+            chain.forEach(item => {
+
+                if(
+                    !unique.some(
+                        existing =>
+                            existing.id === item.id
+                    )
+                ){
+
+                    unique.push(item);
+
+                }
+
+            });
+
+            // ==================================
+            // Добавляем текущий объект
+            // ==================================
+
+            unique.push({
+
+                id:
+                    object.id,
+
+                title:
+                    object.title ?? "",
+
+                address:
+                    nearestParent.address ?? "",
+
+                level:
+                    null
+
+            });
+
+            chains.push(
+                unique
+            );
+
+        }
+    );
+
+    // ======================================
+    // Если почему-то цепочки не построились
+    // ======================================
 
     if(
         chains.length === 0
@@ -146,38 +227,33 @@ export async function renderBreadcrumbs(
 
     const uniqueChains = [];
 
-    for(
-        const chain
-        of chains
-    ){
+    chains.forEach(chain => {
 
         const key =
 
             chain
                 .map(
-
                     item =>
-
-                        `${item.id}:${item.address}`
-
+                        `${item.id}:${item.address ?? ""}`
                 )
                 .join("|");
 
         if(
             !uniqueChains.some(
+                existing => {
 
-                existing =>
+                    const existingKey =
 
-                    existing
-                        .map(
+                        existing
+                            .map(
+                                item =>
+                                    `${item.id}:${item.address ?? ""}`
+                            )
+                            .join("|");
 
-                            item =>
+                    return existingKey === key;
 
-                                `${item.id}:${item.address}`
-
-                        )
-                        .join("|") === key
-
+                }
             )
         ){
 
@@ -187,84 +263,91 @@ export async function renderBreadcrumbs(
 
         }
 
-    }
+    });
 
     // ======================================
-    // Render chains
+    // Render
     // ======================================
 
     const renderedChains =
 
-        uniqueChains
+        uniqueChains.map(
 
-            .map(
+            chain => {
 
-                chain => {
+                const parts =
 
-                    const parts =
+                    chain.map(
 
-                        chain.map(
+                        item => {
 
-                            item => {
+                            /*
+                             * Для корневого объекта
+                             * адрес пустой — показываем title.
+                             *
+                             * Для остальных:
+                             * показываем именно address.
+                             *
+                             * Если это текущий объект,
+                             * у него тоже используем address
+                             * связи с ближайшим родителем.
+                             */
 
-                                // У корневого объекта
-                                // нет адреса — используем название.
-                                // У остальных используем адрес
-                                // связи с родителем.
+                            const label =
 
-                                const label =
+                                item.address ||
+                                item.title ||
+                                "";
 
-                                    item.address ||
-                                    item.title ||
-                                    "";
+                            return `
 
-                                return `
+                                <a
 
-                                    <a
+                                    class="breadcrumbs__item"
 
-                                        class="breadcrumbs__item"
+                                    href="object.html?id=${item.id}"
 
-                                        href="object.html?id=${item.id}"
+                                >
 
-                                    >
+                                    ${label}
 
-                                        ${label}
+                                </a>
 
-                                    </a>
+                            `;
 
-                                `;
+                        }
 
-                            }
+                    );
 
-                        );
+                return `
 
-                    return `
+                    <div class="breadcrumbs__chain">
 
-                        <div class="breadcrumbs__chain">
+                        ${
 
-                            ${
-                                parts.join(`
+                            parts.join(`
 
-                                    <span class="breadcrumbs__separator">
+                                <span
+                                    class="breadcrumbs__separator"
+                                >
+                                    →
+                                </span>
 
-                                        →
+                            `)
 
-                                    </span>
+                        }
 
-                                `)
-                            }
+                    </div>
 
-                        </div>
+                `;
 
-                    `;
+            }
 
-                }
+        ).join("");
 
-            )
-
-            .join("");
-
-    if(!renderedChains){
+    if(
+        !renderedChains
+    ){
 
         return "";
 
