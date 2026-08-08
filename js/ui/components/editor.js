@@ -624,9 +624,7 @@ export function renderEntityEditor(
 
     cfg,
 
-    entity,
-
-    extra = {}
+    entity
 
 ){
 
