@@ -38,68 +38,111 @@ from "./photoViewer.js";
 //
 // URL:
 //
-// ?modal=photo-preview
+// object.html
+// ?id=OBJECT_ID
+// &modal=photo-preview
 // &photoId=PHOTO_ID
+//
+// objectId отдельно в URL модалки не нужен.
+// Он уже находится в стандартном параметре
+// страницы: ?id=OBJECT_ID.
 //
 // ======================================
 
 export const photoPreviewModal = {
 
-type: "photo-preview",
+    type: "photo-preview",
 
-params: [
+    params: [
 
-    "objectId",
+        "id",
 
-    "photoId"
+        "photoId"
 
-],
+    ],
 
-load: async params => {
+    load: async params => {
 
-    if(
-        !params.objectId ||
-        !params.photoId
-    ){
+        // ==================================
+        // Получаем родительский Object ID
+        // из обычного ?id=...
+        // ==================================
 
-        return null;
+        if(
+            !params.id
+        ){
 
-    }
+            console.error(
+                "Photo preview: object id is missing"
+            );
 
-    const photos =
-        await getPhotos(
-            params.objectId
-        );
+            return null;
 
-    return photos.find(
-
-        photo =>
-            photo.id ===
-            params.photoId
-
-    ) ?? null;
-
-},
-
-open: async photo => {
-
-    if(!photo){
-
-        return;
-
-    }
-
-    openPhotoViewer(
-
-        photo,
-
-        {
-            fromUrl: true
         }
 
-    );
+        // ==================================
+        // Получаем Photo ID
+        // ==================================
 
-}
+        if(
+            !params.photoId
+        ){
+
+            console.error(
+                "Photo preview: photo id is missing"
+            );
+
+            return null;
+
+        }
+
+        // ==================================
+        // Используем существующий механизм:
+        //
+        // getPhotos(objectId)
+        //
+        // Он возвращает фотографии,
+        // принадлежащие этому Object.
+        // ==================================
+
+        const photos =
+            await getPhotos(
+                params.id
+            );
+
+        // ==================================
+        // Находим конкретную фотографию
+        // ==================================
+
+        return photos.find(
+
+            photo =>
+                photo.id ===
+                params.photoId
+
+        ) ?? null;
+
+    },
+
+    open: async photo => {
+
+        if(!photo){
+
+            return;
+
+        }
+
+        openPhotoViewer(
+
+            photo,
+
+            {
+                fromUrl: true
+            }
+
+        );
+
+    }
 
 };
 
