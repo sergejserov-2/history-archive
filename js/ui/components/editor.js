@@ -457,15 +457,27 @@ ${o.title}
 
     renderParents();
 
-    return {
+return {
 
-        getParents(){
+    getParents(){
 
-            return parents;
+        return parents;
 
-        }
+    },
 
-    };
+    clearParents(){
+
+        parents.splice(0);
+
+        renderParents();
+
+        searchInput.value = "";
+
+        resultsBox.innerHTML = "";
+
+    }
+
+};
 
 }
 
@@ -687,6 +699,14 @@ type.id ===
 )
 ?
 "selected"
+:
+""
+}
+
+${
+options.disabledTypeIds?.includes(type.id)
+?
+"disabled"
 :
 ""
 }
