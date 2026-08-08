@@ -493,6 +493,9 @@ export function setupFileEditor(
 
     let removeOldFile = false;
 
+    const oldStoragePath =
+        entity?.storagePath ?? null;
+
     const fileSelect =
         root.querySelector(
             "#entityFileSelect"
@@ -531,7 +534,7 @@ export function setupFileEditor(
         }
 
         if(
-            entity?.storagePath &&
+            oldStoragePath &&
             !removeOldFile
         ){
 
@@ -542,7 +545,7 @@ export function setupFileEditor(
             fileInput.disabled = true;
 
             fileName.textContent =
-                entity.storagePath
+                oldStoragePath
                 .split("/")
                 .pop();
 
@@ -575,11 +578,13 @@ export function setupFileEditor(
         file =
             e.target.files[0] || null;
 
-        if(file){
-
-            removeOldFile = false;
-
-        }
+        /*
+         * ВАЖНО:
+         * здесь НЕ сбрасываем removeOldFile.
+         *
+         * Если старый файл уже был откреплён,
+         * его всё равно нужно отправить в deleted.
+         */
 
         renderFileState();
 
@@ -601,67 +606,87 @@ export function setupFileEditor(
 
     renderFileState();
 
-return {
+    return {
 
-hasFile(){
+        hasFile(){
 
-    return (
+            return (
 
-        !!file
+                !!file
 
-        ||
+                ||
 
-        (
-            !!entity?.storagePath &&
-            !removeOldFile
-        )
+                (
+                    !!oldStoragePath &&
+                    !removeOldFile
+                )
 
-    );
-
-},
-
-async getData(){
-
-    if(removeOldFile){
-
-        return {
-
-            storagePath:null,
-
-            removedStoragePath:
-                entity?.storagePath ?? null
-
-        };
-
-    }
-
-        if(file){
-
-            const result = await upload(
-                file
             );
 
-            if(result?.storagePath){
+        },
 
-                return {
+        async getData(){
 
-                    storagePath:
-                        result.storagePath
+            const data = {};
 
-                };
+            /*
+             * Старый файл был откреплён.
+             *
+             * Возвращаем его отдельно,
+             * чтобы entityEditor отправил его
+             * в deleted.
+             */
+
+            if(
+                removeOldFile &&
+                oldStoragePath
+            ){
+
+                data.removedStoragePath =
+                    oldStoragePath;
 
             }
 
+            /*
+             * Если выбран новый файл —
+             * загружаем его.
+             */
+
+            if(file){
+
+                const result =
+                    await upload(file);
+
+                if(result?.storagePath){
+
+                    data.storagePath =
+                        result.storagePath;
+
+                }
+
+            }
+
+            /*
+             * Если ничего не изменилось —
+             * возвращаем null.
+             */
+
+            if(
+                !data.storagePath &&
+                !data.removedStoragePath
+            ){
+
+                return null;
+
+            }
+
+            return data;
+
         }
 
-        return null;
-
-    }
-
-};
+    };
 
 }
-
 
 
 export function renderEntityEditor(
