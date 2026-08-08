@@ -37,8 +37,9 @@ async function buildAllChains(object){
                 title:
                     object.title ?? "",
 
-                address:
-                    object.address ?? ""
+                // У корневого объекта
+                // адреса нет
+                address:""
             }
 
         ]];
@@ -96,7 +97,6 @@ async function buildAllChains(object){
                         // из связи с этим родителем
                         address:
                             parent.address ?? ""
-
                     }
 
                 ]
@@ -155,19 +155,26 @@ export async function renderBreadcrumbs(
 
             chain
                 .map(
+
                     item =>
+
                         `${item.id}:${item.address}`
+
                 )
                 .join("|");
 
         if(
             !uniqueChains.some(
+
                 existing =>
 
                     existing
                         .map(
+
                             item =>
+
                                 `${item.id}:${item.address}`
+
                         )
                         .join("|") === key
 
@@ -200,6 +207,17 @@ export async function renderBreadcrumbs(
 
                             item => {
 
+                                // У корневого объекта
+                                // нет адреса — используем название.
+                                // У остальных используем адрес
+                                // связи с родителем.
+
+                                const label =
+
+                                    item.address ||
+                                    item.title ||
+                                    "";
+
                                 return `
 
                                     <a
@@ -210,7 +228,7 @@ export async function renderBreadcrumbs(
 
                                     >
 
-                                        ${item.address}
+                                        ${label}
 
                                     </a>
 
@@ -225,7 +243,6 @@ export async function renderBreadcrumbs(
                         <div class="breadcrumbs__chain">
 
                             ${
-
                                 parts.join(`
 
                                     <span class="breadcrumbs__separator">
@@ -235,7 +252,6 @@ export async function renderBreadcrumbs(
                                     </span>
 
                                 `)
-
                             }
 
                         </div>
