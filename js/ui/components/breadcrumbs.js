@@ -1,85 +1,74 @@
-// ======================================
-// Breadcrumbs
-// ======================================
+chain => {
 
-export function renderBreadcrumbs(type, parents) {
+                const parts =
 
-    if (!type || !parents || parents.length === 0) {
+                    chain
+                        .filter(
+                            item =>
+                                item.address
+                        )
+                        .map(
+
+                            (item, index) => `
+
+                                <a
+                                    class="breadcrumbs__item"
+                                    href="object.html?id=${item.id}"
+                                >
+                                    ${item.address}
+                                </a>
+
+                            `
+
+                        );
+
+                if(
+                    parts.length === 0
+                ){
+
+                    return "";
+
+                }
+
+                return `
+
+                    <div class="breadcrumbs__chain">
+
+                        ${parts.join(`
+
+                            <span class="breadcrumbs__separator">
+                                →
+                            </span>
+
+                        `)}
+
+                    </div>
+
+                `;
+
+            }
+
+        )
+        .filter(Boolean)
+        .join("");
+
+    if(!renderedChains){
 
         return "";
 
     }
 
-    const currentLevel = Number(
-        type.level
-    );
-
-    // Два уровня выше текущего объекта
-    const nearLevel = currentLevel + 1;
-
-    const farLevel = currentLevel + 2;
-
-    let upper = parents.filter(parent =>
-
-        parent.level === nearLevel ||
-
-        parent.level === farLevel
-
-    );
-
-    // Убираем дубли (актуально для угловых домов)
-    upper = upper.filter((item, index, array) => {
-
-        return index === array.findIndex(obj =>
-
-            obj.id === item.id
-
-        );
-
-    });
-
-    // Сначала дальний уровень (например Красный Холм),
-    // потом ближний (улица)
-    const far = upper.filter(item =>
-        item.level === farLevel
-    );
-
-    const near = upper.filter(item =>
-        item.level === nearLevel
-    );
-
-    const parts = [];
-
-    far.forEach(item => {
-
-        parts.push(
-            item.title
-        );
-
-    });
-
-    near.forEach(item => {
-
-        if (item.address) {
-
-            parts.push(
-                `${item.title}, ${item.address}`
-            );
-
-        } else {
-
-            parts.push(
-                item.title
-            );
-
-        }
-
-    });
-
     return `
-        <div class="breadcrumbs">
-            ${parts.join(", ")}
-        </div>
+
+        <nav
+            class="breadcrumbs"
+            aria-label="Навигация по объектам"
+        >
+
+            ${renderedChains}
+
+        </nav>
+
     `;
 
 }
