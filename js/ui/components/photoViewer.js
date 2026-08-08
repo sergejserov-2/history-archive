@@ -141,7 +141,9 @@ export function openPhotoViewer(
 
         title: "Фотография",
 
-        content: form
+        content: form,
+
+        className: "modal--photo-viewer"
 
     });
 
