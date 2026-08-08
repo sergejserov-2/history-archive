@@ -133,6 +133,45 @@ export function renderObjectEditor(
 // Disabled types
 // ======================================
 
+const maxChildLevel =
+
+    children.length > 0
+
+    ?
+
+    Math.max(
+
+        ...children.map(
+
+            child => {
+
+                const childType =
+
+                    types.find(
+
+                        type =>
+                        type.id === child.typeId
+
+                    );
+
+                return (
+
+                    childType?.level
+                    ??
+                    -Infinity
+
+                );
+
+            }
+
+        )
+
+    )
+
+    :
+
+    -Infinity;
+
 const disabledTypeIds =
 
     object && children.length > 0
@@ -145,15 +184,7 @@ const disabledTypeIds =
 
             type =>
 
-            type.level <
-            (
-                types.find(
-                    t =>
-                    t.id === object.typeId
-                )?.level
-                ??
-                -Infinity
-            )
+            type.level <= maxChildLevel
 
         )
 
@@ -165,6 +196,7 @@ const disabledTypeIds =
 
     :
 
+    [];
     [];
 
 const cfg = {
@@ -762,22 +794,60 @@ if(object){
     // если у объекта есть дети
     // ======================================
 
+// ======================================
+// Проверка уровня детей
+// ======================================
+
+if(children.length > 0){
+
+    const maxChildLevel =
+
+        Math.max(
+
+            ...children.map(
+
+                child => {
+
+                    const childType =
+
+                        types.find(
+
+                            t =>
+                            t.id === child.typeId
+
+                        );
+
+                    return (
+
+                        childType?.level
+                        ??
+                        -Infinity
+
+                    );
+
+                }
+
+            )
+
+        );
+
     if(
 
-        children.length > 0 &&
-        newType.level < oldType.level
+        newType.level <= maxChildLevel
 
     ){
 
         alert(
 
-            "Нельзя выбрать тип ниже текущего"
+            "Тип объекта должен быть выше уровня всех его детей."
 
         );
 
         return;
 
     }
+
+}
 
 }
 
