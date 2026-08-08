@@ -109,25 +109,113 @@ export function renderObjectEditor(
 
         null;
 
-    const defaultTypeId =
+// ======================================
+// Default type
+// ======================================
 
-    object?.typeId
+let defaultTypeId = "";
 
-    ??
+// ======================================
+// Редактирование существующего объекта
+// ======================================
 
-    types.find(
+if(object){
 
-        t =>
+    defaultTypeId =
+        object.typeId ?? "";
 
-        parentType &&
+}
 
-        t.level === parentType.level - 1
+// ======================================
+// Создание нового объекта
+// ======================================
 
-    )?.id
+else if(parentType){
 
-    ??
+    const targetLevel =
+        parentType.level - 1;
 
-    "";
+    const availableTypes =
+
+        types.filter(
+
+            type =>
+                type.level ===
+                targetLevel
+
+        );
+
+    // ==================================
+    // Если есть типы нужного уровня
+    // ==================================
+
+    if(
+        availableTypes.length > 0
+    ){
+
+        // ==================================
+        // Считаем количество объектов
+        // каждого типа
+        // ==================================
+
+        const typeCounts = {};
+
+        objects.forEach(
+
+            existingObject => {
+
+                if(
+                    !existingObject.typeId
+                ){
+
+                    return;
+
+                }
+
+                typeCounts[
+                    existingObject.typeId
+                ] =
+
+                    (
+                        typeCounts[
+                            existingObject.typeId
+                        ]
+                        ??
+                        0
+                    ) + 1;
+
+            }
+
+        );
+
+        // ==================================
+        // Самый популярный тип
+        // ==================================
+
+        const sortedTypes =
+
+            [...availableTypes].sort(
+
+                (a, b) => {
+
+                    const countA =
+                        typeCounts[a.id] ?? 0;
+
+                    const countB =
+                        typeCounts[b.id] ?? 0;
+
+                    return countB - countA;
+
+                }
+
+            );
+
+        defaultTypeId =
+            sortedTypes[0].id;
+
+    }
+
+}
 
 // ======================================
 // Disabled types
@@ -592,22 +680,23 @@ if(typeSelect){
 
                 );
 
-            if(
+if(
 
-                firstParentType &&
-                newType.level >=
-                firstParentType.level
+    firstParentType &&
+    newType.level >=
+    firstParentType.level
 
-            ){
+){
 
-                // ======================================
-                // Новый тип конфликтует с родителем.
-                // Родителей сбрасываем.
-                // ======================================
+    alert(
 
-                parentsEditor.clearParents();
+        "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
 
-            }
+    );
+
+    parentsEditor.clearParents();
+
+}
 
         }
 
