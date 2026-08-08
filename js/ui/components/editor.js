@@ -620,17 +620,20 @@ return {
 
     },
 
-    async getData(){
+getData(){
 
-        if(removeOldFile){
+    if(removeOldFile){
 
-            return {
+        return {
 
-                storagePath:null
+            storagePath:null,
 
-            };
+            removedStoragePath:
+                entity?.storagePath ?? null
 
-        }
+        };
+
+    }
 
         if(file){
 
