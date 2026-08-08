@@ -205,7 +205,7 @@ export function renderHeader() {
 
         createModal({
 
-            title:"Вход в админку",
+            title:"Войти как редактор",
 
             content:form
 
