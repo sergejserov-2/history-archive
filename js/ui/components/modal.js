@@ -2,6 +2,15 @@
 // Modal component
 // ======================================
 
+import {
+    modalRegistry
+}
+from "./modalRegistry.js";
+
+// ======================================
+// Current modal
+// ======================================
+
 let currentModal = null;
 
 // ======================================
@@ -116,3 +125,177 @@ export function createModal({
     };
 
 }
+
+// ======================================
+// Restore modal from URL
+// ======================================
+//
+// URL:
+//
+// ?modal=photo-preview
+// &photoId=123
+//
+// Алгоритм:
+//
+// 1. читаем modal;
+// 2. находим регистрацию;
+// 3. читаем её параметры;
+// 4. загружаем данные;
+// 5. открываем модалку.
+//
+// ======================================
+
+export async function restoreModalFromUrl(){
+
+    const url =
+        new URL(
+            window.location.href
+        );
+
+    const type =
+        url.searchParams.get(
+            "modal"
+        );
+
+    // ==================================
+    // Модалки нет
+    // ==================================
+
+    if(!type){
+
+        return;
+
+    }
+
+    // ==================================
+    // Найти регистрацию
+    // ==================================
+
+    const registration =
+        modalRegistry.find(
+
+            modal =>
+                modal.type === type
+
+        );
+
+    // ==================================
+    // Неизвестная модалка
+    // ==================================
+
+    if(!registration){
+
+        console.error(
+
+            "Unknown modal:",
+
+            type
+
+        );
+
+        return;
+
+    }
+
+    // ==================================
+    // Получить параметры
+    // ==================================
+
+    const params = {};
+
+    for(
+        const key of
+        registration.params ?? []
+    ){
+
+        params[key] =
+            url.searchParams.get(
+                key
+            );
+
+    }
+
+    // ==================================
+    // Загрузить данные
+    // ==================================
+
+    let data = null;
+
+    if(
+        registration.load
+    ){
+
+        data =
+            await registration.load(
+                params
+            );
+
+    }
+
+    // ==================================
+    // Данные не найдены
+    // ==================================
+
+    if(
+
+        registration.load &&
+        !data
+
+    ){
+
+        console.error(
+
+            "Modal data not found:",
+
+            type,
+
+            params
+
+        );
+
+        return;
+
+    }
+
+    // ==================================
+    // Открыть модалку
+    // ==================================
+
+    if(
+        registration.open
+    ){
+        await registration.open(
+            data
+        );
+
+    }
+
+}
+
+// ======================================
+// Browser Back / Forward
+// ======================================
+
+window.addEventListener(
+
+    "popstate",
+
+    ()=>{
+
+        restoreModalFromUrl();
+
+    }
+
+);
+
+// ======================================
+// Initial URL
+// ======================================
+//
+// Если страница открыта сразу
+// с ?modal=...
+// модалка восстанавливается.
+//
+// ======================================
+
+restoreModalFromUrl();
