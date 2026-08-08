@@ -951,7 +951,7 @@ cfg.cover
 </option>
 
 ${
-extra.photos.map(photo=>`
+cfg.cover.photos.map(photo=>`
 
 <option
 
