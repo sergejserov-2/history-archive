@@ -203,20 +203,22 @@ export function openObjectEditor(
     const root =
         modal.root;
 
-    initObjectEditor(
-        root,
+   initObjectEditor(
+    root,
 
-        object,
+    object,
 
-        types,
+    types,
 
-        objects,
+    objects,
 
-        photos,
+    photos,
 
-        children,
+    children,
 
-        ()=>{
+    context,
+
+    ()=>{
 
             modal.close();
 
@@ -237,6 +239,7 @@ export function openObjectEditor(
 // ======================================
 
 export function initObjectEditor(
+
     root,
 
     object,
@@ -249,21 +252,50 @@ export function initObjectEditor(
 
     children,
 
+    context,
+
     onSave
 
 ){
 
 let parents =
 
+    object
+
+    ?
+
     JSON.parse(
 
         JSON.stringify(
 
-            object?.parents ?? []
+            object.parents ?? []
 
         )
 
-    );
+    )
+
+    :
+
+    context?.parentId
+
+    ?
+
+    [
+
+        {
+
+            objectId:
+                context.parentId,
+
+            address:""
+
+        }
+
+    ]
+
+    :
+
+    [];
 
 // ======================================
 // Parents
