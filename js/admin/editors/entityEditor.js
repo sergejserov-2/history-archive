@@ -125,7 +125,7 @@ export function openEntityEditor(
 
 ){
 
-    const cfg = CONFIG[type];
+const cfg = CONFIG[type];
 
     if(!cfg){
 
@@ -138,18 +138,43 @@ export function openEntityEditor(
 
     }
 
-    let parents =
-    
-        entity
-    
-        ?
-    
-        [...(entity.parents ?? [])]
-    
-        :
-    
-        [context.parentId];
+    const isNew = !entity;
 
+    if(isNew){
+
+        entity = {
+
+            title:
+
+                type === "photo"
+                ? "Новая фотография"
+
+                :
+
+                type === "source"
+                ? "Новый источник"
+
+                :
+
+                "Новая запись"
+
+        };
+
+    }
+
+    let parents =
+
+        entity.parents
+
+        ?
+
+        [...entity.parents]
+
+        :
+
+        context.parentId
+        ? [context.parentId]
+        : [];
 
 
 const form = renderEntityEditor(
@@ -217,7 +242,7 @@ setupEditorButtons(
 
             }
 
-            if(entity){
+            if(!isNew){
 
                 await cfg.update(
                     entity.id,
@@ -228,7 +253,7 @@ setupEditorButtons(
             else{
 
                 if(
-                    parentsEditor.getParents().length===0
+                    parentsEditor.getParents().length === 0
                 ){
 
                     alert(
