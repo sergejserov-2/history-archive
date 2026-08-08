@@ -821,34 +821,30 @@ if(children.length > 0){
 // Parents + auto address
 // ======================================
 
-const currentParents =
-    parentsEditor.getParents();
-
-const title =
-    fieldsData.title ?? "";
-
 const parentsWithAddress =
 
-    currentParents.map(
+    parentsEditor
+        .getParents()
+        .map(
 
-        parent => ({
+            parent => ({
 
-            ...parent,
+                ...parent,
 
-            // Если адрес пустой —
-            // используем название объекта.
-            //
-            // Если адрес уже введён —
-            // оставляем его без изменений.
+                // Если адрес пустой —
+                // используем название объекта.
+                //
+                // Если адрес уже указан —
+                // оставляем его без изменений.
 
-            address:
-                parent.address?.trim()
-                ||
-                title
+                address:
+                    parent.address?.trim()
+                    ||
+                    (fieldsData.title ?? "")
 
-        })
+            })
 
-    );
+        );
 
 // ======================================
 // Data
