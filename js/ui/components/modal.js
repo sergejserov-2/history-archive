@@ -90,6 +90,8 @@ function close(){
 
     overlay.remove();
 
+    clearModalUrl();
+
     if(
         currentModal?.overlay === overlay
     ){
@@ -97,8 +99,6 @@ function close(){
         currentModal = null;
 
     }
-
-    clearModalUrl();
 
 }
 
@@ -226,6 +226,20 @@ export function setModalUrl(
 // ======================================
 // Clear modal URL
 // ======================================
+//
+// Удаляет ТОЛЬКО состояние модалки.
+//
+// Например:
+//
+// Было:
+// object.html?id=LGyU4VobjcTgLPjBshrS
+// &modal=photo-preview
+// &photoId=S2FT4JEjorpWelfMFSqO
+//
+// Станет:
+// object.html?id=LGyU4VobjcTgLPjBshrS
+//
+// ======================================
 
 export function clearModalUrl(){
 
@@ -235,7 +249,7 @@ export function clearModalUrl(){
         );
 
     // ==================================
-    // Получаем текущую регистрацию
+    // Получаем текущую модалку
     // ==================================
 
     const type =
@@ -249,6 +263,10 @@ export function clearModalUrl(){
 
     }
 
+    // ==================================
+    // Находим регистрацию
+    // ==================================
+
     const registration =
         modalRegistry.find(
 
@@ -258,7 +276,7 @@ export function clearModalUrl(){
         );
 
     // ==================================
-    // Удаляем modal
+    // Удаляем ТОЛЬКО modal
     // ==================================
 
     url.searchParams.delete(
@@ -266,7 +284,8 @@ export function clearModalUrl(){
     );
 
     // ==================================
-    // Удаляем параметры модалки
+    // Удаляем ТОЛЬКО параметры
+    // зарегистрированные этой модалкой
     // ==================================
 
     for(
@@ -281,7 +300,8 @@ export function clearModalUrl(){
     }
 
     // ==================================
-    // Update browser URL
+    // Сохраняем URL страницы
+    // id объекта НЕ трогаем
     // ==================================
 
     window.history.pushState(
