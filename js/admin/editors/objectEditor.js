@@ -351,10 +351,7 @@ filter(parent){
 
         );
 
-    if(
-        !objectType ||
-        !parentType
-    ){
+    if(!parentType){
 
         return false;
 
@@ -368,18 +365,15 @@ filter(parent){
         parents.length > 0
     ){
 
-const firstParent =
+        const firstParent =
 
-    objects.find(
+            objects.find(
 
-        o =>
+                o =>
+                o.id ===
+                parents[0].objectId
 
-        o.id ===
-
-        parentsEditor
-        .getParents()[0]?.objectId
-
-    );
+            );
 
         const firstParentType =
 
@@ -408,6 +402,12 @@ const firstParent =
     // ======================================
     // Первый родитель
     // ======================================
+
+    if(!objectType){
+
+        return false;
+
+    }
 
     return (
 
