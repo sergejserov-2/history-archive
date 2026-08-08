@@ -368,14 +368,17 @@ export function setupParentsEditor(
             // Проверка допустимости родителя
             // ======================================
 
-            if(
-                options.filter &&
-                !options.filter(o)
-            ){
+if(
+    options.filter &&
+    !options.filter(
+        o,
+        parents
+    )
+){
 
-                return false;
+    return false;
 
-            }
+}
 
             // ======================================
             // Поиск по названию
