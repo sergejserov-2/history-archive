@@ -1306,7 +1306,7 @@ button.admin-button {
 
     grid-template-columns:
         minmax(0, 1fr)
-        260px;
+        180px;
 
     gap:20px;
 
