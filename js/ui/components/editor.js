@@ -210,47 +210,35 @@ export function setupParentsEditor(
 
 <div class="parent-item">
 
-    <div class="parent-badge">
+ <div class="parent-badge">
 
-        <span class="parent-title">
-            ${obj?.title ?? id}
-        </span>
+    <span class="parent-title">
+        ${obj?.title ?? id}
+    </span>
 
-        ${
-            withAddress
+    <span
+        class="parent-remove"
+        data-remove="${id}"
+    >
+        ×
+    </span>
 
-            ?
+</div>
 
-            `
-
-            <input
-
-                class="parent-address"
-
-                data-id="${id}"
-
-                value="${parent.address ?? ""}"
-
-                placeholder="Адрес"
-
-            >
-
-            `
-
-            :
-
-            ""
-
-        }
-
-        <span
-            class="parent-remove"
-            data-remove="${id}"
-        >
-            ×
-        </span>
-
-    </div>
+${
+    withAddress
+    ?
+    `
+    <input
+        class="parent-address"
+        data-id="${id}"
+        value="${parent.address ?? ""}"
+        placeholder="Адрес"
+    >
+    `
+    :
+    ""
+}
 
 </div>
 
