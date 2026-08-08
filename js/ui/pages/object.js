@@ -198,11 +198,7 @@ document.body.innerHTML = `
 
         <main class="page">
         
-            ${renderBreadcrumbs(
-                type,
-                parents,
-                object
-    )}
+${await renderBreadcrumbs(object)}
         
             <section class="object">
 
