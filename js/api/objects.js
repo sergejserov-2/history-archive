@@ -113,7 +113,12 @@ export async function getAllObjects() {
 // ======================================
 
 export async function getParents(object) {
-
+console.log(
+    "GET PARENTS:",
+    object.id,
+    object.address,
+    object.parents
+);
     if (!object) {
 
         return [];
