@@ -357,7 +357,7 @@ setupParentsEditor(
 
         address:true,
 
-filter(parent){
+filter(parent, currentParents){
 
     // ======================================
     // Нельзя выбрать самого себя
@@ -387,84 +387,86 @@ filter(parent){
     }
 
     // ======================================
-    // Первый родитель
+    // Если родитель уже выбран
     // ======================================
 
     if(
-        parents.length === 0
+        currentParents.length > 0
     ){
 
-        const selectedTypeId =
+        const firstParentId =
 
-            root.querySelector(
-                "#entityType"
-            )?.value;
+            currentParents[0].objectId;
 
-        const objectType =
+        const firstParent =
+
+            objects.find(
+
+                o =>
+                o.id === firstParentId
+
+            );
+
+        const firstParentType =
 
             types.find(
 
                 t =>
-                t.id === selectedTypeId
+                t.id === firstParent?.typeId
 
             );
 
-        if(!objectType){
+        if(!firstParentType){
 
             return false;
 
         }
 
-        // Родитель обязан быть выше ребёнка
+        // Второй родитель должен быть
+        // строго того же уровня,
+        // что и первый
 
         return (
 
-            parentType.level >
-            objectType.level
+            parentType.level ===
+            firstParentType.level
 
         );
 
     }
 
     // ======================================
-    // Второй и последующие родители
+    // Родителей пока нет
     // ======================================
 
-    const firstParentId =
+    const selectedTypeId =
 
-        parents[0].objectId;
+        root.querySelector(
+            "#entityType"
+        )?.value;
 
-    const firstParent =
-
-        objects.find(
-
-            o =>
-            o.id === firstParentId
-
-        );
-
-    const firstParentType =
+    const objectType =
 
         types.find(
 
             t =>
-            t.id === firstParent?.typeId
+            t.id === selectedTypeId
 
         );
 
-    if(!firstParentType){
+    if(!objectType){
 
         return false;
 
     }
 
-    // Второй родитель обязан быть
-    // того же уровня, что первый
+    // Первый родитель должен быть
+    // выше объекта
 
     return (
 
-        parentType.level ===
-        firstParentType.level
+        parentType.level >
+        objectType.level
 
     );
 
