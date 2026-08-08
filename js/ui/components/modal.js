@@ -16,41 +16,47 @@ let currentAdminState = false;
 //     имя модалки
 //
 // open:
-//     функция открытия
+//     функция открытия модалки
 //
 // options:
-//     admin — требуется ли админ
 //
-//     getUrl — функция формирования URL
+//     admin
+//         требуется ли администратор
+//
+//     getUrl
+//         получает данные модалки
+//         и возвращает параметры URL
+//
+//     load
+//         получает параметры URL
+//         и загружает данные модалки
 //
 // --------------------------------------
 //
-// Для обычной модалки:
+// Пример:
 //
 // registerModal(
 //     "photo",
 //     openPhotoViewer,
 //     {
 //         admin: false,
-//         getUrl: id => ({
+//
+//         getUrl: photo => ({
+//
 //             modal: "photo",
-//             modalId: id
-//         })
-//     }
-// );
 //
-// Для редактора:
+//             modalId: photo.id
 //
-// registerModal(
-//     "entity-editor",
-//     openEntityEditor,
-//     {
-//         admin: true,
-//         getUrl: data => ({
-//             modal: "entity-editor",
-//             modalId: data.id,
-//             modalType: data.type
-//         })
+//         }),
+//
+//         load: async params => {
+//
+//             return await getPhoto(
+//                 params.modalId
+//             );
+//
+//         }
+//
 //     }
 // );
 //
@@ -66,7 +72,9 @@ export function registerModal(
 
         admin = false,
 
-        getUrl = null
+        getUrl = null,
+
+        load = null
 
     } = {}
 
@@ -82,7 +90,9 @@ export function registerModal(
 
             admin,
 
-            getUrl
+            getUrl,
+
+            load
 
         }
 
@@ -227,50 +237,456 @@ export function createModal({
 // ======================================
 // Set modal URL
 // ======================================
+//
+// route:
+//
+// {
+//     type: "photo",
+//
+//     data: photo
+// }
+//
+// modal.js сам находит регистрацию
+// и вызывает её getUrl(data).
+//
+// ======================================
 
 function setModalUrl(route){
+
+    const type =
+        typeof route === "string"
+        ? route
+        : route?.type;
+
+    if(!type){
+
+        return;
+
+    }
+
+    const modalRoute =
+        modalRoutes.get(
+            type
+        );
+
+    if(!modalRoute){
+
+        console.error(
+
+            "Unknown modal route:",
+
+            type
+
+        );
+
+        return;
+
+    }
+
+    // ----------------------------------
+    // Получить параметры URL
+    // ----------------------------------
+
+    let params = null;
+
+    if(modalRoute.getUrl){
+
+        const data =
+            typeof route === "string"
+            ? null
+            : route.data;
+
+        params =
+            modalRoute.getUrl(
+                data
+            );
+
+    }
+
+    // Если getUrl ничего не вернул
+    if(!params){
+
+        params = {
+
+            modal: type
+
+        };
+
+    }
 
     const url =
         new URL(
             window.location.href
         );
 
-    let params;
+    // ----------------------------------
+    // Удалить старые параметры модалки
+    // ----------------------------------
+
+    clearModalParams(
+        url
+    );
 
     // ----------------------------------
-    // String
+    // Установить новые параметры
+    // ----------------------------------
+
+    Object.entries(
+        params
+    ).forEach(
+
+        ([key, value]) => {
+
+            if(
+                value === null ||
+                value === undefined
+            ){
+
+                return;
+
+            }
+
+            url.searchParams.set(
+
+                key,
+
+                String(value)
+
+            );
+
+        }
+
+    );
+
+    // ----------------------------------
+    // Если getUrl не указал modal
     // ----------------------------------
 
     if(
-        typeof route === "string"
+        !url.searchParams.get(
+            "modal"
+        )
     ){
 
-        params = {
+        url.searchParams.set(
 
-            modal: route
+            "modal",
 
-        };
+            type
 
-    }
-
-    // ----------------------------------
-    // Object
-    // ----------------------------------
-
-    else{
-
-        params = {
-
-            ...route
-
-        };
+        );
 
     }
 
-    // ----------------------------------
-    // Remove old modal parameters
-    // ----------------------------------
+    window.history.pushState(
+
+        {},
+
+        "",
+
+        url
+
+    );
+
+}
+
+// ======================================
+// Clear modal URL
+// ======================================
+
+function clearModalUrl(){
+
+    const url =
+        new URL(
+            window.location.href
+        );
+
+    clearModalParams(
+        url
+    );
+
+    window.history.pushState(
+
+        {},
+
+        "",
+
+        url
+
+    );
+
+}
+
+// ======================================
+// Clear modal parameters
+// ======================================
+//
+// Удаляем только параметры,
+// относящиеся к модалке.
+//
+// Остальная ссылка страницы
+// полностью сохраняется.
+//
+// ======================================
+
+function clearModalParams(
+    url
+){
 
     url.searchParams.delete(
         "modal"
-    )
+    );
+
+    url.searchParams.delete(
+        "modalId"
+    );
+
+    url.searchParams.delete(
+        "modalType"
+    );
+
+}
+
+// ======================================
+// Restore modal from URL
+// ======================================
+//
+// modal.js:
+//
+// 1. читает modal
+// 2. находит регистрацию
+// 3. проверяет admin
+// 4. передаёт параметры URL в load
+// 5. получает данные
+// 6. передаёт данные в open
+//
+// ======================================
+
+export async function restoreModalFromUrl({
+
+    isAdmin = currentAdminState
+
+} = {}){
+
+    currentAdminState =
+        !!isAdmin;
+
+    const url =
+        new URL(
+            window.location.href
+        );
+
+    const type =
+        url.searchParams.get(
+            "modal"
+        );
+
+    // ==================================
+    // Нет модалки
+    // ==================================
+
+    if(!type){
+
+        closeCurrentModal();
+
+        return;
+
+    }
+
+    // ==================================
+    // Найти регистрацию
+    // ==================================
+
+    const route =
+        modalRoutes.get(
+            type
+        );
+
+    // ==================================
+    // Неизвестная модалка
+    // ==================================
+
+    if(!route){
+
+        clearModalUrl();
+
+        closeCurrentModal();
+
+        return;
+
+    }
+
+    // ==================================
+    // Защита админской модалки
+    // ==================================
+
+    if(
+
+        route.admin &&
+        !currentAdminState
+
+    ){
+
+        clearModalUrl();
+
+        closeCurrentModal();
+
+        return;
+
+    }
+
+    // ==================================
+    // Закрыть предыдущую модалку
+    // ==================================
+
+    closeCurrentModal();
+
+    // ==================================
+    // Получить параметры модалки
+    // ==================================
+
+    const params = {};
+
+    url.searchParams.forEach(
+
+        (value, key) => {
+
+            if(
+                key === "modal"
+            ){
+
+                return;
+
+            }
+
+            params[key] = value;
+
+        }
+
+    );
+
+    // ==================================
+    // Загрузить данные
+    // ==================================
+
+    let data = null;
+
+    if(route.load){
+
+        data =
+            await route.load(
+                params
+            );
+
+    }
+
+    // ==================================
+    // Данные не найдены
+    // ==================================
+
+    if(
+        route.load &&
+        !data
+    ){
+
+        clearModalUrl();
+
+        return;
+
+    }
+
+    // ==================================
+    // Открыть модалку
+    // ==================================
+
+    await route.open(
+        data
+    );
+
+}
+
+// ======================================
+// Close current modal
+// ======================================
+
+function closeCurrentModal(){
+
+    if(!currentModal){
+
+        return;
+
+    }
+
+    currentModal.overlay.remove();
+
+    currentModal = null;
+
+}
+
+// ======================================
+// Update admin state
+// ======================================
+//
+// Вызывается при изменении
+// состояния администратора.
+//
+// ======================================
+
+export function setModalAdminState(
+
+    isAdmin
+
+){
+
+    currentAdminState =
+        !!isAdmin;
+
+    // ----------------------------------
+    // Если админ вышел,
+    // а открыта админская модалка
+    // ----------------------------------
+
+    if(!currentAdminState){
+
+        const url =
+            new URL(
+                window.location.href
+            );
+
+        const type =
+            url.searchParams.get(
+                "modal"
+            );
+
+        const route =
+            modalRoutes.get(
+                type
+            );
+
+        if(route?.admin){
+
+            clearModalUrl();
+
+            closeCurrentModal();
+
+        }
+
+    }
+
+}
+
+// ======================================
+// Browser Back / Forward
+// ======================================
+
+window.addEventListener(
+
+    "popstate",
+
+    async()=>{
+
+        await restoreModalFromUrl();
+
+    }
+
+);
