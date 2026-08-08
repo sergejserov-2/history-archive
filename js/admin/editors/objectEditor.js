@@ -561,40 +561,6 @@ if(typeSelect){
         }
 
         // ======================================
-        // Если есть дети
-        // ======================================
-
-        if(
-            object &&
-            children.length > 0
-        ){
-
-            const oldType =
-
-                types.find(
-
-                    type =>
-                    type.id === object.typeId
-
-                );
-
-            if(
-
-                oldType &&
-                newType.level < oldType.level
-
-            ){
-
-                typeSelect.value =
-                    oldType.id;
-
-                return;
-
-            }
-
-        }
-
-        // ======================================
         // Проверяем первого родителя
         // ======================================
 
