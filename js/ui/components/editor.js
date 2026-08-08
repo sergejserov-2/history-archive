@@ -662,7 +662,11 @@ options.types.map(type=>`
 value="${type.id}"
 
 ${
-type.id === entity.typeId
+type.id ===
+(
+    entity.typeId ??
+    options.defaultTypeId
+)
 ?
 "selected"
 :
