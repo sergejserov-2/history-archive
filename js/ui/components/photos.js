@@ -243,4 +243,61 @@ export function renderPhotos(
 
                 :
 
+                ""}
+
+            </div>
+
+            <div class="photo-card__author">
+
+                ${photo.author ?? ""}
+
+                ${
+                photo.date
+
+                ?
+
+                `, <span class="photo-card__date">
+
+                    ${photo.date}
+
+                   </span>`
+
+                :
+
                 ""
+
+                }
+
+            </div>
+
+        </div>
+
+        `);
+
+    });
+
+    if(cards.length===0){
+
+        return `
+
+        <p class="photos-empty">
+
+            Нет фотографий
+
+        </p>
+
+        `;
+
+    }
+
+    return `
+
+    <div class="photos-list">
+
+        ${cards.join("")}
+
+    </div>
+
+    `;
+
+}
