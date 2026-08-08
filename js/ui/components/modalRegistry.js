@@ -134,21 +134,21 @@ export const entityEditorModal = {
         if(type === "photo"){
 
             entity =
-                await getPhoto(id);
+                await getPhotos(id);
 
         }
 
         else if(type === "source"){
 
             entity =
-                await getSource(id);
+                await getSources(id);
 
         }
 
         else if(type === "record"){
 
             entity =
-                await getRecord(id);
+                await getRecords(id);
 
         }
 
