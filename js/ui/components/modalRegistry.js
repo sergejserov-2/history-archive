@@ -28,7 +28,35 @@
 //
 // ======================================
 
-// ======================================
+// ==========================================
+// MODAL REGISTRY
+// ==========================================
+
+import {
+    getPhotos
+}
+from "./api/photos.js";
+
+import {
+    getSources
+}
+from "./api/sources.js";
+
+import {
+    getRecords
+}
+from "./api/records.js";
+
+import {
+    getAllObjects
+}
+from "./api/objects.js";
+
+import {
+    openEntityEditor
+}
+from "./ui/components/entityEditor.js";
+
 // PHOTO VIEWER
 // ======================================
 
@@ -48,34 +76,21 @@ export const photoViewerModal = {
 
 };
 
-// ==========================================
-// MODAL REGISTRY
-// ==========================================
+// ======================================
+// LOGIN
+// ======================================
 
-import {
-    getPhoto
-}
-from "./api/photos.js";
+export const loginModal = {
 
-import {
-    getSource
-}
-from "./api/sources.js";
+    type: "login",
 
-import {
-    getRecord
-}
-from "./api/records.js";
+    params: [],
 
-import {
-    getAllObjects
-}
-from "./api/objects.js";
+    load: null,
 
-import {
-    openEntityEditor
-}
-from "./ui/components/entityEditor.js";
+    open: null
+
+};
 
 // ==========================================
 // Entity Editor
@@ -234,11 +249,7 @@ export const modalRegistry = [
 
     loginModal,
 
-    photoEditorModal,
-
-    sourceEditorModal,
-
-    recordEditorModal,
+    entityEditorModal,
 
     objectEditorModal
 
