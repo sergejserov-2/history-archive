@@ -49,7 +49,9 @@ export function renderObjectEditor(
 
     photos,
 
-    children
+    children,
+
+    context
 
 ){
 
@@ -73,19 +75,79 @@ export function renderObjectEditor(
 
         [];
 
+    const parent =
+
+        !object && context?.parentId
+
+        ?
+
+        objects.find(
+
+            o =>
+            o.id === context.parentId
+
+        )
+
+        :
+
+        null;
+
+    const parentType =
+
+        parent
+
+        ?
+
+        types.find(
+
+            t =>
+            t.id === parent.typeId
+
+        )
+
+        :
+
+        null;
+
+    const defaultTypeId =
+
+        object?.typeId
+
+        ??
+
+        types.find(
+
+            t =>
+
+            parentType &&
+
+            t.level === parentType.level - 1
+
+        )?.id
+
+        ??
+
+        "";
+
     const cfg = {
 
         title:"Объект",
 
         fields:[],
 
-        cover:true,
+        cover:{
+
+            photos:objectPhotos
+
+        },
 
         options:{
 
             typeSelector:true,
 
-            types
+            types,
+
+            defaultTypeId
 
         }
 
@@ -95,13 +157,7 @@ export function renderObjectEditor(
 
         cfg,
 
-        object,
-
-        {
-
-            photos:objectPhotos
-
-        }
+        object
 
     );
 
@@ -119,6 +175,8 @@ export function openObjectEditor(
 
     children,
 
+    context,
+    
     onSave
 
 ){
@@ -129,7 +187,8 @@ export function openObjectEditor(
             types,
             objects,
             photos,
-            children
+            children,
+            context
         );
 
     const modal =
@@ -226,106 +285,102 @@ setupParentsEditor(
 
         address:true,
 
-        filter(parent){
+filter(parent){
 
-            if(
+    if(
+        parent.id === object?.id
+    ){
 
-                parent.id === object?.id
+        return false;
 
-            ){
+    }
 
-                return false;
+    const selectedTypeId =
 
-            }
+        root.querySelector(
+            "#entityType"
+        )?.value;
 
-            const selectedTypeId =
+    const objectType =
 
-root.querySelector(
-    "#entityType"
-).value;
+        types.find(
 
-            const objectType =
+            t =>
+            t.id === selectedTypeId
 
-                types.find(
+        );
 
-                    t =>
+    const parentType =
 
-                    t.id === selectedTypeId
+        types.find(
 
-                );
+            t =>
+            t.id === parent.typeId
 
-            const parentType =
+        );
 
-                types.find(
+    if(
+        !objectType ||
+        !parentType
+    ){
 
-                    t =>
+        return false;
 
-                    t.id === parent.typeId
+    }
 
-                );
+    // ======================================
+    // Второй и последующие родители
+    // ======================================
 
-            if(
+    if(
+        parents.length > 0
+    ){
 
-                !objectType ||
+        const firstParent =
 
-                !parentType
+            objects.find(
 
-            ){
-
-                return false;
-
-            }
-
-            // Если родители уже есть —
-            // только тот же уровень
-
-            if(
-
-                parents.length
-
-            ){
-
-                const firstParent =
-
-                    objects.find(
-
-                        o =>
-
-                        o.id === parents[0]
-
-                    );
-
-                const firstParentType =
-
-                    types.find(
-
-                        t =>
-
-                        t.id === firstParent?.typeId
-
-                    );
-
-                return (
-
-                    parentType.level ===
-
-                    firstParentType.level
-
-                );
-
-            }
-
-            // Первый родитель выше объекта
-
-            return (
-
-                parentType.level >
-
-                objectType.level
+                o =>
+                o.id === parents[0].objectId
 
             );
 
+        const firstParentType =
+
+            types.find(
+
+                t =>
+                t.id === firstParent?.typeId
+
+            );
+
+        if(!firstParentType){
+
+            return false;
+
         }
+
+        return (
+
+            parentType.level ===
+            firstParentType.level
+
+        );
+
+    }
+
+    // ======================================
+    // Первый родитель
+    // ======================================
+
+    return (
+
+        parentType.level >
+        objectType.level
+
+    );
+
+}
 
     }
 
