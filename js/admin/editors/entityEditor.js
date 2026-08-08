@@ -189,7 +189,7 @@ const form = renderEntityEditor(
 const modal = createModal({
 
     title:
-        entity
+        entity?.id
         ?
         `Изменить ${cfg.title.toLowerCase()}`
         :
