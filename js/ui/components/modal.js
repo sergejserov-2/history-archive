@@ -76,18 +76,6 @@ export function createModal({
 
     closeButton.onclick = close;
 
-    overlay.onclick = event => {
-
-        if(
-            event.target === overlay
-        ){
-
-            close();
-
-        }
-
-    };
-
     return {
 
         root: overlay,
