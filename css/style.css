@@ -141,7 +141,6 @@ body {
 
 .breadcrumbs {
     margin: 0 16px 16px 16px;
-    color: #8f949b;
 }
 
 .breadcrumbs__chain {
@@ -153,7 +152,7 @@ body {
 }
 
 .breadcrumbs__item {
-    color: #9da2a8;
+    color: #656a70;
     text-decoration: none;
     font-size: 14px;
     line-height: 1.5;
@@ -161,7 +160,7 @@ body {
 }
 
 .breadcrumbs__item:hover {
-    color: #c4c7cb;
+    color: #8f949b;
 }
 
 .breadcrumbs__separator {
