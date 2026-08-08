@@ -892,9 +892,6 @@ button.admin-button {
     color:#8f969f;
 
     white-space:nowrap;
-    hyphens: auto;
-
-
 }
 
 .source__description {
@@ -906,6 +903,8 @@ button.admin-button {
     line-height:1.45;
 
     color:#c9cdd2;
+
+    hyphens: auto;
 
 }
 
