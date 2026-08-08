@@ -16,17 +16,17 @@ export function renderSources(
 
         rows.push(`
 
-        <div
+            <div
 
-            class="source source--add admin-button"
+                class="source source--add admin-button"
 
-            data-action="add-source"
+                data-action="add-source"
 
-        >
+            >
 
-            + Добавить источник
+                + Добавить источник
 
-        </div>
+            </div>
 
         `);
 
@@ -84,7 +84,10 @@ export function renderSources(
 
                     >
 
-    <img src="icons/edit.svg" class="admin-icon">
+                        <img
+                            src="icons/edit.svg"
+                            class="admin-icon"
+                        >
 
                     </button>
 
@@ -98,7 +101,10 @@ export function renderSources(
 
                     >
 
-    <img src="icons/delete.svg" class="admin-icon">
+                        <img
+                            src="icons/delete.svg"
+                            class="admin-icon"
+                        >
 
                     </button>
 
@@ -114,7 +120,7 @@ export function renderSources(
 
                 <div class="source__date">
 
-                    ${source.date ?? ""}
+                    ${source.date ?? "—"}
 
                 </div>
 
@@ -126,13 +132,46 @@ export function renderSources(
 
             </div>
 
+            ${
+            source.storagePath
+
+            ?
+
+            `
+
+            <div class="source__file">
+
+                <a
+
+                    class="source__download"
+
+                    href="${source.storagePath}"
+
+                    download
+
+                >
+
+                    Скачать полный текст
+
+                </a>
+
+            </div>
+
+            `
+
+            :
+
+            ""
+
+            }
+
         </div>
 
         `);
 
     });
 
-    if(rows.length===0){
+    if(rows.length === 0){
 
         return `
 
