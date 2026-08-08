@@ -86,19 +86,21 @@ export function createModal({
     // Close
     // ==================================
 
-    function close(){
+function close(){
 
-        overlay.remove();
+    overlay.remove();
 
-        if(
-            currentModal?.overlay === overlay
-        ){
+    if(
+        currentModal?.overlay === overlay
+    ){
 
-            currentModal = null;
-
-        }
+        currentModal = null;
 
     }
+
+    clearModalUrl();
+
+}
 
     closeButton.onclick =
         close;
