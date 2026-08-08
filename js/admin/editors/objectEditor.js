@@ -111,47 +111,87 @@ export function renderObjectEditor(
 
     const defaultTypeId =
 
-        object?.typeId
+    object?.typeId
 
-        ??
+    ??
 
-        types.find(
+    types.find(
 
-            t =>
+        t =>
 
-            parentType &&
+        parentType &&
 
-            t.level === parentType.level - 1
+        t.level === parentType.level - 1
 
-        )?.id
+    )?.id
 
-        ??
+    ??
 
-        "";
+    "";
 
-    const cfg = {
+// ======================================
+// Disabled types
+// ======================================
 
-        title:"Объект",
+const disabledTypeIds =
 
-        fields:[],
+    object && children.length > 0
 
-        cover:{
+    ?
 
-            photos:objectPhotos
+    types
 
-        },
+        .filter(
 
-        options:{
+            type =>
 
-            typeSelector:true,
+            type.level <
+            (
+                types.find(
+                    t =>
+                    t.id === object.typeId
+                )?.level
+                ??
+                -Infinity
+            )
 
-            types,
+        )
 
-            defaultTypeId
+        .map(
 
-        }
+            type => type.id
 
-    };
+        )
+
+    :
+
+    [];
+
+const cfg = {
+
+    title:"Объект",
+
+    fields:[],
+
+    cover:{
+
+        photos:objectPhotos
+
+    },
+
+    options:{
+
+        typeSelector:true,
+
+        types,
+
+        defaultTypeId,
+
+        disabledTypeIds
+
+    }
+
+};
 
     return renderEntityEditor(
 
@@ -319,6 +359,10 @@ setupParentsEditor(
 
 filter(parent){
 
+    // ======================================
+    // Нельзя выбрать самого себя
+    // ======================================
+
     if(
         parent.id === object?.id
     ){
@@ -326,21 +370,6 @@ filter(parent){
         return false;
 
     }
-
-    const selectedTypeId =
-
-        root.querySelector(
-            "#entityType"
-        )?.value;
-
-    const objectType =
-
-        types.find(
-
-            t =>
-            t.id === selectedTypeId
-
-        );
 
     const parentType =
 
@@ -358,66 +387,88 @@ filter(parent){
     }
 
     // ======================================
-    // Второй и последующие родители
+    // Первый родитель
     // ======================================
 
     if(
-        parents.length > 0
+        parents.length === 0
     ){
 
-        const firstParent =
+        const selectedTypeId =
 
-            objects.find(
+            root.querySelector(
+                "#entityType"
+            )?.value;
 
-                o =>
-                o.id ===
-                parents[0].objectId
-
-            );
-
-        const firstParentType =
+        const objectType =
 
             types.find(
 
                 t =>
-                t.id === firstParent?.typeId
+                t.id === selectedTypeId
 
             );
 
-        if(!firstParentType){
+        if(!objectType){
 
             return false;
 
         }
 
+        // Родитель обязан быть выше ребёнка
+
         return (
 
-            parentType.level ===
-            firstParentType.level
+            parentType.level >
+            objectType.level
 
         );
 
     }
 
     // ======================================
-    // Первый родитель
+    // Второй и последующие родители
     // ======================================
 
-    if(!objectType){
+    const firstParentId =
+
+        parents[0].objectId;
+
+    const firstParent =
+
+        objects.find(
+
+            o =>
+            o.id === firstParentId
+
+        );
+
+    const firstParentType =
+
+        types.find(
+
+            t =>
+            t.id === firstParent?.typeId
+
+        );
+
+    if(!firstParentType){
 
         return false;
 
     }
 
+    // Второй родитель обязан быть
+    // того же уровня, что первый
+
     return (
 
-        parentType.level >
-        objectType.level
+        parentType.level ===
+        firstParentType.level
 
     );
 
 }
-
     }
 
 );
@@ -446,6 +497,124 @@ setupEntityFieldsEditor(
 
 );
 
+// ======================================
+// Type change
+// ======================================
+
+const typeSelect =
+
+    root.querySelector(
+        "#entityType"
+    );
+
+if(typeSelect){
+
+    typeSelect.onchange = ()=>{
+
+        const newType =
+
+            types.find(
+
+                type =>
+                type.id === typeSelect.value
+
+            );
+
+        if(!newType){
+
+            return;
+
+        }
+
+        // ======================================
+        // Если есть дети
+        // ======================================
+
+        if(
+            object &&
+            children.length > 0
+        ){
+
+            const oldType =
+
+                types.find(
+
+                    type =>
+                    type.id === object.typeId
+
+                );
+
+            if(
+
+                oldType &&
+                newType.level < oldType.level
+
+            ){
+
+                typeSelect.value =
+                    oldType.id;
+
+                return;
+
+            }
+
+        }
+
+        // ======================================
+        // Проверяем первого родителя
+        // ======================================
+
+        const currentParents =
+
+            parentsEditor.getParents();
+
+        if(
+            currentParents.length > 0
+        ){
+
+            const firstParent =
+
+                objects.find(
+
+                    o =>
+                    o.id ===
+                    currentParents[0].objectId
+
+                );
+
+            const firstParentType =
+
+                types.find(
+
+                    type =>
+                    type.id ===
+                    firstParent?.typeId
+
+                );
+
+            if(
+
+                firstParentType &&
+                newType.level >=
+                firstParentType.level
+
+            ){
+
+                // ======================================
+                // Новый тип конфликтует с родителем.
+                // Родителей сбрасываем.
+                // ======================================
+
+                parentsEditor.clearParents();
+
+            }
+
+        }
+
+    };
+
+}
+    
 // ======================================
 // Cover
 // ======================================
@@ -520,78 +689,95 @@ setupEditorButtons(
 
             }
 
-            if(object){
+        // ======================================
+// Проверка уровня первого родителя
+// ======================================
 
-                const oldType =
+const currentParents =
 
-                    types.find(
+    parentsEditor.getParents();
 
-                        t =>
+if(
+    currentParents.length === 0
+){
 
-                        t.id === object.typeId
+    alert(
+        "Нужен хотя бы один родитель"
+    );
 
-                    );
+    return;
 
-                if(
+}
 
-                    children.length > 0 &&
+const firstParentId =
 
-                    newType.level < oldType.level
+    currentParents[0].objectId;
 
-                ){
+const firstParent =
 
-                    alert(
+    objects.find(
 
-                        "Нельзя выбрать тип ниже текущего"
+        o =>
+        o.id === firstParentId
 
-                    );
+    );
 
-                    return;
+const parentType =
 
-                }
+    types.find(
 
-                const firstParent =
+        t =>
+        t.id === firstParent?.typeId
 
-                    objects.find(
+    );
 
-                        o =>
+if(
+    parentType &&
+    newType.level >= parentType.level
+){
 
-                        o.id ===
+    alert(
+        "Тип объекта должен быть ниже уровня родителя."
+    );
 
-                        parentsEditor
-                        .getParents()[0]
+    return;
 
-                    );
+}
 
-                const parentType =
+if(object){
 
-                    types.find(
+    const oldType =
 
-                        t =>
+        types.find(
 
-                        t.id === firstParent?.typeId
+            t =>
+            t.id === object.typeId
 
-                    );
+        );
 
-                if(
+    // ======================================
+    // Нельзя понизить тип,
+    // если у объекта есть дети
+    // ======================================
 
-                    parentType &&
+    if(
 
-                    newType.level >= parentType.level
+        children.length > 0 &&
+        newType.level < oldType.level
 
-                ){
+    ){
 
-                    alert(
+        alert(
 
-                        "Новый тип конфликтует с уровнем родителей."
+            "Нельзя выбрать тип ниже текущего"
 
-                    );
+        );
 
-                    return;
+        return;
 
-                }
+    }
 
-            }
+}
 
             const data = {
 
