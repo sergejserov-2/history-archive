@@ -258,21 +258,25 @@ if(fileData){
         fileData.removedStoragePath
     ){
 
-        const deletedFile =
+        await moveFileToDeleted(
 
-            await moveFileToDeleted(
+            fileData.removedStoragePath
 
-                fileData.removedStoragePath
+        );
 
-            );
+        /*
+         * В базе старого файла больше нет.
+         *
+         * Сам файл физически переместился
+         * в photos/deleted или sources/deleted.
+         */
 
-        data.storagePath =
-            deletedFile.storagePath;
+        data.storagePath = null;
 
     }
 
     // ======================================
-    // Новый файл
+    // Выбран новый файл
     // ======================================
 
     if(
