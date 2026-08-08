@@ -611,7 +611,10 @@ hasFile(){
 
         ||
 
-        !!entity?.storagePath
+        (
+            !!entity?.storagePath &&
+            !removeOldFile
+        )
 
     );
 
