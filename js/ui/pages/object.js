@@ -192,18 +192,17 @@ const coverPhoto =
             photo.id === object.coverPhotoId
     );
 
-const breadcrumbsHTML =
-    await renderBreadcrumbs(
-        object
-    );
-    
-    document.body.innerHTML = `
+document.body.innerHTML = `
 
         ${renderHeader()}
 
         <main class="page">
         
-            ${breadcrumbsHTML}
+            ${renderBreadcrumbs(
+                type,
+                parents,
+                object
+    )}
         
             <section class="object">
 
