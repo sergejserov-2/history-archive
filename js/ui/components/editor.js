@@ -620,7 +620,7 @@ return {
 
     },
 
-getData(){
+async getData(){
 
     if(removeOldFile){
 
