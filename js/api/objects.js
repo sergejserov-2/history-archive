@@ -113,12 +113,7 @@ export async function getAllObjects() {
 // ======================================
 
 export async function getParents(object) {
-console.log(
-    "GET PARENTS:",
-    object.id,
-    object.address,
-    object.parents
-);
+
     if (!object) {
 
         return [];
@@ -126,17 +121,58 @@ console.log(
     }
 
     // ======================================
+    // Получаем только валидных родителей
+    // ======================================
+
+    const validParents =
+
+        Array.isArray(object.parents)
+
+            ?
+
+            object.parents.filter(parent => {
+
+                return (
+
+                    parent &&
+                    typeof parent === "object" &&
+                    parent.objectId
+
+                );
+
+            })
+
+            :
+
+            [];
+
+    // ======================================
     // Корневой объект
+    //
+    // В базе может быть:
+    //
+    // parents: []
+    //
+    // или старое:
+    //
+    // parents: [""]
+    //
+    // В обоих случаях это корень.
     // ======================================
 
     if (
-        !object.parents ||
-        object.parents.length === 0
+        validParents.length === 0
     ) {
+
+        const type =
+            await getType(
+                object.typeId
+            );
 
         return [[
 
             {
+
                 id:
                     object.id,
 
@@ -144,11 +180,7 @@ console.log(
                     object.address ?? "",
 
                 level:
-                    (
-                        await getType(
-                            object.typeId
-                        )
-                    )?.level ?? null
+                    type?.level ?? null
 
             }
 
@@ -165,7 +197,7 @@ console.log(
 
     for (
         const parent
-        of object.parents
+        of validParents
     ) {
 
         const parentObject =
@@ -189,11 +221,19 @@ console.log(
             );
 
         // ==================================
+        // Получаем тип текущего объекта
+        // ==================================
+
+        const type =
+            await getType(
+                object.typeId
+            );
+
+        // ==================================
         // Добавляем текущий объект
         //
-        // ВАЖНО:
-        // address берём именно из связи
-        // текущий объект → этот родитель
+        // Адрес берём именно из связи
+        // текущий объект → родитель.
         // ==================================
 
         for (
@@ -216,11 +256,7 @@ console.log(
                             parent.address ?? "",
 
                         level:
-                            (
-                                await getType(
-                                    object.typeId
-                                )
-                            )?.level ?? null
+                            type?.level ?? null
 
                     }
 
