@@ -47,7 +47,10 @@ export async function renderBreadcrumbs(
         await getParents(
             object
         );
-
+console.log(
+    "BREADCRUMBS CHAINS:",
+    chains
+);
     if(
         !Array.isArray(chains) ||
         chains.length === 0
