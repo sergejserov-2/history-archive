@@ -48,79 +48,154 @@ export const photoViewerModal = {
 
 };
 
-// ======================================
-// LOGIN
-// ======================================
+// ==========================================
+// MODAL REGISTRY
+// ==========================================
 
-export const loginModal = {
+import {
+    getPhoto
+}
+from "./api/photos.js";
 
-    type: "login",
+import {
+    getSource
+}
+from "./api/sources.js";
 
-    params: [],
+import {
+    getRecord
+}
+from "./api/records.js";
 
-    load: null,
+import {
+    getAllObjects
+}
+from "./api/objects.js";
 
-    open: null
+import {
+    openEntityEditor
+}
+from "./ui/components/entityEditor.js";
 
-};
+// ==========================================
+// Entity Editor
+// ==========================================
 
-// ======================================
-// PHOTO EDITOR
-// ======================================
+export const entityEditorModal = {
 
-export const photoEditorModal = {
-
-    type: "photo-editor",
-
-    params: [
-
-        "modalId"
-
-    ],
-
-    load: null,
-
-    open: null
-
-};
-
-// ======================================
-// SOURCE EDITOR
-// ======================================
-
-export const sourceEditorModal = {
-
-    type: "source-editor",
+    type: "entity-editor",
 
     params: [
 
-        "modalId"
+        "modalId",
+
+        "modalType"
 
     ],
 
-    load: null,
+    load: async params => {
 
-    open: null
+        const type =
+            params.modalType;
 
-};
+        const id =
+            params.modalId;
 
-// ======================================
-// RECORD EDITOR
-// ======================================
+        if(
+            !type ||
+            !id
+        ){
 
-export const recordEditorModal = {
+            return null;
 
-    type: "record-editor",
+        }
 
-    params: [
+        let entity = null;
 
-        "modalId"
+        // ----------------------------------
+        // Load entity
+        // ----------------------------------
 
-    ],
+        if(type === "photo"){
 
-    load: null,
+            entity =
+                await getPhoto(id);
 
-    open: null
+        }
+
+        else if(type === "source"){
+
+            entity =
+                await getSource(id);
+
+        }
+
+        else if(type === "record"){
+
+            entity =
+                await getRecord(id);
+
+        }
+
+        else{
+
+            console.error(
+                "Unknown entity editor type:",
+                type
+            );
+
+            return null;
+
+        }
+
+        if(!entity){
+
+            return null;
+
+        }
+
+        // ----------------------------------
+        // Context required by editor
+        // ----------------------------------
+
+        const objects =
+            await getAllObjects();
+
+        return {
+
+            type,
+
+            entity,
+
+            context: {
+
+                objects
+
+            }
+
+        };
+
+    },
+
+    open: async data => {
+
+        if(!data){
+
+            return;
+
+        }
+
+        openEntityEditor(
+
+            data.type,
+
+            data.entity,
+
+            data.context
+
+        );
+
+    }
 
 };
 
