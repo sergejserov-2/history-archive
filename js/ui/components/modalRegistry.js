@@ -1,36 +1,27 @@
 // ======================================
-// Modal registry
+// MODAL REGISTRY
 // ======================================
 //
-// Здесь описываются ВСЕ модалки приложения.
+// Здесь описываются все модалки,
+// которые могут быть восстановлены
+// по полной ссылке.
 //
 // Registry отвечает только за:
 //
-// 1. имя модалки;
-// 2. параметры, которые нужно прочитать из URL;
-// 3. получение данных по этим параметрам;
-// 4. функцию открытия модалки.
+// 1. тип модалки;
+// 2. параметры, которые читаются из URL;
+// 3. загрузку данных;
+// 4. открытие модалки.
 //
-// Modal.js:
-//
-// - читает ?modal=...
-// - находит нужную регистрацию здесь;
-// - читает указанные параметры URL;
-// - при необходимости загружает данные;
-// - передаёт данные в open.
-//
-// URL НЕ формируется здесь.
+// URL здесь НЕ формируется.
 //
 // Ссылку с параметрами формирует интерфейс.
-// Например:
-//
-// ?modal=photo&modalId=123
 //
 // ======================================
 
-// ==========================================
-// MODAL REGISTRY
-// ==========================================
+// ======================================
+// Imports
+// ======================================
 
 import {
     getPhotos
@@ -53,14 +44,27 @@ import {
 from "../../api/objects.js";
 
 import {
+    openPhotoViewer
+}
+from "../../ui/components/photoViewer.js";
+
+import {
     openEntityEditor
 }
 from "../../admin/editors/entityEditor.js";
 
-// PHOTO VIEWER
+// ======================================
+// PHOTO PREVIEW
+// ======================================
+//
+// URL:
+//
+// ?modal=photo
+// &modalId=PHOTO_ID
+//
 // ======================================
 
-export const photoViewerModal = {
+export const photoPreviewModal = {
 
     type: "photo",
 
@@ -70,31 +74,60 @@ export const photoViewerModal = {
 
     ],
 
-    load: null,
+    load: async params => {
 
-    open: null
+        if(!params.modalId){
+
+            return null;
+
+        }
+
+        const photos =
+            await getPhotos();
+
+        return photos.find(
+
+            photo =>
+                photo.id ===
+                params.modalId
+
+        ) ?? null;
+
+    },
+
+    open: async photo => {
+
+        if(!photo){
+
+            return;
+
+        }
+
+        openPhotoViewer(
+            photo
+        );
+
+    }
 
 };
 
 // ======================================
-// LOGIN
+// ENTITY EDITOR
 // ======================================
-
-export const loginModal = {
-
-    type: "login",
-
-    params: [],
-
-    load: null,
-
-    open: null
-
-};
-
-// ==========================================
-// Entity Editor
-// ==========================================
+//
+// URL:
+//
+// ?modal=entity-editor
+// &modalId=ENTITY_ID
+// &modalType=photo
+//
+// modalType:
+//
+// photo
+// source
+// record
+//
+// ======================================
 
 export const entityEditorModal = {
 
@@ -110,15 +143,15 @@ export const entityEditorModal = {
 
     load: async params => {
 
-        const type =
-            params.modalType;
-
         const id =
             params.modalId;
 
+        const type =
+            params.modalType;
+
         if(
-            !type ||
-            !id
+            !id ||
+            !type
         ){
 
             return null;
@@ -128,35 +161,70 @@ export const entityEditorModal = {
         let entity = null;
 
         // ----------------------------------
-        // Load entity
+        // Photo
         // ----------------------------------
 
         if(type === "photo"){
 
+            const photos =
+                await getPhotos();
+
             entity =
-                await getPhotos(id);
+                photos.find(
+
+                    photo =>
+                        photo.id === id
+
+                ) ?? null;
 
         }
+
+        // ----------------------------------
+        // Source
+        // ----------------------------------
 
         else if(type === "source"){
 
+            const sources =
+                await getSources();
+
             entity =
-                await getSources(id);
+                sources.find(
+
+                    source =>
+                        source.id === id
+
+                ) ?? null;
 
         }
 
+        // ----------------------------------
+        // Record
+        // ----------------------------------
+
         else if(type === "record"){
 
+            const records =
+                await getRecords();
+
             entity =
-                await getRecords(id);
+                records.find(
+
+                    record =>
+                        record.id === id
+
+                ) ?? null;
 
         }
 
         else{
 
             console.error(
+
                 "Unknown entity editor type:",
+
                 type
+
             );
 
             return null;
@@ -170,7 +238,7 @@ export const entityEditorModal = {
         }
 
         // ----------------------------------
-        // Context required by editor
+        // Editor context
         // ----------------------------------
 
         const objects =
@@ -191,66 +259,3 @@ export const entityEditorModal = {
         };
 
     },
-
-    open: async data => {
-
-        if(!data){
-
-            return;
-
-        }
-
-        openEntityEditor(
-
-            data.type,
-
-            data.entity,
-
-            data.context
-
-        );
-
-    }
-
-};
-
-// ======================================
-// OBJECT EDITOR
-// ======================================
-
-export const objectEditorModal = {
-
-    type: "object-editor",
-
-    params: [
-
-        "modalId"
-
-    ],
-
-    load: null,
-
-    open: null
-
-};
-
-// ======================================
-// ALL MODALS
-// ======================================
-//
-// Modal.js будет работать только
-// с этим массивом.
-//
-// ======================================
-
-export const modalRegistry = [
-
-    photoViewerModal,
-
-    loginModal,
-
-    entityEditorModal,
-
-    objectEditorModal
-
-];
