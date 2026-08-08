@@ -74,6 +74,11 @@ import {
 }
 from "../components/sources.js";
 
+import {
+    restoreModalFromUrl
+}
+from "../components/modal.js";
+
 // ======================================
 // Get object id
 // ======================================
@@ -142,19 +147,12 @@ onAdminStateChanged(
         renderPage(
 
             object,
-
             type,
-
             parents,
-
             children,
-
             records,
-
             photos,
-
             sources,
-
             ADMIN_MODE
 
         );
@@ -175,9 +173,12 @@ onAdminStateChanged(
 
         }
 
+        restoreModalFromUrl();
+
     }
 
 );
+
 }
 
 // ======================================
