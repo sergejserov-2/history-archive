@@ -23,25 +23,27 @@ export function openPhotoViewer(
 
     }
 
-    const form = `
+const form = `
 
-<div class="photo-viewer__image-area">
+<div class="photo-viewer">
 
-    <div
-        class="photo-viewer__image-bg"
-        style="background-image:url('${photo.storagePath ?? ""}')"
-    ></div>
+    <div class="photo-viewer__image-area">
 
-    <img
-        id="photoViewerImage"
-        src="${photo.storagePath ?? ""}"
-        alt="${photo.title ?? ""}"
-        draggable="false"
-    >
+        <div
+            class="photo-viewer__image-bg"
+            style="background-image:url('${photo.storagePath ?? ""}')"
+        ></div>
 
-</div>
+        <img
+            id="photoViewerImage"
+            src="${photo.storagePath ?? ""}"
+            alt="${photo.title ?? ""}"
+            draggable="false"
+        >
 
-            <div class="photo-viewer__info">
+    </div>
+
+    <div class="photo-viewer__info">
 
                 <div class="photo-viewer__title">
 
@@ -135,17 +137,23 @@ export function openPhotoViewer(
 
     `;
 
-    const modal = createModal({
+const modal = createModal({
 
-        title: "Фотография",
+    title: "Фотография",
 
-        content: form,
+    content: form
 
-        className: "modal--photo-viewer"
-
-    });
+});
 
     const root = modal.root;
+
+    
+    root.querySelector(".modal")
+    ?.classList.add(
+        "modal--photo-viewer"
+    );
+
+
 
     const imageArea =
         root.querySelector(
