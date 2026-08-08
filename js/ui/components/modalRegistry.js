@@ -35,27 +35,27 @@
 import {
     getPhotos
 }
-from "./api/photos.js";
+from "../../api/photos.js";
 
 import {
     getSources
 }
-from "./api/sources.js";
+from "../../api/sources.js";
 
 import {
     getRecords
 }
-from "./api/records.js";
+from "../../api/records.js";
 
 import {
     getAllObjects
 }
-from "./api/objects.js";
+from "../../api/objects.js";
 
 import {
     openEntityEditor
 }
-from "./ui/components/entityEditor.js";
+from "../../admin/editors/entityEditor.js";
 
 // PHOTO VIEWER
 // ======================================
