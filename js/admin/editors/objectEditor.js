@@ -23,7 +23,6 @@ import {
 }
 from "../../ui/components/modal.js";
 
-
 import {
 
     renderEntityEditor,
@@ -132,22 +131,29 @@ if(object){
 
 else if(parentType){
 
+    // ==================================
+    // Ребёнок должен быть ровно
+    // на один уровень ниже родителя
+    // ==================================
+
     const targetLevel =
-        parentType.level - 1;
+
+        Number(parentType.level) - 1;
+
+    // ==================================
+    // Берём только типы нужного уровня
+    // ==================================
 
     const availableTypes =
 
         types.filter(
 
             type =>
-                type.level ===
+
+                Number(type.level) ===
                 targetLevel
 
         );
-
-    // ==================================
-    // Если есть типы нужного уровня
-    // ==================================
 
     if(
         availableTypes.length > 0
@@ -189,7 +195,13 @@ else if(parentType){
         );
 
         // ==================================
-        // Самый популярный тип
+        // Сортировка:
+        //
+        // 1. Популярность — от большей
+        //    к меньшей
+        //
+        // 2. При одинаковой популярности —
+        //    название А → Я
         // ==================================
 
         const sortedTypes =
@@ -204,7 +216,25 @@ else if(parentType){
                     const countB =
                         typeCounts[b.id] ?? 0;
 
-                    return countB - countA;
+                    if(
+                        countA !== countB
+                    ){
+
+                        return countB - countA;
+
+                    }
+
+                    return (
+
+                        a.title ?? ""
+
+                    ).localeCompare(
+
+                        b.title ?? "",
+
+                        "ru"
+
+                    );
 
                 }
 
@@ -272,7 +302,8 @@ const disabledTypeIds =
 
             type =>
 
-            type.level <= maxChildLevel
+                Number(type.level) <=
+                Number(maxChildLevel)
 
         )
 
@@ -284,7 +315,6 @@ const disabledTypeIds =
 
     :
 
-    [];
     [];
 
 const cfg = {
@@ -323,6 +353,10 @@ const cfg = {
 
 }
 
+// ======================================
+// Open editor
+// ======================================
+
 export function openObjectEditor(
     
     object,
@@ -342,16 +376,25 @@ export function openObjectEditor(
 ){
 
     const form =
+
         renderObjectEditor(
+
             object,
+
             types,
+
             objects,
+
             photos,
+
             children,
+
             context
+
         );
 
     const modal =
+
         createModal({
 
             title:"Объект",
@@ -363,22 +406,23 @@ export function openObjectEditor(
     const root =
         modal.root;
 
-   initObjectEditor(
-    root,
+    initObjectEditor(
 
-    object,
+        root,
 
-    types,
+        object,
 
-    objects,
+        types,
 
-    photos,
+        objects,
 
-    children,
+        photos,
 
-    context,
+        children,
 
-    ()=>{
+        context,
+
+        ()=>{
 
             modal.close();
 
@@ -389,10 +433,6 @@ export function openObjectEditor(
     );
 
 }
-
-
-
-
 
 // ======================================
 // Init
@@ -477,120 +517,128 @@ setupParentsEditor(
 
         address:true,
 
-filter(parent, currentParents){
+        filter(
 
-    // ======================================
-    // Нельзя выбрать самого себя
-    // ======================================
+            parent,
+            currentParents
 
-    if(
-        parent.id === object?.id
-    ){
+        ){
 
-        return false;
+            // ======================================
+            // Нельзя выбрать самого себя
+            // ======================================
 
-    }
+            if(
+                parent.id === object?.id
+            ){
 
-    const parentType =
+                return false;
 
-        types.find(
+            }
 
-            t =>
-            t.id === parent.typeId
+            const parentType =
 
-        );
+                types.find(
 
-    if(!parentType){
+                    t =>
+                    t.id === parent.typeId
 
-        return false;
+                );
 
-    }
+            if(!parentType){
 
-    // ======================================
-    // Если родитель уже выбран
-    // ======================================
+                return false;
 
-    if(
-        currentParents.length > 0
-    ){
+            }
 
-        const firstParentId =
+            // ======================================
+            // Если родитель уже выбран
+            // ======================================
 
-            currentParents[0].objectId;
+            if(
+                currentParents.length > 0
+            ){
 
-        const firstParent =
+                const firstParentId =
 
-            objects.find(
+                    currentParents[0].objectId;
 
-                o =>
-                o.id === firstParentId
+                const firstParent =
+
+                    objects.find(
+
+                        o =>
+                        o.id === firstParentId
+
+                    );
+
+                const firstParentType =
+
+                    types.find(
+
+                        t =>
+                        t.id === firstParent?.typeId
+                    );
+
+                if(!firstParentType){
+
+                    return false;
+
+                }
+
+                // ==================================
+                // Второй родитель должен быть
+                // строго того же уровня
+                // ==================================
+
+                return (
+
+                    Number(parentType.level) ===
+                    Number(firstParentType.level)
+
+                );
+
+            }
+
+            // ======================================
+            // Родителей пока нет
+            // ======================================
+
+            const selectedTypeId =
+
+                root.querySelector(
+                    "#entityType"
+                )?.value;
+
+            const objectType =
+
+                types.find(
+
+                    t =>
+                    t.id === selectedTypeId
+
+                );
+
+            if(!objectType){
+
+                return false;
+
+            }
+
+            // ======================================
+            // Первый родитель должен быть
+            // выше объекта
+            // ======================================
+
+            return (
+
+                Number(parentType.level) >
+                Number(objectType.level)
 
             );
-
-        const firstParentType =
-
-            types.find(
-
-                t =>
-                t.id === firstParent?.typeId
-
-            );
-
-        if(!firstParentType){
-
-            return false;
 
         }
 
-        // Второй родитель должен быть
-        // строго того же уровня,
-        // что и первый
-
-        return (
-
-            parentType.level ===
-            firstParentType.level
-
-        );
-
-    }
-
-    // ======================================
-    // Родителей пока нет
-    // ======================================
-
-    const selectedTypeId =
-
-        root.querySelector(
-            "#entityType"
-        )?.value;
-
-    const objectType =
-
-        types.find(
-
-            t =>
-            t.id === selectedTypeId
-
-        );
-
-    if(!objectType){
-
-        return false;
-
-    }
-
-    // Первый родитель должен быть
-    // выше объекта
-
-    return (
-
-        parentType.level >
-        objectType.level
-
-    );
-
-}
     }
 
 );
@@ -680,30 +728,31 @@ if(typeSelect){
 
                 );
 
-if(
+            if(
 
-    firstParentType &&
-    newType.level >=
-    firstParentType.level
+                firstParentType &&
 
-){
+                Number(newType.level) >=
+                Number(firstParentType.level)
 
-    alert(
+            ){
 
-        "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
+                alert(
 
-    );
+                    "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
 
-    parentsEditor.clearParents();
+                );
 
-}
+                parentsEditor.clearParents();
+
+            }
 
         }
 
     };
 
 }
-    
+
 // ======================================
 // Cover
 // ======================================
@@ -728,13 +777,19 @@ setupEditorButtons(
 
     root,
 
-    async()=>{try{
+    async()=>{
+
+        try{
+
+            // ==================================
+            // Проверяем родителей
+            // ==================================
 
             if(
 
                 parentsEditor
-                .getParents()
-                .length === 0
+                    .getParents()
+                    .length === 0
 
             ){
 
@@ -747,6 +802,10 @@ setupEditorButtons(
                 return;
 
             }
+
+            // ==================================
+            // Получаем данные полей
+            // ==================================
 
             const fieldsData =
 
@@ -761,7 +820,6 @@ setupEditorButtons(
                 types.find(
 
                     t =>
-
                     t.id === newTypeId
 
                 );
@@ -778,177 +836,181 @@ setupEditorButtons(
 
             }
 
-        // ======================================
-// Проверка уровня первого родителя
-// ======================================
+            // ======================================
+            // Проверка уровня первого родителя
+            // ======================================
 
-const currentParents =
+            const currentParents =
 
-    parentsEditor.getParents();
+                parentsEditor.getParents();
 
-if(
-    currentParents.length === 0
-){
+            if(
+                currentParents.length === 0
+            ){
 
-    alert(
-        "Нужен хотя бы один родитель"
-    );
+                alert(
 
-    return;
+                    "Нужен хотя бы один родитель"
 
-}
+                );
 
-const firstParentId =
+                return;
 
-    currentParents[0].objectId;
+            }
 
-const firstParent =
+            const firstParentId =
 
-    objects.find(
+                currentParents[0].objectId;
 
-        o =>
-        o.id === firstParentId
+            const firstParent =
 
-    );
+                objects.find(
 
-const parentType =
+                    o =>
+                    o.id === firstParentId
 
-    types.find(
+                );
 
-        t =>
-        t.id === firstParent?.typeId
+            const parentType =
 
-    );
+                types.find(
 
-if(
-    parentType &&
-    newType.level >= parentType.level
-){
+                    t =>
+                    t.id === firstParent?.typeId
 
-    alert(
-        "Тип объекта должен быть ниже уровня родителя."
-    );
+                );
 
-    return;
+            if(
 
-}
+                parentType &&
 
-if(object){
+                Number(newType.level) >=
+                Number(parentType.level)
 
-    const oldType =
+            ){
 
-        types.find(
+                alert(
 
-            t =>
-            t.id === object.typeId
+                    "Тип объекта должен быть ниже уровня родителя."
 
-        );
+                );
 
-    // ======================================
-    // Нельзя понизить тип,
-    // если у объекта есть дети
-    // ======================================
+                return;
 
-// ======================================
-// Проверка уровня детей
-// ======================================
+            }
 
-if(children.length > 0){
+            // ======================================
+            // Проверки существующего объекта
+            // ======================================
 
-    const maxChildLevel =
+            if(object){
 
-        Math.max(
+                // ==================================
+                // Проверка уровня детей
+                // ==================================
 
-            ...children.map(
+                if(
+                    children.length > 0
+                ){
 
-                child => {
+                    const maxChildLevel =
 
-                    const childType =
+                        Math.max(
 
-                        types.find(
+                            ...children.map(
 
-                            t =>
-                            t.id === child.typeId
+                                child => {
+
+                                    const childType =
+
+                                        types.find(
+
+                                            t =>
+                                            t.id === child.typeId
+
+                                        );
+
+                                    return (
+
+                                        childType?.level
+                                        ??
+                                        -Infinity
+
+                                    );
+
+                                }
+
+                            )
 
                         );
 
-                    return (
+                    if(
 
-                        childType?.level
-                        ??
-                        -Infinity
+                        Number(newType.level) <=
+                        Number(maxChildLevel)
 
-                    );
+                    ){
+
+                        alert(
+
+                            "Тип объекта должен быть выше уровня всех его детей."
+
+                        );
+
+                        return;
+
+                    }
 
                 }
 
-            )
+            }
 
-        );
+            // ======================================
+            // Parents + auto address
+            // ======================================
 
-    if(
+            const parentsWithAddress =
 
-        newType.level <= maxChildLevel
+                parentsEditor
+                    .getParents()
+                    .map(
 
-    ){
+                        parent => ({
 
-        alert(
+                            ...parent,
 
-            "Тип объекта должен быть выше уровня всех его детей."
+                            // Если адрес пустой —
+                            // используем название объекта.
+                            //
+                            // Если адрес уже указан —
+                            // оставляем его.
 
-        );
+                            address:
 
-        return;
+                                parent.address?.trim()
+                                ||
+                                (fieldsData.title ?? "")
 
-    }
+                        })
 
-}
+                    );
 
-}
+            // ======================================
+            // Data
+            // ======================================
 
-// ======================================
-// Parents + auto address
-// ======================================
+            const data = {
 
-const parentsWithAddress =
+                ...fieldsData,...coverEditor.getData(),
 
-    parentsEditor
-        .getParents()
-        .map(
+                parents:
+                    parentsWithAddress
 
-            parent => ({
+            };
 
-                ...parent,
-
-                // Если адрес пустой —
-                // используем название объекта.
-                //
-                // Если адрес уже указан —
-                // оставляем его без изменений.
-
-                address:
-                    parent.address?.trim()
-                    ||
-                    (fieldsData.title ?? "")
-
-            })
-
-        );
-
-// ======================================
-// Data
-// ======================================
-
-const data = {
-
-    ...fieldsData,
-
-    ...coverEditor.getData(),
-
-    parents:
-        parentsWithAddress
-
-};
+            // ======================================
+            // Save
+            // ======================================
 
             if(object){
 
