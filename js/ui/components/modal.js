@@ -16,14 +16,16 @@ let currentAdminState = false;
 //     имя модалки
 //
 // open:
-//     функция открытия модалки
+//     функция открытия
 //
 // options:
 //     admin — требуется ли админ
 //
 //     getUrl — функция формирования URL
 //
-// Пример:
+// --------------------------------------
+//
+// Для обычной модалки:
 //
 // registerModal(
 //     "photo",
@@ -33,6 +35,21 @@ let currentAdminState = false;
 //         getUrl: id => ({
 //             modal: "photo",
 //             modalId: id
+//         })
+//     }
+// );
+//
+// Для редактора:
+//
+// registerModal(
+//     "entity-editor",
+//     openEntityEditor,
+//     {
+//         admin: true,
+//         getUrl: data => ({
+//             modal: "entity-editor",
+//             modalId: data.id,
+//             modalType: data.type
 //         })
 //     }
 // );
@@ -256,281 +273,4 @@ function setModalUrl(route){
 
     url.searchParams.delete(
         "modal"
-    );
-
-    url.searchParams.delete(
-        "modalId"
-    );
-
-    // ----------------------------------
-    // Set modal
-    // ----------------------------------
-
-    if(params.modal){
-
-        url.searchParams.set(
-
-            "modal",
-
-            params.modal
-
-        );
-
-    }
-
-    // ----------------------------------
-    // Set modal ID
-    // ----------------------------------
-
-    if(params.modalId){
-
-        url.searchParams.set(
-
-            "modalId",
-
-            params.modalId
-
-        );
-
-    }
-
-    window.history.pushState(
-
-        {},
-
-        "",
-
-        url
-
-    );
-
-}
-
-// ======================================
-// Clear modal URL
-// ======================================
-
-function clearModalUrl(){
-
-    const url =
-        new URL(
-            window.location.href
-        );
-
-    url.searchParams.delete(
-        "modal"
-    );
-
-    url.searchParams.delete(
-        "modalId"
-    );
-
-    window.history.pushState(
-
-        {},
-
-        "",
-
-        url
-
-    );
-
-}
-
-// ======================================
-// Restore modal from URL
-// ======================================
-//
-// isAdmin:
-//     текущее состояние администратора.
-//
-// Если в URL находится админская модалка,
-// а пользователь не админ:
-//
-//     1. модалка не открывается
-//     2. параметры modal/modalId удаляются
-//     3. пользователь остаётся на основной
-//        странице.
-//
-// ======================================
-
-export async function restoreModalFromUrl({
-
-    isAdmin = currentAdminState
-
-} = {}){
-
-    currentAdminState =
-        isAdmin;
-
-    const url =
-        new URL(
-            window.location.href
-        );
-
-    const type =
-        url.searchParams.get(
-            "modal"
-        );
-
-    const id =
-        url.searchParams.get(
-            "modalId"
-        );
-
-    // ==================================
-    // Нет модалки
-    // ==================================
-
-    if(!type){
-
-        closeCurrentModal();
-
-        return;
-
-    }
-
-    // ==================================
-    // Найти маршрут
-    // ==================================
-
-    const route =
-        modalRoutes.get(
-            type
-        );
-
-    // ==================================
-    // Неизвестная модалка
-    // ==================================
-
-    if(!route){
-
-        clearModalUrl();
-
-        closeCurrentModal();
-
-        return;
-
-    }
-
-    // ==================================
-    // Защита админской модалки
-    // ==================================
-
-    if(
-
-        route.admin &&
-        !currentAdminState
-
-    ){
-
-        clearModalUrl();
-
-        closeCurrentModal();
-
-        return;
-
-    }
-
-    // ==================================
-    // Закрыть предыдущую модалку
-    // ==================================
-
-    closeCurrentModal();
-
-    // ==================================
-    // Открыть модалку
-    // ==================================
-
-    await route.open(
-        id
-    );
-
-}
-
-// ======================================
-// Close current modal
-// ======================================
-
-function closeCurrentModal(){
-
-    if(!currentModal){
-
-        return;
-
-    }
-
-    currentModal.overlay.remove();
-
-    currentModal = null;
-
-}
-
-// ======================================
-// Update admin state
-// ======================================
-//
-// Это нужно, чтобы modal.js знал,
-// может ли пользователь открыть
-// админскую модалку.
-//
-// Можно вызывать при изменении
-// ADMIN_MODE.
-//
-// ======================================
-
-export function setModalAdminState(
-
-    isAdmin
-
-){
-
-    currentAdminState =
-        !!isAdmin;
-
-    // ----------------------------------
-    // Если админ вышел,
-//    а открыта админская модалка
-// ----------------------------------
-
-    if(!currentAdminState){
-
-        const type =
-            new URL(
-                window.location.href
-            ).searchParams.get(
-                "modal"
-            );
-
-        const route =
-            modalRoutes.get(
-                type
-            );
-
-        if(route?.admin){
-
-            clearModalUrl();
-
-            closeCurrentModal();
-
-        }
-
-    }
-
-}
-
-// ======================================
-// Browser Back / Forward
-// ======================================
-
-window.addEventListener(
-
-    "popstate",
-
-    async()=>{
-
-        await restoreModalFromUrl();
-
-    }
-
-);
+    )
