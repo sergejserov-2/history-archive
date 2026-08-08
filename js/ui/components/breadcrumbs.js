@@ -3,6 +3,7 @@
 // ======================================
 
 import {
+    getObject,
     getParents
 }
 from "../../api/objects.js";
@@ -24,23 +25,12 @@ export async function renderBreadcrumbs(
     }
 
     // ======================================
-    // Получаем всех родителей
-    // ======================================
-
-    const parents =
-
-        await getParents(
-            object
-        );
-
-    // ======================================
-    // Если родителей нет —
-    // показываем сам объект
+    // Корневой объект
     // ======================================
 
     if(
-        !parents ||
-        parents.length === 0
+        !object.parents ||
+        object.parents.length === 0
     ){
 
         return `
@@ -69,115 +59,71 @@ export async function renderBreadcrumbs(
 
     }
 
-    // ======================================
-    // Находим ближайший уровень родителей
-    // ======================================
-
-    const levels =
-
-        parents
-
-            .filter(
-
-                parent =>
-
-                    parent.level !== null &&
-                    parent.level !== undefined
-
-            )
-
-            .map(
-
-                parent =>
-
-                    Number(parent.level)
-
-            );
-
-    if(
-        levels.length === 0
-    ){
-
-        return "";
-
-    }
-
-    const nearestLevel =
-
-        Math.min(
-            ...levels
-        );
-
-    const nearestParents =
-
-        parents.filter(
-
-            parent =>
-
-                Number(parent.level) ===
-                nearestLevel
-
-        );
-
     const chains = [];
 
     // ======================================
-    // Строим цепочку для каждого ближайшего
-    // родителя
+    // Для каждого родителя текущего объекта
+    // строим отдельную цепочку
     // ======================================
 
-    nearestParents.forEach(
+    for(
+        const parent
+        of object.parents
+    ){
 
-        nearestParent => {
+        const parentObject =
 
-            const chain =
+            await getObject(
+                parent.objectId
+            );
 
-                parents.filter(
+        if(!parentObject){
 
-                    parent =>
+            continue;
 
-                        Number(parent.level) >=
-                        Number(nearestParent.level)
+        }
 
-                );
+        // ==================================
+        // Получаем цепочку самого родителя.
+        //
+        // Новый getParents() уже возвращает
+        // адреса объектов, включая корневой.
+        // ==================================
 
-            // ==================================
-            // Добавляем текущий объект
-            //
-            // Его адрес берём из связи
-            // с ближайшим родителем.
-            // ==================================
+        const parentChain =
 
-            chain.push({
+            await getParents(
+                parentObject
+            );
+
+        // ==================================
+        // Добавляем текущий объект.
+        //
+        // Его адрес берём из связи
+        // текущий объект → этот родитель.
+        // ==================================
+
+        const chain = [
+
+            ...parentChain,
+
+            {
 
                 id:
                     object.id,
 
                 address:
-                    nearestParent.address || "",
+                    parent.address ?? ""
 
-                level:
-                    null
+            }
 
-            });
+        ];
 
-            // ==================================
-            // Оставляем все элементы цепочки.
-            // Пустой адрес будет отображён
-            // как "Без адреса".
-            // ==================================
+        chains.push(
+            chain
+        );
 
-            chains.push(
-                chain
-            );
-
-        }
-
-    );
-
-    // ======================================
-    // Если цепочки не построились
-    // ======================================
+    }
 
     if(
         chains.length === 0
@@ -188,7 +134,7 @@ export async function renderBreadcrumbs(
     }
 
     // ======================================
-    // Убираем одинаковые цепочки
+    // Убираем полностью одинаковые цепочки
     // ======================================
 
     const uniqueChains = [];
@@ -219,7 +165,9 @@ export async function renderBreadcrumbs(
 
                         existing
 
-                            .map(item =>
+                            .map(
+
+                                item =>
 
                                     `${item.id}:${item.address ?? ""}`
 
@@ -247,57 +195,68 @@ export async function renderBreadcrumbs(
 
     const renderedChains =
 
-        uniqueChains.map(
+        uniqueChains
 
-            chain => {
+            .map(
 
-                const parts =
+                chain => {
 
-                    chain.map(
+                    const parts =
 
-                        item => `
+                        chain.map(
 
-                            <a
+                            item => `
 
-                                class="breadcrumbs__item"
+                                <a
 
-                                href="object.html?id=${item.id}"
+                                    class="breadcrumbs__item"
 
-                            >
+                                    href="object.html?id=${item.id}"
 
-                                ${item.address || "Без адреса"}
-
-                            </a>
-
-                        `
-
-                    );
-
-                return `
-
-                    <div class="breadcrumbs__chain">
-
-                        ${
-
-                            parts.join(`
-
-                                <span
-                                    class="breadcrumbs__separator"
                                 >
-                                    →
-                                </span>
 
-                            `)
+                                    ${item.address || "Без адреса"}
 
-                        }
+                                </a>
 
-                    </div>
+                            `
+                        );
 
-                `;
+                    return `
 
-            }
+                        <div class="breadcrumbs__chain">
 
-        ).join("");
+                            ${
+
+                                parts.join(`
+
+                                    <span
+                                        class="breadcrumbs__separator"
+                                    >
+                                        →
+                                    </span>
+
+                                `)
+
+                            }
+
+                        </div>
+
+                    `;
+
+                }
+
+            )
+
+            .join("");
+
+    if(
+        !renderedChains
+    ){
+
+        return "";
+
+    }
 
     return `
 
