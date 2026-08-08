@@ -701,6 +701,36 @@ export function renderEntityEditor(
 
     const options = cfg.options ?? {};
 
+    const sortedTypes =
+
+        [...(options.types ?? [])]
+
+        .sort((a, b) => {
+
+            const levelA =
+                Number(a.level ?? Infinity);
+
+            const levelB =
+                Number(b.level ?? Infinity);
+
+            if(levelA !== levelB){
+
+                return levelA - levelB;
+
+            }
+
+            return (
+
+                (a.title ?? "")
+                    .localeCompare(
+                        b.title ?? "",
+                        "ru"
+                    )
+
+            );
+
+        });
+
     return `
 
 <div class="entity-editor">
@@ -722,7 +752,7 @@ options.typeSelector
 
 ${
 
-options.types.map(type=>`
+sortedTypes.map(type=>`
 
 <option
 
@@ -828,7 +858,7 @@ id="entityDescription"
 
 id="entityParentSearch"
 
-placeholder="Добавить родителя"
+placeholder="Начните вводить имя"
 
 >
 
