@@ -989,9 +989,9 @@ button.admin-button {
 
     margin:0;
 
-    padding:4px 8px !important;
+   padding: 0 8px !important;
 
-    height:auto;
+    height:100% !important;
 
     font-size:inherit !important;
 
