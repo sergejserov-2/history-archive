@@ -140,53 +140,34 @@ body {
 ========================================== */
 
 .breadcrumbs {
-
-    margin-bottom: 18px;
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 6px;
-
-    font-size: 14px;
-
+    margin: 0 0 18px 22px;
+    color: #8f949b;
 }
 
 .breadcrumbs__chain {
-
     display: flex;
     align-items: center;
-
     flex-wrap: wrap;
-
-    gap: 7px;
-
+    gap: 0;
+    margin-bottom: 6px;
 }
 
 .breadcrumbs__item {
-
-    color: #aeb4bb;
-
+    color: #9da2a8;
     text-decoration: none;
-
-    line-height: 1.4;
-
+    font-size: 14px;
+    line-height: 1.5;
     transition: color 0.15s ease;
-
 }
 
 .breadcrumbs__item:hover {
-
-    color: #eef0f2;
-
+    color: #c4c7cb;
 }
 
 .breadcrumbs__separator {
-
-    color: #686e76;
-
-    user-select: none;
-
+    margin: 0 8px;
+    color: #656a70;
+    font-size: 13px;
 }
 /* ==========================================
    OBJECT
