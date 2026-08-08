@@ -108,134 +108,126 @@ export async function getAllObjects() {
 // Get parents
 // ======================================
 
+// ======================================
+// Get parents
+// ======================================
+
 export async function getParents(object) {
 
-    if(
-        !object ||
-        !object.parents ||
-        object.parents.length === 0
-    ){
-
-        // ==================================
-        // Корневой объект
-        // ==================================
-
-        if(object){
-
-            const type =
-                await getType(
-                    object.typeId
-                );
-
-            return [{
-
-                id:
-                    object.id,
-
-                title:
-                    object.title ?? "",
-
-                address:
-                    object.address ?? "",
-
-                level:
-                    type?.level ?? null
-
-            }];
-
-        }
+    if (!object) {
 
         return [];
 
     }
 
-    const result = [];
+    // ======================================
+    // Корневой объект
+    // ======================================
 
-    for(
+    if (
+        !object.parents ||
+        object.parents.length === 0
+    ) {
+
+        return [[
+
+            {
+                id:
+                    object.id,
+
+                address:
+                    object.address ?? "",
+
+                level:
+                    (
+                        await getType(
+                            object.typeId
+                        )
+                    )?.level ?? null
+
+            }
+
+        ]];
+
+    }
+
+    const chains = [];
+
+    // ======================================
+    // Строим отдельную цепочку
+    // для каждого родителя
+    // ======================================
+
+    for (
         const parent
         of object.parents
-    ){
+    ) {
 
         const parentObject =
             await getObject(
                 parent.objectId
             );
 
-        if(!parentObject){
+        if (!parentObject) {
 
             continue;
 
         }
 
         // ==================================
-        // Получаем тип родителя
+        // Получаем цепочки родителя
         // ==================================
 
-        const parentType =
-            await getType(
-                parentObject.typeId
-            );
-
-        // ==================================
-        // Поднимаемся выше
-        // ==================================
-
-        const upperParents =
+        const parentChains =
             await getParents(
                 parentObject
             );
 
-        result.push(
-            ...upperParents
-        );
-
         // ==================================
-        // Добавляем текущего родителя
+        // Добавляем текущий объект
         //
-        // Адрес берём именно из связи
-        // parent → parentObject
+        // ВАЖНО:
+        // address берём именно из связи
+        // текущий объект → этот родитель
         // ==================================
 
-        result.push({
+        for (
+            const parentChain
+            of parentChains
+        ) {
 
-            id:
-                parentObject.id,
+            chains.push(
 
-            title:
-                parentObject.title ?? "",
+                [
 
-            address:
-                parent.address ?? "",
+                    ...parentChain,
 
-            level:
-                parentType?.level ?? null
+                    {
 
-        });
+                        id:
+                            object.id,
 
-    }
+                        address:
+                            parent.address ?? "",
 
-    // ======================================
-    // Убираем дубли
-    // ======================================
+                        level:
+                            (
+                                await getType(
+                                    object.typeId
+                                )
+                            )?.level ?? null
 
-    const unique = [];
+                    }
 
-    result.forEach(item => {
+                ]
 
-        if(
-            !unique.some(
-                existing =>
-                    existing.id === item.id
-            )
-        ){
-
-            unique.push(item);
+            );
 
         }
 
-    });
+    }
 
-    return unique;
+    return chains;
 
 }
 // ======================================
@@ -284,10 +276,6 @@ export async function createObject(data){
     return ref.id;
 
 }
-
-// ======================================
-// Delete object
-// ======================================
 
 // ======================================
 // Delete object
