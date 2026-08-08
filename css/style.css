@@ -756,6 +756,8 @@ button.admin-button {
 
     overflow:hidden;
 
+    cursor:pointer;
+
 }
 
 .photo-card__media {
@@ -766,8 +768,6 @@ button.admin-button {
 
     background:#292d33;
 
-    cursor:pointer;
-
 }
 
 .photo-card__image {
@@ -777,8 +777,6 @@ button.admin-button {
     height:100%;
 
     object-fit:cover;
-
-    cursor:pointer;
 
 }
 
