@@ -142,9 +142,13 @@ async function loadPage() {
 
 onAdminStateChanged(
 
-    ADMIN_MODE => {
+    async ADMIN_MODE => {
 
-        renderPage(
+        // ==================================
+        // Сначала полностью рисуем страницу
+        // ==================================
+
+        await renderPage(
 
             object,
             type,
@@ -156,6 +160,10 @@ onAdminStateChanged(
             ADMIN_MODE
 
         );
+
+        // ==================================
+        // Затем подключаем admin
+        // ==================================
 
         if (ADMIN_MODE) {
 
@@ -173,7 +181,12 @@ onAdminStateChanged(
 
         }
 
-        restoreModalFromUrl();
+        // ==================================
+        // И только после этого
+        // восстанавливаем модалку из URL
+        // ==================================
+
+        await restoreModalFromUrl();
 
     }
 
