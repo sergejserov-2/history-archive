@@ -86,21 +86,21 @@ export function createModal({
     // Close
     // ==================================
 
-function close(){
+    function close(){
 
-    overlay.remove();
+        overlay.remove();
 
-    clearModalUrl();
+        clearModalUrl();
 
-    if(
-        currentModal?.overlay === overlay
-    ){
+        if(
+            currentModal?.overlay === overlay
+        ){
 
-        currentModal = null;
+            currentModal = null;
+
+        }
 
     }
-
-}
 
     closeButton.onclick =
         close;
@@ -148,7 +148,10 @@ function close(){
 // &modal=photo-preview
 // &photoId=PHOTO_ID
 //
-// Страница НЕ перезагружается.
+// ВАЖНО:
+//
+// objectId здесь НЕ передаётся.
+// Он уже находится в ?id=OBJECT_ID.
 //
 // ======================================
 
@@ -227,17 +230,21 @@ export function setModalUrl(
 // Clear modal URL
 // ======================================
 //
-// Удаляет ТОЛЬКО состояние модалки.
-//
-// Например:
-//
 // Было:
-// object.html?id=LGyU4VobjcTgLPjBshrS
+//
+// object.html
+// ?id=OBJECT_ID
 // &modal=photo-preview
-// &photoId=S2FT4JEjorpWelfMFSqO
+// &photoId=PHOTO_ID
 //
 // Станет:
-// object.html?id=LGyU4VobjcTgLPjBshrS
+//
+// object.html
+// ?id=OBJECT_ID
+//
+// ВАЖНО:
+//
+// id страницы никогда не удаляется.
 //
 // ======================================
 
@@ -260,7 +267,6 @@ export function clearModalUrl(){
     if(!type){
 
         return;
-
     }
 
     // ==================================
@@ -284,14 +290,24 @@ export function clearModalUrl(){
     );
 
     // ==================================
-    // Удаляем ТОЛЬКО параметры
-    // зарегистрированные этой модалкой
+    // Удаляем ТОЛЬКО параметры модалки
     // ==================================
 
     for(
         const key of
         registration?.params ?? []
     ){
+
+        // id — параметр страницы,
+        // а не параметр модалки.
+
+        if(
+            key === "id"
+        ){
+
+            continue;
+
+        }
 
         url.searchParams.delete(
             key
@@ -301,7 +317,6 @@ export function clearModalUrl(){
 
     // ==================================
     // Сохраняем URL страницы
-    // id объекта НЕ трогаем
     // ==================================
 
     window.history.pushState(
@@ -322,14 +337,15 @@ export function clearModalUrl(){
 //
 // URL:
 //
-// ?modal=photo-preview
-// &photoId=123
+// ?id=OBJECT_ID
+// &modal=photo-preview
+// &photoId=PHOTO_ID
 //
 // Алгоритм:
 //
 // 1. читаем modal;
 // 2. находим регистрацию;
-// 3. читаем её параметры;
+// 3. читаем параметры модалки;
 // 4. загружаем данные;
 // 5. открываем модалку.
 //
@@ -490,6 +506,31 @@ window.addEventListener(
     "popstate",
 
     ()=>{
+
+        const url =
+            new URL(
+                window.location.href
+            );
+
+        // ==================================
+        // Modal закрыта через Back
+        // ==================================
+
+        if(
+            !url.searchParams.get(
+                "modal"
+            )
+        ){
+
+            closeCurrentModal();
+
+            return;
+
+        }
+
+        // ==================================
+        // Modal открыта через Forward
+        // ==================================
 
         restoreModalFromUrl();
 
