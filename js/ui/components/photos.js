@@ -32,9 +32,127 @@ export function renderPhotos(
 
     }
 
-    (photos ?? [])
+    // ======================================
+    // Sort photos
+    //
+    // 1. date
+    // 2. author
+    // 3. title
+    //
+    // От нового к старому
+    // ======================================
 
-    .forEach(photo=>{
+    const sortedPhotos =
+
+        [...(photos ?? [])].sort(
+
+            (a, b) => {
+
+                const dateA =
+                    a.date || "";
+
+                const dateB =
+                    b.date || "";
+
+                // Фото без даты — в конец
+
+                if(!dateA && !dateB){
+
+                    const authorCompare =
+
+                        (a.author ?? "").localeCompare(
+
+                            b.author ?? "",
+
+                            "ru"
+
+                        );
+
+                    if(authorCompare !== 0){
+
+                        return authorCompare;
+
+                    }
+
+                    return (
+
+                        a.title ?? ""
+
+                    ).localeCompare(
+
+                        b.title ?? "",
+
+                        "ru"
+
+                    );
+
+                }
+
+                if(!dateA){
+
+                    return 1;
+
+                }
+
+                if(!dateB){
+
+                    return -1;
+
+                }
+
+                // От нового к старому
+
+                const dateCompare =
+
+                    String(dateB)
+                        .localeCompare(
+                            String(dateA)
+                        );
+
+                if(dateCompare !== 0){
+
+                    return dateCompare;
+
+                }
+
+                // Одинаковая дата →
+                // автор A → Я
+
+                const authorCompare =
+
+                    (a.author ?? "").localeCompare(
+
+                        b.author ?? "",
+
+                        "ru"
+
+                    );
+
+                if(authorCompare !== 0){
+
+                    return authorCompare;
+
+                }
+
+                // Затем название A → Я
+
+                return (
+
+                    a.title ?? ""
+
+                ).localeCompare(
+
+                    b.title ?? "",
+
+                    "ru"
+
+                );
+
+            }
+
+        );
+
+    sortedPhotos.forEach(photo=>{
 
         const image = photo.storagePath
 
@@ -97,7 +215,10 @@ export function renderPhotos(
 
                 >
 
-    <img src="icons/edit.svg" class="admin-icon">
+                    <img
+                        src="icons/edit.svg"
+                        class="admin-icon"
+                    >
 
                 </button>
 
@@ -111,7 +232,10 @@ export function renderPhotos(
 
                 >
 
-    <img src="icons/delete.svg" class="admin-icon">
+                    <img
+                        src="icons/delete.svg"
+                        class="admin-icon"
+                    >
 
                 </button>
 
@@ -120,73 +244,3 @@ export function renderPhotos(
                 :
 
                 ""
-
-                }
-
-            </div>
-
-            <div class="photo-card__author">
-
-                ${
-                photo.author
-
-                ?
-
-                photo.author
-
-                :
-
-                ""
-
-                }
-
-                ${
-                photo.date
-
-                ?
-
-                `, <span class="photo-card__date">
-
-                    ${photo.date}
-
-                   </span>`
-
-                :
-
-                ""
-
-                }
-
-            </div>
-
-        </div>
-
-        `);
-
-    });
-
-    if(cards.length===0){
-
-        return `
-
-        <p class="photos-empty">
-
-            Нет фотографий
-
-        </p>
-
-        `;
-
-    }
-
-    return `
-
-    <div class="photos-list">
-
-        ${cards.join("")}
-
-    </div>
-
-    `;
-
-}
