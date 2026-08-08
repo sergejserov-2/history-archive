@@ -13,7 +13,6 @@ import {
 from "./editors/entityEditor.js";
 
 import {
-    createObject,
     deleteObject
 }
 from "../api/objects.js";
@@ -172,45 +171,33 @@ return;
 
 if(
 
-action==="add-object"
+    action==="add-object"
 
 ){
 
-const data = {
+    openObjectEditor(
 
-    title:"Новый объект",
+        null,
 
-    description:"",
+        types,
 
-    typeId:"",
+        objects,
 
-    parents:[
+        photos,
 
-        {
+        [],
 
-            objectId: object.id,
+        context,
 
-            address:""
+        ()=>{
+
+            location.reload();
 
         }
 
-    ]
+    );
 
-};
-
-const newObjectId =
-
-await createObject(
-
-    data
-
-);
-
-location.href =
-
-`object.html?id=${newObjectId}`;
-
-return;
+    return;
 
 }
 
