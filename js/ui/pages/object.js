@@ -190,6 +190,10 @@ async function renderPage(
         await renderBreadcrumbs(
             object
         );
+    console.log(
+    "BREADCRUMBS HTML:",
+    breadcrumbsHTML
+);
 
     const coverPhoto =
         photos.find(
