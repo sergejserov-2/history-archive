@@ -5,7 +5,7 @@
 import {
     modalRegistry
 }
-from "../../modalRegistry.js";
+from "./modalRegistry.js";
 
 // ======================================
 // Current modal
