@@ -34,19 +34,13 @@ export async function uploadFile(
         new FormData();
 
     formData.append(
-
         "file",
-
         file
-
     );
 
     formData.append(
-
         "folder",
-
         folder
-
     );
 
     const response =
@@ -98,7 +92,93 @@ export async function uploadFile(
     return {
 
         storagePath:
+            result.storagePath
 
+    };
+
+}
+
+// ======================================
+// Move file to deleted
+// ======================================
+
+export async function moveFileToDeleted(
+
+    storagePath
+
+){
+
+    if(!storagePath){
+
+        throw new Error(
+            "Не указан storagePath"
+        );
+
+    }
+
+    const formData =
+
+        new FormData();
+
+    formData.append(
+        "action",
+        "move-to-deleted"
+    );
+
+    formData.append(
+        "storagePath",
+        storagePath
+    );
+
+    const response =
+
+        await fetch(
+
+            STORAGE_API_URL,
+
+            {
+
+                method:"POST",
+
+                body:formData
+
+            }
+
+        );
+
+    if(!response.ok){
+
+        throw new Error(
+
+            "Ошибка переноса файла: "
+
+            +
+
+            response.status
+
+        );
+
+    }
+
+    const result =
+
+        await response.json();
+
+    if(!result.success){
+
+        throw new Error(
+
+            result.error ||
+
+            "Неизвестная ошибка переноса файла"
+
+        );
+
+    }
+
+    return {
+
+        storagePath:
             result.storagePath
 
     };
