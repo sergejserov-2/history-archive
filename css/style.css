@@ -756,8 +756,6 @@ button.admin-button {
 
     overflow:hidden;
 
-    cursor:pointer;
-
 }
 
 .photo-card__media {
@@ -767,6 +765,8 @@ button.admin-button {
     aspect-ratio:1 / 1;
 
     background:#292d33;
+
+    cursor:pointer;
 
 }
 
@@ -1350,6 +1350,10 @@ button.admin-button {
 
 .photo-viewer__image-area img {
 
+    position:relative;
+
+    z-index:1;
+
     max-width:none;
 
     max-height:none;
@@ -1365,6 +1369,24 @@ button.admin-button {
     -webkit-user-drag:none;
 
     transform-origin:center center;
+
+}
+
+.photo-viewer__image-bg {
+
+    position:absolute;
+
+    inset:0;
+
+    background-size:cover;
+
+    background-position:center;
+
+    filter:blur(18px) brightness(.45);
+
+    transform:scale(1.15);
+
+    pointer-events:none;
 
 }
 
@@ -1435,6 +1457,8 @@ button.admin-button {
     width:max-content;
 
     margin-top:auto;
+
+    margin-left:auto;
 
     padding:8px 14px;
 
