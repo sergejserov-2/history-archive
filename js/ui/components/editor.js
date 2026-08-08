@@ -601,43 +601,61 @@ export function setupFileEditor(
 
     renderFileState();
 
-    return {
+return {
 
-        async getData(){
+    hasFile(){
 
-            if(removeOldFile){
+        return (
+
+            !!file
+
+            ||
+
+            (
+                !!entity?.storagePath &&
+                !removeOldFile
+            )
+
+        );
+
+    },
+
+    async getData(){
+
+        if(removeOldFile){
+
+            return {
+
+                storagePath:null
+
+            };
+
+        }
+
+        if(file){
+
+            const result = await upload(
+                file
+            );
+
+            if(result?.storagePath){
 
                 return {
 
-                    storagePath:null
+                    storagePath:
+                        result.storagePath
 
                 };
 
             }
 
-            if(file){
-            
-                const result = await upload(
-                    file
-                );
-            
-                if(result?.storagePath){
-            
-                    return {
-            
-                        storagePath: result.storagePath
-            
-                    };
-            
-                }
-            
-            }
-
-            return null;
-
         }
 
-    };
+        return null;
+
+    }
+
+};
 
 }
 
