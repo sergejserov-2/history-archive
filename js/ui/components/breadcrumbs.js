@@ -35,19 +35,13 @@ export async function renderBreadcrumbs(
 
     // ======================================
     // Если родителей нет —
-    // показываем адрес текущего объекта
+    // показываем сам объект
     // ======================================
 
     if(
         !parents ||
         parents.length === 0
     ){
-
-        if(!object.address){
-
-            return "";
-
-        }
 
         return `
 
@@ -63,7 +57,7 @@ export async function renderBreadcrumbs(
                         href="object.html?id=${object.id}"
                     >
 
-                        ${object.address}
+                        ${object.address || "Без адреса"}
 
                     </a>
 
@@ -76,25 +70,42 @@ export async function renderBreadcrumbs(
     }
 
     // ======================================
-    // Определяем ближайший уровень родителей
+    // Находим ближайший уровень родителей
     // ======================================
+
+    const levels =
+
+        parents
+
+            .filter(
+
+                parent =>
+
+                    parent.level !== null &&
+                    parent.level !== undefined
+
+            )
+
+            .map(
+
+                parent =>
+
+                    Number(parent.level)
+
+            );
+
+    if(
+        levels.length === 0
+    ){
+
+        return "";
+
+    }
 
     const nearestLevel =
 
         Math.min(
-
-            ...parents
-
-                .filter(
-                    parent =>
-                        parent.level !== null
-                )
-
-                .map(
-                    parent =>
-                        Number(parent.level)
-                )
-
+            ...levels
         );
 
     const nearestParents =
@@ -111,8 +122,8 @@ export async function renderBreadcrumbs(
     const chains = [];
 
     // ======================================
-    // Для каждого ближайшего родителя
-    // формируем отдельную цепочку
+    // Строим цепочку для каждого ближайшего
+    // родителя
     // ======================================
 
     nearestParents.forEach(
@@ -125,36 +136,10 @@ export async function renderBreadcrumbs(
 
                     parent =>
 
-                        Number(parent.level) >
+                        Number(parent.level) >=
                         Number(nearestParent.level)
 
-                        ||
-
-                        parent.id ===
-                        nearestParent.id
-
                 );
-
-            // ==================================
-            // Убираем дубли
-            // ==================================
-
-            const unique = [];
-
-            chain.forEach(item => {
-
-                if(
-                    !unique.some(
-                        existing =>
-                            existing.id === item.id
-                    )
-                ){
-
-                    unique.push(item);
-
-                }
-
-            });
 
             // ==================================
             // Добавляем текущий объект
@@ -163,24 +148,27 @@ export async function renderBreadcrumbs(
             // с ближайшим родителем.
             // ==================================
 
-            unique.push({
+            chain.push({
 
                 id:
                     object.id,
 
-                title:
-                    object.title ?? "",
-
                 address:
-                    nearestParent.address ?? "",
+                    nearestParent.address || "",
 
                 level:
                     null
 
             });
 
+            // ==================================
+            // Оставляем все элементы цепочки.
+            // Пустой адрес будет отображён
+            // как "Без адреса".
+            // ==================================
+
             chains.push(
-                unique
+                chain
             );
 
         }
@@ -205,44 +193,53 @@ export async function renderBreadcrumbs(
 
     const uniqueChains = [];
 
-    chains.forEach(chain => {
+    chains.forEach(
 
-        const key =
+        chain => {
 
-            chain.map(
-                    item =>
-                        `${item.id}:${item.address ?? ""}`
-                )
-                .join("|");
+            const key =
 
-        if(
-            !uniqueChains.some(
+                chain
 
-                existing => {
+                    .map(
 
-                    const existingKey =
+                        item =>
+
+                            `${item.id}:${item.address ?? ""}`
+
+                    )
+
+                    .join("|");
+
+            if(
+
+                !uniqueChains.some(
+
+                    existing =>
 
                         existing
-                            .map(
-                                item =>
+
+                            .map(item =>
+
                                     `${item.id}:${item.address ?? ""}`
+
                             )
-                            .join("|");
 
-                    return existingKey === key;
+                            .join("|") === key
 
-                }
+                )
 
-            )
-        ){
+            ){
 
-            uniqueChains.push(
-                chain
-            );
+                uniqueChains.push(
+                    chain
+                );
+
+            }
 
         }
 
-    });
+    );
 
     // ======================================
     // Render
@@ -256,40 +253,25 @@ export async function renderBreadcrumbs(
 
                 const parts =
 
-                    chain
+                    chain.map(
 
-                        .filter(
-                            item =>
-                                item.address
-                        )
+                        item => `
 
-                        .map(
+                            <a
 
-                            item => `
+                                class="breadcrumbs__item"
 
-                                <a
+                                href="object.html?id=${item.id}"
 
-                                    class="breadcrumbs__item"
+                            >
 
-                                    href="object.html?id=${item.id}"
+                                ${item.address || "Без адреса"}
 
-                                >
+                            </a>
 
-                                    ${item.address}
+                        `
 
-                                </a>
-
-                            `
-
-                        );
-
-                if(
-                    parts.length === 0
-                ){
-
-                    return "";
-
-                }
+                    );
 
                 return `
 
@@ -315,19 +297,7 @@ export async function renderBreadcrumbs(
 
             }
 
-        )
-
-        .filter(Boolean)
-
-        .join("");
-
-    if(
-        !renderedChains
-    ){
-
-        return "";
-
-    }
+        ).join("");
 
     return `
 
