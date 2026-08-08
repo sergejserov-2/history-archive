@@ -196,11 +196,14 @@ cards.push(`
     data-photo-id="${photo.id}"
 >
 
-    <div class="photo-card__media">
+<div
+    class="photo-card__media"
+    data-photo-id="${photo.id}"
+>
 
-        ${image}
+    ${image}
 
-    </div>
+</div>
 
     <div class="photo-card__title">
 
@@ -323,32 +326,19 @@ setTimeout(()=>{
 
     photosList.onclick = event => {
 
-        // Админские кнопки не должны
-        // открывать просмотрщик
-
-        if(
+        const media =
             event.target.closest(
-                ".admin-button"
-            )
-        ){
-
-            return;
-
-        }
-
-        const card =
-            event.target.closest(
-                ".photo-card"
+                ".photo-card__media"
             );
 
-        if(!card){
+        if(!media){
 
             return;
 
         }
 
         const photoId =
-            card.dataset.photoId;
+            media.dataset.photoId;
 
         const photo =
             sortedPhotos.find(
@@ -357,6 +347,12 @@ setTimeout(()=>{
             );
 
         if(!photo){
+
+            return;
+
+        }
+
+        if(!photo.storagePath){
 
             return;
 
