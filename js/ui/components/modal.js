@@ -82,25 +82,27 @@ export function createModal({
             ".modal__close"
         );
 
-    // ==================================
-    // Close
-    // ==================================
+// ==================================
+// Close
+// ==================================
 
-    function close(){
+function close(){
 
-        overlay.remove();
+    if(
+        currentModal?.overlay !== overlay
+    ){
 
-        clearModalUrl();
-
-        if(
-            currentModal?.overlay === overlay
-        ){
-
-            currentModal = null;
-
-        }
+        return;
 
     }
+
+    currentModal = null;
+
+    overlay.remove();
+
+    clearModalUrl();
+
+}
 
     closeButton.onclick =
         close;
@@ -351,6 +353,10 @@ export function clearModalUrl(){
 //
 // ======================================
 
+// ======================================
+// Restore modal from URL
+// ======================================
+
 export async function restoreModalFromUrl(){
 
     const url =
@@ -364,10 +370,15 @@ export async function restoreModalFromUrl(){
         );
 
     // ==================================
-    // Модалки нет
+    // Модалки в URL нет
     // ==================================
 
     if(!type){
+
+        // Если модалка была открыта —
+        // закрываем её.
+
+        closeCurrentModal();
 
         return;
 
@@ -398,6 +409,8 @@ export async function restoreModalFromUrl(){
             type
 
         );
+
+        closeCurrentModal();
 
         return;
 
@@ -459,9 +472,26 @@ export async function restoreModalFromUrl(){
 
         );
 
+        // ==================================
+        // Устаревшая ссылка
+        //
+        // Удаляем только modal-состояние.
+        // id страницы НЕ трогаем.
+        // ==================================
+
+        clearModalUrl();
+
+        closeCurrentModal();
+
         return;
 
     }
+
+    // ==================================
+    // Закрываем предыдущий экземпляр
+    // ==================================
+
+    closeCurrentModal();
 
     // ==================================
     // Открыть модалку
@@ -491,9 +521,12 @@ function closeCurrentModal(){
 
     }
 
-    currentModal.overlay.remove();
+    const modal =
+        currentModal;
 
     currentModal = null;
+
+    modal.overlay.remove();
 
 }
 
