@@ -18,7 +18,8 @@ from "../../ui/components/editor.js";
 
 import {
     uploadPhotoOriginal,
-    uploadSourceDocument
+    uploadSourceDocument,
+    moveFileToDeleted
 }
 from "../../api/storage.js";
 
@@ -244,17 +245,46 @@ setupEditorButtons(
 
             };
 
-            const fileData =
-                await fileEditor?.getData();
+const fileData =
+    await fileEditor?.getData();
 
-            if(fileData){
+if(fileData){
 
-                Object.assign(
-                    data,
-                    fileData
-                );
+    // ======================================
+    // Старый файл был откреплён
+    // ======================================
 
-            }
+    if(
+        fileData.removedStoragePath
+    ){
+
+        const deletedFile =
+
+            await moveFileToDeleted(
+
+                fileData.removedStoragePath
+
+            );
+
+        data.storagePath =
+            deletedFile.storagePath;
+
+    }
+
+    // ======================================
+    // Новый файл
+    // ======================================
+
+    if(
+        fileData.storagePath
+    ){
+
+        data.storagePath =
+            fileData.storagePath;
+
+    }
+
+}
 
             if(!isNew){
 
