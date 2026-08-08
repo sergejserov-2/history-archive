@@ -135,7 +135,59 @@ body {
     padding: 0 25px;
 
 }
+/* ==========================================
+   BREADCRUMBS
+========================================== */
 
+.breadcrumbs {
+
+    margin-bottom: 18px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+
+    font-size: 14px;
+
+}
+
+.breadcrumbs__chain {
+
+    display: flex;
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+}
+
+.breadcrumbs__item {
+
+    color: #aeb4bb;
+
+    text-decoration: none;
+
+    line-height: 1.4;
+
+    transition: color 0.15s ease;
+
+}
+
+.breadcrumbs__item:hover {
+
+    color: #eef0f2;
+
+}
+
+.breadcrumbs__separator {
+
+    color: #686e76;
+
+    user-select: none;
+
+}
 /* ==========================================
    OBJECT
 ========================================== */
