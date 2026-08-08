@@ -35,13 +35,19 @@ export async function renderBreadcrumbs(
 
     // ======================================
     // Если родителей нет —
-    // показываем только текущий объект
+    // показываем адрес текущего объекта
     // ======================================
 
     if(
         !parents ||
         parents.length === 0
     ){
+
+        if(!object.address){
+
+            return "";
+
+        }
 
         return `
 
@@ -57,7 +63,7 @@ export async function renderBreadcrumbs(
                         href="object.html?id=${object.id}"
                     >
 
-                        ${object.title ?? ""}
+                        ${object.address}
 
                     </a>
 
@@ -70,42 +76,7 @@ export async function renderBreadcrumbs(
     }
 
     // ======================================
-    // Группируем родителей по цепочкам
-    //
-    // getParents() возвращает родителей
-    // от дальнего к ближнему.
-    //
-    // Для нескольких родителей текущего
-    // объекта строим отдельные цепочки.
-    // ======================================
-
-    const chains = [];
-
-    const uniqueParentIds = [];
-
-    parents.forEach(parent => {
-
-        if(
-            !uniqueParentIds.includes(
-                parent.id
-            )
-        ){
-
-            uniqueParentIds.push(
-                parent.id
-            );
-
-        }
-
-    });
-
-    // ======================================
-    // Если у текущего объекта несколько
-    // родителей одного уровня —
-    // строим цепочку для каждого.
-    //
-    // На этом этапе используем родителей,
-    // которые уже подготовлены getParents().
+    // Определяем ближайший уровень родителей
     // ======================================
 
     const nearestLevel =
@@ -137,12 +108,15 @@ export async function renderBreadcrumbs(
 
         );
 
+    const chains = [];
+
     // ======================================
     // Для каждого ближайшего родителя
-    // формируем путь.
+    // формируем отдельную цепочку
     // ======================================
 
     nearestParents.forEach(
+
         nearestParent => {
 
             const chain =
@@ -151,8 +125,8 @@ export async function renderBreadcrumbs(
 
                     parent =>
 
-                        parent.level >
-                        nearestParent.level
+                        Number(parent.level) >
+                        Number(nearestParent.level)
 
                         ||
 
@@ -184,6 +158,9 @@ export async function renderBreadcrumbs(
 
             // ==================================
             // Добавляем текущий объект
+            //
+            // Его адрес берём из связи
+            // с ближайшим родителем.
             // ==================================
 
             unique.push({
@@ -207,10 +184,11 @@ export async function renderBreadcrumbs(
             );
 
         }
+
     );
 
     // ======================================
-    // Если почему-то цепочки не построились
+    // Если цепочки не построились
     // ======================================
 
     if(
@@ -231,8 +209,7 @@ export async function renderBreadcrumbs(
 
         const key =
 
-            chain
-                .map(
+            chain.map(
                     item =>
                         `${item.id}:${item.address ?? ""}`
                 )
@@ -240,6 +217,7 @@ export async function renderBreadcrumbs(
 
         if(
             !uniqueChains.some(
+
                 existing => {
 
                     const existingKey =
@@ -254,6 +232,7 @@ export async function renderBreadcrumbs(
                     return existingKey === key;
 
                 }
+
             )
         ){
 
@@ -277,29 +256,16 @@ export async function renderBreadcrumbs(
 
                 const parts =
 
-                    chain.map(
+                    chain
 
-                        item => {
+                        .filter(
+                            item =>
+                                item.address
+                        )
 
-                            /*
-                             * Для корневого объекта
-                             * адрес пустой — показываем title.
-                             *
-                             * Для остальных:
-                             * показываем именно address.
-                             *
-                             * Если это текущий объект,
-                             * у него тоже используем address
-                             * связи с ближайшим родителем.
-                             */
+                        .map(
 
-                            const label =
-
-                                item.address ||
-                                item.title ||
-                                "";
-
-                            return `
+                            item => `
 
                                 <a
 
@@ -309,15 +275,21 @@ export async function renderBreadcrumbs(
 
                                 >
 
-                                    ${label}
+                                    ${item.address}
 
                                 </a>
 
-                            `;
+                            `
 
-                        }
+                        );
 
-                    );
+                if(
+                    parts.length === 0
+                ){
+
+                    return "";
+
+                }
 
                 return `
 
@@ -343,7 +315,11 @@ export async function renderBreadcrumbs(
 
             }
 
-        ).join("");
+        )
+
+        .filter(Boolean)
+
+        .join("");
 
     if(
         !renderedChains
