@@ -337,31 +337,40 @@ export function setupParentsEditor(
             objects
 
             .filter(o=>{
-
+            
                 if(
                     o.id === entity?.id
                 )
-
+            
                     return false;
-
+            
                 const exists =
-
+            
                     parents.some(parent=>{
-
-                        return getParentId(parent)===o.id;
-
+            
+                        return getParentId(parent) === o.id;
+            
                     });
-
+            
                 if(exists)
-
+            
                     return false;
-
+            
+                if(
+                    options.filter &&
+                    !options.filter(o)
+                ){
+            
+                    return false;
+            
+                }
+            
                 return o.title
-
+            
                     .toLowerCase()
-
+            
                     .includes(text);
-
+            
             })
 
             .slice(0,20)
