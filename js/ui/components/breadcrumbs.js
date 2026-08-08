@@ -24,16 +24,22 @@ export async function renderBreadcrumbs(
     }
 
     // ======================================
-    // getParents() уже возвращает
-    // готовые полные цепочки:
+    // getParents() возвращает:
     //
-    // Краснохолмский район
-    // → Красный Холм
-    // → Улица Свободы
-    // → д. 6
+    // [
+    //     [
+    //         { id, address, level },
+    //         { id, address, level },
+    //         ...
+    //     ],
     //
-    // Для нескольких родителей
-    // возвращаются отдельные цепочки.
+    //     [
+    //         { id, address, level },
+    //         ...
+    //     ]
+    // ]
+    //
+    // То есть каждая цепочка уже полностью готова.
     // ======================================
 
     const chains =
@@ -43,7 +49,7 @@ export async function renderBreadcrumbs(
         );
 
     if(
-        !chains ||
+        !Array.isArray(chains) ||
         chains.length === 0
     ){
 
@@ -61,10 +67,18 @@ export async function renderBreadcrumbs(
 
         chain => {
 
+            if(
+                !Array.isArray(chain) ||
+                chain.length === 0
+            ){
+
+                return;
+
+            }
+
             const key =
 
                 chain
-
                     .map(
 
                         item =>
@@ -72,26 +86,31 @@ export async function renderBreadcrumbs(
                             `${item.id}:${item.address ?? ""}`
 
                     )
-
                     .join("|");
 
             const exists =
 
                 uniqueChains.some(
 
-                    existing =>
+                    existing => {
 
-                        existing
+                        const existingKey =
 
-                            .map(
+                            existing
+                                .map(
 
-                                item =>
+                                    item =>
 
-                                    `${item.id}:${item.address ?? ""}`
+                                        `${item.id}:${item.address ?? ""}`
 
-                            )
+                                )
+                                .join("|");
 
-                            .join("|") === key
+                        return (
+                            existingKey === key
+                        );
+
+                    }
 
                 );
 
@@ -106,6 +125,14 @@ export async function renderBreadcrumbs(
         }
 
     );
+
+    if(
+        uniqueChains.length === 0
+    ){
+
+        return "";
+
+    }
 
     // ======================================
     // Render
@@ -172,13 +199,9 @@ export async function renderBreadcrumbs(
 
             .join("");
 
-    if(
-        !renderedChains
-    ){
-
-        return "";
-
-    }
+    // ======================================
+    // Final
+    // ======================================
 
     return `
 
