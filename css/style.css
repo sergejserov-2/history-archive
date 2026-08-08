@@ -130,7 +130,7 @@ body {
 
     max-width: 1200px;
 
-    margin: 20px auto;
+    margin: 16px auto;
 
     padding: 0 25px;
 
@@ -140,7 +140,7 @@ body {
 ========================================== */
 
 .breadcrumbs {
-    margin: 0 0 18px 22px;
+    margin: 0 16px 16px 16px;
     color: #8f949b;
 }
 
