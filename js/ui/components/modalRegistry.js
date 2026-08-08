@@ -217,6 +217,10 @@ export const entityEditorModal = {
 
         }
 
+        // ----------------------------------
+        // Unknown type
+        // ----------------------------------
+
         else{
 
             console.error(
@@ -231,6 +235,10 @@ export const entityEditorModal = {
 
         }
 
+        // ----------------------------------
+        // Entity not found
+        // ----------------------------------
+
         if(!entity){
 
             return null;
@@ -239,7 +247,7 @@ export const entityEditorModal = {
 
         // ----------------------------------
         // Editor context
-        // ----------------------------------
+    // ----------------------------------
 
         const objects =
             await getAllObjects();
@@ -259,4 +267,95 @@ export const entityEditorModal = {
         };
 
     },
-}
+
+    open: async data => {
+
+        if(!data){
+
+            return;
+
+        }
+
+        openEntityEditor(
+
+            data.type,
+
+            data.entity,
+
+            data.context
+
+        );
+
+    }
+
+};
+
+// ======================================
+// OBJECT EDITOR
+// ======================================
+//
+// URL:
+//
+// ?modal=object-editor
+// &modalId=OBJECT_ID
+//
+// ======================================
+
+export const objectEditorModal = {
+
+    type: "object-editor",
+
+    params: [
+
+        "modalId"
+
+    ],
+
+    load: null,
+
+    open: null
+
+};
+
+// ======================================
+// LOGIN
+// ======================================
+//
+// URL:
+//
+// ?modal=login
+//
+// ======================================
+
+export const loginModal = {
+
+    type: "login",
+
+    params: [],
+
+    load: null,
+
+    open: null
+
+};
+
+// ======================================
+// ALL MODALS
+// ======================================
+//
+// modal.js работает только
+// с этим массивом.
+//
+// ======================================
+
+export const modalRegistry = [
+
+    photoPreviewModal,
+
+    entityEditorModal,
+
+    objectEditorModal,
+
+    loginModal
+
+];
