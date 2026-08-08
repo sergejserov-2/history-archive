@@ -63,12 +63,12 @@ from "./photoViewer.js";
 import {
     openObjectEditor
 }
-from "./objectEditor.js";
+from "../../admin/editors/objectEditor.js";
 
 import {
     openEntityEditor
 }
-from "./entityEditor.js";
+from "../../admin/editors/entityEditor.js";
 
 // ======================================
 // PHOTO PREVIEW
