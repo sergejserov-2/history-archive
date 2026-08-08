@@ -1349,6 +1349,88 @@ button.admin-button {
 }
 
 /* ==========================================
+   ENTITY SELECT
+========================================== */
+
+.entity-editor select,
+.object-editor select {
+
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+
+    background-color:#111316;
+
+    color:#e0e3e6;
+
+    border:1px solid #30343a;
+
+    border-radius:6px;
+
+    padding:8px 32px 8px 10px;
+
+    font-size:14px;
+
+    font-family:inherit;
+
+    line-height:1.3;
+
+    cursor:pointer;
+
+    background-image:
+
+        linear-gradient(
+            45deg,
+            transparent 50%,
+            #9da4ac 50%
+        ),
+
+        linear-gradient(
+            135deg,
+            #9da4ac 50%,
+            transparent 50%
+        );
+
+    background-position:
+
+        calc(100% - 14px) 50%,
+        calc(100% - 9px) 50%;
+
+    background-size:
+
+        5px 5px,
+        5px 5px;
+
+    background-repeat:no-repeat;
+
+}
+
+.entity-editor select:hover,
+.object-editor select:hover {
+
+    border-color:#444a52;
+
+}
+
+.entity-editor select:focus,
+.object-editor select:focus {
+
+    outline:none;
+
+    border-color:#555b63;
+
+}
+
+.entity-editor select option,
+.object-editor select option {
+
+    background:#1d2024;
+
+    color:#e0e3e6;
+
+}
+
+/* ==========================================
    FILE SELECTOR
 ========================================== */
 
