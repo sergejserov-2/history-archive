@@ -318,64 +318,84 @@ export function setupParentsEditor(
 
     searchInput.oninput = ()=>{
 
-        const text =
+    const text =
 
-            searchInput.value
+        searchInput.value
+        .toLowerCase()
+        .trim();
+
+    if(!text){
+
+        resultsBox.innerHTML="";
+
+        return;
+
+    }
+
+    resultsBox.innerHTML =
+
+        objects
+
+        .filter(o=>{
+
+            // Нельзя выбрать самого себя
+
+            if(
+                o.id === entity?.id
+            ){
+
+                return false;
+
+            }
+
+            // Нельзя повторно добавить уже выбранного родителя
+
+            const exists =
+
+                parents.some(parent=>{
+
+                    return getParentId(parent) === o.id;
+
+                });
+
+            if(exists){
+
+                return false;
+
+            }
+
+            // ======================================
+            // Проверка допустимости родителя
+            // ======================================
+
+            if(
+                options.filter &&
+                !options.filter(o)
+            ){
+
+                return false;
+
+            }
+
+            // ======================================
+            // Поиск по названию
+            // ======================================
+
+            return (
+
+                o.title ?? ""
+
+            )
+
             .toLowerCase()
-            .trim();
 
-        if(!text){
+            .includes(text);
 
-            resultsBox.innerHTML="";
+        })
 
-            return;
+        .slice(0,20)
 
-        }
-
-        resultsBox.innerHTML =
-
-            objects
-
-            .filter(o=>{
-            
-                if(
-                    o.id === entity?.id
-                )
-            
-                    return false;
-            
-                const exists =
-            
-                    parents.some(parent=>{
-            
-                        return getParentId(parent) === o.id;
-            
-                    });
-            
-                if(exists)
-            
-                    return false;
-            
-                if(
-                    options.filter &&
-                    !options.filter(o)
-                ){
-            
-                    return false;
-            
-                }
-            
-                return o.title
-            
-                    .toLowerCase()
-            
-                    .includes(text);
-            
-            })
-
-            .slice(0,20)
-
-            .map(o=>`
+        .map(o=>`
 
 <div
 
@@ -391,9 +411,9 @@ ${o.title}
 
 `)
 
-            .join("");
+        .join("");
 
-    };
+};
 
     resultsBox.onclick = e=>{
 
