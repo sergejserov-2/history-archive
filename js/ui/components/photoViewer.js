@@ -10,10 +10,33 @@ from "./modal.js";
 // ======================================
 // Open photo viewer
 // ======================================
+//
+// Обычное открытие:
+//
+// openPhotoViewer(photo);
+//
+// В этом случае URL получает:
+//
+// ?modal=photo-preview
+// &photoId=PHOTO_ID
+//
+// Если модалка восстанавливается из URL:
+//
+// openPhotoViewer(photo, {
+//     fromUrl: true
+// });
+//
+// В этом случае URL повторно не изменяется.
+//
+// ======================================
 
 export function openPhotoViewer(
 
-    photo
+    photo,
+
+    {
+        fromUrl = false
+    } = {}
 
 ){
 
@@ -23,7 +46,39 @@ export function openPhotoViewer(
 
     }
 
-const form = `
+    // ==================================
+    // URL modal state
+    // ==================================
+
+    if(
+        !fromUrl &&
+        photo.id
+    ){
+
+        const url =
+            new URL(
+                window.location.href
+            );
+
+        url.searchParams.set(
+            "modal",
+            "photo-preview"
+        );
+
+        url.searchParams.set(
+            "photoId",
+            photo.id
+        );
+
+        window.history.pushState(
+            {},
+            "",
+            url
+        );
+
+    }
+
+    const form = `
 
 <div class="photo-viewer">
 
@@ -45,115 +100,112 @@ const form = `
 
     <div class="photo-viewer__info">
 
-                <div class="photo-viewer__title">
+        <div class="photo-viewer__title">
 
-                    ${photo.title ?? ""}
-
-                </div>
-
-                ${
-                    photo.description
-                    ?
-                    `
-                    <div class="photo-viewer__description">
-
-                        ${photo.description}
-
-                    </div>
-                    `
-                    :
-                    ""
-                }
-
-                ${
-                    photo.author
-                    ?
-                    `
-                    <div class="photo-viewer__field">
-
-                        <span class="photo-viewer__label">
-                            Автор
-                        </span>
-
-                        <span>
-                            ${photo.author}
-                        </span>
-
-                    </div>
-                    `
-                    :
-                    ""
-                }
-
-                ${
-                    photo.date
-                    ?
-                    `
-                    <div class="photo-viewer__field">
-
-                        <span class="photo-viewer__label">
-                            Дата
-                        </span>
-
-                        <span>
-                            ${photo.date}
-                        </span>
-
-                    </div>
-                    `
-                    :
-                    ""
-                }
-
-                ${
-                    photo.storagePath
-                    ?
-                    `
-                    <a
-
-                        class="photo-viewer__download"
-
-                        href="${photo.storagePath}"
-
-                        download
-
-                        target="_blank"
-
-                        rel="noopener"
-
-                    >
-
-                        Скачать
-
-                    </a>
-                    `
-                    :
-                    ""
-                }
-
-            </div>
+            ${photo.title ?? ""}
 
         </div>
 
+        ${
+            photo.description
+            ?
+            `
+            <div class="photo-viewer__description">
+
+                ${photo.description}
+
+            </div>
+            `
+            :
+            ""
+        }
+
+        ${
+            photo.author
+            ?
+            `
+            <div class="photo-viewer__field">
+
+                <span class="photo-viewer__label">
+                    Автор
+                </span>
+
+                <span>
+                    ${photo.author}
+                </span>
+
+            </div>
+            `
+            :
+            ""
+        }
+
+        ${
+            photo.date
+            ?
+            `
+            <div class="photo-viewer__field">
+
+                <span class="photo-viewer__label">
+                    Дата
+                </span>
+
+                <span>
+                    ${photo.date}
+                </span>
+
+            </div>
+            `
+            :
+            ""
+        }
+
+        ${
+            photo.storagePath
+            ?
+            `
+            <a
+
+                class="photo-viewer__download"
+
+                href="${photo.storagePath}"
+
+                download
+
+                target="_blank"
+
+                rel="noopener"
+
+            >
+
+                Скачать
+
+            </a>
+            `
+            :
+            ""
+        }
+
+    </div>
+
+</div>
+
     `;
 
-const modal = createModal({
+    const modal = createModal({
 
-    title: "Фотография",
+        title: "Фотография",
 
-    content: form
+        content: form
 
-});
+    });
 
     const root = modal.root;
 
-    
     root.querySelector(".modal")
-    ?.classList.add(
-        "modal--photo-viewer"
-    );
-
-
+        ?.classList.add(
+            "modal--photo-viewer"
+        );
 
     const imageArea =
         root.querySelector(
@@ -165,7 +217,10 @@ const modal = createModal({
             "#photoViewerImage"
         );
 
-    if(!imageArea || !image){
+    if(
+        !imageArea ||
+        !image
+    ){
 
         return;
 
@@ -251,7 +306,8 @@ const modal = createModal({
 
     }
 
-    image.onload = fitImage;
+    image.onload =
+        fitImage;
 
     // ======================================
     // Mouse drag
@@ -349,7 +405,8 @@ const modal = createModal({
 
             event.preventDefault();
 
-            const oldScale = scale;
+            const oldScale =
+                scale;
 
             const direction =
                 event.deltaY < 0
@@ -452,7 +509,7 @@ const modal = createModal({
                     translateX;
 
                 touchStartTranslateY =
-                  translateY;
+                    translateY;
 
             }
 
@@ -464,8 +521,11 @@ const modal = createModal({
 
                 pinchStartDistance =
                     getTouchDistance(
+
                         event.touches[0],
+
                         event.touches[1]
+
                     );
 
                 pinchStartScale =
@@ -524,8 +584,11 @@ const modal = createModal({
 
                 const distance =
                     getTouchDistance(
+
                         event.touches[0],
+
                         event.touches[1]
+
                     );
 
                 if(!pinchStartDistance){
@@ -586,6 +649,7 @@ const modal = createModal({
     function getTouchDistance(
 
         first,
+
         second
 
     ){
