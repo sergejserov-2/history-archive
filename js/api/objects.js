@@ -110,7 +110,40 @@ export async function getAllObjects() {
 
 export async function getParents(object) {
 
-    if (!object || !object.parents || object.parents.length === 0) {
+    if(
+        !object ||
+        !object.parents ||
+        object.parents.length === 0
+    ){
+
+        // ==================================
+        // Корневой объект
+        // ==================================
+
+        if(object){
+
+            const type =
+                await getType(
+                    object.typeId
+                );
+
+            return [{
+
+                id:
+                    object.id,
+
+                title:
+                    object.title ?? "",
+
+                address:
+                    object.address ?? "",
+
+                level:
+                    type?.level ?? null
+
+            }];
+
+        }
 
         return [];
 
@@ -118,45 +151,91 @@ export async function getParents(object) {
 
     const result = [];
 
-    for (const parent of object.parents) {
+    for(
+        const parent
+        of object.parents
+    ){
 
-        const parentObject = await getObject(
-            parent.objectId
-        );
+        const parentObject =
+            await getObject(
+                parent.objectId
+            );
 
-        if (!parentObject) {
+        if(!parentObject){
+
             continue;
+
         }
 
-        // Получаем тип родителя (там хранится level)
-        const parentType = await getType(
-            parentObject.typeId
-        );
+        // ==================================
+        // Получаем тип родителя
+        // ==================================
 
-        // Поднимаемся выше по цепочке
-        const upperParents = await getParents(
-            parentObject
-        );
+        const parentType =
+            await getType(
+                parentObject.typeId
+            );
+
+        // ==================================
+        // Поднимаемся выше
+        // ==================================
+
+        const upperParents =
+            await getParents(
+                parentObject
+            );
 
         result.push(
             ...upperParents
         );
 
+        // ==================================
+        // Добавляем текущего родителя
+        //
+        // Адрес берём именно из связи
+        // parent → parentObject
+        // ==================================
+
         result.push({
 
-            id: parentObject.id,
+            id:
+                parentObject.id,
 
-            title: parentObject.title,
+            title:
+                parentObject.title ?? "",
 
-            address: parent.address || "",
+            address:
+                parent.address ?? "",
 
-            level: parentType?.level ?? null
+            level:
+                parentType?.level ?? null
 
         });
 
     }
 
-    return result;
+    // ======================================
+    // Убираем дубли
+    // ======================================
+
+    const unique = [];
+
+    result.forEach(item => {
+
+        if(
+            !unique.some(
+                existing =>
+                    existing.id === item.id
+            )
+        ){
+
+            unique.push(item);
+
+        }
+
+    });
+
+    return unique;
 
 }
 // ======================================
