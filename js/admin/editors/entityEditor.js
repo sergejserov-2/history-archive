@@ -201,8 +201,6 @@ const modal = createModal({
 
 const root = modal.root;
 
-    const root = modal.root;
-
 const fileEditor = setupFileEditor(
     root,
     entity,
