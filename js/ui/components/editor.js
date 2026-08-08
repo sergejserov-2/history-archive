@@ -603,22 +603,19 @@ export function setupFileEditor(
 
 return {
 
-    hasFile(){
+hasFile(){
 
-        return (
+    return (
 
-            !!file
+        !!file
 
-            ||
+        ||
 
-            (
-                !!entity?.storagePath &&
-                !removeOldFile
-            )
+        !!entity?.storagePath
 
-        );
+    );
 
-    },
+},
 
 async getData(){
 
