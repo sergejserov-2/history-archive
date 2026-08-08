@@ -33,6 +33,11 @@ import {
 }
 from "../api/records.js";
 
+import {
+    moveFileToDeleted
+}
+from "../api/storage.js";
+
 // ======================================
 // Init
 // ======================================
@@ -289,29 +294,76 @@ return;
 
 if(
 
-action==="delete-photo"
+    action==="delete-photo"
 
 ){
 
-if(
+    if(
 
-!confirm(
+        !confirm(
 
-"Удалить фотографию?"
+            "Удалить фотографию?"
 
-)
+        )
 
-){
+    ){
+
+        return;
+
+    }
+
+    const photo =
+
+        photos.find(
+
+            p=>p.id===id
+
+        );
+
+    try{
+
+        // ======================================
+        // Перемещаем файл в deleted
+        // ======================================
+
+        if(photo?.storagePath){
+
+            await moveFileToDeleted(
+
+                photo.storagePath
+
+            );
+
+        }
+
+        // ======================================
+        // Удаляем сущность из Firestore
+        // ======================================
+
+        await deletePhoto(id);
+
+        location.reload();
+
+    }
+    catch(error){
+
+        console.error(
+
+            "Ошибка удаления фотографии:",
+
+            error
+
+        );
+
+        alert(
+
+            "Не удалось удалить фотографию"
+
+        );
+
+    }
 
     return;
-
-}
-
-await deletePhoto(id);
-
-location.reload();
-
-return;
 
 }
 
@@ -395,29 +447,76 @@ return;
 
 if(
 
-action==="delete-source"
+    action==="delete-source"
 
 ){
 
-if(
+    if(
 
-!confirm(
+        !confirm(
 
-"Удалить источник?"
+            "Удалить источник?"
 
-)
+        )
 
-){
+    ){
+
+        return;
+
+    }
+
+    const source =
+
+        sources.find(
+
+            s=>s.id===id
+
+        );
+
+    try{
+
+        // ======================================
+        // Перемещаем файл в deleted
+        // ======================================
+
+        if(source?.storagePath){
+
+            await moveFileToDeleted(
+
+                source.storagePath
+
+            );
+
+        }
+
+        // ======================================
+        // Удаляем сущность из Firestore
+        // ======================================
+
+        await deleteSource(id);
+
+        location.reload();
+
+    }
+    catch(error){
+
+        console.error(
+
+            "Ошибка удаления источника:",
+
+            error
+
+        );
+
+        alert(
+
+            "Не удалось удалить источник"
+
+        );
+
+    }
 
     return;
-
-}
-
-await deleteSource(id);
-
-location.reload();
-
-return;
 
 }
 
