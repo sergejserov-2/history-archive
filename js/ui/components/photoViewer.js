@@ -3,49 +3,9 @@
 // ======================================
 
 import {
-    createModal,
-    registerModal
+    createModal
 }
 from "./modal.js";
-
-import {
-    getPhotos
-}
-from "../api/photos.js";
-
-// ======================================
-// Register photo viewer
-// ======================================
-
-registerModal(
-
-    "photo",
-
-    openPhotoViewer,
-
-    {
-
-        admin: false,
-
-        getUrl: photo => ({
-
-            modal: "photo",
-
-            modalId: photo.id
-
-        }),
-
-        load: async params => {
-
-            return await getPhotos(
-                params.modalId
-            );
-
-        }
-
-    }
-
-);
 
 // ======================================
 // Open photo viewer
@@ -181,15 +141,7 @@ const modal = createModal({
 
     title: "Фотография",
 
-    content: form,
-
-    route: {
-
-        type: "photo",
-
-        data: photo
-
-    }
+    content: form
 
 });
 
