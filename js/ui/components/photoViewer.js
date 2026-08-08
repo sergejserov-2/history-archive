@@ -15,10 +15,15 @@ from "./modal.js";
 //
 // openPhotoViewer(photo);
 //
-// В этом случае URL получает:
+// URL:
 //
-// ?modal=photo-preview
-// &photoId=PHOTO_ID
+// object.html
+// ?id=OBJECT_ID
+// &modal=photo-preview
+// &entityId=PHOTO_ID
+//
+// id — родительский объект.
+// entityId — открываемая фотография.
 //
 // Если модалка восстанавливается из URL:
 //
@@ -60,23 +65,51 @@ export function openPhotoViewer(
                 window.location.href
             );
 
+        // ==================================
+        // Modal type
+        // ==================================
+
         url.searchParams.set(
             "modal",
             "photo-preview"
         );
 
+        // ==================================
+        // Entity ID
+        // ==================================
+        //
+        // Используем общий параметр
+        // для всех сущностей.
+        //
+        // Родитель уже находится
+        // в стандартном ?id=...
+        //
+        // ==================================
+
         url.searchParams.set(
-            "photoId",
+            "entityId",
             photo.id
         );
 
+        // ==================================
+        // Обновляем URL
+        // ==================================
+
         window.history.pushState(
+
             {},
+
             "",
+
             url
+
         );
 
     }
+
+    // ======================================
+    // Viewer HTML
+    // ======================================
 
     const form = `
 
@@ -192,20 +225,30 @@ export function openPhotoViewer(
 
     `;
 
-    const modal = createModal({
+    // ======================================
+    // Create modal
+    // ======================================
 
-        title: "Фотография",
+    const modal =
+        createModal({
 
-        content: form
+            title:
+                "Фотография",
 
-    });
+            content:
+                form
 
-    const root = modal.root;
+        });
 
-    root.querySelector(".modal")
-        ?.classList.add(
-            "modal--photo-viewer"
-        );
+    const root =
+        modal.root;
+
+    root.querySelector(
+        ".modal"
+    )
+    ?.classList.add(
+        "modal--photo-viewer"
+    );
 
     const imageArea =
         root.querySelector(
@@ -286,10 +329,12 @@ export function openPhotoViewer(
         }
 
         const scaleX =
-            areaWidth / imageWidth;
+            areaWidth /
+            imageWidth;
 
         const scaleY =
-            areaHeight / imageHeight;
+            areaHeight /
+            imageHeight;
 
         scale =
             Math.min(
@@ -427,8 +472,7 @@ export function openPhotoViewer(
                     )
                 );
 
-            // Сохраняем точку,
-            // над которой находится курсор.
+            // Сохраняем точку,// над которой находится курсор.
 
             const rect =
                 imageArea.getBoundingClientRect();
@@ -463,7 +507,6 @@ export function openPhotoViewer(
 
         {
             passive:false
-
         }
 
     );
@@ -537,7 +580,6 @@ export function openPhotoViewer(
 
         {
             passive:true
-
         }
 
     );
@@ -623,7 +665,6 @@ export function openPhotoViewer(
 
         {
             passive:false
-
         }
 
     );
