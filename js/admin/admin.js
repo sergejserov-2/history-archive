@@ -113,6 +113,8 @@ photos,
 
 children,
 
+context,
+
 ()=>{
 
 location.reload();
