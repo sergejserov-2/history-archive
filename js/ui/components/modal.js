@@ -16,6 +16,14 @@ let currentModal = null;
 // ======================================
 // Create modal
 // ======================================
+//
+// createModal:
+//
+// Только создаёт визуальное окно.
+//
+// URL здесь НЕ изменяется.
+//
+// ======================================
 
 export function createModal({
 
@@ -127,53 +135,34 @@ export function createModal({
 }
 
 // ======================================
-// Restore modal from URL
+// Open modal
 // ======================================
 //
-// URL:
+// type:
+//     тип зарегистрированной модалки
 //
-// ?modal=entity-editor
-// &modalId=123
-// &modalType=photo
+// params:
+//     параметры модалки,
+//     которые будут записаны в URL
 //
-// Алгоритм:
+// Например:
 //
-// 1. читаем modal
-// 2. находим регистрацию
-// 3. читаем параметры,
-//    указанные в registration.params
-// 4. вызываем registration.load()
-// 5. передаём результат в registration.open()
+// openModal(
+//     "photo",
+//     {
+//         modalId: photo.id
+//     }
+// );
 //
 // ======================================
 
-export async function restoreModalFromUrl(){
+export async function openModal(
 
-    const url =
-        new URL(
-            window.location.href
-        );
+    type,
 
-    const type =
-        url.searchParams.get(
-            "modal"
-        );
+    params = {}
 
-    // ==================================
-    // Модалки нет
-    // ==================================
-
-    if(!type){
-
-        closeCurrentModal();
-
-        return;
-
-    }
-
-    // ==================================
-    // Найти регистрацию
-    // ==================================
+){
 
     const registration =
         modalRegistry.find(
@@ -197,29 +186,15 @@ export async function restoreModalFromUrl(){
 
         );
 
-        closeCurrentModal();
-
         return;
 
     }
 
     // ==================================
-    // Получить параметры
+    // Закрыть текущую модалку
     // ==================================
 
-    const params = {};
-
-    for(
-        const key of
-        registration.params ?? []
-    ){
-
-        params[key] =
-            url.searchParams.get(
-                key
-            );
-
-    }
+    closeCurrentModal();
 
     // ==================================
     // Загрузить данные
@@ -249,17 +224,21 @@ export async function restoreModalFromUrl(){
 
     ){
 
-        closeCurrentModal();
-
         return;
 
     }
 
     // ==================================
-    // Закрыть предыдущую модалку
+    // Записать состояние в URL
     // ==================================
 
-    closeCurrentModal();
+    setModalUrl(
+
+        type,
+
+        params
+
+    );
 
     // ==================================
     // Открыть модалку
@@ -272,6 +251,77 @@ export async function restoreModalFromUrl(){
         await registration.open(
             data
         );
+
+    }
+
+    // ==================================
+    // Пометить модалку как связанную
+    // с URL
+    // ==================================
+
+    if(currentModal){
+
+        currentModal.urlManaged = true;
+
+    }
+
+}
+
+// ======================================
+// Set modal URL
+// ================
+    // Загрузить данные
+    // ==================================
+
+    let data = null;
+
+    if(
+        registration.load
+    ){
+
+        data =
+            await registration.load(
+                params
+            );
+
+    }
+
+    // ==================================
+    // Данные не найдены
+    // ==================================
+
+    if(
+
+        registration.load &&
+        !data
+
+    ){
+
+        return;
+
+    }
+
+    // ==================================
+    // Открыть модалку
+    // ==================================
+
+    if(
+        registration.open
+    ){
+
+        await registration.open(
+            data
+        );
+
+    }
+
+    // ==================================
+    // Пометить как URL-модалку
+    // ==================================
+
+    if(currentModal){
+
+        currentModal.urlManaged = true;
 
     }
 
@@ -289,9 +339,25 @@ function closeCurrentModal(){
 
     }
 
-    currentModal.overlay.remove();
+    const modal =
+        currentModal;
 
     currentModal = null;
+
+    modal.overlay.remove();
+
+    // ==================================
+    // Если модалка была открыта
+    // через URL — очищаем его
+    // ==================================
+
+    if(
+        modal.urlManaged
+    ){
+
+        clearModalUrl();
+
+    }
 
 }
 
