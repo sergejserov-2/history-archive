@@ -213,6 +213,7 @@ const fieldsEditor = setupEntityFieldsEditor(
     cfg
 );
 
+
 setupEditorButtons(
 
     root,
@@ -220,6 +221,19 @@ setupEditorButtons(
     async()=>{
 
         try{
+
+            if(
+                type === "photo" &&
+                !fileEditor?.hasFile()
+            ){
+
+                alert(
+                    "Для фотографии необходимо выбрать файл"
+                );
+
+                return;
+
+            }
 
             const data = {
 
