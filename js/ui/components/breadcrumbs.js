@@ -3,93 +3,9 @@
 // ======================================
 
 import {
-    getObject,
-    getType
+    getObject
 }
 from "../../api/objects.js";
-
-// ======================================
-// Build chain
-// ======================================
-
-async function buildChain(objectId){
-
-    const object =
-        await getObject(
-            objectId
-        );
-
-    if(!object){
-
-        return [];
-
-    }
-
-    const current = {
-
-        id:
-            object.id,
-
-        address:
-            object.address ?? ""
-
-    };
-
-    // ======================================
-    // Root object
-    // ======================================
-
-    if(
-        !object.parents ||
-        object.parents.length === 0
-    ){
-
-        return [
-            current
-        ];
-
-    }
-
-    const chains = [];
-
-    for(
-        const parent
-        of object.parents
-    ){
-
-        const parentChain =
-            await buildChain(
-                parent.objectId
-            );
-
-        chains.push(
-
-            [
-                ...parentChain,
-
-                {
-
-                    id:
-                        object.id,
-
-                    address:
-                        parent.address ?? ""
-
-                }
-
-            ]
-
-        );
-
-    }
-
-    // Берём первую цепочку.
-    // Для нескольких родителей отдельные цепочки
-    // будут обработаны renderBreadcrumbs().
-
-    return chains[0] ?? [];
-
-}
 
 // ======================================
 // Build all chains
@@ -103,6 +19,10 @@ async function buildAllChains(object){
 
     }
 
+    // ======================================
+    // Root object
+    // ======================================
+
     if(
         !object.parents ||
         object.parents.length === 0
@@ -111,13 +31,14 @@ async function buildAllChains(object){
         return [[
 
             {
-
                 id:
                     object.id,
 
+                title:
+                    object.title ?? "",
+
                 address:
                     object.address ?? ""
-
             }
 
         ]];
@@ -125,6 +46,11 @@ async function buildAllChains(object){
     }
 
     const result = [];
+
+    // ======================================
+    // Для каждого родителя строим
+    // отдельную цепочку
+    // ======================================
 
     for(
         const parent
@@ -163,6 +89,11 @@ async function buildAllChains(object){
                         id:
                             object.id,
 
+                        title:
+                            object.title ?? "",
+
+                        // Адрес берём именно
+                        // из связи с этим родителем
                         address:
                             parent.address ?? ""
 
@@ -232,12 +163,14 @@ export async function renderBreadcrumbs(
         if(
             !uniqueChains.some(
                 existing =>
+
                     existing
                         .map(
                             item =>
                                 `${item.id}:${item.address}`
                         )
                         .join("|") === key
+
             )
         ){
 
@@ -250,64 +183,70 @@ export async function renderBreadcrumbs(
     }
 
     // ======================================
-    // Render
+    // Render chains
     // ======================================
 
     const renderedChains =
 
-        uniqueChains.map(chain => {
+        uniqueChains
 
-                const parts =
+            .map(
 
-                    chain
-                        .filter(
-                            item =>
-                                item.address
-                        )
-                        .map(
+                chain => {
 
-                            (item, index) => `
+                    const parts =
 
-                                <a
-                                    class="breadcrumbs__item"
-                                    href="object.html?id=${item.id}"
-                                >
-                                    ${item.address}
-                                </a>
+                        chain.map(
 
-                            `
+                            item => {
+
+                                return `
+
+                                    <a
+
+                                        class="breadcrumbs__item"
+
+                                        href="object.html?id=${item.id}"
+
+                                    >
+
+                                        ${item.address}
+
+                                    </a>
+
+                                `;
+
+                            }
 
                         );
 
-                if(
-                    parts.length === 0
-                ){
+                    return `
 
-                    return "";
+                        <div class="breadcrumbs__chain">
+
+                            ${
+
+                                parts.join(`
+
+                                    <span class="breadcrumbs__separator">
+
+                                        →
+
+                                    </span>
+
+                                `)
+
+                            }
+
+                        </div>
+
+                    `;
 
                 }
 
-                return `
+            )
 
-                    <div class="breadcrumbs__chain">
-
-                        ${parts.join(`
-
-                            <span class="breadcrumbs__separator">
-                                →
-                            </span>
-
-                        `)}
-
-                    </div>
-
-                `;
-
-            }
-
-        )
-        .filter(Boolean)
-        .join("");
+            .join("");
 
     if(!renderedChains){
 
@@ -318,8 +257,11 @@ export async function renderBreadcrumbs(
     return `
 
         <nav
+
             class="breadcrumbs"
+
             aria-label="Навигация по объектам"
+
         >
 
             ${renderedChains}
