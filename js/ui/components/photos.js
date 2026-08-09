@@ -198,7 +198,7 @@ export function renderPhotos(
 
                     class="photo-card__image"
 
-                    src="${photo.storagePath}"
+                    src="${photo.previewPath}"
 
                     alt="${photo.title ?? ""}"
 
