@@ -7,13 +7,23 @@ import {
 }
 from "./modal.js";
 
+import {
+    createViewerControls
+}
+from "./viewerControls.js";
+
 // ======================================
 // Open photo viewer
 // ======================================
 //
 // Обычное открытие:
 //
-// openPhotoViewer(photo);
+// openPhotoViewer(
+//     photo,
+//     {
+//         photos
+//     }
+// );
 //
 // URL:
 //
@@ -27,11 +37,13 @@ from "./modal.js";
 //
 // Если модалка восстанавливается из URL:
 //
-// openPhotoViewer(photo, {
-//     fromUrl: true
-// });
-//
-// В этом случае URL повторно не изменяется.
+// openPhotoViewer(
+//     photo,
+//     {
+//         photos,
+//         fromUrl:true
+//     }
+// );
 //
 // ======================================
 
@@ -40,6 +52,7 @@ export function openPhotoViewer(
     photo,
 
     {
+        photos = [],
         fromUrl = false
     } = {}
 
@@ -51,58 +64,54 @@ export function openPhotoViewer(
 
     }
 
-    // ==================================
+    // ======================================
+    // Gallery
+    // ======================================
+
+    const gallery =
+        [...(photos ?? [])];
+
+    // ======================================
+    // Current index
+    // ======================================
+
+    let currentIndex =
+        gallery.findIndex(
+
+            item =>
+                item.id ===
+                photo.id
+
+        );
+
+    // ======================================
+    // Если текущей фотографии нет
+    // в массиве — считаем её единственной.
+    // ======================================
+
+    if(
+        currentIndex < 0
+    ){
+
+        gallery.unshift(
+            photo
+        );
+
+        currentIndex = 0;
+
+    }
+
+    // ======================================
     // URL modal state
-    // ==================================
+    // ======================================
 
     if(
         !fromUrl &&
         photo.id
     ){
 
-        const url =
-            new URL(
-                window.location.href
-            );
-
-        // ==================================
-        // Modal type
-        // ==================================
-
-        url.searchParams.set(
-            "modal",
-            "photo-preview"
-        );
-
-        // ==================================
-        // Entity ID
-        // ==================================
-        //
-        // Используем общий параметр
-        // для всех сущностей.
-        //
-        // Родитель уже находится
-        // в стандартном ?id=...
-        //
-        // ==================================
-
-        url.searchParams.set(
-            "entityId",
+        updatePhotoUrl(
             photo.id
-        );
-
-        // ==================================
-        // Обновляем URL
-        // ==================================
-
-        window.history.pushState(
-
-            {},
-
-            "",
-
-            url
-
         );
 
     }
@@ -119,13 +128,12 @@ export function openPhotoViewer(
 
         <div
             class="photo-viewer__image-bg"
-            style="background-image:url('${photo.storagePath ?? ""}')"
         ></div>
 
         <img
             id="photoViewerImage"
-            src="${photo.storagePath ?? ""}"
-            alt="${photo.title ?? ""}"
+            src=""
+            alt=""
             draggable="false"
         >
 
@@ -133,91 +141,54 @@ export function openPhotoViewer(
 
     <div class="photo-viewer__info">
 
-        <div class="photo-viewer__title">
+        <div class="photo-viewer__title"></div>
 
-            ${photo.title ?? ""}
+        <div
+            class="photo-viewer__description"
+            hidden
+        ></div>
+
+        <div
+            class="photo-viewer__field photo-viewer__author"
+            hidden
+        >
+
+            <span class="photo-viewer__label">
+                Автор
+            </span>
+
+            <span
+                class="photo-viewer__author-value"
+            ></span>
 
         </div>
 
-        ${
-            photo.description
-            ?
-            `
-            <div class="photo-viewer__description">
+        <div
+            class="photo-viewer__field photo-viewer__date"
+            hidden
+        >
 
-                ${photo.description}
+            <span class="photo-viewer__label">
+                Дата
+            </span>
 
-            </div>
-            `
-            :
-            ""
-        }
+            <span
+                class="photo-viewer__date-value"
+            ></span>
 
-        ${
-            photo.author
-            ?
-            `
-            <div class="photo-viewer__field">
+        </div>
 
-                <span class="photo-viewer__label">
-                    Автор
-                </span>
+        <a
+            class="photo-viewer__download"
+            hidden
+            download
+            target="_blank"
+            rel="noopener"
+        >
 
-                <span>
-                    ${photo.author}
-                </span>
+            Скачать
 
-            </div>
-            `
-            :
-            ""
-        }
-
-        ${
-            photo.date
-            ?
-            `
-            <div class="photo-viewer__field">
-
-                <span class="photo-viewer__label">
-                    Дата
-                </span>
-
-                <span>
-                    ${photo.date}
-                </span>
-
-            </div>
-            `
-            :
-            ""
-        }
-
-        ${
-            photo.storagePath
-            ?
-            `
-            <a
-
-                class="photo-viewer__download"
-
-                href="${photo.storagePath}"
-
-                download
-
-                target="_blank"
-
-                rel="noopener"
-
-            >
-
-                Скачать
-
-            </a>
-            `
-            :
-            ""
-        }
+        </a>
 
     </div>
 
@@ -260,12 +231,17 @@ export function openPhotoViewer(
             "#photoViewerImage"
         );
 
+    const imageBackground =
+        root.querySelector(
+            ".photo-viewer__image-bg"
+        );
+
     if(
         !imageArea ||
         !image
     ){
 
-        return;
+        return modal;
 
     }
 
@@ -351,9 +327,6 @@ export function openPhotoViewer(
 
     }
 
-    image.onload =
-        fitImage;
-
     // ======================================
     // Mouse drag
     // ======================================
@@ -388,54 +361,52 @@ export function openPhotoViewer(
 
     );
 
-    window.addEventListener(
+    function handleMouseMove(event){
 
-        "mousemove",
+        if(!dragging){
 
-        event=>{
-
-            if(!dragging){
-
-                return;
-
-            }
-
-            translateX =
-
-                startTranslateX +
-                (
-                    event.clientX -
-                    startX
-                );
-
-            translateY =
-
-                startTranslateY +
-                (
-                    event.clientY -
-                    startY
-                );
-
-            updateTransform();
+            return;
 
         }
 
+        translateX =
+
+            startTranslateX +
+            (
+                event.clientX -
+                startX
+            );
+
+        translateY =
+
+            startTranslateY +
+            (
+                event.clientY -
+                startY
+            );
+
+        updateTransform();
+
+    }
+
+    function handleMouseUp(){
+
+        dragging = false;
+
+        imageArea.classList.remove(
+            "is-dragging"
+        );
+
+    }
+
+    window.addEventListener(
+        "mousemove",
+        handleMouseMove
     );
 
     window.addEventListener(
-
         "mouseup",
-
-        ()=>{
-
-            dragging = false;
-
-            imageArea.classList.remove(
-                "is-dragging"
-            );
-
-        }
-
+        handleMouseUp
     );
 
     // ======================================
@@ -472,7 +443,8 @@ export function openPhotoViewer(
                     )
                 );
 
-            // Сохраняем точку,// над которой находится курсор.
+            // Сохраняем точку,
+            // над которой находится курсор.
 
             const rect =
                 imageArea.getBoundingClientRect();
@@ -496,8 +468,7 @@ export function openPhotoViewer(
 
             translateY -=
                 mouseY *
-                (
-                    scale -
+                (scale -
                     oldScale
                 );
 
@@ -711,15 +682,422 @@ export function openPhotoViewer(
     }
 
     // ======================================
-    // Initial state
+    // Viewer controls
     // ======================================
 
-    if(image.complete){
+    const controls =
+        createViewerControls({
 
-        fitImage();
+            currentIndex,
+
+            total:
+                gallery.length,
+
+            onPrevious:
+                showPrevious,
+
+            onNext:
+                showNext
+
+        });
+
+    root.appendChild(
+        controls.element
+    );
+
+    // ======================================
+    // Show photo
+    // ======================================
+
+    function showPhoto(
+
+        nextPhoto,
+
+        nextIndex,
+
+        {
+            updateUrl = true
+        } = {}
+
+    ){
+
+        if(!nextPhoto){
+
+            return;
+
+        }
+
+        currentIndex =
+            nextIndex;
+
+        // ==================================
+        // Reset image transform
+        // ==================================
+
+        scale = 1;
+
+        translateX = 0;
+
+        translateY = 0;
+
+        dragging = false;
+
+        pinchStartDistance = null;
+
+        imageArea.classList.remove(
+            "is-dragging"
+        );
+
+        // ==================================
+        // Image
+        // ==================================
+
+        image.src =
+            nextPhoto.storagePath ?? "";
+
+        image.alt =
+            nextPhoto.title ?? "";
+
+        if(
+            nextPhoto.storagePath
+        ){
+
+            imageBackground.style.backgroundImage =
+
+                `url('${nextPhoto.storagePath}')`;
+
+        }
+        else{
+
+            imageBackground.style.backgroundImage =
+                "";
+
+        }
+
+        // ==================================
+        // Info
+        // ==================================
+
+        const title =
+            root.querySelector(
+                ".photo-viewer__title"
+            );
+
+        const description =
+            root.querySelector(
+                ".photo-viewer__description"
+            );
+
+        const author =
+            root.querySelector(
+                ".photo-viewer__author"
+            );
+
+        const authorValue =
+            root.querySelector(
+                ".photo-viewer__author-value"
+            );
+
+        const date =
+            root.querySelector(
+                ".photo-viewer__date"
+            );
+
+        const dateValue =
+            root.querySelector(
+                ".photo-viewer__date-value"
+            );
+
+        const download =
+            root.querySelector(
+                ".photo-viewer__download"
+            );
+
+        if(title){
+
+            title.textContent =
+                nextPhoto.title ?? "";
+
+        }
+
+        if(description){
+
+            if(
+                nextPhoto.description
+            ){
+
+                description.textContent =
+                    nextPhoto.description;
+
+                description.hidden =
+                    false;
+
+            }
+            else{
+
+                description.textContent =
+                    "";
+
+                description.hidden =
+                    true;
+
+            }
+
+        }
+
+        if(author){
+
+            if(
+                nextPhoto.author
+            ){
+
+                authorValue.textContent =
+                    nextPhoto.author;
+
+                author.hidden =
+                    false;
+
+            }
+            else{
+
+                authorValue.textContent =
+                    "";
+
+                author.hidden =
+                    true;
+
+            }
+
+        }
+
+        if(date){
+
+            if(
+                nextPhoto.date
+            ){
+
+                dateValue.textContent =
+                    nextPhoto.date;
+
+                date.hidden =
+                    false;
+
+            }
+            else{
+
+                dateValue.textContent =
+                    "";
+
+                date.hidden =
+                    true;
+
+            }
+
+        }
+
+        if(download){
+
+            if(
+                nextPhoto.storagePath
+            ){
+
+                download.href =
+                    nextPhoto.storagePath;
+
+                download.hidden =
+                    false;
+
+            }
+            else{
+
+                download.removeAttribute(
+                    "href"
+                );
+
+                download.hidden =
+                    true;
+
+            }
+
+        }
+
+        // ==================================
+        // Controls
+        // ==================================
+
+        controls.update(
+            currentIndex
+        );
+
+        // ==================================
+        // URL
+        // ==================================
+
+        if(
+            updateUrl &&
+            nextPhoto.id
+        ){
+
+            updatePhotoUrl(
+                nextPhoto.id
+            );
+
+        }
+
+        // ==================================
+        // Fit after image load
+        // ==================================
+
+        if(image.complete){
+
+            fitImage();
+
+        }
 
     }
 
+    image.onload =
+        fitImage;
+
+    // ======================================
+    // Previous
+    // ======================================
+
+    function showPrevious(){
+
+        if(
+            currentIndex <= 0
+        ){
+
+            return;
+
+        }
+
+        const nextIndex =
+            currentIndex - 1;
+
+        const nextPhoto =
+            gallery[nextIndex];
+
+        showPhoto(
+            nextPhoto,
+            nextIndex
+        );
+
+    }
+
+    // ======================================
+    // Next
+    // ======================================
+
+    function showNext(){
+
+        if(
+            currentIndex >=
+            gallery.length - 1
+        ){
+
+            return;
+
+        }
+
+        const nextIndex =
+            currentIndex + 1;
+
+        const nextPhoto =
+            gallery[nextIndex];
+
+        showPhoto(
+            nextPhoto,
+            nextIndex
+        );
+
+    }
+
+    // ======================================
+    // Initial photo
+    // ======================================
+
+    showPhoto(
+
+        gallery[currentIndex],
+
+        currentIndex,
+
+        {
+            updateUrl:false
+        }
+
+    );
+
+    // ======================================
+    // Cleanup
+    // ======================================
+
+    const originalClose =
+        modal.close;
+
+    modal.close = ()=>{
+
+        controls.destroy();
+
+        window.removeEventListener(
+            "mousemove",
+            handleMouseMove
+        );
+
+        window.removeEventListener(
+            "mouseup",
+            handleMouseUp
+        );
+
+        originalClose();
+
+    };
+
     return modal;
+
+}
+
+// ======================================
+// Update photo URL
+// ======================================
+
+function updatePhotoUrl(
+
+    photoId
+
+){
+
+    if(!photoId){
+
+        return;
+
+    }
+
+    const url =
+        new URL(
+            window.location.href
+        );
+
+    url.searchParams.set(
+        "modal",
+        "photo-preview"
+    );
+
+    url.searchParams.set(
+        "entityId",
+        photoId
+    );
+
+    window.history.pushState(
+
+        {},
+
+        "",
+
+        url
+
+    );
 
 }
