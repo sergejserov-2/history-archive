@@ -140,15 +140,6 @@ else if(parentType){
 
         Number(parentType.level) - 1;
 
-    console.log(
-    "OBJECT EDITOR TARGET LEVEL:",
-    targetLevel
-);
-
-console.log(
-    "OBJECT EDITOR AVAILABLE TYPES:",
-    types.filter(
-
         type =>
 
             Number(type.level) ===
@@ -256,10 +247,7 @@ console.log(
                 }
 
             );
-console.log(
-    "OBJECT EDITOR DEFAULT TYPE:",
-    sortedTypes[0]
-);
+
         defaultTypeId =
             sortedTypes[0].id;
 
