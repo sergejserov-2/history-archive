@@ -41,6 +41,11 @@ import {
 }
 from "../../api/records.js";
 
+import {
+    getRecordTypes
+}
+from "../../api/recordTypes.js";
+
 // ======================================
 // Config
 // ======================================
@@ -89,24 +94,29 @@ const CONFIG = {
 
     },
 
-    record: {
+record: {
 
-        title: "Запись",
+    title: "Запись",
 
-        update: updateRecord,
-        create: createRecord,
+    update: updateRecord,
+    create: createRecord,
 
-        file: false,
+    file: false,
 
-        fields: [
+    fields: [
 
-            "dateStart",
+        "dateStart",
+        "dateEnd"
 
-            "dateEnd"
+    ],
 
-        ]
+    options: {
+
+        typeSelector: true
 
     }
+
+}
 
 };
 
@@ -180,7 +190,26 @@ const cfg = CONFIG[type];
 
 const form = renderEntityEditor(
 
-    cfg,
+    {
+
+        ...cfg,
+
+        options: {
+
+            ...(cfg.options ?? {}),
+
+            types:
+                type === "record"
+                ?
+                (
+                    context.recordTypes ?? []
+                )
+                :
+                []
+
+        }
+
+    },
 
     entity
 
@@ -215,8 +244,20 @@ const parentsEditor = setupParentsEditor(
 );
 
 const fieldsEditor = setupEntityFieldsEditor(
+
     root,
-    cfg
+
+    cfg,
+
+    type === "record"
+        ?
+        {
+            typeId:
+                "#entityType"
+        }
+        :
+        {}
+
 );
 
 
