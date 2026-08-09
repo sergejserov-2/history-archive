@@ -1,6 +1,6 @@
 // ======================================
-// Storage API
-// Yandex Object Storage uploader
+// History Storage API
+// Yandex Object Storage
 // ======================================
 
 // URL публичной Cloud Function
@@ -10,7 +10,179 @@ const STORAGE_API_URL =
     "https://functions.yandexcloud.net/d4elsso1sp6lbhui52l7";
 
 // ======================================
-// Upload file
+// Get upload URL
+// ======================================
+
+async function getUploadUrl(
+
+    file,
+
+    folder
+
+){
+
+    const response =
+        await fetch(
+
+            STORAGE_API_URL,
+
+            {
+
+                method:
+                    "POST",
+
+                headers:{
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+
+                        action:
+                            "get-upload-url",
+
+                        folder,
+
+                        filename:
+                            file.name,
+
+                        mimeType:
+                            file.type ||
+                            "application/octet-stream"
+
+                    })
+
+            }
+
+        );
+
+    if(!response.ok){
+
+        throw new Error(
+
+            "Ошибка получения URL загрузки: "
+
+            +
+
+            response.status
+
+        );
+
+    }
+
+    const result =
+        await response.json();
+
+    if(!result.success){
+
+        throw new Error(
+
+            result.error ||
+
+            "Не удалось получить URL загрузки"
+
+        );
+
+    }
+
+    if(
+        !result.uploadUrl ||
+        !result.storagePath
+    ){
+
+        throw new Error(
+            "Cloud Function вернула неполный ответ"
+        );
+
+    }
+
+    return {
+
+        uploadUrl:
+            result.uploadUrl,
+
+        storagePath:
+            result.storagePath
+
+    };
+
+}
+
+// ======================================
+// Upload directly to Yandex Object Storage
+// ======================================
+
+async function uploadDirect(
+
+    file,
+
+    folder
+
+){
+
+    const {
+
+        uploadUrl,
+
+        storagePath
+
+    } =
+        await getUploadUrl(
+
+            file,
+
+            folder
+
+        );
+
+    const response =
+        await fetch(
+
+            uploadUrl,
+
+            {
+
+                method:
+                    "PUT",
+
+                headers:{
+                    "Content-Type":
+                        file.type ||
+                        "application/octet-stream"
+                },
+
+                body:
+                    file
+
+            }
+
+        );
+
+    if(!response.ok){
+
+        throw new Error(
+
+            "Ошибка прямой загрузки файла: "
+
+            +
+
+            response.status
+
+        );
+
+    }
+
+    return {
+
+        storagePath
+
+    };
+
+}
+
+// ======================================
+// Upload small file through Function
 // ======================================
 
 export async function uploadFile(
@@ -30,7 +202,6 @@ export async function uploadFile(
     }
 
     const formData =
-
         new FormData();
 
     formData.append(
@@ -44,16 +215,17 @@ export async function uploadFile(
     );
 
     const response =
-
         await fetch(
 
             STORAGE_API_URL,
 
             {
 
-                method:"POST",
+                method:
+                    "POST",
 
-                body:formData
+                body:
+                    formData
 
             }
 
@@ -74,7 +246,6 @@ export async function uploadFile(
     }
 
     const result =
-
         await response.json();
 
     if(!result.success){
@@ -117,7 +288,6 @@ export async function moveFileToDeleted(
     }
 
     const formData =
-
         new FormData();
 
     formData.append(
@@ -131,16 +301,17 @@ export async function moveFileToDeleted(
     );
 
     const response =
-
         await fetch(
 
             STORAGE_API_URL,
 
             {
 
-                method:"POST",
+                method:
+                    "POST",
 
-                body:formData
+                body:
+                    formData
 
             }
 
@@ -161,7 +332,6 @@ export async function moveFileToDeleted(
     }
 
     const result =
-
         await response.json();
 
     if(!result.success){
@@ -195,7 +365,7 @@ export async function uploadPhotoOriginal(
 
 ){
 
-    return uploadFile(
+    return uploadDirect(
 
         file,
 
@@ -224,6 +394,30 @@ export async function uploadPhotoPreview(
     );
 
 }
+
+// ======================================
+// Upload source document
+// ======================================
+
+export async function uploadSourceDocument(
+
+    file
+
+){
+
+    return uploadFile(
+
+        file,
+
+        "sources/documents"
+
+    );
+
+}
+
+// ======================================
+// Upload complete photo
+// ======================================
 
 export async function uploadPhoto(
 
@@ -287,7 +481,8 @@ async function createPhotoPreview(
     const image =
         await loadImage(file);
 
-    const MAX_SIZE = 800;
+    const MAX_SIZE =
+        800;
 
     let width =
         image.naturalWidth;
@@ -387,8 +582,10 @@ async function createPhotoPreview(
         "preview.jpg",
 
         {
+
             type:
                 "image/jpeg"
+
         }
 
     );
@@ -407,7 +604,7 @@ function loadImage(
 
     return new Promise(
 
-        (resolve, reject) => {
+        (resolve,reject)=>{
 
             const image =
                 new Image();
@@ -449,26 +646,6 @@ function loadImage(
                 url;
 
         }
-
-    );
-
-}
-
-// ======================================
-// Upload source document
-// ======================================
-
-export async function uploadSourceDocument(
-
-    file
-
-){
-
-    return uploadFile(
-
-        file,
-
-        "sources/documents"
 
     );
 
