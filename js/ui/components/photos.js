@@ -188,7 +188,7 @@ export function renderPhotos(
         photo => {
 
             const image =
-                photo.storagePath
+                photo.previewPath
 
                 ?
 
