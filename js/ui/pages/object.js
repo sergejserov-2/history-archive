@@ -162,6 +162,7 @@ onAdminStateChanged(
             records,
             photos,
             sources,
+            recordTypes
             ADMIN_MODE
 
         );
@@ -219,6 +220,8 @@ async function renderPage(
     photos,
 
     sources,
+
+    recordTypes
 
     ADMIN_MODE
 
