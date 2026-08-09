@@ -713,7 +713,7 @@ button.admin-button {
    FIRST RECORD IN TABLE
 ========================================== */
 
-.records__group > .record:first-child {
+.records__group > .record:nth-child(2) {
 
     border-top: none;
 
