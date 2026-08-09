@@ -108,21 +108,6 @@ export function renderObjectEditor(
 
     null;
 
-console.log(
-    "OBJECT EDITOR PARENT:",
-    parent
-);
-
-console.log(
-    "OBJECT EDITOR PARENT TYPE:",
-    parentType
-);
-
-console.log(
-    "OBJECT EDITOR PARENT LEVEL:",
-    parentType?.level
-);
-
 // ======================================
 // Default type
 // ======================================
