@@ -1301,7 +1301,7 @@ button.admin-button {
 }
 
 /* ==========================================
-   PHOTO VIEWER CONTROLS
+   PHOTO VIEWER CONTENT
 ========================================== */
 
 .modal--photo-viewer .modal__content {
@@ -1311,7 +1311,7 @@ button.admin-button {
 }
 
 /* ==========================================
-   CONTROLS CONTAINER
+   PHOTO VIEWER CONTROLS
 ========================================== */
 
 .viewer-controls {
@@ -1355,17 +1355,8 @@ button.admin-button {
 }
 
 /* ==========================================
-   NAVIGATION
+   ARROWS
 ========================================== */
-
-/*
-   Это семантически button,
-   но визуально — только иконка.
-
-   Никакого фона,
-   никакой рамки,
-   никакого "кнопочного" блока.
-*/
 
 .viewer-controls__previous,
 .viewer-controls__next {
@@ -1374,7 +1365,7 @@ button.admin-button {
 
     top:50%;
 
-    width:40px;
+    width:36px;
 
     height:56px;
 
@@ -1394,10 +1385,6 @@ button.admin-button {
 
     border:none;
 
-    outline:none;
-
-    box-shadow:none;
-
     color:#d8dadd;
 
     font-family:
@@ -1405,7 +1392,7 @@ button.admin-button {
         Helvetica,
         sans-serif;
 
-    font-size:44px;
+    font-size:46px;
 
     font-weight:300;
 
@@ -1415,31 +1402,27 @@ button.admin-button {
 
     pointer-events:auto;
 
-    transition:
-
-        color .15s ease,
-
-        opacity .15s ease;
+    z-index:20;
 
 }
 
 /* ==========================================
-   PREVIOUS
+   LEFT
 ========================================== */
 
 .viewer-controls__previous {
 
-    left:-50px;
+    left:0;
 
 }
 
 /* ==========================================
-   NEXT
+   RIGHT
 ========================================== */
 
 .viewer-controls__next {
 
-    right:-50px;
+    right:0;
 
 }
 
@@ -1450,7 +1433,7 @@ button.admin-button {
 .viewer-controls__previous:hover,
 .viewer-controls__next:hover {
 
-    color:#eef0f2;
+    color:#ffffff;
 
 }
 
@@ -1471,16 +1454,20 @@ button.admin-button {
    FOCUS
 ========================================== */
 
-.viewer-controls__previous:focus-visible,
-.viewer-controls__next:focus-visible {
+.viewer-controls__previous:focus,
+.viewer-controls__next:focus {
 
-    color:#eef0f2;
+    outline:none;
 
 }
 
-/* ==========================================
-   PHOTO VIEWER
-========================================== */
+.viewer-controls__previous:focus-visible,
+.viewer-controls__next:focus-visible {
+
+    color:#ffffff;
+
+}
+
 
 .photo-viewer {
 
