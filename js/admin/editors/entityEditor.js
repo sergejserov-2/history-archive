@@ -17,7 +17,7 @@ import {
 from "../../ui/components/editor.js";
 
 import {
-    uploadPhotoOriginal,
+    uploadPhoto,
     uploadSourceDocument,
     moveFileToDeleted
 }
@@ -54,7 +54,7 @@ const CONFIG = {
         update: updatePhoto,
         create: createPhoto,
 
-        upload: uploadPhotoOriginal,
+        upload: uploadPhoto,
 
         file: true,
 
@@ -284,14 +284,23 @@ if(fileData){
     // Выбран новый файл
     // ======================================
 
-    if(
-        fileData.storagePath
-    ){
-
-        data.storagePath =
-            fileData.storagePath;
-
-    }
+        if(
+            fileData.storagePath
+        ){
+        
+            data.storagePath =
+                fileData.storagePath;
+        
+        }
+        
+        if(
+            fileData.previewPath
+        ){
+        
+            data.previewPath =
+                fileData.previewPath;
+        
+        }
 
 }
 
