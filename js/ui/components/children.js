@@ -67,7 +67,7 @@ export async function renderChildren(
 
                     class="child-card__image"
 
-                    src="${coverPhoto.storagePath}"
+                    src="${coverPhoto?.previewPath ?? ""}"
 
                     alt="${child.title}"
 
