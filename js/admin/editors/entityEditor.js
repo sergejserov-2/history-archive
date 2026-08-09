@@ -269,16 +269,21 @@ if(fileData){
 
         );
 
-        /*
-         * В базе старого файла больше нет.
-         *
-         * Сам файл физически переместился
-         * в photos/deleted или sources/deleted.
-         */
-
         data.storagePath = null;
 
     }
+
+    if(
+    fileData.removedPreviewPath
+){
+
+    await moveFileToDeleted(
+        fileData.removedPreviewPath
+    );
+
+    data.previewPath = null;
+
+}
 
     // ======================================
     // Выбран новый файл
