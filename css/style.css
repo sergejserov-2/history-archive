@@ -1294,8 +1294,6 @@ button.admin-button {
 
 .modal--photo-viewer {
 
-    position:relative;
-
     width:840px;
 
     max-width:90vw;
@@ -1488,20 +1486,21 @@ button.admin-button {
 
 }
 
-
 /* ==========================================
    PHOTO VIEWER CONTROLS
 ========================================== */
 
 .viewer-controls {
 
-    position:absolute;
+    position:relative;
 
-    inset:0;
+    width:100%;
+
+    height:0;
+
+    z-index:20;
 
     pointer-events:none;
-
-    z-index:10;
 
 }
 
@@ -1529,22 +1528,24 @@ button.admin-button {
 
     white-space:nowrap;
 
+    pointer-events:none;
+
 }
 
 /* ==========================================
-   NAVIGATION
+   NAVIGATION BUTTONS
 ========================================== */
 
 .viewer-controls__previous,
 .viewer-controls__next {
 
-    position:absolute;
+    position:fixed;
 
     top:50%;
 
-    width:34px;
+    width:40px;
 
-    height:50px;
+    height:56px;
 
     display:flex;
 
@@ -1571,6 +1572,8 @@ button.admin-button {
     cursor:pointer;
 
     pointer-events:auto;
+
+    z-index:1002;
 
     transition:
 
@@ -1600,18 +1603,21 @@ button.admin-button {
 
 }
 
+/* ==========================================
+   BUTTON POSITION
+========================================== */
+
 .viewer-controls__previous {
 
-    left:-52px;
+    left:calc(50% - 470px);
 
 }
 
 .viewer-controls__next {
 
-    right:-52px;
+    right:calc(50% - 470px);
 
 }
-
 /* ==========================================
    PHOTO VIEWER MOBILE
 ========================================== */
