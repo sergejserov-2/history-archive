@@ -246,38 +246,38 @@ async function renderPage(
 
     ${breadcrumbsHTML}
 
-    <section class="object">
-
-                 <div class="object__cover">
-                
+            <section class="object">
+            
+                <div class="object__cover">
+            
                     ${
-                        coverPhoto?.storagePath
-                
+                        coverPhoto?.previewPath
+            
                         ?
-                
+            
                         `
-                
+            
                         <div
                             class="object__cover-bg"
-                            style="background-image:url('${coverPhoto.storagePath}')"
+                            style="background-image:url('${coverPhoto.previewPath}')"
                         ></div>
-                
+            
                         <img
                             class="object__cover-image"
-                            src="${coverPhoto.storagePath}"
+                            src="${coverPhoto.previewPath}"
                             alt="${coverPhoto.title ?? ""}"
                         >
-                
+            
                         `
-                
+            
                         :
-                
+            
                         `<div class="object__cover-placeholder">
                             Фото отсутствует
                         </div>`
-                
+            
                     }
-                
+            
                 </div>
 
                 <div class="object__info">
