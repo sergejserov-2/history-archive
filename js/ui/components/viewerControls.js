@@ -1,132 +1,273 @@
-/* ==========================================
-   PHOTO VIEWER CONTROLS
-========================================== */
+// ======================================
+// Viewer controls
+// ======================================
+//
+// Управление перелистыванием Photo Viewer.
+//
+// Отвечает только за:
+//
+// - индикатор позиции;
+// - предыдущую / следующую фотографию;
+// - кнопки-стрелки;
+// - клавиши ← / →.
+//
+// CSS подключается отдельно.
+//
+// ======================================
 
-.viewer-controls {
+export function createViewerControls({
 
-    position:relative;
+    currentIndex,
 
-    width:100%;
+    total,
 
-    height:0;
+    onPrevious,
 
-    z-index:20;
+    onNext
 
-    pointer-events:none;
+}){
 
-}
+    // ======================================
+    // Container
+    // ======================================
 
-/* ==========================================
-   POSITION
-========================================== */
+    const controls =
+        document.createElement(
+            "div"
+        );
 
-.viewer-controls__position {
+    controls.className =
+        "viewer-controls";
 
-    position:absolute;
+    // ======================================
+    // Position
+    // ======================================
 
-    top:-30px;
+    const position =
+        document.createElement(
+            "div"
+        );
 
-    left:0;
+    position.className =
+        "viewer-controls__position";
 
-    width:100%;
+    // ======================================
+    // Previous
+    // ======================================
 
-    text-align:center;
+    const previousButton =
+        document.createElement(
+            "button"
+        );
 
-    font-size:14px;
+    previousButton.type =
+        "button";
 
-    line-height:1.3;
+    previousButton.className =
+        "viewer-controls__previous";
 
-    color:#d8dadd;
+    previousButton.setAttribute(
+        "aria-label",
+        "Предыдущая фотография"
+    );
 
-    white-space:nowrap;
+    previousButton.innerHTML =
+        "‹";
 
-    pointer-events:none;
+    // ======================================
+    // Next
+    // ======================================
 
-}
+    const nextButton =
+        document.createElement(
+            "button"
+        );
 
-/* ==========================================
-   NAVIGATION BUTTONS
-========================================== */
+    nextButton.type =
+        "button";
 
-.viewer-controls__previous,
-.viewer-controls__next {
+    nextButton.className =
+        "viewer-controls__next";
 
-    position:fixed;
+    nextButton.setAttribute(
+        "aria-label",
+        "Следующая фотография"
+    );
 
-    top:50%;
+    nextButton.innerHTML =
+        "›";
 
-    width:40px;
+    // ======================================
+    // Assemble
+    // ======================================
 
-    height:56px;
+    controls.appendChild(
+        position
+    );
 
-    display:flex;
+    controls.appendChild(
+        previousButton
+    );
 
-    align-items:center;
+    controls.appendChild(
+        nextButton
+    );
 
-    justify-content:center;
+    // ======================================
+    // Update
+    // ======================================
 
-    padding:0;
+    function update(index){
 
-    transform:translateY(-50%);
+        position.textContent =
+            `Фотография ${index + 1} из ${total}`;
 
-    background:#24282d;
+        previousButton.disabled =
+            index <= 0;
 
-    border:none;
+        nextButton.disabled =
+            index >= total - 1;
 
-    border-radius:6px;
+    }
 
-    color:#d8dadd;
+    // ======================================
+    // Previous
+    // ======================================
 
-    font-size:28px;
+    previousButton.onclick =
+        event => {
 
-    line-height:1;
+            event.preventDefault();
 
-    cursor:pointer;
+            if(
+                previousButton.disabled
+            ){
 
-    pointer-events:auto;
+                return;
 
-    z-index:1002;
+            }
 
-    transition:
+            onPrevious();
 
-        background .15s ease,
+        };
 
-        color .15s ease,
+    // ======================================
+    // Next
+    // ======================================
 
-        opacity .15s ease;
+    nextButton.onclick =
+        event => {
 
-}
+            event.preventDefault();
 
-.viewer-controls__previous:hover,
-.viewer-controls__next:hover {
+            if(
+                nextButton.disabled
+            ){
 
-    background:#30343a;
+                return;
 
-    color:#eef0f2;
+            }
 
-}
+            onNext();
 
-.viewer-controls__previous:disabled,
-.viewer-controls__next:disabled {
+        };
 
-    opacity:.25;
+    // ======================================
+    // Keyboard
+    // ======================================
 
-    cursor:default;
+    function handleKeydown(event){
 
-}
+        // Не перехватываем стрелки,
+        // если пользователь печатает
+        // в input / textarea.
 
-/* ==========================================
-   BUTTON POSITION
-========================================== */
+        const target =
+            event.target;
 
-.viewer-controls__previous {
+        if(
+            target instanceof HTMLInputElement ||
+            target instanceof HTMLTextAreaElement ||
+            target instanceof HTMLSelectElement ||
+            target?.isContentEditable
+        ){
 
-    left:calc(50% - 470px);
+            return;
 
-}
+        }
 
-.viewer-controls__next {
+        if(
+            event.key === "ArrowLeft"
+        ){
 
-    right:calc(50% - 470px);
+            event.preventDefault();
+
+            if(
+                !previousButton.disabled
+            ){
+
+                onPrevious();
+
+            }
+
+            return;
+
+        }
+
+        if(
+            event.key === "ArrowRight"){
+
+            event.preventDefault();
+
+            if(
+                !nextButton.disabled
+            ){
+
+                onNext();
+
+            }
+
+        }
+
+    }
+
+    window.addEventListener(
+        "keydown",
+        handleKeydown
+    );
+
+    // ======================================
+    // Initial state
+    // ======================================
+
+    update(
+        currentIndex
+    );
+
+    // ======================================
+    // Destroy
+    // ======================================
+
+    function destroy(){
+
+        window.removeEventListener(
+            "keydown",
+            handleKeydown
+        );
+
+        controls.remove();
+
+    }
+
+    return {
+
+        element:
+            controls,
+
+        update,
+
+        destroy
+
+    };
 
 }
