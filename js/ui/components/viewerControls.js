@@ -178,10 +178,6 @@ export function createViewerControls({
 
     function handleKeydown(event){
 
-        // Не перехватываем стрелки,
-        // если пользователь печатает
-        // в input / textarea.
-
         const target =
             event.target;
 
@@ -215,13 +211,13 @@ export function createViewerControls({
         }
 
         if(
-            event.key === "ArrowRight"){
+            event.key === "ArrowRight"
+        ){
 
             event.preventDefault();
 
             if(
-                !nextButton.disabled
-            ){
+                !nextButton.disabled){
 
                 onNext();
 
