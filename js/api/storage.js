@@ -416,7 +416,7 @@ export async function uploadSourceDocument(
 }
 
 // ======================================
-// Upload complete photo
+// Upload photo
 // ======================================
 
 export async function uploadPhoto(
@@ -439,7 +439,9 @@ export async function uploadPhoto(
 
     const original =
         await uploadPhotoOriginal(
+
             file
+
         );
 
     // ======================================
@@ -448,12 +450,16 @@ export async function uploadPhoto(
 
     const previewFile =
         await createPhotoPreview(
+
             file
+
         );
 
     const preview =
         await uploadPhotoPreview(
+
             previewFile
+
         );
 
     return {
@@ -479,10 +485,13 @@ async function createPhotoPreview(
 ){
 
     const image =
-        await loadImage(file);
+        await loadImage(
 
-    const MAX_SIZE =
-        800;
+            file
+
+        );
+
+    const MAX_SIZE = 800;
 
     let width =
         image.naturalWidth;
@@ -520,6 +529,10 @@ async function createPhotoPreview(
 
     }
 
+    // ======================================
+    // Canvas
+    // ======================================
+
     const canvas =
         document.createElement(
             "canvas"
@@ -548,13 +561,16 @@ async function createPhotoPreview(
 
     );
 
+    // ======================================
+    // JPEG
+    // ======================================
+
     const blob =
         await new Promise(
 
             resolve => {
 
                 canvas.toBlob(
-
                     resolve,
 
                     "image/jpeg",
@@ -611,17 +627,23 @@ function loadImage(
 
             const url =
                 URL.createObjectURL(
+
                     file
+
                 );
 
             image.onload = ()=>{
 
                 URL.revokeObjectURL(
+
                     url
+
                 );
 
                 resolve(
+
                     image
+
                 );
 
             };
@@ -629,7 +651,9 @@ function loadImage(
             image.onerror = ()=>{
 
                 URL.revokeObjectURL(
+
                     url
+
                 );
 
                 reject(
