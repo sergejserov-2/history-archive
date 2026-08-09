@@ -230,10 +230,6 @@ async function renderPage(
         await renderBreadcrumbs(
             object
         );
-    console.log(
-    "BREADCRUMBS HTML:",
-    breadcrumbsHTML
-);
 
     const coverPhoto =
         photos.find(
@@ -339,71 +335,95 @@ async function renderPage(
                     </div>
 
                     ${
-                        renderRecords(
-
-                            records,
-
-                            ADMIN_MODE
-
+                        (
+                            ADMIN_MODE ||
+                            records.length > 0
                         )
+                        ?
+                        renderRecords(
+                            records,
+                            ADMIN_MODE
+                        )
+                        :
+                        ""
                     }
 
                 </div>
 
             </section>
 
-            <section id="gallery">
+        ${
+                (
+                    ADMIN_MODE ||
+                    photos.length > 0
+                )
+                ?
+                `
+                <section id="gallery">
 
-                <h2>
+                    <h2>
+                        Фотографии
+                    </h2>
 
-                    Фотографии
+                    ${
+                        renderPhotos(
+                            photos,
+                            ADMIN_MODE
+                        )
+                    }
 
-                </h2>
+                </section>
+                `
+                :
+                ""
+            }
 
-                ${
-                    renderPhotos(
+            ${
+                (
+                    ADMIN_MODE ||
+                    sources.length > 0
+                )
+                ?
+                `
+                <section id="sources">
 
-                        photos,
+                    <h2>
+                        Источники
+                    </h2>
 
-                        ADMIN_MODE
+                    ${
+                        renderSources(
+                            sources,
+                            ADMIN_MODE
+                        )
+                    }
 
-                    )
-                }
+                </section>
+                `
+                :
+                ""
+            }
 
-            </section>
+            ${
+                (
+                    ADMIN_MODE ||
+                    children.length > 0
+                )
+                ?
+                `
+                <section id="children">
 
-            <section id="sources">
+                    <h2>
+                        Дочерние объекты
+                    </h2>
 
-                <h2>
+                    ${childrenHTML}
 
-                    Источники
-
-                </h2>
-
-                ${
-                    renderSources(
-
-                        sources,
-
-                        ADMIN_MODE
-
-                    )
-                }
-
-            </section>
-
-            <section id="children">
-
-                <h2>
-
-                    Дочерние объекты
-
-                </h2>
-
-                ${childrenHTML}
-
-            </section>
-
+                </section>
+                `
+                :
+                ""
+            }
         </main>
 
     `;
