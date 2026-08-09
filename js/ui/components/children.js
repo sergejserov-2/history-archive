@@ -58,29 +58,29 @@ export async function renderChildren(
                 parents
             );
 
-            const image = coverPhoto?.storagePath
-
+            const image = coverPhoto?.previewPath
+            
                 ?
-
+            
                 `
                 <img
-
+            
                     class="child-card__image"
-
-                    src="${coverPhoto?.previewPath ?? ""}"
-
+            
+                    src="${coverPhoto.previewPath}"
+            
                     alt="${child.title}"
-
+            
                 >
                 `
-
+            
                 :
-
+            
                 `
                 <div class="child-card__placeholder">
-
+            
                     Фото отсутствует
-
+            
                 </div>
                 `;
 
