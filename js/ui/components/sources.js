@@ -289,20 +289,6 @@ export function renderSources(
 
     });
 
-    if(rows.length===0){
-
-        return `
-
-        <p class="sources-empty">
-
-            Нет источников
-
-        </p>
-
-        `;
-
-    }
-
     return `
 
     <div class="sources-list">
