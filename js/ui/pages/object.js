@@ -55,6 +55,11 @@ import {
 from "../components/records.js";
 
 import {
+    getRecordTypes
+}
+from "../../api/recordTypes.js";
+
+import {
     getPhotos
 }
 from "../../api/photos.js";
@@ -119,7 +124,7 @@ async function loadPage() {
 
     const types = await getTypes ();
     const objects = await getAllObjects ();
-    
+    const recordTypes = await getRecordTypes();
     const parents = await getParents(
         object
     );
@@ -167,17 +172,18 @@ onAdminStateChanged(
 
         if (ADMIN_MODE) {
 
-            initAdmin(
-
-                object,
-                types,
-                objects,
-                photos,
-                sources,
-                records,
-                children
-
-            );
+                initAdmin(
+                
+                    object,
+                    types,
+                    objects,
+                    photos,
+                    sources,
+                    records,
+                    children,
+                    recordTypes
+                
+                );
 
         }
 
