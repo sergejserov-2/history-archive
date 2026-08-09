@@ -140,14 +140,6 @@ else if(parentType){
 
         Number(parentType.level) - 1;
 
-        type =>
-
-            Number(type.level) ===
-            targetLevel
-
-    )
-);
-
     // ==================================
     // Берём только типы нужного уровня
     // ==================================
