@@ -351,6 +351,7 @@ async function renderPage(
                         ?
                         renderRecords(
                             records,
+                            recordTypes,
                             ADMIN_MODE
                         )
                         :
