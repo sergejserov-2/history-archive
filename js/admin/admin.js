@@ -60,7 +60,9 @@ export function initAdmin(
 
     records,
 
-    children
+    children,
+
+    recordTypes
 
 ){
 
@@ -92,12 +94,64 @@ export function initAdmin(
 
                 button.dataset.id;
 
+            // ======================================
+            // Object type / level
+            //
+            // Тип объекта НЕ меняем.
+            // Уровень определяется через types.
+            // ======================================
+
+            const objectType =
+
+                types.find(
+
+                    type =>
+                        type.id ===
+                        object?.typeId
+
+                );
+
+            const objectLevel =
+
+                Number(
+
+                    objectType?.level
+
+                );
+
+            // ======================================
+            // Record types available for this object
+            // ======================================
+
+            const availableRecordTypes =
+
+                (recordTypes ?? [])
+
+                .filter(
+
+                    recordType =>
+
+                        recordType.levels
+                        ?.map(Number)
+                        .includes(
+                            objectLevel
+                        )
+
+                );
+
+            // ======================================
+            // Context
+            // ======================================
+
             const context = {
 
                 objects,
 
                 parentId:
-                    object.id
+                    object.id,
+
+                recordTypes:
+                    availableRecordTypes
 
             };
 
@@ -186,7 +240,7 @@ export function initAdmin(
                 return;
 
             }
-
+            
             // ======================================
             // Add object
             // ======================================
@@ -261,7 +315,8 @@ export function initAdmin(
                             "photo"
 
                     }
-                    );
+
+                );
 
                 openEntityEditor(
 
@@ -414,7 +469,6 @@ export function initAdmin(
                 catch(error){
 
                     console.error(
-
                         "Ошибка удаления фотографии:",
 
                         error
@@ -490,6 +544,7 @@ export function initAdmin(
                 "edit-source"
 
             ){
+
                 const source =
 
                     sources.find(
@@ -715,7 +770,8 @@ export function initAdmin(
                             "record"
 
                     }
-                    );
+
+                );
 
                 openEntityEditor(
 
