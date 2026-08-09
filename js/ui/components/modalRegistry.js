@@ -40,7 +40,6 @@ from "../../api/records.js";
 import {
     getObject,
     getType,
-    getParents,
     getChildren,
     getAllObjects
 }
@@ -118,7 +117,7 @@ export const photoPreviewModal = {
         }
 
         // ==================================
-        // Получаем ВСЕ фотографии
+        // Получаем все фотографии
         // текущего объекта
         // ==================================
 
@@ -209,9 +208,21 @@ export const photoPreviewModal = {
 // &entityId=ENTITY_ID
 // &entityType=photo
 //
+// Для создания:
+//
+// object.html
+// ?id=OBJECT_ID
+// &modal=entity-editor
+// &entityType=photo
+//
 // id — родительский объект.
-// entityId — сущность.
-// entityType — photo / source / record.
+// entityId — существующая сущность.
+//
+// Если entityId отсутствует —
+// открывается форма создания.
+//
+// entityType:
+// photo / source / record
 //
 // ======================================
 
@@ -232,12 +243,19 @@ export const entityEditorModal = {
     load: async params => {
 
         // ==================================
-        // Проверяем параметры
+        // Проверяем обязательные параметры
+        // ==================================
+        //
+        // entityId НЕ обязателен.
+        //
+        // Его отсутствие означает:
+        //
+        // создание новой сущности.
+        //
         // ==================================
 
         if(
             !params.id ||
-            !params.entityId ||
             !params.entityType
         ){
 
@@ -246,18 +264,67 @@ export const entityEditorModal = {
         }
 
         // ==================================
+        // Проверяем тип сущности
+        // ==================================
+
+        if(
+            ![
+                "photo",
+                "source",
+                "record"
+            ].includes(
+                params.entityType
+            )
+        ){
+
+            console.error(
+
+                "Unknown entity type:",
+
+                params.entityType
+
+            );
+
+            return null;
+
+        }
+
+        // ==================================
         // Подгружаем все объекты.
-//
-// Entity Editor использует их
-// для выбора родителей.
-// ==================================
+        //
+        // Entity Editor использует их
+        // для выбора родителей.
+        // ==================================
 
         const objects =
             await getAllObjects();
 
         // ==================================
+        // Если entityId отсутствует —
+        // это создание новой сущности.
+        // ==================================
+
+        if(!params.entityId){
+
+            return {
+
+                entity: null,
+
+                objects,
+
+                parentId:
+                    params.id,
+
+                type:
+                    params.entityType
+
+            };
+
+        }
+
+        // ==================================
         // Получаем сущности,
-// принадлежащие текущему объекту
+        // принадлежащие текущему объекту
         // ==================================
 
         let entities = [];
@@ -292,20 +359,6 @@ export const entityEditorModal = {
                 await getRecords(
                     params.id
                 );
-
-        }
-
-        else{
-
-            console.error(
-
-                "Unknown entity type:",
-
-                params.entityType
-
-            );
-
-            return null;
 
         }
 
@@ -384,6 +437,8 @@ export const entityEditorModal = {
                 // страницу обновит существующий
                 // механизм admin/page.
 
+                location.reload();
+
             }
 
         );
@@ -405,6 +460,12 @@ export const entityEditorModal = {
 //
 // id — родитель текущей страницы.
 // entityId — редактируемый объект.
+//
+// Для создания:
+//
+// object.html
+// ?id=PARENT_ID
+// &modal=object-editor
 //
 // Важно:
 //
@@ -479,7 +540,9 @@ export const objectEditorModal = {
                                 params.id
                             );
 
-                        }return (
+                        }
+
+                        return (
                             parent?.objectId ===
                             params.id
                         );
@@ -594,6 +657,8 @@ export const objectEditorModal = {
                 // После сохранения
                 // страница сама обновится
                 // существующим механизмом.
+
+                location.reload();
 
             }
 
