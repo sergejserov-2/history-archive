@@ -496,6 +496,9 @@ export function setupFileEditor(
     const oldStoragePath =
         entity?.storagePath ?? null;
 
+    const oldPreviewPath =
+        entity?.previewPath ?? null;
+
     const fileSelect =
         root.querySelector(
             "#entityFileSelect"
@@ -546,8 +549,8 @@ export function setupFileEditor(
 
             fileName.textContent =
                 oldStoragePath
-                .split("/")
-                .pop();
+                    .split("/")
+                    .pop();
 
             return;
 
@@ -563,6 +566,10 @@ export function setupFileEditor(
 
     }
 
+    // ======================================
+    // Select file
+    // ======================================
+
     fileSelect.onclick = ()=>{
 
         if(!fileInput.disabled){
@@ -573,6 +580,10 @@ export function setupFileEditor(
 
     };
 
+    // ======================================
+    // File selected
+    // ======================================
+
     fileInput.onchange = e=>{
 
         file =
@@ -580,15 +591,19 @@ export function setupFileEditor(
 
         /*
          * ВАЖНО:
-         * здесь НЕ сбрасываем removeOldFile.
+         * removeOldFile НЕ сбрасываем.
          *
-         * Если старый файл уже был откреплён,
-         * его всё равно нужно отправить в deleted.
+         * Если старый файл уже был удалён,
+         * он всё равно должен попасть в deleted.
          */
 
         renderFileState();
 
     };
+
+    // ======================================
+    // Remove file
+    // ======================================
 
     fileRemove.onclick = e=>{
 
@@ -608,6 +623,10 @@ export function setupFileEditor(
 
     return {
 
+        // ==================================
+        // Has file
+        // ==================================
+
         hasFile(){
 
             return (
@@ -625,17 +644,17 @@ export function setupFileEditor(
 
         },
 
+        // ==================================
+        // Get data
+        // ==================================
+
         async getData(){
 
             const data = {};
 
-            /*
-             * Старый файл был откреплён.
-             *
-             * Возвращаем его отдельно,
-             * чтобы entityEditor отправил его
-             * в deleted.
-             */
+            // ==================================
+            // Старый original
+            // ==================================
 
             if(
                 removeOldFile &&
@@ -647,33 +666,65 @@ export function setupFileEditor(
 
             }
 
-            /*
-             * Если выбран новый файл —
-             * загружаем его.
-             */
+            // ==================================
+            // Старый preview
+            // ==================================
+
+            if(
+                removeOldFile &&
+                oldPreviewPath
+            ){
+
+                data.removedPreviewPath =
+                    oldPreviewPath;
+
+            }
+
+            // ==================================
+            // Новый файл
+            // ==================================
 
             if(file){
 
                 const result =
                     await upload(file);
 
-                if(result?.storagePath){
+                // ==================================
+                // Original// ==================================
+
+                if(
+                    result?.storagePath
+                ){
 
                     data.storagePath =
                         result.storagePath;
 
                 }
 
+                // ==================================
+                // Preview
+                // ==================================
+
+                if(
+                    result?.previewPath
+                ){
+
+                    data.previewPath =
+                        result.previewPath;
+
+                }
+
             }
 
-            /*
-             * Если ничего не изменилось —
-             * возвращаем null.
-             */
+            // ==================================
+            // Ничего не изменилось
+            // ==================================
 
             if(
                 !data.storagePath &&
-                !data.removedStoragePath
+                !data.previewPath &&
+                !data.removedStoragePath &&
+                !data.removedPreviewPath
             ){
 
                 return null;
@@ -687,7 +738,6 @@ export function setupFileEditor(
     };
 
 }
-
 
 export function renderEntityEditor(
 
