@@ -1332,17 +1332,13 @@ button.admin-button {
 
 .viewer-controls__position {
 
-    position:absolute;
-
-    top:-26px;
-
-    left:0;
-
     width:100%;
 
     text-align:center;
 
     font-size:14px;
+
+   margin-top: 24px;
 
     line-height:1.3;
 
