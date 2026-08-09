@@ -287,20 +287,6 @@ cards.push(`
 
     });
 
-    if(cards.length===0){
-
-        return `
-
-        <p class="photos-empty">
-
-            Нет фотографий
-
-        </p>
-
-        `;
-
-    }
-
 const html = `
 
 <div class="photos-list">
