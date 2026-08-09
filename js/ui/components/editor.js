@@ -751,35 +751,61 @@ export function renderEntityEditor(
 
     const options = cfg.options ?? {};
 
-    const sortedTypes =
+const sortedTypes =
 
-        [...(options.types ?? [])]
+    [...(options.types ?? [])]
 
-        .sort((a, b) => {
+    .sort((a, b) => {
 
-            const levelA =
-                Number(a.level ?? Infinity);
+        const levelA =
 
-            const levelB =
-                Number(b.level ?? Infinity);
+            Array.isArray(a.levels)
 
-            if(levelA !== levelB){
+                ?
 
-                return levelB - levelA;
+                Math.max(
+                    ...a.levels.map(Number)
+                )
 
-            }
+                :
 
-            return (
+                Number(
+                    a.level ?? Infinity
+                );
 
-                (a.title ?? "")
-                    .localeCompare(
-                        b.title ?? "",
-                        "ru"
-                    )
+        const levelB =
 
-            );
+            Array.isArray(b.levels)
 
-        });
+                ?
+
+                Math.max(
+                    ...b.levels.map(Number)
+                )
+
+                :
+
+                Number(
+                    b.level ?? Infinity
+                );
+
+        if(levelA !== levelB){
+
+            return levelB - levelA;
+
+        }
+
+        return (
+
+            (a.title ?? "")
+                .localeCompare(
+                    b.title ?? "",
+                    "ru"
+                )
+
+        );
+
+    });
 
     return `
 
