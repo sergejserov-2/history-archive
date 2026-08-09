@@ -231,20 +231,6 @@ export function renderRecords(
 
     });
 
-    if(rows.length === 0){
-
-        return `
-
-        <p class="records-empty">
-
-            Нет сведений
-
-        </p>
-
-        `;
-
-    }
-
     return `
 
     <div class="records">
