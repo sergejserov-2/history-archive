@@ -1,213 +1,132 @@
-// ======================================
-// Viewer controls
-// ======================================
-//
-// Управление перелистыванием Photo Viewer.
-//
-// Отвечает только за:
-//
-// - индикатор позиции;
-// - предыдущую / следующую фотографию;
-// - кнопки-стрелки;
-// - клавиши ← / →.
-//
-// CSS подключим отдельно.
-//
-// ======================================
+/* ==========================================
+   PHOTO VIEWER CONTROLS
+========================================== */
 
-export function createViewerControls({
+.viewer-controls {
 
-    currentIndex,
+    position:relative;
 
-    total,
+    width:100%;
 
-    onPrevious,
+    height:0;
 
-    onNext
+    z-index:20;
 
-}){
+    pointer-events:none;
 
-    // ======================================
-    // Container
-    // ======================================
+}
 
-    const controls =
-        document.createElement(
-            "div"
-        );
+/* ==========================================
+   POSITION
+========================================== */
 
-    controls.className =
-        "viewer-controls";
+.viewer-controls__position {
 
-    // ======================================
-    // Position
-    // ======================================
+    position:absolute;
 
-    const position =
-        document.createElement(
-            "div"
-        );
+    top:-30px;
 
-    position.className =
-        "viewer-controls__position";
+    left:0;
 
-    // ======================================
-    // Previous
-    // ======================================
+    width:100%;
 
-    const previousButton =
-        document.createElement(
-            "button"
-        );
+    text-align:center;
 
-    previousButton.type =
-        "button";
+    font-size:14px;
 
-    previousButton.className =
-        "viewer-controls__previous";
+    line-height:1.3;
 
-    previousButton.textContent =
-        "←";
+    color:#d8dadd;
 
-    // ======================================
-    // Next
-    // ======================================
+    white-space:nowrap;
 
-    const nextButton =
-        document.createElement(
-            "button"
-        );
+    pointer-events:none;
 
-    nextButton.type =
-        "button";
+}
 
-    nextButton.className =
-        "viewer-controls__next";
+/* ==========================================
+   NAVIGATION BUTTONS
+========================================== */
 
-    nextButton.textContent =
-        "→";
+.viewer-controls__previous,
+.viewer-controls__next {
 
-    // ======================================
-    // Assemble
-    // ======================================
+    position:fixed;
 
-    controls.appendChild(
-        previousButton
-    );
+    top:50%;
 
-    controls.appendChild(
-        position
-    );
+    width:40px;
 
-    controls.appendChild(
-        nextButton
-    );
+    height:56px;
 
-    // ======================================
-    // Update
-    // ======================================
+    display:flex;
 
-    function update(index){
+    align-items:center;
 
-        position.textContent =
+    justify-content:center;
 
-            `Фотография ${index + 1} из ${total}`;
+    padding:0;
 
-        previousButton.disabled =
-            index <= 0;
+    transform:translateY(-50%);
 
-        nextButton.disabled =
-            index >= total - 1;
+    background:#24282d;
 
-    }
+    border:none;
 
-    // ======================================
-    // Buttons
-    // ======================================
+    border-radius:6px;
 
-    previousButton.onclick =
-        event => {
+    color:#d8dadd;
 
-            event.preventDefault();
+    font-size:28px;
 
-            onPrevious();
+    line-height:1;
 
-        };
+    cursor:pointer;
 
-    nextButton.onclick =
-        event => {
+    pointer-events:auto;
 
-            event.preventDefault();
+    z-index:1002;
 
-            onNext();
+    transition:
 
-        };
+        background .15s ease,
 
-    // ======================================
-    // Keyboard
-    // ======================================
+        color .15s ease,
 
-    function handleKeydown(event){
+        opacity .15s ease;
 
-        if(
-            event.key === "ArrowLeft"
-        ){
+}
 
-            event.preventDefault();
+.viewer-controls__previous:hover,
+.viewer-controls__next:hover {
 
-            onPrevious();
+    background:#30343a;
 
-        }
+    color:#eef0f2;
 
-        if(
-            event.key === "ArrowRight"
-        ){
+}
 
-            event.preventDefault();
+.viewer-controls__previous:disabled,
+.viewer-controls__next:disabled {
 
-            onNext();
+    opacity:.25;
 
-        }
+    cursor:default;
 
-    }
+}
 
-    window.addEventListener(
-        "keydown",
-        handleKeydown
-    );
+/* ==========================================
+   BUTTON POSITION
+========================================== */
 
-    // ======================================
-    // Initial state
-    // ======================================
+.viewer-controls__previous {
 
-    update(
-        currentIndex
-    );
+    left:calc(50% - 470px);
 
-    // ======================================
-    // Destroy
-    // ======================================
+}
 
-    function destroy(){
+.viewer-controls__next {
 
-        window.removeEventListener(
-            "keydown",
-            handleKeydown
-        );
-
-        controls.remove();
-
-    }
-
-    return {
-
-        element:
-            controls,
-
-        update,
-
-        destroy
-
-    };
+    right:calc(50% - 470px);
 
 }
