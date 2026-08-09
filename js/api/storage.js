@@ -389,7 +389,7 @@ export async function uploadPhotoPreview(
 
         file,
 
-        "photos/preview"
+        "photos/previews"
 
     );
 
