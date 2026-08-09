@@ -15,37 +15,6 @@ from "./viewerControls.js";
 // ======================================
 // Open photo viewer
 // ======================================
-//
-// Обычное открытие:
-//
-// openPhotoViewer(
-//     photo,
-//     {
-//         photos
-//     }
-// );
-//
-// URL:
-//
-// object.html
-// ?id=OBJECT_ID
-// &modal=photo-preview
-// &entityId=PHOTO_ID
-//
-// id — родительский объект.
-// entityId — открываемая фотография.
-//
-// Если модалка восстанавливается из URL:
-//
-// openPhotoViewer(
-//     photo,
-//     {
-//         photos,
-//         fromUrl:true
-//     }
-// );
-//
-// ======================================
 
 export function openPhotoViewer(
 
@@ -758,20 +727,23 @@ export function openPhotoViewer(
         image.alt =
             nextPhoto.title ?? "";
 
+        // ======================================
+        // Preview background
+        // ======================================
+        
         if(
-            nextPhoto.storagePath
+            nextPhoto.previewPath
         ){
-
+        
             imageBackground.style.backgroundImage =
-
-                `url('${nextPhoto.storagePath}')`;
-
+                `url('${nextPhoto.previewPath}')`;
+        
         }
         else{
-
+        
             imageBackground.style.backgroundImage =
                 "";
-
+        
         }
 
         // ==================================
