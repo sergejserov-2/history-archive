@@ -314,16 +314,6 @@ body {
 
 }
 
-.object__address {
-
-    font-size:15 px;
-
-    color:#b4bac1;
-
-    margin-bottom:15px;
-
-}
-
 .object__description {
 
     max-width:700px;
@@ -637,96 +627,174 @@ button.admin-button {
 
 .records {
 
-    margin-top:18px;
+    margin-top: 18px;
 
-    background:#181b1f;
+    display: flex;
 
-    border-radius:8px;
+    flex-direction: column;
 
-    overflow:hidden;
+    gap: 14px;
 
 }
+
+/* ==========================================
+   RECORD GROUP
+========================================== */
+
+.records__group {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+
+}
+
+.records__group-title {
+
+    color: #9da4ac;
+
+    font-size: 12px;
+
+    line-height: 1.3;
+
+    text-transform: uppercase;
+
+    margin: 0;
+
+}
+
+/* ==========================================
+   RECORD TABLE
+========================================== */
+
+.records__group > .record {
+
+    background: #181b1f;
+
+}
+
+/* ==========================================
+   RECORD
+========================================== */
 
 .record {
 
-    display:grid;
+    display: grid;
 
     grid-template-columns:
         200px
-        1fr
+        minmax(0, 1fr)
         80px;
 
-    align-items:center;
+    align-items: center;
 
-    gap:14px;
+    gap: 14px;
 
-    padding:8px 14px;
+    padding: 8px 14px;
 
-    border-top:1px solid #25292f;
+    border-top: 1px solid #25292f;
 
 }
 
-.record:first-child {
+.records__group > .record:first-of-type {
 
-    border-top:none;
+    border-top: none;
 
 }
 
 .record__title,
 .record__description,
-.record__date{
+.record__date {
 
-    font-size:14px;
+    font-size: 14px;
 
-    line-height:1.45;
+    line-height: 1.45;
 
 }
 
 .record__title {
 
-    font-weight:600;
+    font-weight: 600;
 
-    color:#eef0f2;
+    color: #eef0f2;
+
+    min-width: 0;
 
 }
 
-.record__description{
+.record__description {
 
-    white-space:nowrap;
+    color: #c9cdd2;
 
-    overflow:hidden;
+    min-width: 0;
 
-    text-overflow:ellipsis;
+    white-space: nowrap;
 
-    color:#c9cdd2;
+    overflow: hidden;
+
+    text-overflow: ellipsis;
 
 }
 
 .record__date {
 
-    text-align:right;
+    text-align: right;
 
-    font-style:italic;
+    font-style: italic;
 
-    color:#8f969f;
+    color: #8f969f;
 
-    white-space:nowrap;
+    white-space: nowrap;
 
 }
 
-.record--add {
+/* ==========================================
+   GROUP TABLE ROUNDED CORNERS
+========================================== */
 
-    display:flex;
+.records__group > .record:first-of-type {
 
-    align-items:center;
+    border-radius: 8px 8px 0 0;
 
-    justify-content:center;
+}
 
-    min-height:38px;
+.records__group > .record:last-child {
 
-    font-size:14px;
+    border-radius: 0 0 8px 8px;
 
-    border-radius:8px;
+}
+
+/* ==========================================
+   SINGLE RECORD
+========================================== */
+
+.records__group > .record:only-of-type {
+
+    border-radius: 8px;
+
+}
+
+/* ==========================================
+   ADD RECORD
+========================================== */
+
+.records > .record--add {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-start;
+
+    min-height: 46px;
+
+    padding: 0 10px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
 
 }
 
@@ -851,7 +919,7 @@ button.admin-button {
     justify-content:center;
 
     min-height:150px;
-   fonts-size:14px;
+    font-size:14px;
 
 }
 
