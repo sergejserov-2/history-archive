@@ -6,31 +6,13 @@ export function renderRecords(
 
     records,
 
+    recordTypes = [],
+
     ADMIN_MODE = false
 
 ) {
 
-    const rows = [];
-
-    if(ADMIN_MODE){
-
-        rows.push(`
-
-            <div
-
-                class="record record--add admin-button"
-
-                data-action="add-record"
-
-            >
-
-                + Добавить запись
-
-            </div>
-
-        `);
-
-    }
+    const groups = [];
 
     // ======================================
     // Sort records
@@ -42,7 +24,7 @@ export function renderRecords(
     // От старого к новому
     // ======================================
 
-    const sortedRecords =
+    const sortRecords = records =>
 
         [...(records ?? [])].sort(
 
@@ -120,7 +102,11 @@ export function renderRecords(
 
         );
 
-    sortedRecords.forEach(record=>{
+    // ======================================
+    // Render one record
+    // ======================================
+
+    function renderRecord(record){
 
         let period = "";
 
@@ -154,7 +140,7 @@ export function renderRecords(
 
         }
 
-        rows.push(`
+        return `
 
         <div class="record">
 
@@ -227,15 +213,178 @@ export function renderRecords(
 
         </div>
 
+        `;
+
+    }
+
+    // ======================================
+    // Group records by type
+    // ======================================
+
+    const typedRecords =
+
+        recordTypes.map(recordType => {
+
+            const typeRecords =
+
+                (records ?? []).filter(
+
+                    record => record.typeId ===
+                        recordType.id
+
+                );
+
+            return {
+
+                type: recordType,
+
+                records:
+                    sortRecords(typeRecords)
+
+            };
+
+        })
+
+        // Показываем только типы,
+        // в которых есть записи
+
+        .filter(
+
+            group =>
+                group.records.length > 0
+
+        );
+
+    // ======================================
+    // Records without type
+    //
+    // Старые записи, созданные до появления
+    // recordTypes, не должны исчезнуть.
+    // ======================================
+
+    const recordsWithoutType =
+
+        sortRecords(
+
+            (records ?? []).filter(
+
+                record => {
+
+                    return !record.typeId ||
+
+                        !recordTypes.some(
+
+                            type =>
+                                type.id ===
+                                record.typeId
+
+                        );
+
+                }
+
+            )
+
+        );
+
+    // ======================================
+    // Render typed groups
+    // ======================================
+
+    typedRecords.forEach(group => {
+
+        groups.push(`
+
+            <div class="records__group">
+
+                <div class="records__group-title">
+
+                    ${group.type.title ?? ""}
+
+                </div>
+
+                ${
+
+                    group.records
+                        .map(renderRecord)
+                        .join("")
+
+                }
+
+            </div>
+
         `);
 
     });
+
+    // ======================================
+    // Render records without valid type
+    // ======================================
+
+    if(recordsWithoutType.length){
+
+        groups.push(`
+
+            <div class="records__group records__group--untitled">
+
+                <div class="records__group-title">
+
+                    Без типа
+
+                </div>
+
+                ${
+
+                    recordsWithoutType
+                        .map(renderRecord)
+                        .join("")
+
+                }
+
+            </div>
+
+        `);
+
+    }
+
+    // ======================================
+    // Add record button
+    //
+    // Оставляем один раз перед группами.
+    // ======================================
+
+    const addButton =
+
+        ADMIN_MODE
+
+        ?
+
+        `
+
+        <div
+
+            class="record record--add admin-button"
+
+            data-action="add-record"
+
+        >
+
+            + Добавить запись
+
+        </div>
+
+        `
+
+        :
+
+        "";
 
     return `
 
     <div class="records">
 
-        ${rows.join("")}
+        ${addButton}
+
+        ${groups.join("")}
 
     </div>
 
