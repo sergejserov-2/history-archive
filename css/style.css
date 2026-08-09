@@ -1304,14 +1304,6 @@ button.admin-button {
    PHOTO VIEWER CONTROLS
 ========================================== */
 
-/*
-   Контролы находятся внутри
-   .modal__content.
-
-   Сам .photo-viewer при этом
-   остаётся без изменений.
-*/
-
 .modal--photo-viewer .modal__content {
 
     position:relative;
