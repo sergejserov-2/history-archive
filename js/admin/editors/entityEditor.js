@@ -41,11 +41,6 @@ import {
 }
 from "../../api/records.js";
 
-import {
-    getRecordTypes
-}
-from "../../api/recordTypes.js";
-
 // ======================================
 // Config
 // ======================================
