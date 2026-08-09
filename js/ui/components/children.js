@@ -154,30 +154,6 @@ export async function renderChildren(
 
     }
 
-    // ======================================
-    // Empty state
-    // ======================================
-
-    if(
-
-        cards.length === 0 &&
-
-        !ADMIN_MODE
-
-    ){
-
-        return `
-
-            <p class="children-empty">
-
-                Нет связанных объектов
-
-            </p>
-
-        `;
-
-    }
-
     return `
 
         <div class="children-list">
