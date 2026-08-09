@@ -1304,7 +1304,7 @@ button.admin-button {
    PHOTO VIEWER CONTROLS
 ========================================== */
 
-.modal--photo-viewer .modal__content {
+.modal--photo-viewer, .modal__content {
 
     position:relative;
 
