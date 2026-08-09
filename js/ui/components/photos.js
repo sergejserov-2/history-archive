@@ -7,6 +7,10 @@ import {
 }
 from "./photoViewer.js";
 
+// ======================================
+// Render photos
+// ======================================
+
 export function renderPhotos(
 
     photos,
@@ -59,21 +63,29 @@ export function renderPhotos(
                 const dateB =
                     b.date || "";
 
+                // ==================================
                 // Фото без даты — в конец
+                // ==================================
 
-                if(!dateA && !dateB){
+                if(
+                    !dateA &&
+                    !dateB
+                ){
 
                     const authorCompare =
 
-                        (a.author ?? "").localeCompare(
+                        (a.author ?? "")
+                            .localeCompare(
 
-                            b.author ?? "",
+                                b.author ?? "",
 
-                            "ru"
+                                "ru"
 
-                        );
+                            );
 
-                    if(authorCompare !== 0){
+                    if(
+                        authorCompare !== 0
+                    ){
 
                         return authorCompare;
 
@@ -105,7 +117,9 @@ export function renderPhotos(
 
                 }
 
+                // ==================================
                 // От нового к старому
+                // ==================================
 
                 const dateCompare =
 
@@ -114,32 +128,41 @@ export function renderPhotos(
                             String(dateA)
                         );
 
-                if(dateCompare !== 0){
+                if(
+                    dateCompare !== 0
+                ){
 
                     return dateCompare;
 
                 }
 
+                // ==================================
                 // Одинаковая дата →
                 // автор A → Я
+                // ==================================
 
                 const authorCompare =
 
-                    (a.author ?? "").localeCompare(
+                    (a.author ?? "")
+                        .localeCompare(
 
-                        b.author ?? "",
+                            b.author ?? "",
 
-                        "ru"
+                            "ru"
 
-                    );
+                        );
 
-                if(authorCompare !== 0){
+                if(
+                    authorCompare !== 0
+                ){
 
                     return authorCompare;
 
                 }
 
+                // ==================================
                 // Затем название A → Я
+                // ==================================
 
                 return (
 
@@ -157,137 +180,144 @@ export function renderPhotos(
 
         );
 
-    sortedPhotos.forEach(photo=>{
+    // ======================================
+    // Cards
+    // ======================================
 
-        const image = photo.storagePath
+    sortedPhotos.forEach(
+        photo => {
 
-        ?
+            const image =
+                photo.storagePath
 
-        `
+                ?
 
-        <img
+                `
 
-            class="photo-card__image"
+                <img
 
-            src="${photo.storagePath}"
+                    class="photo-card__image"
 
-            alt="${photo.title ?? ""}"
+                    src="${photo.storagePath}"
 
-        >
+                    alt="${photo.title ?? ""}"
 
-        `
+                >
 
-        :
+                `
 
-        `
+                :
 
-        <div class="photo-card__placeholder">
+                `
 
-            Фото отсутствует
+                <div
+                    class="photo-card__placeholder"
+                >Фото отсутствует
 
-        </div>
+                </div>
 
-        `;
+                `;
 
-cards.push(`
+            cards.push(`
 
 <div
     class="photo-card"
     data-photo-id="${photo.id}"
 >
 
-<div
-    class="photo-card__media"
-    data-photo-id="${photo.id}"
->
+    <div
+        class="photo-card__media"
+        data-photo-id="${photo.id}"
+    >
 
-    ${image}
+        ${image}
 
-</div>
+    </div>
 
     <div class="photo-card__title">
 
         ${photo.title ?? ""}
 
         ${
-        ADMIN_MODE
+            ADMIN_MODE
+            ?
+            `
 
-        ?
+            <button
 
-        `
+                class="admin-button"
 
-        <button
+                data-action="edit-photo"
 
-            class="admin-button"
+                data-id="${photo.id}"
 
-            data-action="edit-photo"
-
-            data-id="${photo.id}"
-
-        >
-
-            <img
-                src="icons/edit.svg"
-                class="admin-icon"
             >
 
-        </button>
+                <img
+                    src="icons/edit.svg"
+                    class="admin-icon"
+                >
 
-        <button
+            </button>
 
-            class="admin-button"
+            <button
 
-            data-action="delete-photo"
+                class="admin-button"
 
-            data-id="${photo.id}"
+                data-action="delete-photo"
 
-        >
+                data-id="${photo.id}"
 
-            <img
-                src="icons/delete.svg"
-                class="admin-icon"
             >
 
-        </button>
+                <img
+                    src="icons/delete.svg"
+                    class="admin-icon"
+                >
 
-        `
+            </button>
 
-        :
-
-        ""}
+            `
+            :
+            ""
+        }
 
     </div>
 
     <div class="photo-card__author">
 
         ${photo.author ?? ""}
-        
-                ${
-                photo.date
 
-                ?
+        ${
+            photo.date
+            ?
+            `
 
-                `, <span class="photo-card__date">
+            , <span class="photo-card__date">
 
-                    ${photo.date}
+                ${photo.date}
 
-                   </span>`
+            </span>
 
-                :
+            `
+            :
+            ""
+        }
 
-                ""
+    </div>
 
-                }
+</div>
 
-            </div>
+            `);
 
-        </div>
+        }
+    );
 
-        `);
+    // ======================================
+    // HTML
+    // ======================================
 
-    });
-
-const html = `
+    const html = `
 
 <div class="photos-list">
 
@@ -295,61 +325,85 @@ const html = `
 
 </div>
 
-`;
+    `;
 
-setTimeout(()=>{
+    // ======================================
+    // Photo click
+    // ======================================
 
-    const photosList =
-        document.querySelector(
-            ".photos-list"
-        );
+    setTimeout(()=>{
 
-    if(!photosList){
-
-        return;
-
-    }
-
-    photosList.onclick = event => {
-
-        const media =
-            event.target.closest(
-                ".photo-card__media"
+        const photosList =
+            document.querySelector(
+                ".photos-list"
             );
 
-        if(!media){
+        if(!photosList){
 
             return;
 
         }
 
-        const photoId =
-            media.dataset.photoId;
+        photosList.onclick =
+            event => {
 
-        const photo =
-            sortedPhotos.find(
-                photo =>
-                    photo.id === photoId
-            );
+                const media =
+                    event.target.closest(
+                        ".photo-card__media"
+                    );
 
-        if(!photo){
+                if(!media){
 
-            return;
+                    return;
 
-        }
+                }
 
-        if(!photo.storagePath){
+                const photoId =
+                    media.dataset.photoId;
 
-            return;
+                const photo =
+                    sortedPhotos.find(
 
-        }
+                        item =>
+                            item.id ===
+                            photoId
 
-        openPhotoViewer(photo);
+                    );
 
-    };
+                if(!photo){
 
-}, 0);
+                    return;
 
-return html;
+                }
+
+                if(
+                    !photo.storagePath
+                ){
+
+                    return;
+
+                }
+
+                // ==================================
+                // Передаём Viewer весь набор
+                // фотографий текущего объекта.
+                // ==================================
+
+                openPhotoViewer(
+
+                    photo,
+
+                    {
+                        photos:
+                            sortedPhotos
+                    }
+
+                );
+
+            };
+
+    }, 0);
+
+    return html;
 
 }
