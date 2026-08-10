@@ -491,12 +491,12 @@ const form = renderEntityEditor(
 
                 if(!isNew){
 
-                    await cfg.update(
-
-                        entity.id,
-
-                        data
-
+                        console.log("SAVE DATA:", data);
+                        
+                        await cfg.update(
+                            entity.id,
+                            data
+                        );
                     );
 
                 }
