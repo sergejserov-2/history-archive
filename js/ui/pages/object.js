@@ -103,21 +103,23 @@ async function loadPage() {
     const object = await getObject(
         objectId
     );
-
+    
     if (!object) {
-
+    
         document.body.innerHTML = `
-
+    
             <h1>
                 Объект не найден
             </h1>
-
+    
         `;
-
+    
         return;
-
+    
     }
-
+    
+    document.title = object.title || "Исторический архив";
+    
     const type = await getType(
         object.typeId
     );
