@@ -1106,21 +1106,21 @@ mode:
 
             });
 
-            // ==================================
-            // Dates
-            // ==================================
+// ==================================
+// Dates
+// ==================================
 
-            if(dateModeEditor){
+if(dateModeEditor){
 
-                Object.assign(
+    Object.assign(
+        data,
+        dateModeEditor.getData()
+    );
 
-                    data,
+    data.dateMode =
+        dateModeEditor.getMode();
 
-                    dateModeEditor.getData()
-
-                );
-
-            }
+}
 
             // ==================================
             // Extra fields
