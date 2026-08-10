@@ -1958,23 +1958,17 @@ max-width:800px {
    DATE / PERIOD HEADER
 ========================================== */
 
-.entity-date-editor__header {
+.entity-date-editor__label {
 
-    display:flex;
-
-    align-items:center;
-
-    min-height:15px;
-
-}
-
-.entity-date-editor__header span {
-
-    font-size:12px;
-
-    color:#9da4ac;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: #9da4ac;
 
 }
+
+
 
 /* ==========================================
    SINGLE DATE
@@ -2026,9 +2020,9 @@ max-width:800px {
 
 .entity-date-editor__switch {
 
-    align-self:flex-end;
+text-align:right;
 
-    margin:0;
+    margin-top:4px;
 
     padding:0 !important;
 
