@@ -171,146 +171,126 @@ export function renderEntityEditor(
 
         "";
 
-    // ==================================
-    // Date editor
-    // ==================================
+// ==================================
+// Date editor
+// ==================================
 
-    const hasSingleDate =
+const hasSingleDate =
+    cfg.fields?.includes("date");
 
-        cfg.fields?.includes("date");
+const hasDatePeriod =
+    cfg.fields?.includes("dateStart") &&
+    cfg.fields?.includes("dateEnd");
 
-    const hasDatePeriod =
+const hasDateEditor =
+    hasSingleDate ||
+    hasDatePeriod;
 
-        cfg.fields?.includes("dateStart") &&
-        cfg.fields?.includes("dateEnd");
+const dateEditor =
+    hasDateEditor
+    ?
 
-    const dateEditor =
+    `
 
-        hasSingleDate || hasDatePeriod
+    <div
+        id="entityDateEditor"
+        class="entity-date-editor"
+    >
 
-        ?
+        <div class="entity-date-editor__header">
 
-        `
+            <span id="entityDateLabel">
 
-        <div
-            id="entityDateEditor"
-            class="entity-date-editor"
-        >
+                ${
+                    cfg.dateMode === "period"
+                        ? "Период"
+                        : "Дата"
+                }
 
-            <div class="entity-date-editor__header">
+            </span>
 
-                <span id="entityDateLabel">
+            <button
+                type="button"
+                id="entityDateModeSwitch"
+                class="entity-date-editor__switch"
+            >
 
-                    ${
-                        cfg.dateMode === "period"
-                            ? "Период"
-                            : "Дата"
-                    }
+                ${
+                    cfg.dateMode === "period"
+                        ? "Сменить на дату"
+                        : "Сменить на период"
+                }
 
-                </span>
-
-                <button
-                    type="button"
-                    id="entityDateModeSwitch"
-                    class="entity-date-editor__switch"
-                >
-
-                    ${
-                        cfg.dateMode === "period"
-                            ? "Сменить на дату"
-                            : "Сменить на период"
-                    }
-
-                </button>
-
-            </div>
-
-            ${
-                hasSingleDate
-
-                ?
-
-                `
-
-                <div
-                    id="entityDateSingle"
-                    class="entity-date-editor__single"
-                    ${
-                        cfg.dateMode === "period"
-                            ? "hidden"
-                            : ""
-                    }
-                >
-
-                    <input
-                        id="entity_date"
-                        value="${entity.date ?? ""}"
-                    >
-
-                </div>
-
-                `
-
-                :
-
-                ""
-            }
-
-            ${
-                hasDatePeriod
-
-                ?
-
-                `
-
-                <div
-                    id="entityDatePeriod"
-                    class="entity-date-editor__period"
-                    ${
-                        cfg.dateMode === "period"
-                            ? ""
-                            : "hidden"
-                    }
-                >
-
-                    <label>
-
-                        Дата начала
-
-                        <input
-                            id="entity_dateStart"
-                            value="${entity.dateStart ?? ""}"
-                        >
-
-                    </label>
-
-                    <label>
-
-                        Дата окончания
-
-                        <input
-                            id="entity_dateEnd"
-                            value="${entity.dateEnd ?? ""}"
-                        >
-
-                    </label>
-
-                </div>
-
-                `
-
-                :
-
-                ""
-            }
+            </button>
 
         </div>
 
-        `
+        <!-- ==============================
+             Single date
+        ============================== -->
 
-        :
+        <div
+            id="entityDateSingle"
+            class="entity-date-editor__single"
+            ${
+                cfg.dateMode === "period"
+                    ? "hidden"
+                    : ""
+            }
+        >
 
-        "";
+            <input
+                id="entity_date"
+                value="${entity.date ?? ""}"
+            >
+
+        </div>
+
+        <!-- ==============================
+             Date period
+        ============================== -->
+
+        <div
+            id="entityDatePeriod"
+            class="entity-date-editor__period"
+            ${
+                cfg.dateMode === "period"
+                    ? ""
+                    : "hidden"
+            }
+        >
+
+            <label>
+
+                Дата начала
+
+                <input
+                    id="entity_dateStart"
+                    value="${entity.dateStart ?? ""}"
+                >
+
+            </label>
+
+            <label>
+
+                Дата окончания
+
+                <input
+                    id="entity_dateEnd"
+                    value="${entity.dateEnd ?? ""}"
+                >
+
+            </label>
+
+        </div>
+
+    </div>
+
+    `
+
+    :
+
+    "";
 
     // ==================================
     // Author
@@ -578,27 +558,23 @@ export function renderEntityEditor(
 
         </label>
 
-        ${
-            authorField
-            ?
-            `
-            <div
-                class="entity-row entity-row--author-date"
-            >
+${
+    authorField
+    ?
+    `
+    <div
+        class="entity-row entity-row--author-date"
+    >
 
-                ${authorField}
+        ${authorField}
 
-                ${
-                    hasSingleDate || hasDatePeriod
-                    ? dateEditor
-                    : ""
-                }
+        ${dateEditor}
 
-            </div>
-            `
-            :
-            dateEditor
-        }
+    </div>
+    `
+    :
+    dateEditor
+}
 
         ${fileField}
 
