@@ -197,7 +197,7 @@ const dateEditor =
         class="entity-date-editor"
     >
 
-            <span id="entityDateLabel">
+            <span class="entity-date-editor__label">
 
                 ${
                     cfg.dateMode === "period"
