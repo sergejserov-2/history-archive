@@ -1027,35 +1027,60 @@ button.admin-button {
 
 .source__header {
 
-    display:grid;
+    display: grid;
 
     grid-template-columns:
-        1fr
+        minmax(0, 1fr)
         80px;
 
-    gap:14px;
+    gap: 14px;
 
-    align-items:baseline;
+    align-items: baseline;
 
 }
 
 .source__title {
 
-    font-size:14px;
+    display: flex;
 
-    color:#eef0f2;
+    align-items: center;
+
+    gap: 6px;
+
+    min-width: 0;
+    max-width: 100%;
+
+    font-size: 14px;
+
+    color: #eef0f2;
+
+    white-space: nowrap;
 
 }
 
-.source__title strong {
+.source__title-text {
 
-    font-weight:600;
+    min-width: 0;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    flex: 1 1 auto;
+
+    font-weight: 600;
 
 }
 
 .source__author {
 
-    font-weight:400;
+    flex-shrink: 0;
+
+    white-space: nowrap;
+
+    font-weight: 400;
 
 }
 
