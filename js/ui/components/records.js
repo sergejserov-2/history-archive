@@ -146,7 +146,9 @@ export function renderRecords(
 
             <div class="record__title">
 
-                ${record.title ?? ""}
+               <span class="record__title-text>
+                   ${record.title ?? ""}
+               </span>
 
                 ${
                 ADMIN_MODE
