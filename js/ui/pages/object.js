@@ -344,26 +344,7 @@ async function renderPage(
     }
 
 </h1>
-                
-                        `
-                
-                        :
-                
-                        ""
-                
-                    }
-                
-                </h1>
 
-                            `
-
-                            :
-
-                            ""
-
-                        }
-
-                    </h1>
 
                     <div class="object__description">
 
