@@ -496,7 +496,6 @@ const form = renderEntityEditor(
                         await cfg.update(
                             entity.id,
                             data
-                        );
                     );
 
                 }
