@@ -177,12 +177,12 @@ export function setupFieldCounters(root){
 // При переключении:
 //
 // Дата → Период
-//   date → dateStart
+//     date → dateStart
 //
 // Период → Дата
-//   dateStart → date
-//   если dateStart пустая,
-//   используется dateEnd
+//     dateStart → date
+//     если dateStart пустая,
+//     используется dateEnd
 //
 // Неточные даты хранятся обычной строкой.
 // ======================================
@@ -247,7 +247,8 @@ export function setupDateModeEditor(
 
     }
 
-    let mode =
+    let
+        mode =
         options.mode === "period"
             ? "period"
             : "date";
@@ -430,14 +431,13 @@ export function setupEntityFieldsEditor(
 
             const data = {};
 
+            // ==================================
+            // Title
+            // ==================================
+
             const titleInput =
                 root.querySelector(
                     "#entityTitle"
-                );
-
-            const descriptionInput =
-                root.querySelector(
-                    "#entityDescription"
                 );
 
             if(titleInput){
@@ -446,6 +446,15 @@ export function setupEntityFieldsEditor(
                     titleInput.value.trim();
 
             }
+
+            // ==================================
+            // Description
+            // ==================================
+
+            const descriptionInput =
+                root.querySelector(
+                    "#entityDescription"
+                );
 
             if(descriptionInput){
 
@@ -569,6 +578,10 @@ export function setupParentsEditor(
             "#entityParentResults"
         );
 
+    // ==================================
+    // Required DOM is missing
+    // ==================================
+
     if(
         !parentsBox ||
         !searchInput ||
@@ -593,6 +606,10 @@ export function setupParentsEditor(
 
     }
 
+    // ==================================
+    // Parent ID
+    // ==================================
+
     function getParentId(parent){
 
         return withAddress
@@ -600,6 +617,10 @@ export function setupParentsEditor(
             : parent;
 
     }
+
+    // ==================================
+    // Render selected parents
+    // ==================================
 
     function renderParents(){
 
@@ -663,6 +684,10 @@ export function setupParentsEditor(
 
     }
 
+    // ==================================
+    // Remove parent
+    // ==================================
+
     parentsBox.onclick = e=>{
 
         const id =
@@ -686,6 +711,10 @@ export function setupParentsEditor(
         renderParents();
 
     };
+
+    // ==================================
+    // Parent address
+    // ==================================
 
     if(withAddress){
 
@@ -716,7 +745,12 @@ export function setupParentsEditor(
             }
 
         };
-}
+
+    }
+
+    // ==================================
+    // Search parents
+    // ==================================
 
     searchInput.oninput = ()=>{
 
@@ -740,7 +774,9 @@ export function setupParentsEditor(
 
                 .filter(o=>{
 
-                    // Нельзя выбрать самого себя.
+                    // ==================================
+                    // Нельзя выбрать самого себя
+                    // ==================================
 
                     if(
                         o.id === entity?.id
@@ -750,8 +786,9 @@ export function setupParentsEditor(
 
                     }
 
+                    // ==================================
                     // Нельзя повторно добавить
-                    // уже выбранного родителя.
+                    // ==================================
 
                     const exists =
                         parents.some(
@@ -766,7 +803,9 @@ export function setupParentsEditor(
 
                     }
 
-                    // Дополнительный фильтр.
+                    // ==================================
+                    // Дополнительный фильтр
+                    // ==================================
 
                     if(
                         options.filter &&
@@ -780,6 +819,10 @@ export function setupParentsEditor(
 
                     }
 
+                    // ==================================
+                    // Поиск по названию
+                    // ==================================
+
                     return (
 
                         o.title ?? ""
@@ -790,7 +833,7 @@ export function setupParentsEditor(
 
                 })
 
-                .slice(0,20)
+                .slice(0, 20)
 
                 .map(o=>`
 
@@ -809,6 +852,10 @@ export function setupParentsEditor(
 
     };
 
+    // ==================================
+    // Add parent
+    // ==================================
+
     resultsBox.onclick = e=>{
 
         const item =
@@ -822,12 +869,15 @@ export function setupParentsEditor(
 
         }
 
+        const id =
+            item.dataset.id;
+
         if(withAddress){
 
             parents.push({
 
                 objectId:
-                    item.dataset.id,
+                    id,
 
                 address:
                     ""
@@ -838,9 +888,7 @@ export function setupParentsEditor(
 
         else{
 
-            parents.push(
-                item.dataset.id
-            );
+            parents.push(id);
 
         }
 
@@ -854,6 +902,10 @@ export function setupParentsEditor(
 
     };
 
+    // ==================================
+    // Initial render
+    // ==================================
+
     renderParents();
 
     return {
@@ -865,7 +917,6 @@ export function setupParentsEditor(
         },
 
         clearParents(){
-
             parents.splice(0);
 
             renderParents();
@@ -884,6 +935,20 @@ export function setupParentsEditor(
 
 // ======================================
 // File editor
+//
+// Сам редактор не работает с Firebase.
+// upload передаётся извне.
+//
+// getData() возвращает:
+// {
+//     storagePath,
+//     previewPath,
+//     removedStoragePath,
+//     removedPreviewPath
+// }
+//
+// Дальнейшая работа с этими данными
+// выполняется вызывающим модулем.
 // ======================================
 
 export function setupFileEditor(
@@ -907,11 +972,19 @@ export function setupFileEditor(
 
     let removeOldFile = false;
 
+    // ==================================
+    // Existing file
+    // ==================================
+
     const oldStoragePath =
         entity?.storagePath ?? null;
 
     const oldPreviewPath =
         entity?.previewPath ?? null;
+
+    // ==================================
+    // DOM
+    // ==================================
 
     const fileSelect =
         root.querySelector(
@@ -933,21 +1006,37 @@ export function setupFileEditor(
             "#entityFileRemove"
         );
 
+    // ==================================
+    // Render file state
+    // ==================================
+
     function renderFileState(){
 
         if(file){
 
-            fileSelect.hidden =
-                true;
+            if(fileSelect){
 
-            fileCurrent.hidden =
-                false;
+                fileSelect.hidden =
+                    true;
+
+            }
+
+            if(fileCurrent){
+
+                fileCurrent.hidden =
+                    false;
+
+            }
 
             fileInput.disabled =
                 true;
 
-            fileName.textContent =
-                file.name;
+            if(fileName){
+
+                fileName.textContent =
+                    file.name;
+
+            }
 
             return;
 
@@ -958,47 +1047,83 @@ export function setupFileEditor(
             !removeOldFile
         ){
 
-            fileSelect.hidden =
-                true;
+            if(fileSelect){
 
-            fileCurrent.hidden =
-                false;
+                fileSelect.hidden =
+                    true;
+
+            }
+
+            if(fileCurrent){
+
+                fileCurrent.hidden =
+                    false;
+
+            }
 
             fileInput.disabled =
                 true;
 
-            fileName.textContent =
-                oldStoragePath
-                    .split("/")
-                    .pop();
+            if(fileName){
+
+                fileName.textContent =
+                    oldStoragePath
+                        .split("/")
+                        .pop();
+
+            }
 
             return;
 
         }
 
-        fileSelect.hidden =
-            false;
+        if(fileSelect){
 
-        fileCurrent.hidden =
-            true;
+            fileSelect.hidden =
+                false;
+
+        }
+
+        if(fileCurrent){
+
+            fileCurrent.hidden =
+                true;
+
+        }
 
         fileInput.disabled =
             false;
 
-        fileName.textContent =
-            "";
+        if(fileName){
 
-    }
-
-    fileSelect.onclick = ()=>{
-
-        if(!fileInput.disabled){
-
-            fileInput.click();
+            fileName.textContent =
+                "";
 
         }
 
-    };
+    }
+
+    // ==================================
+    // Select file
+    // ==================================
+
+    if(fileSelect){
+
+        fileSelect.onclick = ()=>{
+
+            if(!fileInput.disabled){
+
+                fileInput.click();
+
+            }
+
+        };
+
+    }
+
+    // ==================================
+    // File selected
+    // ==================================
 
     fileInput.onchange = e=>{
 
@@ -1010,26 +1135,45 @@ export function setupFileEditor(
 
     };
 
-    fileRemove.onclick = e=>{
+    // ==================================
+    // Remove file
+    // ==================================
 
-        e.stopPropagation();
+    if(fileRemove){
 
-        file =
-            null;
+        fileRemove.onclick = e=>{
 
-        fileInput.value =
-            "";
+            e.stopPropagation();
 
-        removeOldFile =
-            true;
+            file =
+                null;
 
-        renderFileState();
+            fileInput.value =
+                "";
 
-    };
+            /*
+             * Не сбрасываем removeOldFile.
+             *
+             * Если старый файл уже был отмечен
+             * на удаление, это состояние сохраняется.
+             */
+
+            removeOldFile =
+                true;
+
+            renderFileState();
+
+        };
+
+    }
 
     renderFileState();
 
     return {
+
+        // ==================================
+        // Has file
+        // ==================================
 
         hasFile(){
 
@@ -1048,9 +1192,17 @@ export function setupFileEditor(
 
         },
 
+        // ==================================
+        // Get file data
+        // ==================================
+
         async getData(){
 
             const data = {};
+
+            // ==================================
+            // Old original
+            // ==================================
 
             if(
                 removeOldFile &&
@@ -1062,6 +1214,10 @@ export function setupFileEditor(
 
             }
 
+            // ==================================
+            // Old preview
+            // ==================================
+
             if(
                 removeOldFile &&
                 oldPreviewPath
@@ -1072,7 +1228,19 @@ export function setupFileEditor(
 
             }
 
+            // ==================================
+            // New file
+            // ==================================
+
             if(file){
+
+                if(typeof upload !== "function"){
+
+                    throw new Error(
+                        "File upload function is not configured"
+                    );
+
+                }
 
                 const result =
                     await upload(file);
@@ -1096,6 +1264,10 @@ export function setupFileEditor(
                 }
 
             }
+
+            // ==================================
+            // Nothing changed
+            // ==================================
 
             if(
                 !data.storagePath &&
