@@ -288,21 +288,39 @@ export function renderPhotos(
 
         ${photo.author ?? ""}
 
-        ${
-            photo.date
-            ?
-            `
-
-            , <span class="photo-card__date">
-
-                ${photo.date}
-
-            </span>
-
-            `
-            :
-            ""
-        }
+${
+    photo.dateMode === "period"
+    ?
+    (
+        photo.dateStart || photo.dateEnd
+        ?
+        `
+        , <span class="photo-card__date">
+            ${
+                photo.dateStart && photo.dateEnd
+                    ? `${photo.dateStart} – ${photo.dateEnd}`
+                    : photo.dateStart
+                        ? `с ${photo.dateStart}`
+                        : `до ${photo.dateEnd}`
+            }
+        </span>
+        `
+        :
+        ""
+    )
+    :
+    (
+        photo.date
+        ?
+        `
+        , <span class="photo-card__date">
+            ${photo.date}
+        </span>
+        `
+        :
+        ""
+    )
+}
 
     </div>
 
