@@ -1980,6 +1980,33 @@ max-width:800px {
 }
 
 /* ==========================================
+   ENTITY FIELD COUNTER
+========================================== */
+
+.entity-field__counter {
+
+    margin-top: 4px;
+
+    text-align: right;
+
+    font-size: 11px;
+
+    line-height: 1.2;
+
+    color: #777b80;
+
+    transition:
+        color 0.15s ease;
+
+}
+
+.entity-field__counter--limit {
+
+    color: #c94a4a;
+
+}
+
+/* ==========================================
    FILE SELECTOR
 ========================================== */
 
