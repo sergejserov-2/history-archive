@@ -108,37 +108,49 @@ export function renderRecords(
 
     function renderRecord(record){
 
-        let period = "";
+let period = "";
 
-        if(
-            record.dateStart &&
-            record.dateEnd
-        ){
+if(record.dateMode === "date"){
 
-            period =
-                `${record.dateStart} – ${record.dateEnd}`;
+    period =
+        record.date ||
+        "—";
 
-        }
+}
 
-        else if(record.dateStart){
+else{
 
-            period =
-                `с ${record.dateStart}`;
+    if(
+        record.dateStart &&
+        record.dateEnd
+    ){
 
-        }
+        period =
+            `${record.dateStart} – ${record.dateEnd}`;
 
-        else if(record.dateEnd){
+    }
 
-            period =
-                `до ${record.dateEnd}`;
+    else if(record.dateStart){
 
-        }
+        period =
+            `с ${record.dateStart}`;
 
-        else {
+    }
 
-            period = "—";
+    else if(record.dateEnd){
 
-        }
+        period =
+            `до ${record.dateEnd}`;
+
+    }
+
+    else{
+
+        period = "—";
+
+    }
+
+}
 
         return `
 
