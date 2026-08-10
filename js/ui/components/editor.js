@@ -250,39 +250,29 @@ const dateEditor =
              Date period
         ============================== -->
 
-        <div
-            id="entityDatePeriod"
-            class="entity-date-editor__period"
-            ${
-                cfg.dateMode === "period"
-                    ? ""
-                    : "hidden"
-            }
-        >
+<div
+    id="entityDatePeriod"
+    class="entity-date-editor__period"
+    ${
+        cfg.dateMode === "period"
+            ? ""
+            : "hidden"
+    }
+>
 
-            <label>
+    <input
+        id="entity_dateStart"
+        value="${entity.dateStart ?? ""}"
+        placeholder="Дата начала"
+    >
 
-                Дата начала
+    <input
+        id="entity_dateEnd"
+        value="${entity.dateEnd ?? ""}"
+        placeholder="Дата окончания"
+    >
 
-                <input
-                    id="entity_dateStart"
-                    value="${entity.dateStart ?? ""}"
-                >
-
-            </label>
-
-            <label>
-
-                Дата окончания
-
-                <input
-                    id="entity_dateEnd"
-                    value="${entity.dateEnd ?? ""}"
-                >
-
-            </label>
-
-        </div>
+</div>
 
     </div>
 
@@ -982,36 +972,42 @@ export function setupDateModeEditor(
 
         },
 
-        getData(){
+getData(){
 
-            if(mode === "period"){
+    if(mode === "period"){
 
-                return {
+        return {
 
-                    dateStart:
-                        dateStartInput
-                            ?.value
-                            .trim() || "",
+            dateStart:
+                dateStartInput
+                    ?.value
+                    .trim() || "",
 
-                    dateEnd:
-                        dateEndInput
-                            ?.value
-                            .trim() || ""
+            dateEnd:
+                dateEndInput
+                    ?.value
+                    .trim() || "",
 
-                };
+            dateMode:
+                "period"
 
-            }
+        };
 
-            return {
+    }
 
-                date:
-                    dateInput
-                        ?.value
-                        .trim() || ""
+    return {
 
-            };
+        date:
+            dateInput
+                ?.value
+                .trim() || "",
 
-        }
+        dateMode:
+            "date"
+
+    };
+
+}
 
     };
 
@@ -1027,7 +1023,9 @@ export function setupEntityFieldsEditor(
 
     cfg = {},
 
-    extraFields = {}
+    extraFields = {},
+
+    entity = {}
 
 ){
 
@@ -1038,8 +1036,10 @@ export function setupEntityFieldsEditor(
 
             {
 
-                mode:
-                    cfg.dateMode ?? "date"
+mode:
+    entity?.dateMode ??
+    cfg.dateMode ??
+    "date"
 
             }
 
