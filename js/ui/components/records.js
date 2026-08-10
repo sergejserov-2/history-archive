@@ -145,7 +145,7 @@ export function renderRecords(
         <div class="record">
 
             <div class="record__title">
-
+            
                <span class="record__title-text>
                    ${record.title ?? ""}
                </span>
