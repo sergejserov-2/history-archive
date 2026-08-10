@@ -187,7 +187,9 @@ const hasDateEditor =
     hasDatePeriod;
 
 const dateEditor =
+
     hasDateEditor
+
     ?
 
     `
@@ -197,16 +199,17 @@ const dateEditor =
         class="entity-date-editor"
     >
 
-            <span class="entity-date-editor__label">
+        <span
+            id="entityDateLabel"
+            class="entity-date-editor__label"
+        >
+            ${
+                cfg.dateMode === "period"
+                    ? "Период"
+                    : "Дата"
+            }
+        </span>
 
-                ${
-                    cfg.dateMode === "period"
-                        ? "Период"
-                        : "Дата"
-                }
-
-            </span>
-            
         <!-- ==============================
              Single date
         ============================== -->
@@ -232,40 +235,46 @@ const dateEditor =
              Date period
         ============================== -->
 
-<div
-    id="entityDatePeriod"
-    class="entity-date-editor__period"
-    ${
-        cfg.dateMode === "period"
-            ? ""
-            : "hidden"
-    }
->
+        <div
+            id="entityDatePeriod"
+            class="entity-date-editor__period"
+            ${
+                cfg.dateMode === "period"
+                    ? ""
+                    : "hidden"
+            }
+        >
 
-    <input
-        id="entity_dateStart"
-        value="${entity.dateStart ?? ""}"
-   >
-
-    <input
-        id="entity_dateEnd"
-        value="${entity.dateEnd ?? ""}"
-    >
-
-</div>
-            <button
-                type="button"
-                id="entityDateModeSwitch"
-                class="entity-date-editor__switch"
+            <input
+                id="entity_dateStart"
+                value="${entity.dateStart ?? ""}"
             >
 
-                ${
-                    cfg.dateMode === "period"
-                        ? "Сменить на дату"
-                        : "Сменить на период"
-                }
+            <input
+                id="entity_dateEnd"
+                value="${entity.dateEnd ?? ""}"
+            >
 
-            </button>
+        </div>
+
+        <!-- ==============================
+             Switch
+        ============================== -->
+
+        <button
+            type="button"
+            id="entityDateModeSwitch"
+            class="entity-date-editor__switch"
+        >
+
+            ${
+                cfg.dateMode === "period"
+                    ? "Сменить на дату"
+                    : "Сменить на период"
+            }
+
+        </button>
+
     </div>
 
     `
@@ -816,6 +825,10 @@ export function setupDateModeEditor(
         !dateLabel
     ){
 
+        console.error(
+            "Date mode editor: switch or label not found"
+        );
+
         return null;
 
     }
@@ -832,52 +845,175 @@ export function setupDateModeEditor(
 
             "date";
 
+    // ==================================
+    // Render
+    // ==================================
+
     function render(){
 
-    const isPeriod =
-        mode === "period";
+        const isPeriod =
+            mode === "period";
 
-    const row =
-        container.closest(
-            ".entity-row--author-date"
-        );
-
-    if(row){
-
-        row.classList.toggle(
-            "entity-row--author-date-period",
+        dateLabel.textContent =
             isPeriod
-        );
+                ? "Период"
+                : "Дата";
+
+        switchButton.textContent =
+            isPeriod
+                ? "Сменить на дату"
+                : "Сменить на период";
+
+        if(singleField){
+
+            singleField.hidden =
+                isPeriod;
+
+        }
+
+        if(periodFields){
+
+            periodFields.hidden =
+                !isPeriod;
+
+        }
 
     }
 
-    dateLabel.textContent =
-        isPeriod
-            ? "Период"
-            : "Дата";
+    // ==================================
+    // Switch
+    // ==================================
 
-    switchButton.textContent =
-        isPeriod
-            ? "Сменить на дату"
-            : "Сменить на период";
+    switchButton.addEventListener(
+        "click",
+        ()=>{
 
-    if(singleField){
+            // ------------------------------
+            // Date → Period
+            // ------------------------------
 
-        singleField.hidden =
-            isPeriod;
+            if(mode === "date"){
 
-    }
+                const date =
+                    dateInput
+                        ?.value
+                        .trim() || "";
 
-    if(periodFields){
+                if(dateStartInput){
 
-        periodFields.hidden =
-            !isPeriod;
+                    dateStartInput.value =
+                        date;
 
-    }
+                }
+
+                if(dateEndInput){
+
+                    dateEndInput.value =
+                        "";
+
+                }
+
+                mode =
+                    "period";
+
+            }
+
+            // ------------------------------
+            // Period → Date
+            // ------------------------------
+
+            else{
+
+                let date = "";
+
+                if(dateStartInput){
+
+                    date =
+                        dateStartInput
+                            .value
+                            .trim();
+
+                }
+
+                if(
+                    !date &&
+                    dateEndInput
+                ){
+
+                    date =
+                        dateEndInput
+                            .value
+                            .trim();
+
+                }
+
+                if(dateInput){
+
+                    dateInput.value =
+                        date;
+
+                }
+
+                mode =
+                    "date";
+
+            }
+
+            render();
+
+        }
+    );
+
+    // Initial state
+    render();
+
+    return {
+
+        getMode(){
+
+            return mode;
+
+        },
+
+        getData(){
+
+            if(mode === "period"){
+
+                return {
+
+                    dateStart:
+                        dateStartInput
+                            ?.value
+                            .trim() || "",
+
+                    dateEnd:
+                        dateEndInput
+                            ?.value.trim() || "",
+
+                    dateMode:
+                        "period"
+
+                };
+
+            }
+
+            return {
+
+                date:
+                    dateInput
+                        ?.value
+                        .trim() || "",
+
+                dateMode:
+                    "date"
+
+            };
+
+        }
+
+    };
 
 }
-
-    switchButton.onclick = ()=>{
 
         // ==================================
         //Date → Period
