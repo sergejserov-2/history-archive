@@ -209,7 +209,28 @@ export function renderSources(
 
     </div>
 
-    ${
+${
+    source.dateMode === "period"
+    ?
+    (
+        source.dateStart || source.dateEnd
+        ?
+        `
+        <span class="source__date">
+            ${
+                source.dateStart && source.dateEnd
+                    ? `${source.dateStart} – ${source.dateEnd}`
+                    : source.dateStart
+                        ? `с ${source.dateStart}`
+                        : `до ${source.dateEnd}`
+            }
+        </span>
+        `
+        :
+        ""
+    )
+    :
+    (
         source.date
         ?
         `
@@ -219,7 +240,8 @@ export function renderSources(
         `
         :
         ""
-    }
+    )
+}
 
 </div>
 
