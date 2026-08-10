@@ -50,99 +50,115 @@ from "../../api/records.js";
 
 const CONFIG = {
 
-photo: {
+    // ==================================
+    // Photo
+    // ==================================
 
-    title: "Фото",
+    photo: {
 
-    update: updatePhoto,
-    create: createPhoto,
+        title: "Фото",
 
-    upload: uploadPhoto,
+        update: updatePhoto,
+        create: createPhoto,
 
-    file: true,
+        upload: uploadPhoto,
 
-    limits: {
+        file: true,
 
-        title: 45,
+        dateMode: "date",
 
-        description: 350,
+        limits: {
 
-        author: 45
+            title: 45,
 
-    },
+            description: 350,
 
-    fields: [
+            author: 45
 
-        "author",
+        },
 
-        "date"
+        fields: [
 
-    ]
+            "author",
+            "date"
 
-},
-
-source: {
-
-    title: "Источник",
-
-    update: updateSource,
-    create: createSource,
-
-    upload: uploadSourceDocument,
-
-    file: true,
-
-    limits: {
-
-        title: 45,
-
-        description: 2000,
-
-        author: 45
+        ]
 
     },
 
-    fields: [
+    // ==================================
+    // Source
+    // ==================================
 
-        "author",
+    source: {
 
-        "date"
+        title: "Источник",
 
-    ]
+        update: updateSource,
+        create: createSource,
 
-},
+        upload: uploadSourceDocument,
 
-record: {
+        file: true,
 
-    title: "Запись",
+        dateMode: "date",
 
-    update: updateRecord,
-    create: createRecord,
+        limits: {
 
-    file: false,
+            title: 45,
 
-    limits: {
+            description: 2000,
 
-        title: 45,
+            author: 45
 
-        description: 75
+        },
+
+        fields: [
+
+            "author",
+            "date"
+
+        ]
 
     },
 
-    fields: [
+    // ==================================
+    // Record
+    // ==================================
 
-        "dateStart",
-        "dateEnd"
+    record: {
 
-    ],
+        title: "Запись",
 
-    options: {
+        update: updateRecord,
+        create: createRecord,
 
-        typeSelector: true
+        file: false,
+
+        dateMode: "period",
+
+        limits: {
+
+            title: 45,
+
+            description: 75
+
+        },
+
+        fields: [
+
+            "dateStart",
+            "dateEnd"
+
+        ],
+
+        options: {
+
+            typeSelector: true
+
+        }
 
     }
-
-}
 
 };
 
@@ -162,7 +178,7 @@ export function openEntityEditor(
 
 ){
 
-const cfg = CONFIG[type];
+    const cfg = CONFIG[type];
 
     if(!cfg){
 
@@ -176,6 +192,10 @@ const cfg = CONFIG[type];
     }
 
     const isNew = !entity;
+
+    // ==================================
+    // New entity defaults
+    // ==================================
 
     if(isNew){
 
@@ -199,6 +219,10 @@ const cfg = CONFIG[type];
 
     }
 
+    // ==================================
+    // Parents
+    // ==================================
+
     let parents =
 
         entity.parents
@@ -213,220 +237,331 @@ const cfg = CONFIG[type];
         ? [context.parentId]
         : [];
 
+    // ==================================
+    // Render form
+    // ==================================
 
-const form = renderEntityEditor(
+    const form = renderEntityEditor(
 
-    {
-
-        ...cfg,
-
-        options: {
-
-            ...(cfg.options ?? {}),
-
-            types:
-                type === "record"
-                ?
-                (
-                    context.recordTypes ?? []
-                )
-                :
-                []
-
-        }
-
-    },
-
-    entity
-
-);
-
-const modal = createModal({
-
-    title:
-        entity?.id
-        ?
-        `Изменить ${cfg.title.toLowerCase()}`
-        :
-        `Добавить ${cfg.title.toLowerCase()}`,
-
-    content: form
-
-});
-
-const root = modal.root;
-setupFieldCounters(root);
-
-const fileEditor = setupFileEditor(
-    root,
-    entity,
-    cfg.upload
-);
-
-const parentsEditor = setupParentsEditor(
-    root,
-    context.objects,
-    entity,
-    parents
-);
-
-const fieldsEditor = setupEntityFieldsEditor(
-
-    root,
-
-    cfg,
-
-    type === "record"
-        ?
         {
-            typeId:
-                "#entityType"
-        }
-        :
-        {}
 
-);
+            ...cfg,
 
+            options: {
 
-setupEditorButtons(
+                ...(cfg.options ?? {}),
 
-    root,
+                types:
 
-    async()=>{
+                    type === "record"
 
-        try{
+                    ?
 
-            if(
-                type === "photo" &&
-                !fileEditor?.hasFile()
-            ){
+                    (
+                        context.recordTypes ?? []
+                    )
 
-                alert(
-                    "Для фотографии необходимо выбрать файл"
-                );
+                    :
 
-                return;
+                    []
 
             }
 
-            const data = {
+        },
 
-                ...fieldsEditor.getData(),
+        entity
 
-                parents:
-                    parentsEditor.getParents()
-
-            };
-
-const fileData =
-    await fileEditor?.getData();
-
-if(fileData){
-
-    // ======================================
-    // Старый файл был откреплён
-    // ======================================
-
-    if(
-        fileData.removedStoragePath
-    ){
-
-        await moveFileToDeleted(
-
-            fileData.removedStoragePath
-
-        );
-
-        data.storagePath = null;
-
-    }
-
-    if(
-    fileData.removedPreviewPath
-){
-
-    await moveFileToDeleted(
-        fileData.removedPreviewPath
     );
 
-    data.previewPath = null;
+    // ==================================
+    // Modal
+    // ==================================
 
-}
+    const modal = createModal({
 
-    // ======================================
-    // Выбран новый файл
-    // ======================================
+        title:
 
-        if(
-            fileData.storagePath
-        ){
-        
-            data.storagePath =
-                fileData.storagePath;
-        
+            entity?.id
+
+            ?
+
+            `Изменить ${cfg.title.toLowerCase()}`
+
+            :
+
+            `Добавить ${cfg.title.toLowerCase()}`,
+
+        content: form
+
+    });
+
+    const root = modal.root;
+
+    // ==================================
+    // Field counters
+    // ==================================
+
+    setupFieldCounters(root);
+
+    // ==================================
+    // File editor
+    // ==================================
+
+    const fileEditor = setupFileEditor(
+
+        root,
+
+        entity,
+
+        cfg.upload
+
+    );
+
+    // ==================================
+    // Parents editor
+    // ==================================
+
+    const parentsEditor = setupParentsEditor(
+
+        root,
+
+        context.objects,
+
+        entity,
+
+        parents
+
+    );
+
+    // ==================================
+    // Entity fields editor
+    // ==================================
+
+    const fieldsEditor = setupEntityFieldsEditor(
+
+        root,
+
+        cfg,
+
+        type === "record"
+
+        ?
+
+        {
+
+            typeId:
+                "#entityType"
+
         }
-        
-        if(
-            fileData.previewPath
-        ){
-        
-            data.previewPath =
-                fileData.previewPath;
-        
-        }
 
-}
+        :
 
-            if(!isNew){
+        {}
 
-                await cfg.update(
-                    entity.id,
-                    data
-                );
+    );
 
-            }
-            else{
+    // ==================================
+    // Buttons
+    // ==================================
+
+    setupEditorButtons(
+
+        root,
+
+        async()=>{
+
+            try{
+
+                // ==================================
+                // Photo must have a file
+                // ==================================
 
                 if(
-                    parentsEditor.getParents().length === 0
+
+                    type === "photo" &&
+
+                    !fileEditor?.hasFile()
+
                 ){
 
                     alert(
-                        "Нужен хотя бы один родитель"
+                        "Для фотографии необходимо выбрать файл"
                     );
 
                     return;
 
                 }
 
-                await cfg.create(
-                    data
+                // ==================================
+                // Entity data
+                // ==================================
+
+                const data = {
+
+                    ...fieldsEditor.getData(),
+
+                    parents:
+                        parentsEditor.getParents()
+
+                };
+
+                // ==================================
+                // File data
+                // ==================================
+
+                const fileData =
+                    await fileEditor?.getData();
+
+                if(fileData){
+
+                    // ==================================
+                    // Old original file removed
+                    // ==================================
+
+                    if(
+
+                        fileData.removedStoragePath
+
+                    ){
+
+                        await moveFileToDeleted(
+
+                            fileData.removedStoragePath
+
+                        );
+
+                        data.storagePath = null;
+
+                    }
+
+                    // ==================================
+                    // Old preview removed
+                    // ==================================
+
+                    if(
+
+                        fileData.removedPreviewPath
+
+                    ){
+
+                        await moveFileToDeleted(
+
+                            fileData.removedPreviewPath
+
+                        );
+
+                        data.previewPath = null;
+
+                    }
+
+                    // ==================================
+                    // New original file
+                    // ==================================
+
+                    if(
+
+                        fileData.storagePath
+
+                    ){
+
+                        data.storagePath =
+
+                            fileData.storagePath;
+
+                    }
+
+                    // ==================================
+                    // New preview
+                    // ==================================
+
+                    if(
+
+                        fileData.previewPath
+
+                    ){
+
+                        data.previewPath =
+
+                            fileData.previewPath;
+
+                    }
+
+                }
+
+                // ==================================
+                // Update existing entity
+                // ==================================
+
+                if(!isNew){
+
+                    await cfg.update(
+
+                        entity.id,
+
+                        data
+
+                    );
+
+                }
+
+                // ==================================
+                // Create new entity
+                // ==================================
+
+                else{
+
+                    if(
+
+                        parentsEditor
+                            .getParents()
+                            .length === 0
+
+                    ){
+
+                        alert(
+                            "Нужен хотя бы один родитель"
+                        );
+
+                        return;
+
+                    }
+
+                    await cfg.create(
+
+                        data
+
+                    );
+
+                }
+
+                // ==================================
+                // Close
+                // ==================================
+
+                modal.close();
+
+                onSave?.();
+
+            }
+
+            catch(error){
+
+                console.error(error);
+
+                alert(
+                    "Ошибка сохранения"
                 );
 
             }
 
+        },
+
+        ()=>{
+
             modal.close();
 
-            onSave?.();
-
-        }
-        catch(error){
-
-            console.error(error);
-
-            alert(
-                "Ошибка сохранения"
-            );
-
         }
 
-    },
+    );
 
-    ()=>{
-
-        modal.close();
-
-    }
-
-);
 }
