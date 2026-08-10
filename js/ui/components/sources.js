@@ -157,54 +157,69 @@ export function renderSources(
         rows.push(`
 
         <div class="source">
+<div class="source__header">
 
-            <div class="source__header">
+    <div class="source__title">
 
-<div class="source__title">${
-    source.author
-    ?
-    `
-    <span class="source__author">
-        ${source.author},
-    </span>
-    `
-    :
-    ""
-}
+        ${
+            source.author
+            ?
+            `
+            <span class="source__author">
+                ${source.author},
+            </span>
+            `
+            :
+            ""
+        }
 
-<strong class="source__title-text">
-    ${source.title ?? ""}
-</strong>
+        <strong class="source__title-text">
+            ${source.title ?? ""}
+        </strong>
 
-${
-    ADMIN_MODE
-    ?
-    `
-    <button
-        class="admin-button"
-        data-action="edit-source"
-        data-id="${source.id}"
-    >
-        <img
-            src="icons/edit.svg"
-            class="admin-icon"
-        >
-    </button>
+        ${
+            ADMIN_MODE
+            ?
+            `
+            <button
+                class="admin-button"
+                data-action="edit-source"
+                data-id="${source.id}"
+            >
+                <img
+                    src="icons/edit.svg"
+                    class="admin-icon"
+                >
+            </button>
 
-    <button
-        class="admin-button"
-        data-action="delete-source"
-        data-id="${source.id}"
-    >
-        <img
-            src="icons/delete.svg"
-            class="admin-icon"
-        >
-    </button>
-    `
-    :
-    ""
-}
+            <button
+                class="admin-button"
+                data-action="delete-source"
+                data-id="${source.id}"
+            >
+                <img
+                    src="icons/delete.svg"
+                    class="admin-icon"
+                >
+            </button>
+            `
+            :
+            ""
+        }
+
+    </div>
+
+    ${
+        source.date
+        ?
+        `
+        <span class="source__date">
+            ${source.date}
+        </span>
+        `
+        :
+        ""
+    }
 
 </div>
 
