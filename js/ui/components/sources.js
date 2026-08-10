@@ -160,87 +160,52 @@ export function renderSources(
 
             <div class="source__header">
 
-                <div class="source__title">
+<div class="source__title">
 
-                    ${
-                    source.author
+    ${
+    source.author
+    ?
+    `<span class="source__author">
+        ${source.author},
+    </span>`
+    :
+    ""
+    }
 
-                    ?
+    <strong class="source__title-text">
+        ${source.title ?? ""}
+    </strong>
 
-                    `<span class="source__author">
+    ${
+    ADMIN_MODE
+    ?
+    `
+    <button
+        class="admin-button"
+        data-action="edit-source"
+        data-id="${source.id}"
+    >
+        <img
+            src="icons/edit.svg"
+            class="admin-icon"
+        >
+    </button>
 
-                        ${source.author},
+    <button
+        class="admin-button"
+        data-action="delete-source"
+        data-id="${source.id}"
+    >
+        <img
+            src="icons/delete.svg"
+        >
+    </button>
+    `
+    :
+    ""
+    }
 
-                    </span>`
-
-                    :
-
-                    ""
-
-                    }
-
-                    <strong>
-
-                        ${source.title ?? ""}
-
-                    </strong>
-
-                    ${
-                    ADMIN_MODE
-
-                    ?
-
-                    `
-
-                    <button
-
-                        class="admin-button"
-
-                        data-action="edit-source"
-
-                        data-id="${source.id}"
-
-                    >
-
-                        <img
-                            src="icons/edit.svg"
-                            class="admin-icon"
-                        >
-
-                    </button>
-
-                    <button
-
-                        class="admin-button"
-
-                        data-action="delete-source"
-
-                        data-id="${source.id}"
-
-                    >
-
-                        <img
-                            src="icons/delete.svg"
-                            class="admin-icon"
-                        >
-
-                    </button>`
-
-                    :
-
-                    ""
-
-                    }
-
-                </div>
-
-                <div class="source__date">
-
-                    ${source.date ?? ""}
-
-                </div>
-
-            </div>
+</div>
 
             <div class="source__description">
 
