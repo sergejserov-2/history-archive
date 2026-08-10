@@ -67,6 +67,67 @@ export function setupEditorButtons(
 
 }
 
+export function setupFieldCounters(root){
+
+    const fields = [
+
+        {
+            selector: "#entityTitle",
+            counter: '[data-counter-for="entityTitle"]'
+        },
+
+        {
+            selector: "#entityDescription",
+            counter: '[data-counter-for="entityDescription"]'
+        },
+
+        {
+            selector: "#entity_author",
+            counter: '[data-counter-for="entity_author"]'
+        }
+
+    ];
+
+    fields.forEach(field=>{
+
+        const input =
+            root.querySelector(
+                field.selector
+            );
+
+        const counter =
+            root.querySelector(
+                field.counter
+            );
+
+        if(!input || !counter){
+
+            return;
+
+        }
+
+        function updateCounter(){
+
+            const remaining =
+                input.maxLength -
+                input.value.length;
+
+            counter.textContent =
+                `Осталось: ${remaining}`;
+
+        }
+
+        input.addEventListener(
+            "input",
+            updateCounter
+        );
+
+        updateCounter();
+
+    });
+
+}
+
 export function setupEntityFieldsEditor(
 
     root,
@@ -751,6 +812,18 @@ export function renderEntityEditor(
 
     const options = cfg.options ?? {};
 
+    const limits = {
+
+    title: 45,
+
+    description: 350,
+
+    author: 45,
+
+    ...(cfg.limits ?? {})
+
+};
+
 const sortedTypes =
 
     [...(options.types ?? [])]
@@ -870,15 +943,18 @@ ${type.title}
 
 <label class="entity-title">
 
-Название
+    Название
 
-<input
+    <input
+        id="entityTitle"
+        value="${entity.title ?? ""}"
+        maxlength="${limits.title}"
+    >
 
-id="entityTitle"
-
-value="${entity.title ?? ""}"
-
->
+    <div
+        class="entity-field-counter"
+        data-counter-for="entityTitle"
+    ></div>
 
 </label>
 
@@ -892,15 +968,18 @@ value="${entity.title ?? ""}"
 
 <label>
 
-Название
+    Название
 
-<input
+    <input
+        id="entityTitle"
+        value="${entity.title ?? ""}"
+        maxlength="${limits.title}"
+    >
 
-id="entityTitle"
-
-value="${entity.title ?? ""}"
-
->
+    <div
+        class="entity-field-counter"
+        data-counter-for="entityTitle"
+    ></div>
 
 </label>
 
@@ -910,13 +989,17 @@ value="${entity.title ?? ""}"
 
 <label>
 
-Описание
+    Описание
 
-<textarea
+    <textarea
+        id="entityDescription"
+        maxlength="${limits.description}"
+    >${entity.description ?? ""}</textarea>
 
-id="entityDescription"
-
->${entity.description ?? ""}</textarea>
+    <div
+        class="entity-field-counter"
+        data-counter-for="entityDescription"
+    ></div>
 
 </label>
 
@@ -961,15 +1044,18 @@ cfg.fields.includes("author") && cfg.fields.includes("date")
 
 <label>
 
-Автор
+    Автор
 
-<input
+    <input
+        id="entity_author"
+        value="${entity.author ?? ""}"
+        maxlength="${limits.author}"
+    >
 
-id="entity_author"
-
-value="${entity.author ?? ""}"
-
->
+    <div
+        class="entity-field-counter"
+        data-counter-for="entity_author"
+    ></div>
 
 </label>
 
