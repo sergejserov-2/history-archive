@@ -1010,6 +1010,19 @@ button.admin-button {
 
 }
 
+.source__header {
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        80px;
+
+    gap: 14px;
+
+    align-items: baseline;
+
+}
 
 
 .source__title {
