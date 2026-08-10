@@ -1010,19 +1010,7 @@ button.admin-button {
 
 }
 
-.source__header {
 
-    display: grid;
-
-    grid-template-columns:
-        minmax(0, 1fr)
-        80px;
-
-    gap: 14px;
-
-    align-items: baseline;
-
-}
 
 .source__title {
 
@@ -1997,12 +1985,6 @@ max-width:800px {
 
     transition:
         color 0.15s ease;
-
-}
-
-.entity-field-counter--limit {
-
-    color: #c94a4a;
 
 }
 
