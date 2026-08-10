@@ -2,6 +2,10 @@
 // Entity editor UI
 // ======================================
 
+// ======================================
+// Cover editor
+// ======================================
+
 export function setupCoverEditor(
     root,
     photos,
@@ -45,6 +49,10 @@ export function setupCoverEditor(
 
 }
 
+// ======================================
+// Editor buttons
+// ======================================
+
 export function setupEditorButtons(
     root,
     onSave,
@@ -61,29 +69,52 @@ export function setupEditorButtons(
             "#entityCancel"
         );
 
-    saveButton.onclick = onSave;
+    if(saveButton){
 
-    cancelButton.onclick = onCancel;
+        saveButton.onclick =
+            onSave;
+
+    }
+
+    if(cancelButton){
+
+        cancelButton.onclick =
+            onCancel;
+
+    }
 
 }
+
+// ======================================
+// Field counters
+// ======================================
 
 export function setupFieldCounters(root){
 
     const fields = [
 
         {
-            selector: "#entityTitle",
-            counter: '[data-counter-for="entityTitle"]'
+            selector:
+                "#entityTitle",
+
+            counter:
+                '[data-counter-for="entityTitle"]'
         },
 
         {
-            selector: "#entityDescription",
-            counter: '[data-counter-for="entityDescription"]'
+            selector:
+                "#entityDescription",
+
+            counter:
+                '[data-counter-for="entityDescription"]'
         },
 
         {
-            selector: "#entity_author",
-            counter: '[data-counter-for="entity_author"]'
+            selector:
+                "#entity_author",
+
+            counter:
+                '[data-counter-for="entity_author"]'
         }
 
     ];
@@ -128,6 +159,252 @@ export function setupFieldCounters(root){
 
 }
 
+// ======================================
+// Date mode editor
+//
+// Один режим:
+//     Дата
+//     entity_date
+//
+// Два режима:
+//     Период
+//     entity_dateStart
+//     entity_dateEnd
+//
+// Переключатель находится в правом
+// нижнем углу блока дат.
+//
+// При переключении:
+//
+// Дата → Период
+//   date → dateStart
+//
+// Период → Дата
+//   dateStart → date
+//   если dateStart пустая,
+//   используется dateEnd
+//
+// Неточные даты хранятся обычной строкой.
+// ======================================
+
+export function setupDateModeEditor(
+    root,
+    options = {}
+){
+
+    const container =
+        root.querySelector(
+            "#entityDateEditor"
+        );
+
+    if(!container){
+
+        return null;
+
+    }
+
+    const dateInput =
+        root.querySelector(
+            "#entity_date"
+        );
+
+    const dateStartInput =
+        root.querySelector(
+            "#entity_dateStart"
+        );
+
+    const dateEndInput =
+        root.querySelector(
+            "#entity_dateEnd"
+        );
+
+    const switchButton =
+        root.querySelector(
+            "#entityDateModeSwitch"
+        );
+
+    const dateLabel =
+        root.querySelector(
+            "#entityDateLabel"
+        );
+
+    const periodFields =
+        root.querySelector(
+            "#entityDatePeriod"
+        );
+
+    const singleField =
+        root.querySelector(
+            "#entityDateSingle"
+        );
+
+    if(
+        !switchButton ||
+        !dateLabel
+    ){
+
+        return null;
+
+    }
+
+    let mode =
+        options.mode === "period"
+            ? "period"
+            : "date";
+
+    function render(){
+
+        const isPeriod =
+            mode === "period";
+
+        dateLabel.textContent =
+            isPeriod
+                ? "Период"
+                : "Дата";
+
+        switchButton.textContent =
+            isPeriod
+                ? "Сменить на дату"
+                : "Сменить на период";
+
+        if(singleField){
+
+            singleField.hidden =
+                isPeriod;
+
+        }
+
+        if(periodFields){
+
+            periodFields.hidden =
+                !isPeriod;
+
+        }
+
+    }
+
+    switchButton.onclick = ()=>{
+
+        // ==================================
+        // Дата → Период
+        // ==================================
+
+        if(mode === "date"){
+
+            if(dateInput){
+
+                const date =
+                    dateInput.value.trim();
+
+                if(dateStartInput){
+
+                    dateStartInput.value =
+                        date;
+
+                }
+
+                if(dateEndInput){
+
+                    dateEndInput.value =
+                        "";
+
+                }
+
+            }
+
+            mode = "period";
+
+        }
+
+        // ==================================
+        // Период → Дата
+        // ==================================
+
+        else{
+
+            let date = "";
+
+            if(dateStartInput){
+
+                date =
+                    dateStartInput.value.trim();
+
+            }
+
+            if(
+                !date &&
+                dateEndInput
+            ){
+
+                date =
+                    dateEndInput.value.trim();
+
+            }
+
+            if(dateInput){
+
+                dateInput.value =
+                    date;
+
+            }
+
+            mode = "date";
+
+        }
+
+        render();
+
+    };
+
+    render();
+
+    return {
+
+        getMode(){
+
+            return mode;
+
+        },
+
+        getData(){
+
+            if(mode === "period"){
+
+                return {
+
+                    dateStart:
+                        dateStartInput
+                            ?.value
+                            .trim() || "",
+
+                    dateEnd:
+                        dateEndInput
+                            ?.value
+                            .trim() || ""
+
+                };
+
+            }
+
+            return {
+
+                date:
+                    dateInput
+                        ?.value
+                        .trim() || ""
+
+            };
+
+        }
+
+    };
+
+}
+
+// ======================================
+// Entity fields editor
+// ======================================
+
 export function setupEntityFieldsEditor(
 
     root,
@@ -138,6 +415,15 @@ export function setupEntityFieldsEditor(
 
 ){
 
+    const dateModeEditor =
+        setupDateModeEditor(
+            root,
+            {
+                mode:
+                    cfg.dateMode ?? "date"
+            }
+        );
+
     return {
 
         getData(){
@@ -145,13 +431,11 @@ export function setupEntityFieldsEditor(
             const data = {};
 
             const titleInput =
-
                 root.querySelector(
                     "#entityTitle"
                 );
 
             const descriptionInput =
-
                 root.querySelector(
                     "#entityDescription"
                 );
@@ -170,11 +454,27 @@ export function setupEntityFieldsEditor(
 
             }
 
+            // ==================================
+            // Обычные поля
+            // ==================================
+
             (cfg.fields ?? [])
             .forEach(field=>{
 
-                const input =
+                // Даты обрабатываем отдельно,
+                // потому что режим может меняться.
 
+                if(
+                    field === "date" ||
+                    field === "dateStart" ||
+                    field === "dateEnd"
+                ){
+
+                    return;
+
+                }
+
+                const input =
                     root.querySelector(
                         `#entity_${field}`
                     );
@@ -188,12 +488,28 @@ export function setupEntityFieldsEditor(
 
             });
 
+            // ==================================
+            // Даты
+            // ==================================
+
+            if(dateModeEditor){
+
+                Object.assign(
+                    data,
+                    dateModeEditor.getData()
+                );
+
+            }
+
+            // ==================================
+            // Дополнительные поля
+            // ==================================
+
             Object.entries(extraFields)
             .forEach(
                 ([field, selector])=>{
 
                     const input =
-
                         root.querySelector(
                             selector
                         );
@@ -210,11 +526,22 @@ export function setupEntityFieldsEditor(
 
             return data;
 
+        },
+
+        getDateMode(){
+
+            return dateModeEditor
+                ?.getMode();
+
         }
 
     };
 
 }
+
+// ======================================
+// Parents editor
+// ======================================
 
 export function setupParentsEditor(
     root,
@@ -242,6 +569,30 @@ export function setupParentsEditor(
             "#entityParentResults"
         );
 
+    if(
+        !parentsBox ||
+        !searchInput ||
+        !resultsBox
+    ){
+
+        return {
+
+            getParents(){
+
+                return parents;
+
+            },
+
+            clearParents(){
+
+                parents.splice(0);
+
+            }
+
+        };
+
+    }
+
     function getParentId(parent){
 
         return withAddress
@@ -260,53 +611,54 @@ export function setupParentsEditor(
                     getParentId(parent);
 
                 const obj =
-
                     objects.find(
-
-                        o=>o.id===id
-
+                        o =>
+                            o.id === id
                     );
 
                 return `
 
 <div class="parent-item">
 
- <div class="parent-badge">
+    <div class="parent-badge">
 
-    <span class="parent-title">
-        ${obj?.title ?? id}
-    </span>
+        <span class="parent-title">
 
-    <span
-        class="parent-remove"
-        data-remove="${id}"
-    >
-        ×
-    </span>
+            ${obj?.title ?? id}
 
-</div>
+        </span>
 
-${
-    withAddress
-    ?
-    `
-    <input
-        class="parent-address"
-        data-id="${id}"
-        value="${parent.address ?? ""}"
-        placeholder="Адрес"
-    >
-    `
-    :
-    ""
-}
+        <span
+            class="parent-remove"
+            data-remove="${id}"
+        >
+
+            ×
+
+        </span>
+
+    </div>
+
+    ${
+        withAddress
+        ?
+        `
+        <input
+            class="parent-address"
+            data-id="${id}"
+            value="${parent.address ?? ""}"
+            placeholder="Адрес"
+        >
+        `
+        :
+        ""
+    }
 
 </div>
 
 `;
 
             })
-
             .join("");
 
     }
@@ -316,15 +668,18 @@ ${
         const id =
             e.target.dataset.remove;
 
-        if(!id)
+        if(!id){
 
             return;
 
-        parents =
+        }
 
+        parents =
             parents.filter(parent=>{
 
-                return getParentId(parent)!==id;
+                return (
+                    getParentId(parent) !== id
+                );
 
             });
 
@@ -340,18 +695,17 @@ ${
                 !e.target.classList.contains(
                     "parent-address"
                 )
-            )
+            ){
 
                 return;
 
+            }
+
             const parent =
-
                 parents.find(
-
-                    p=>
-
-                    p.objectId === e.target.dataset.id
-
+                    p =>
+                        p.objectId ===
+                        e.target.dataset.id
                 );
 
             if(parent){
@@ -362,122 +716,111 @@ ${
             }
 
         };
-
-    }
+}
 
     searchInput.oninput = ()=>{
 
-    const text =
+        const text =
+            searchInput.value
+                .toLowerCase()
+                .trim();
 
-        searchInput.value
-        .toLowerCase()
-        .trim();
+        if(!text){
 
-    if(!text){
+            resultsBox.innerHTML =
+                "";
 
-        resultsBox.innerHTML="";
+            return;
 
-        return;
+        }
 
-    }
+        resultsBox.innerHTML =
 
-    resultsBox.innerHTML =
+            objects
 
-        objects
+                .filter(o=>{
 
-        .filter(o=>{
+                    // Нельзя выбрать самого себя.
 
-            // Нельзя выбрать самого себя
+                    if(
+                        o.id === entity?.id
+                    ){
 
-            if(
-                o.id === entity?.id
-            ){
+                        return false;
 
-                return false;
+                    }
 
-            }
+                    // Нельзя повторно добавить
+                    // уже выбранного родителя.
 
-            // Нельзя повторно добавить уже выбранного родителя
+                    const exists =
+                        parents.some(
+                            parent =>
+                                getParentId(parent) ===
+                                o.id
+                        );
 
-            const exists =
+                    if(exists){
 
-                parents.some(parent=>{
+                        return false;
 
-                    return getParentId(parent) === o.id;
+                    }
 
-                });
+                    // Дополнительный фильтр.
 
-            if(exists){
+                    if(
+                        options.filter &&
+                        !options.filter(
+                            o,
+                            parents
+                        )
+                    ){
 
-                return false;
+                        return false;
 
-            }
+                    }
 
-            // ======================================
-            // Проверка допустимости родителя
-            // ======================================
+                    return (
 
-if(
-    options.filter &&
-    !options.filter(
-        o,
-        parents
-    )
-){
+                        o.title ?? ""
 
-    return false;
+                    )
+                        .toLowerCase()
+                        .includes(text);
 
-}
+                })
 
-            // ======================================
-            // Поиск по названию
-            // ======================================
+                .slice(0,20)
 
-            return (
-
-                o.title ?? ""
-
-            )
-
-            .toLowerCase()
-
-            .includes(text);
-
-        })
-
-        .slice(0,20)
-
-        .map(o=>`
+                .map(o=>`
 
 <div
-
     class="parent-result"
-
     data-id="${o.id}"
-
 >
 
-${o.title}
+    ${o.title}
 
 </div>
 
 `)
 
-        .join("");
+                .join("");
 
-};
+    };
 
     resultsBox.onclick = e=>{
 
         const item =
-
             e.target.closest(
                 ".parent-result"
             );
 
-        if(!item)
+        if(!item){
 
             return;
+
+        }
 
         if(withAddress){
 
@@ -486,11 +829,13 @@ ${o.title}
                 objectId:
                     item.dataset.id,
 
-                address:""
+                address:
+                    ""
 
             });
 
         }
+
         else{
 
             parents.push(
@@ -501,37 +846,45 @@ ${o.title}
 
         renderParents();
 
-        searchInput.value="";
+        searchInput.value =
+            "";
 
-        resultsBox.innerHTML="";
+        resultsBox.innerHTML =
+            "";
 
     };
 
     renderParents();
 
-return {
+    return {
 
-    getParents(){
+        getParents(){
 
-        return parents;
+            return parents;
 
-    },
+        },
 
-    clearParents(){
+        clearParents(){
 
-        parents.splice(0);
+            parents.splice(0);
 
-        renderParents();
+            renderParents();
 
-        searchInput.value = "";
+            searchInput.value =
+                "";
 
-        resultsBox.innerHTML = "";
+            resultsBox.innerHTML =
+                "";
 
-    }
+        }
 
-};
+    };
 
 }
+
+// ======================================
+// File editor
+// ======================================
 
 export function setupFileEditor(
     root,
@@ -584,11 +937,14 @@ export function setupFileEditor(
 
         if(file){
 
-            fileSelect.hidden = true;
+            fileSelect.hidden =
+                true;
 
-            fileCurrent.hidden = false;
+            fileCurrent.hidden =
+                false;
 
-            fileInput.disabled = true;
+            fileInput.disabled =
+                true;
 
             fileName.textContent =
                 file.name;
@@ -602,11 +958,14 @@ export function setupFileEditor(
             !removeOldFile
         ){
 
-            fileSelect.hidden = true;
+            fileSelect.hidden =
+                true;
 
-            fileCurrent.hidden = false;
+            fileCurrent.hidden =
+                false;
 
-            fileInput.disabled = true;
+            fileInput.disabled =
+                true;
 
             fileName.textContent =
                 oldStoragePath
@@ -617,19 +976,19 @@ export function setupFileEditor(
 
         }
 
-        fileSelect.hidden = false;
+        fileSelect.hidden =
+            false;
 
-        fileCurrent.hidden = true;
+        fileCurrent.hidden =
+            true;
 
-        fileInput.disabled = false;
+        fileInput.disabled =
+            false;
 
-        fileName.textContent = "";
+        fileName.textContent =
+            "";
 
     }
-
-    // ======================================
-    // Select file
-    // ======================================
 
     fileSelect.onclick = ()=>{
 
@@ -641,40 +1000,28 @@ export function setupFileEditor(
 
     };
 
-    // ======================================
-    // File selected
-    // ======================================
-
     fileInput.onchange = e=>{
 
         file =
-            e.target.files[0] || null;
-
-        /*
-         * ВАЖНО:
-         * removeOldFile НЕ сбрасываем.
-         *
-         * Если старый файл уже был удалён,
-         * он всё равно должен попасть в deleted.
-         */
+            e.target.files[0] ||
+            null;
 
         renderFileState();
 
     };
 
-    // ======================================
-    // Remove file
-    // ======================================
-
     fileRemove.onclick = e=>{
 
         e.stopPropagation();
 
-        file = null;
+        file =
+            null;
 
-        fileInput.value = "";
+        fileInput.value =
+            "";
 
-        removeOldFile = true;
+        removeOldFile =
+            true;
 
         renderFileState();
 
@@ -683,10 +1030,6 @@ export function setupFileEditor(
     renderFileState();
 
     return {
-
-        // ==================================
-        // Has file
-        // ==================================
 
         hasFile(){
 
@@ -705,17 +1048,9 @@ export function setupFileEditor(
 
         },
 
-        // ==================================
-        // Get data
-        // ==================================
-
         async getData(){
 
             const data = {};
-
-            // ==================================
-            // Старый original
-            // ==================================
 
             if(
                 removeOldFile &&
@@ -727,10 +1062,6 @@ export function setupFileEditor(
 
             }
 
-            // ==================================
-            // Старый preview
-            // ==================================
-
             if(
                 removeOldFile &&
                 oldPreviewPath
@@ -741,17 +1072,10 @@ export function setupFileEditor(
 
             }
 
-            // ==================================
-            // Новый файл
-            // ==================================
-
             if(file){
 
                 const result =
                     await upload(file);
-
-                // ==================================
-                // Original// ==================================
 
                 if(
                     result?.storagePath
@@ -761,10 +1085,6 @@ export function setupFileEditor(
                         result.storagePath;
 
                 }
-
-                // ==================================
-                // Preview
-                // ==================================
 
                 if(
                     result?.previewPath
@@ -776,10 +1096,6 @@ export function setupFileEditor(
                 }
 
             }
-
-            // ==================================
-            // Ничего не изменилось
-            // ==================================
 
             if(
                 !data.storagePath &&
@@ -797,477 +1113,5 @@ export function setupFileEditor(
         }
 
     };
-
-}
-
-export function renderEntityEditor(
-
-    cfg,
-
-    entity
-
-){
-
-    entity = entity ?? {};
-
-    const options = cfg.options ?? {};
-
-    const limits = {
-
-    title: 45,
-
-    description: 350,
-
-    author: 45,
-
-    ...(cfg.limits ?? {})
-
-};
-
-const sortedTypes =
-
-    [...(options.types ?? [])]
-
-    .sort((a, b) => {
-
-        const levelA =
-
-            Array.isArray(a.levels)
-
-                ?
-
-                Math.max(
-                    ...a.levels.map(Number)
-                )
-
-                :
-
-                Number(
-                    a.level ?? Infinity
-                );
-
-        const levelB =
-
-            Array.isArray(b.levels)
-
-                ?
-
-                Math.max(
-                    ...b.levels.map(Number)
-                )
-
-                :
-
-                Number(
-                    b.level ?? Infinity
-                );
-
-        if(levelA !== levelB){
-
-            return levelB - levelA;
-
-        }
-
-        return (
-
-            (a.title ?? "")
-                .localeCompare(
-                    b.title ?? "",
-                    "ru"
-                )
-
-        );
-
-    });
-
-    return `
-
-<div class="entity-editor">
-
-${
-options.typeSelector
-
-?
-
-`
-
-<div class="entity-row entity-row--title-type">
-
-<label class="entity-type">
-
-Тип
-
-<select id="entityType">
-
-${
-
-sortedTypes.map(type=>`
-
-<option
-
-value="${type.id}"
-
-${
-type.id ===
-(
-    entity.typeId ??
-    options.defaultTypeId
-)
-?
-"selected"
-:
-""
-}
-
-${
-options.disabledTypeIds?.includes(type.id)
-?
-"disabled"
-:
-""
-}
-
->
-
-${type.title}
-
-</option>
-
-`).join("")
-
-}
-
-</select>
-
-</label>
-
-<label class="entity-title">
-
-    Название
-
-    <input
-        id="entityTitle"
-        value="${entity.title ?? ""}"
-        maxlength="${limits.title}"
-    >
-
-    <div
-        class="entity-field-counter"
-        data-counter-for="entityTitle"
-    ></div>
-
-</label>
-
-</div>
-
-`
-
-:
-
-`
-
-<label>
-
-    Название
-
-    <input
-        id="entityTitle"
-        value="${entity.title ?? ""}"
-        maxlength="${limits.title}"
-    >
-
-    <div
-        class="entity-field-counter"
-        data-counter-for="entityTitle"
-    ></div>
-
-</label>
-
-`
-
-}
-
-<label>
-
-    Описание
-
-    <textarea
-        id="entityDescription"
-        maxlength="${limits.description}"
-    >${entity.description ?? ""}</textarea>
-
-    <div
-        class="entity-field-counter"
-        data-counter-for="entityDescription"
-    ></div>
-
-</label>
-
-<label>
-
-Родители
-
-<div class="parents-group">
-
-<div id="entityParents">
-
-</div>
-
-<input
-
-id="entityParentSearch"
-
-placeholder="Начните вводить имя"
-
->
-
-<div
-
-id="entityParentResults"
-
->
-
-</div>
-
-</div>
-
-</label>
-
-${
-cfg.fields.includes("author") && cfg.fields.includes("date")
-
-?
-
-`
-
-<div class="entity-row entity-row--author-date">
-
-<label>
-
-    Автор
-
-    <input
-        id="entity_author"
-        value="${entity.author ?? ""}"
-        maxlength="${limits.author}"
-    >
-
-    <div
-        class="entity-field-counter"
-        data-counter-for="entity_author"
-    ></div>
-
-</label>
-
-<label>
-
-Дата
-
-<input
-
-id="entity_date"
-
-value="${entity.date ?? ""}"
-
->
-
-</label>
-
-</div>
-
-`
-
-:
-
-""
-
-}
-
-${
-cfg.fields.includes("dateStart") && cfg.fields.includes("dateEnd")
-
-?
-
-`
-
-<div class="entity-row entity-row--dates">
-
-<label>
-
-Дата начала
-
-<input
-
-id="entity_dateStart"
-
-value="${entity.dateStart ?? ""}"
-
->
-
-</label>
-
-<label>
-
-Дата окончания
-
-<input
-
-id="entity_dateEnd"
-
-value="${entity.dateEnd ?? ""}"
-
->
-
-</label>
-
-</div>
-
-`
-
-:
-
-""
-
-}
-
-${
-cfg.file
-
-?
-
-`
-
-<label>
-
-Файл
-
-<div class="entity-file">
-
-<div
-
-id="entityFileSelect"
-
-class="entity-file__select admin-button"
-
->
-
-Выбрать файл
-
-</div>
-
-<div
-
-id="entityFileCurrent"
-
-class="entity-file__current"
-
-hidden
-
->
-
-<span id="entityFileName"></span>
-
-<span
-
-id="entityFileRemove"
-
-class="entity-file__remove"
-
->
-
-×
-
-</span>
-
-</div>
-
-</div>
-
-</label>
-
-<input
-
-id="entityFile"
-
-type="file"
-
-hidden
-
->
-
-`
-
-:
-
-""
-
-}
-
-${
-cfg.cover
-?
-`
-<label>
-
-Обложка
-
-<select id="entityCover">
-
-<option value="">
-Без фотографии
-</option>
-
-${
-cfg.cover.photos.map(photo=>`
-
-<option
-
-value="${photo.id}"
-
-${
-photo.id === entity.coverPhotoId
-?
-"selected"
-:
-""
-}
-
->
-
-${photo.title ?? photo.id}
-
-</option>
-
-`).join("")
-}
-
-</select>
-
-</label>
-`
-:
-""
-}
-
-
-<div class="entity-editor__buttons">
-
-<button id="entitySave">
-
-Сохранить
-
-</button>
-
-<button id="entityCancel">
-
-Отмена
-
-</button>
-
-</div>
-
-</div>
-
-`;
 
 }
