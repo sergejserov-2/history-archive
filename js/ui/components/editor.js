@@ -1138,7 +1138,7 @@ if(dateModeEditor){
                     if(input){
 
                         data[field] =
-                            input.value;
+                            input.value.trim();
 
                     }
 
