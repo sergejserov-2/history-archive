@@ -160,24 +160,23 @@ export function renderSources(
 
             <div class="source__header">
 
-<div class="source__title">
-`
-    ${
+<div class="source__title">${
     source.author
     ?
     `
     <span class="source__author">
         ${source.author},
-    </span>`
+    </span>
+    `
     :
     ""
-    }
+}
 
-    `<strong class="source__title-text">
-        ${source.title ?? ""}
-    </strong>`
+<strong class="source__title-text">
+    ${source.title ?? ""}
+</strong>
 
-    ${
+${
     ADMIN_MODE
     ?
     `
@@ -199,12 +198,13 @@ export function renderSources(
     >
         <img
             src="icons/delete.svg"
+            class="admin-icon"
         >
     </button>
     `
     :
     ""
-    }
+}
 
 </div>
 
