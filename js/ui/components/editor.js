@@ -263,13 +263,11 @@ const dateEditor =
     <input
         id="entity_dateStart"
         value="${entity.dateStart ?? ""}"
-        placeholder="Дата начала"
-    >
+   >
 
     <input
         id="entity_dateEnd"
         value="${entity.dateEnd ?? ""}"
-        placeholder="Дата окончания"
     >
 
 </div>
@@ -842,48 +840,48 @@ export function setupDateModeEditor(
 
     function render(){
 
-        const isPeriod =
-            mode === "period";
+    const isPeriod =
+        mode === "period";
 
-        dateLabel.textContent =
+    const row =
+        container.closest(
+            ".entity-row--author-date"
+        );
 
+    if(row){
+
+        row.classList.toggle(
+            "entity-row--author-date-period",
             isPeriod
-
-                ?
-
-                "Период"
-
-                :
-
-                "Дата";
-
-        switchButton.textContent =
-
-            isPeriod
-
-                ?
-
-                "Сменить на дату"
-
-                :
-
-                "Сменить на период";
-
-        if(singleField){
-
-            singleField.hidden =
-                isPeriod;
-
-        }
-
-        if(periodFields){
-
-            periodFields.hidden =
-                !isPeriod;
-
-        }
+        );
 
     }
+
+    dateLabel.textContent =
+        isPeriod
+            ? "Период"
+            : "Дата";
+
+    switchButton.textContent =
+        isPeriod
+            ? "Сменить на дату"
+            : "Сменить на период";
+
+    if(singleField){
+
+        singleField.hidden =
+            isPeriod;
+
+    }
+
+    if(periodFields){
+
+        periodFields.hidden =
+            !isPeriod;
+
+    }
+
+}
 
     switchButton.onclick = ()=>{
 
