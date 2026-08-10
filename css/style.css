@@ -308,16 +308,11 @@ body {
 
     align-items:center;
 
-    gap:0;
-
     min-width:0;
-
     max-width:100%;
 
     font-size:20px;
-
     line-height:1.3;
-
     font-weight:600;
 
     color:#eef0f2;
@@ -330,15 +325,25 @@ body {
 
 .object__title-text {
 
-    min-width: 0;
+    display:block;
 
-    flex: 1 1 auto;
+    min-width:0;
 
-    overflow: hidden;
+    max-width:100%;
 
-    text-overflow: ellipsis;
+    overflow:hidden;
 
-    white-space: nowrap;
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+    flex:0 1 auto;
+
+}
+
+.object__title .admin-button + .admin-button {
+
+    margin-left:4px;
 
 }
 
@@ -819,14 +824,10 @@ button.admin-button {
 
     align-items:center;
 
-    gap:0;
-
     min-width:0;
 
     font-size:14px;
-
     line-height:1.45;
-
     font-weight:600;
 
     color:#eef0f2;
@@ -837,15 +838,25 @@ button.admin-button {
 
 .record__title-text {
 
+    display:block;
+
     min-width:0;
 
-    flex:1 1 auto;
+    max-width:100%;
 
     overflow:hidden;
 
     text-overflow:ellipsis;
 
     white-space:nowrap;
+
+    flex:0 1 auto;
+
+}
+
+.record__title .admin-button + .admin-button {
+
+    margin-left:4px;
 
 }
 
@@ -1044,8 +1055,6 @@ button.admin-button {
 
     align-items:center;
 
-    gap:0;
-
     min-width:0;
 
     overflow:hidden;
@@ -1060,9 +1069,11 @@ button.admin-button {
 
 .source__title-text {
 
+    display:block;
+
     min-width:0;
 
-    flex:1 1 auto;
+    max-width:100%;
 
     overflow:hidden;
 
@@ -1070,8 +1081,25 @@ button.admin-button {
 
     white-space:nowrap;
 
+    flex:0 1 auto;
+
 }
 
+.source__author {
+
+    flex-shrink:0;
+
+    white-space:nowrap;
+
+    font-weight:400;
+
+}
+
+.source__title .admin-button + .admin-button {
+
+    margin-left:4px;
+
+}
 .source__author {
 
     flex-shrink:0;
