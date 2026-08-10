@@ -326,7 +326,7 @@ const cfg = {
 
     limits: {
 
-        title: 45,
+        title: 50,
 
         description: 350
 
