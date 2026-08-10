@@ -2103,6 +2103,187 @@ max-width:800px {
 }
 
 /* ==========================================
+   DATE / PERIOD EDITOR
+========================================== */
+
+.entity-date-editor {
+
+    width:100%;
+
+}
+
+.entity-date-editor__header {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    margin-bottom:4px;
+
+}
+
+/* Лейбл "Дата" / "Период" */
+
+#entityDateLabel {
+
+    font-size:12px;
+
+    line-height:1.2;
+
+    color:#9da4ac;
+
+}
+
+/* Переключатель — визуально как счётчик */
+
+.entity-date-editor__switch {
+
+    margin:0 !important;
+
+    padding:0 !important;
+
+    border:none !important;
+
+    background:none !important;
+
+    color:#777b80 !important;
+
+    font-family:inherit;
+
+    font-size:11px !important;
+
+    line-height:1.2;
+
+    cursor:pointer;
+
+}
+
+.entity-date-editor__switch:hover {
+
+    background:none !important;
+
+    color:#9da4ac !important;
+
+}
+
+/* ==========================================
+   DATE / PERIOD INPUTS
+========================================== */
+
+/* Период — два input как одно поле */
+
+.entity-date-editor__period {
+
+    display:flex;
+
+    width:100%;
+
+}
+
+.entity-date-editor__period input {
+
+    flex:1;
+
+    min-width:0;
+
+    border-radius:0;
+
+}
+
+/* первое поле */
+
+.entity-date-editor__period input:first-child {
+
+    border-radius:6px 0 0 6px;
+
+}
+
+/* второе поле */
+
+.entity-date-editor__period input:last-child {
+
+    border-radius:0 6px 6px 0;
+
+    border-left:none;
+
+}
+
+/* При фокусе не появляется двойная граница */
+
+.entity-date-editor__period input:focus {
+
+    position:relative;
+
+    z-index:1;
+
+}
+
+/* ==========================================
+   AUTHOR + DATE / PERIOD
+========================================== */
+
+/* Автор + дата: 2 : 1 */
+
+.entity-row--author-date label:first-child {
+
+    flex:2;
+
+}
+
+.entity-row--author-date .entity-date-editor {
+
+    flex:1;
+
+}
+
+/* Автор + период: 1 : 1 */
+
+.entity-row--author-date:has(.entity-date-editor__period) label:first-child {
+
+    flex:1;
+
+}
+
+.entity-row--author-date:has(.entity-date-editor__period) .entity-date-editor {
+
+    flex:1;
+
+}
+
+/* ==========================================
+   DATE / PERIOD WITHOUT AUTHOR
+========================================== */
+
+/*
+   Если date-editor стоит один в строке,
+   он занимает всю ширину.
+*/
+
+.entity-editor > .entity-date-editor {
+
+    width:100%;
+
+}
+
+/* ==========================================
+   SINGLE DATE
+========================================== */
+
+.entity-date-editor__single {
+
+    width:100%;
+
+}
+
+.entity-date-editor__single input {
+
+    width:100%;
+
+}
+
+/* ==========================================
    MOBILE
 ========================================== */
 
