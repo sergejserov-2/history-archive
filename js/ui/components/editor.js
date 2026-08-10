@@ -197,8 +197,6 @@ const dateEditor =
         class="entity-date-editor"
     >
 
-        <div class="entity-date-editor__header">
-
             <span id="entityDateLabel">
 
                 ${
@@ -208,23 +206,7 @@ const dateEditor =
                 }
 
             </span>
-
-            <button
-                type="button"
-                id="entityDateModeSwitch"
-                class="entity-date-editor__switch"
-            >
-
-                ${
-                    cfg.dateMode === "period"
-                        ? "Сменить на дату"
-                        : "Сменить на период"
-                }
-
-            </button>
-
-        </div>
-
+            
         <!-- ==============================
              Single date
         ============================== -->
@@ -271,7 +253,19 @@ const dateEditor =
     >
 
 </div>
+            <button
+                type="button"
+                id="entityDateModeSwitch"
+                class="entity-date-editor__switch"
+            >
 
+                ${
+                    cfg.dateMode === "period"
+                        ? "Сменить на дату"
+                        : "Сменить на период"
+                }
+
+            </button>
     </div>
 
     `
