@@ -302,16 +302,10 @@ body {
 
 }
 
-/* ==========================================
-   OBJECT TITLE
-========================================== */
-
 .object__title {
 
     display:flex;
-
     align-items:center;
-
     gap:6px;
 
     min-width:0;
@@ -320,7 +314,6 @@ body {
     font-size:20px;
     line-height:1.3;
     font-weight:600;
-
     color:#eef0f2;
 
     margin-bottom:5px;
@@ -332,19 +325,16 @@ body {
 .object__title-text {
 
     min-width:0;
-
-    width:fit-content;
     max-width:100%;
 
     flex:0 1 auto;
 
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
 
 }
+
 .object__description {
 
     max-width:700px;
@@ -816,26 +806,17 @@ button.admin-button {
 
 }
 
-/* ==========================================
-   RECORD TITLE
-========================================== */
-
 .record__title {
 
     display:flex;
-
     align-items:center;
-
     gap:6px;
 
     min-width:0;
 
     font-size:14px;
-
     line-height:1.45;
-
     font-weight:600;
-
     color:#eef0f2;
 
     white-space:nowrap;
@@ -846,24 +827,14 @@ button.admin-button {
 
     min-width:0;
 
-    width:fit-content;
-    max-width:100%;
-
     flex:0 1 auto;
 
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
 
 }
 
-.record__title .admin-button {
-
-    flex:0 0 auto;
-
-}
 .record__description {
 
     white-space:nowrap;
@@ -1053,16 +1024,10 @@ button.admin-button {
 
 }
 
-/* ==========================================
-   SOURCE TITLE
-========================================== */
-
 .source__title {
 
     display:flex;
-
     align-items:center;
-
     gap:6px;
 
     min-width:0;
@@ -1070,7 +1035,6 @@ button.admin-button {
     overflow:hidden;
 
     font-size:14px;
-
     color:#eef0f2;
 
     white-space:nowrap;
@@ -1079,8 +1043,7 @@ button.admin-button {
 
 .source__author {
 
-    flex:0 0 auto;
-
+    flex-shrink:0;
     white-space:nowrap;
 
     font-weight:400;
@@ -1091,24 +1054,14 @@ button.admin-button {
 
     min-width:0;
 
-    width:fit-content;
-    max-width:100%;
-
     flex:0 1 auto;
 
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
 
 }
 
-.source__title .admin-button {
-
-    flex:0 0 auto;
-
-}
 .source__date {
 
     text-align:right;
