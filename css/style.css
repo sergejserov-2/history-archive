@@ -1860,7 +1860,9 @@ max-width:800px {
 
 }
 
-/* строки полей */
+/* ==========================================
+   ROWS
+========================================== */
 
 .entity-row {
 
@@ -1870,11 +1872,15 @@ max-width:800px {
 
 }
 
-/* тип + название */
+/* ==========================================
+   TYPE + TITLE
+========================================== */
 
 .entity-row--title-type .entity-type {
 
     flex:1;
+
+    min-width:0;
 
 }
 
@@ -1882,23 +1888,49 @@ max-width:800px {
 
     flex:2;
 
+    min-width:0;
+
 }
 
-/* автор + дата */
+/* ==========================================
+   AUTHOR + DATE / PERIOD
+========================================== */
 
-.entity-row--author-date label:first-child {
+/* Автор + дата → 2:1 */
+
+.entity-row--author-date > label:first-child {
 
     flex:2;
 
+    min-width:0;
+
 }
 
-.entity-row--author-date label:last-child {
+.entity-row--author-date > .entity-date-editor {
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+/* Автор + период → 1:1 */
+
+.entity-row--author-date-period > label:first-child {
 
     flex:1;
 
 }
 
-/* даты периода */
+.entity-row--author-date-period > .entity-date-editor {
+
+    flex:1;
+
+}
+
+/* ==========================================
+   DATES PERIOD
+========================================== */
 
 .entity-row--dates label {
 
@@ -1906,24 +1938,147 @@ max-width:800px {
 
 }
 
-.entity-editor__buttons{
+/* ==========================================
+   DATE / PERIOD EDITOR
+========================================== */
+
+.entity-date-editor {
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:4px;
+
+    min-width:0;
+
+}
+
+/* ==========================================
+   DATE / PERIOD HEADER
+========================================== */
+
+.entity-date-editor__header {
+
+    display:flex;
+
+    align-items:center;
+
+    min-height:15px;
+
+}
+
+.entity-date-editor__header span {
+
+    font-size:12px;
+
+    color:#9da4ac;
+
+}
+
+/* ==========================================
+   SINGLE DATE
+========================================== */
+
+.entity-date-editor__single {
+
+    width:100%;
+
+}
+
+/* ==========================================
+   PERIOD
+========================================== */
+
+.entity-date-editor__period {
+
+    display:flex;
+
+    width:100%;
+
+}
+
+.entity-date-editor__period input {
+
+    width:50%;
+
+    min-width:0;
+
+}
+
+.entity-date-editor__period input:first-child {
+
+    border-radius:6px 0 0 6px;
+
+}
+
+.entity-date-editor__period input:last-child {
+
+    border-radius:0 6px 6px 0;
+
+    border-left:none;
+
+}
+
+/* ==========================================
+   DATE / PERIOD SWITCH
+========================================== */
+
+.entity-date-editor__switch {
+
+    align-self:flex-end;
+
+    margin:0;
+
+    padding:0 !important;
+
+    border:none !important;
+
+    background:none !important;
+
+    color:#777b80 !important;
+
+    font-size:11px !important;
+
+    line-height:1.2;
+
+    cursor:pointer;
+
+}
+
+.entity-date-editor__switch:hover {
+
+    color:#f2c94c !important;
+
+}
+
+/* ==========================================
+   EDITOR BUTTONS
+========================================== */
+
+.entity-editor__buttons {
 
     display:flex;
 
     gap:10px;
-   margin-top: 10px;
+
+    margin-top:10px;
 
 }
 
-.entity-editor__buttons button{
+.entity-editor__buttons button {
 
     flex:1;
 
 }
 
+/* ==========================================
+   LABELS
+========================================== */
+
 .entity-editor label,
-.object-editor label
-.login-form label{
+.object-editor label,
+.login-form label {
 
     display:flex;
 
@@ -1937,6 +2092,10 @@ max-width:800px {
 
 }
 
+/* ==========================================
+   INPUTS
+========================================== */
+
 .entity-editor input,
 .entity-editor textarea,
 .entity-editor select,
@@ -1947,24 +2106,25 @@ max-width:800px {
 
     width:100%;
 
-    padding:
-
-        8px 10px;
+    padding:8px 10px;
 
     background:#111316;
 
-    border:
-
-        1px solid #30343a;
+    border:1px solid #30343a;
 
     border-radius:6px;
 
     color:#e0e3e6;
 
-   font-size: 14px;
-    font-family: inherit;
+    font-size:14px;
+
+    font-family:inherit;
 
 }
+
+/* ==========================================
+   TEXTAREA
+========================================== */
 
 .entity-editor textarea,
 .object-editor textarea {
@@ -1977,7 +2137,6 @@ max-width:800px {
 
     line-height:1.45;
 
-
 }
 
 /* ==========================================
@@ -1986,17 +2145,18 @@ max-width:800px {
 
 .entity-field-counter {
 
-    margin-top: 4px;
+    margin-top:4px;
 
-    text-align: right;
+    text-align:right;
 
-    font-size: 11px;
+    font-size:11px;
 
-    line-height: 1.2;
+    line-height:1.2;
 
-    color: #777b80;
+    color:#777b80;
 
     transition:
+
         color 0.15s ease;
 
 }
@@ -2005,7 +2165,7 @@ max-width:800px {
    FILE SELECTOR
 ========================================== */
 
-.entity-file{
+.entity-file {
 
     display:flex;
 
@@ -2014,7 +2174,7 @@ max-width:800px {
 }
 
 .entity-file__select,
-.entity-file__current{
+.entity-file__current {
 
     display:inline-flex;
 
@@ -2036,7 +2196,7 @@ max-width:800px {
 
 }
 
-#entityFileName{
+#entityFileName {
 
     white-space:nowrap;
 
@@ -2046,7 +2206,7 @@ max-width:800px {
 
 }
 
-.entity-file__remove{
+.entity-file__remove {
 
     margin:0;
 
@@ -2070,17 +2230,15 @@ max-width:800px {
 
 }
 
-
-
-/* обычные кнопки */
+/* ==========================================
+   ORDINARY BUTTONS
+========================================== */
 
 .entity-editor button:not(.admin-button),
 .object-editor button:not(.admin-button),
 .login-form button:not(.admin-button) {
 
-    padding:
-
-        8px 14px;
+    padding:8px 14px;
 
     border-radius:6px;
 
@@ -2099,187 +2257,6 @@ max-width:800px {
 .login-form button:not(.admin-button):hover {
 
     background:#41464d;
-
-}
-
-/* ==========================================
-   DATE / PERIOD EDITOR
-========================================== */
-
-.entity-date-editor {
-
-    width:100%;
-
-}
-
-.entity-date-editor__header {
-
-    display:flex;
-
-    align-items:center;
-
-    gap:6px;
-
-    margin-bottom:4px;
-
-}
-
-/* Лейбл "Дата" / "Период" */
-
-#entityDateLabel {
-
-    font-size:12px;
-
-    line-height:1.2;
-
-    color:#9da4ac;
-
-}
-
-/* Переключатель — визуально как счётчик */
-
-.entity-date-editor__switch {
-
-    margin:0 !important;
-
-    padding:0 !important;
-
-    border:none !important;
-
-    background:none !important;
-
-    color:#777b80 !important;
-
-    font-family:inherit;
-
-    font-size:11px !important;
-
-    line-height:1.2;
-
-    cursor:pointer;
-
-}
-
-.entity-date-editor__switch:hover {
-
-    background:none !important;
-
-    color:#9da4ac !important;
-
-}
-
-/* ==========================================
-   DATE / PERIOD INPUTS
-========================================== */
-
-/* Период — два input как одно поле */
-
-.entity-date-editor__period {
-
-    display:flex;
-
-    width:100%;
-
-}
-
-.entity-date-editor__period input {
-
-    flex:1;
-
-    min-width:0;
-
-    border-radius:0;
-
-}
-
-/* первое поле */
-
-.entity-date-editor__period input:first-child {
-
-    border-radius:6px 0 0 6px;
-
-}
-
-/* второе поле */
-
-.entity-date-editor__period input:last-child {
-
-    border-radius:0 6px 6px 0;
-
-    border-left:none;
-
-}
-
-/* При фокусе не появляется двойная граница */
-
-.entity-date-editor__period input:focus {
-
-    position:relative;
-
-    z-index:1;
-
-}
-
-/* ==========================================
-   AUTHOR + DATE / PERIOD
-========================================== */
-
-/* Автор + дата: 2 : 1 */
-
-.entity-row--author-date label:first-child {
-
-    flex:2;
-
-}
-
-.entity-row--author-date .entity-date-editor {
-
-    flex:1;
-
-}
-
-/* Автор + период: 1 : 1 */
-
-.entity-row--author-date:has(.entity-date-editor__period) label:first-child {
-
-    flex:1;
-
-}
-
-.entity-row--author-date:has(.entity-date-editor__period) .entity-date-editor {
-
-    flex:1;
-
-}
-
-/* ==========================================
-   DATE / PERIOD WITHOUT AUTHOR
-========================================== */
-
-/*
-   Если date-editor стоит один в строке,
-   он занимает всю ширину.
-*/
-
-.entity-editor > .entity-date-editor {
-
-    width:100%;
-
-}
-
-/* ==========================================
-   SINGLE DATE
-========================================== */
-
-.entity-date-editor__single {
-
-    width:100%;
-
-}
-
-.entity-date-editor__single input {
-
-    width:100%;
 
 }
 
