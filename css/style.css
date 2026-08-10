@@ -1993,11 +1993,14 @@ max-width:800px {
 }
 
 .entity-date-editor__period input {
-
     width:50%;
-
     min-width:0;
+   z-index:1;
 
+}
+
+.entity-date-editor__period input:focus {
+   z-index:2;
 }
 
 .entity-date-editor__period input:first-child {
