@@ -345,27 +345,32 @@ async function renderPage(
 
 </h1>
 
+${
+    object.description?.trim()
+    ?
+    `
+    <div class="object__description">
+        ${object.description}
+    </div>
+    `
+    :
+    ""
+}
 
-                    <div class="object__description">
-
-                        ${object.description ?? ""}
-
-                    </div>
-
-                    ${
-                        (
-                            ADMIN_MODE ||
-                            records.length > 0
-                        )
-                        ?
-                        renderRecords(
-                            records,
-                            recordTypes,
-                            ADMIN_MODE
-                        )
-                        :
-                        ""
-                    }
+${
+    (
+        ADMIN_MODE ||
+        records.length > 0
+    )
+    ?
+    renderRecords(
+        records,
+        recordTypes,
+        ADMIN_MODE
+    )
+    :
+    ""
+}
 
                 </div>
 
