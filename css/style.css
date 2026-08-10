@@ -2021,6 +2021,8 @@ max-width:800px {
 .entity-date-editor__switch {
 
 text-align:right;
+   width: fit-content;
+   align-self:flex-end;
 
     margin-top:4px;
 
