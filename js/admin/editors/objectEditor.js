@@ -29,7 +29,8 @@ import {
     setupEntityFieldsEditor,
     setupEditorButtons,
     setupParentsEditor,
-    setupCoverEditor
+    setupCoverEditor,
+    setupFieldCounters
 
 }
 from "../../ui/components/editor.js";
@@ -319,19 +320,27 @@ const disabledTypeIds =
 
 const cfg = {
 
-    title:"Объект",
+    title: "Объект",
 
-    fields:[],
+    fields: [],
 
-    cover:{
+    limits: {
 
-        photos:objectPhotos
+        title: 45,
+
+        description: 350
 
     },
 
-    options:{
+    cover: {
 
-        typeSelector:true,
+        photos: objectPhotos
+
+    },
+
+    options: {
+
+        typeSelector: true,
 
         types,
 
@@ -407,6 +416,7 @@ const modal =
 
     const root =
         modal.root;
+    setupFieldCounters(root);
 
     initObjectEditor(
 
