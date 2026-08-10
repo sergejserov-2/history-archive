@@ -240,38 +240,35 @@ export function openEntityEditor(
     // ==================================
     // Render form
     // ==================================
+const savedDateMode =
+    entity?.dateMode ??
+    cfg.dateMode ??
+    "date";
+const form = renderEntityEditor(
 
-    const form = renderEntityEditor(
+    {
+        ...cfg,
 
-        {
+        dateMode:
+            savedDateMode,
 
-            ...cfg,
+        options: {
+            ...(cfg.options ?? {}),
 
-            options: {
+            types:
+                type === "record"
+                ?
+                (
+                    context.recordTypes ?? []
+                )
+                :
+                []
+        }
+    },
 
-                ...(cfg.options ?? {}),
+    entity
 
-                types:
-
-                    type === "record"
-
-                    ?
-
-                    (
-                        context.recordTypes ?? []
-                    )
-
-                    :
-
-                    []
-
-            }
-
-        },
-
-        entity
-
-    );
+);
 
     // ==================================
     // Modal
