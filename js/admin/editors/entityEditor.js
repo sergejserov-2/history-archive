@@ -8,11 +8,14 @@ import {
 from "../../ui/components/modal.js";
 
 import {
+
     renderEntityEditor,
     setupFileEditor,
     setupParentsEditor,
     setupEntityFieldsEditor,
-    setupEditorButtons
+    setupEditorButtons,
+    setupFieldCounters
+
 }
 from "../../ui/components/editor.js";
 
@@ -47,47 +50,67 @@ from "../../api/records.js";
 
 const CONFIG = {
 
-    photo: {
+photo: {
 
-        title: "Фото",
+    title: "Фото",
 
-        update: updatePhoto,
-        create: createPhoto,
+    update: updatePhoto,
+    create: createPhoto,
 
-        upload: uploadPhoto,
+    upload: uploadPhoto,
 
-        file: true,
+    file: true,
 
-        fields: [
+    limits: {
 
-            "author",
+        title: 45,
 
-            "date"
+        description: 350,
 
-        ]
+        author: 45
+
+    },
+
+    fields: [
+
+        "author",
+
+        "date"
+
+    ]
+
+},
+
+source: {
+
+    title: "Источник",
+
+    update: updateSource,
+    create: createSource,
+
+    upload: uploadSourceDocument,
+
+    file: true,
+
+    limits: {
+
+        title: 45,
+
+        description: 2000,
+
+        author: 45
 
     },
 
-    source: {
+    fields: [
 
-        title: "Источник",
+        "author",
 
-        update: updateSource,
-        create: createSource,
+        "date"
 
-        upload: uploadSourceDocument,
+    ]
 
-        file: true,
-
-        fields: [
-
-            "author",
-
-            "date"
-
-        ]
-
-    },
+},
 
 record: {
 
@@ -97,6 +120,14 @@ record: {
     create: createRecord,
 
     file: false,
+
+    limits: {
+
+        title: 45,
+
+        description: 75
+
+    },
 
     fields: [
 
@@ -224,6 +255,7 @@ const modal = createModal({
 });
 
 const root = modal.root;
+setupFieldCounters(root);
 
 const fileEditor = setupFileEditor(
     root,
