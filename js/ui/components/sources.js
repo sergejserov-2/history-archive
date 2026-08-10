@@ -161,20 +161,21 @@ export function renderSources(
             <div class="source__header">
 
 <div class="source__title">
-
+`
     ${
     source.author
     ?
-    `<span class="source__author">
+    `
+    <span class="source__author">
         ${source.author},
     </span>`
     :
     ""
     }
 
-    <strong class="source__title-text">
+    `<strong class="source__title-text">
         ${source.title ?? ""}
-    </strong>
+    </strong>`
 
     ${
     ADMIN_MODE
