@@ -297,35 +297,63 @@ async function renderPage(
 
                     </div>
 
-                    <h1 class="object__title">
+<h1 class="object__title">
 
-                        ${object.title}
+    <span class="object__title-text">
+        ${object.title}
+    </span>
 
-                        ${
-                            ADMIN_MODE
+    ${
+        ADMIN_MODE
 
-                            ?
+        ?
 
-                            `
+        `
 
-                            <button
-                                class="admin-button"
-                                data-action="edit-object"
-                            >
-                            
-    <img src="icons/edit.svg" class="admin-icon">
-                            
-                            </button>
-                            
-                            <button
-                                class="admin-button"
-                                data-action="delete-object"
-                                data-id="${object.id}"
-                            >
-                            
-    <img src="icons/delete.svg" class="admin-icon">
-                            
-                            </button>
+        <button
+            class="admin-button"
+            data-action="edit-object"
+        >
+
+            <img
+                src="icons/edit.svg"
+                class="admin-icon"
+            >
+
+        </button>
+
+        <button
+            class="admin-button"
+            data-action="delete-object"
+            data-id="${object.id}"
+        >
+
+            <img
+                src="icons/delete.svg"
+                class="admin-icon"
+            >
+
+        </button>
+
+        `
+
+        :
+
+        ""
+
+    }
+
+</h1>
+                
+                        `
+                
+                        :
+                
+                        ""
+                
+                    }
+                
+                </h1>
 
                             `
 
