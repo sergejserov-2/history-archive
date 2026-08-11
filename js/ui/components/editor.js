@@ -13,30 +13,14 @@ import {setupFieldCounters, renderFieldCounterHTML} from "./editor/counters.js";
 // Render Editor
 // ======================================
 
-export function renderEntityEditor(
-
-    cfg,
-
-    entity
-
-){
-
-    entity =
-        entity ?? {};
-
-    const options =
-        cfg.options ?? {};
-
+export function renderEntityEditor(cfg, entity){
+    entity = entity ?? {};
+    const options = cfg.options ?? {};
     const limits = {
-
         title: 45,
-
         description: 350,
-
         author: 45,
-
         ...(cfg.limits ?? {})
-
     };
 
     // ==================================
@@ -196,18 +180,9 @@ export function renderEntityEditor(
     const fileField = cfg.file ? renderFileEditorHTML(): "";
     const coverField = cfg.cover ? renderCoverEditorHTML(cfg, entity): "";
 
-const statusContainer =
-
-    cfg.status
-
-    ?
-
-    `
-
-    <label>
-
+const statusContainer = cfg.status ?
+    `<label>
         Статус
-
         <div
             id="entityStatus"
             class="entity-status"
@@ -221,33 +196,18 @@ const statusContainer =
 
     "";
     
-    const authorField =
-
-        cfg.fields?.includes("author")
-
-        ?
-
-        `
-
-        <label>
-
+    const authorField = cfg.fields?.includes("author") ?
+        `<label>
             Автор
-
             <input
                 id="entity_author"
                 value="${entity.author ?? ""}"
                 maxlength="${limits.author}"
             >
-
             ${renderFieldCounterHTML("entity_author", entity.author, limits.author)}
-
-        </label>
-
-        `
-
-        :
-
-        "";
+        </label>` : "";
+    
+    
     // ==================================
     // Render
     // ==================================
