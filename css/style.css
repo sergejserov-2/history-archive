@@ -350,6 +350,82 @@ body {
 }
 
 /* ==========================================
+   LOST OBJECT
+========================================== */
+
+.object__type {
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+}
+
+.object__lost-badge {
+
+    display:inline-flex;
+
+    align-items:center;
+
+    padding:3px 7px;
+
+    border-radius:5px;
+
+    background:rgba(190,55,55,.18);
+
+    border:1px solid rgba(210,70,70,.8);
+
+    color:#e36a6a;
+
+    font-size:11px;
+
+    line-height:1;
+
+}
+
+/* ==========================================
+   LOST OBJECT COVER
+========================================== */
+
+.object__cover--lost {
+
+    position:relative;
+
+    border:3px solid #8f3434;
+
+    filter:grayscale(100%);
+
+}
+
+/* траурный уголок */
+
+.object__cover--lost::after {
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    right:0;
+
+    width:0;
+
+    height:0;
+
+    border-top:42px solid #15171a;
+
+    border-left:42px solid transparent;
+
+    z-index:5;
+
+    pointer-events:none;
+
+}
+
+/* ==========================================
    SECTIONS
 ========================================== */
 
@@ -2258,6 +2334,7 @@ text-align:right;
     background:#41464d;
 
 }
+
 
 /* ==========================================
    MOBILE
