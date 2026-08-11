@@ -30,10 +30,15 @@ export function getObjectStatus(object) {
         return null;
     }
 
-    if (object.status !== undefined && object.status !== null) {
+    if (
+        object.status !== undefined &&
+        object.status !== null
+    ) {
+
         return STATUS_DEFINITIONS[object.status]
             ? object.status
             : null;
+
     }
 
     if (object.lost === true) {
@@ -56,16 +61,21 @@ export function getStatusDefinition(status) {
  */
 export function renderStatusBadge(status) {
 
-    const definition = getStatusDefinition(status);
+    const definition =
+        getStatusDefinition(status);
 
     if (!definition) {
         return null;
     }
 
-    const badge = document.createElement('span');
+    const badge =
+        document.createElement('span');
 
-    badge.className = `status-badge ${definition.className}`;
-    badge.textContent = definition.label;
+    badge.className =
+        `status-badge ${definition.className}`;
+
+    badge.textContent =
+        definition.label;
 
     return badge;
 }
@@ -82,76 +92,128 @@ export function renderStatusBadge(status) {
  *
  * Одновременно может быть только один статус.
  */
-export function renderStatusEditor(currentStatus, onChange) {
+export function renderStatusEditor(
+    currentStatus,
+    onChange
+){
 
-    const container = document.createElement('div');
+    const container =
+        document.createElement('div');
 
-    container.className = 'status-editor';
+    container.className =
+        'status-editor';
 
     /*
      * Если статус уже выбран,
      * показываем только его.
      */
-    const statuses = currentStatus
-        ? [[currentStatus, STATUS_DEFINITIONS[currentStatus]]]
-        : Object.entries(STATUS_DEFINITIONS);
+    const statuses =
+        currentStatus
 
-    statuses.forEach(([status, definition]) => {
+            ?
 
-        if (!definition) {
-            return;
-        }
+            [
+                [
+                    currentStatus,
+                    STATUS_DEFINITIONS[currentStatus]
+                ]
+            ]
 
-        const button = document.createElement('button');
+            :
 
-        button.type = 'button';
+            Object.entries(
+                STATUS_DEFINITIONS
+            );
 
-        button.className = 'status-editor__badge';
+    statuses.forEach(
+        ([status, definition]) => {
 
-        if (status === currentStatus) {
-            button.classList.add('is-selected');
-        }
-
-        const text = document.createElement('span');
-
-        text.className = 'status-editor__text';
-        text.textContent = definition.label;
-
-        button.appendChild(text);
-
-        /*
-         * Крестик есть только у выбранного статуса.
-         */
-        if (status === currentStatus) {
-
-            const remove = document.createElement('span');
-
-            remove.className = 'status-editor__remove';
-            remove.textContent = '×';
-
-            button.appendChild(remove);
-        }
-
-        button.addEventListener('click', () => {
-
-            /*
-             * Повторный клик по выбранному статусу
-             * полностью снимает его.
-             */
-            if (status === currentStatus) {
-                onChange(null);
+            if (!definition) {
                 return;
             }
 
-            /*
-             * Выбор нового статуса автоматически
-             * заменяет предыдущий.
-             */
-            onChange(status);
-        });
+            const button =
+                document.createElement('button');
 
-        container.appendChild(button);
-    });
+            button.type =
+                'button';
+
+            button.className =
+                'status-editor__badge';
+
+            if (
+                status === currentStatus
+            ){
+
+                button.classList.add(
+                    'is-selected'
+                );
+
+            }
+
+            const text =
+                document.createElement('span');
+
+            text.className =
+                'status-editor__text';
+
+            text.textContent =
+                definition.label;
+
+            button.appendChild(text);
+
+            /*
+             * Крестик есть только
+             * у выбранного статуса.
+             */
+            if (
+                status === currentStatus
+            ){
+
+                const remove =
+                    document.createElement('span');
+
+                remove.className =
+                    'status-editor__remove';
+
+                remove.textContent =
+                    '×';
+
+                button.appendChild(remove);
+
+            }
+
+            button.addEventListener(
+                'click',
+                () => {
+
+                    /*
+                     * Повторный клик по выбранному
+                     * статусу полностью снимает его.
+                     */
+                    if (
+                        status === currentStatus
+                    ){
+
+                        onChange(null);
+
+                        return;
+
+                    }
+
+                    /*
+                     * Новый статус автоматически
+                     * заменяет предыдущий.
+                    */
+                    onChange(status);
+
+                }
+            );
+
+            container.appendChild(button);
+
+        }
+    );
 
     return container;
 }
