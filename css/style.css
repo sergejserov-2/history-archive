@@ -392,10 +392,6 @@ body {
 ========================================== */
 
 .object__cover--lost {
-   2px solid rgba(190,55,55,.5)
-}
-
-.object__cover--lost img{
     filter:grayscale(100%);
 }
 
