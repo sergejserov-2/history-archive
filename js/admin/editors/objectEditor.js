@@ -661,24 +661,17 @@ setupParentsEditor(
 // ======================================
 
 const fieldsEditor =
-
-setupEntityFieldsEditor(
-
-    root,
-
-    {
-
-        fields:[]
-
-    },
-
-    {
-
-        typeId:"#entityType"
-
-    }
-
-);
+    setupEntityFieldsEditor(
+        root,
+        {
+            fields:[],
+            lost:true
+        },
+        {
+            typeId:"#entityType"
+        },
+        object
+    );
 
 // ======================================
 // Type change
