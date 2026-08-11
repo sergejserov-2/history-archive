@@ -6,7 +6,7 @@ import {setupStatusEditor} from "./editor/status.js";
 import {setupParentsEditor} from "./editor/parents.js";
 import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor} from "./editor/cover.js";
-import {setupDateModeEditor} from "./editor/date.js";
+import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
 import {setupFieldCounters} from "./editor/counters.js";
 
 // ======================================
@@ -192,103 +192,7 @@ export function renderEntityEditor(
         hasSingleDate ||
         hasDatePeriod;
 
-    const dateEditor =
-
-        hasDateEditor
-
-        ?
-
-        `
-
-        <div
-            id="entityDateEditor"
-            class="entity-date-editor"
-        >
-
-            <span
-                id="entityDateLabel"
-                class="entity-date-editor__label"
-            >
-
-                ${
-                    cfg.dateMode === "period"
-                        ? "Период": "Дата"
-                }
-
-            </span>
-
-            <!-- ==============================
-                 Single date
-            ============================== -->
-
-            <div
-                id="entityDateSingle"
-                class="entity-date-editor__single"
-                ${
-                    cfg.dateMode === "period"
-                        ? "hidden"
-                        : ""
-                }
-            >
-
-                <input
-                    id="entity_date"
-                    value="${entity.date ?? ""}"
-                >
-
-            </div>
-
-            <!-- ==============================
-                 Date period
-            ============================== -->
-
-            <div
-                id="entityDatePeriod"
-                class="entity-date-editor__period"
-                ${
-                    cfg.dateMode === "period"
-                        ? ""
-                        : "hidden"
-                }
-            >
-
-                <input
-                    id="entity_dateStart"
-                    value="${entity.dateStart ?? ""}"
-                >
-
-                <input
-                    id="entity_dateEnd"
-                    value="${entity.dateEnd ?? ""}"
-                >
-
-            </div>
-
-            <!-- ==============================
-                 Switch
-            ============================== -->
-
-            <button
-                type="button"
-                id="entityDateModeSwitch"
-                class="entity-date-editor__switch"
-            >
-
-                ${
-                    cfg.dateMode === "period"
-                        ? "Сменить на дату"
-                        : "Сменить на период"
-                }
-
-            </button>
-
-        </div>
-
-        `
-
-        :
-
-        "";
+const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity): "";
 
     // ==================================
     // Author
