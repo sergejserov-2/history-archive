@@ -299,9 +299,34 @@ async function renderPage(
                 <div class="object__info">
 
 <div class="object__type">
-
     ${type?.title ?? ""}
+</div>
 
+<h1 class="object__title">
+
+    <span class="object__title-text">
+        ${object.title}
+    </span>
+
+    ${
+        ADMIN_MODE
+        ?
+
+        `
+        <button class="admin-button" data-action="edit-object">
+            <img src="icons/edit.svg" class="admin-icon">
+        </button>
+        <button class="admin-button" data-action="delete-object" data-id="${object.id}">
+            <img src="icons/delete.svg" class="admin-icon">
+        </button>
+
+        `
+
+        :
+
+        ""
+
+    }
     ${
         object.isLost
         ?
@@ -313,55 +338,6 @@ async function renderPage(
         :
         ""
     }
-
-</div>
-
-<h1 class="object__title">
-
-    <span class="object__title-text">
-        ${object.title}
-    </span>
-
-    ${
-        ADMIN_MODE
-
-        ?
-
-        `
-
-        <button
-            class="admin-button"
-            data-action="edit-object"
-        >
-
-            <img
-                src="icons/edit.svg"
-                class="admin-icon"
-            >
-
-        </button>
-
-        <button
-            class="admin-button"
-            data-action="delete-object"
-            data-id="${object.id}"
-        >
-
-            <img
-                src="icons/delete.svg"
-                class="admin-icon"
-            >
-
-        </button>
-
-        `
-
-        :
-
-        ""
-
-    }
-
 </h1>
 
 ${
