@@ -55,29 +55,14 @@ export function setupFieldsEditor(root, cfg = {}, entity = {}) {
             const data = {};
             const titleInput = root.querySelector("#entityTitle");
             const descriptionInput = root.querySelector("#entityDescription");
-
-            console.log("TITLE INPUT:", titleInput);
-            console.log("TITLE VALUE:", titleInput?.value);
-
-            if(titleInput) {
-                data.title = titleInput.value.trim();
-            }
-
-            if(descriptionInput) {
-                data.description = descriptionInput.value.trim();
-            }
+            if(titleInput) {data.title = titleInput.value.trim();}
+            if(descriptionInput) {data.description = descriptionInput.value.trim();}
 
             (cfg.fields ?? []).forEach(field => {
                 if(field === "date" || field === "dateStart" || field === "dateEnd") return;
-
                 const input = root.querySelector(`#entity_${field}`);
-
-                if(input) {
-                    data[field] = input.value.trim();
-                }
+                if(input) {data[field] = input.value.trim();}
             });
-
-            console.log("FIELDS DATA:", data);
             return data;
         }
     };
