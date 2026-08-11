@@ -264,7 +264,7 @@ async function renderPage(
 <div
     class="
         object__cover
-        ${object.isLost ? "object__cover--lost" : ""}
+        ${object.lost ? "object__cover--lost" : ""}
     "
 >
             
@@ -330,7 +330,7 @@ async function renderPage(
 
     }
     ${
-        object.isLost
+        object.lost
         ?
         `
         <span class="object__lost-badge">
