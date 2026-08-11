@@ -1238,7 +1238,5 @@ const statusEditor =
 
 }
 
-export {
-    setupParentsEditor
-};
-
+export {setupParentsEditor};
+export {setupFileEditor};
