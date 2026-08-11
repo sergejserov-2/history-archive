@@ -7,6 +7,7 @@ import {setupParentsEditor} from "./editor/parents.js";
 import {setupFileEditor} from "./editor/file.js";
 import {setupCoverEditor} from "./editor/cover.js";
 import {setupDateModeEditor} from "./editor/date.js";
+import {setupFieldCounters} from "./editor/counters.js";
 
 // ======================================
 // Render Editor
