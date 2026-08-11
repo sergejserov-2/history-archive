@@ -2,8 +2,8 @@
 // Editor UI
 // ======================================
 
-import {setupStatusEditor} from "./editor/status.js";
-import {setupParentsEditor} from "./editor/parents.js";
+import {setupStatusEditor, renderStatusEditorHTML} from "./editor/status.js";
+import {setupParentsEditor, renderParentsEditorHTML} from "./editor/parents.js";
 import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
@@ -165,37 +165,14 @@ export function renderEntityEditor(cfg, entity){
     // Date editor
     // ==================================
 
-        const hasSingleDate =
-            cfg.fields?.includes("date");
-    
-        const hasDatePeriod =
-            cfg.fields?.includes("dateStart") &&
-            cfg.fields?.includes("dateEnd");
-    
-        const hasDateEditor =
-            hasSingleDate ||
-            hasDatePeriod;
+        const hasSingleDate = cfg.fields?.includes("date");
+        const hasDatePeriod = cfg.fields?.includes("dateStart") && cfg.fields?.includes("dateEnd");
+        const hasDateEditor = hasSingleDate || hasDatePeriod;
 
-    const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity): "";
-    const fileField = cfg.file ? renderFileEditorHTML(): "";
-    const coverField = cfg.cover ? renderCoverEditorHTML(cfg, entity): "";
-
-const statusContainer = cfg.status ?
-    `<label>
-        Статус
-        <div
-            id="entityStatus"
-            class="entity-status"
-        ></div>
-
-    </label>
-
-    `
-
-    :
-
-    "";
-    
+    const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity) : "";
+    const fileField = cfg.file ? renderFileEditorHTML() : "";
+    const coverField = cfg.cover ? renderCoverEditorHTML(cfg, entity) : "";
+    const statusContainer = cfg.status ? renderStatusEditorHTML() : "";
     const authorField = cfg.fields?.includes("author") ?
         `<label>
             Автор
