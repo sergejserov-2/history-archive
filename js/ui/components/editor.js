@@ -25,7 +25,7 @@ export function renderEntityEditor(cfg, entity) {
         ...(cfg.limits ?? {})
     };
 
-    const dateEditor = renderDateModeEditorHTML(cfg, entity) : "";
+    const dateEditor = renderDateModeEditorHTML(cfg, entity);
     const typeEditorHTML = options.typeSelector ? renderTypesEditorHTML(options.types ?? [], entity, options) : "";
     const fieldsHTML = renderFieldsEditorHTML(cfg, entity, limits);
     const parentsHTML = cfg.parentsType ? renderParentsEditorHTML() : "";
