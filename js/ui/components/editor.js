@@ -10,8 +10,6 @@ import {setupFileEditor} from "./editor/files.js";
 // Render Editor
 // ======================================
 
-
-
 export function renderEntityEditor(
 
     cfg,
