@@ -527,35 +527,6 @@ const dateEditor =
             ></div>
 
         </label>
-${
-    cfg.lost
-    ?
-    `
-    <label class="entity-editor__checkbox">
-
-        <span class="entity-editor__checkbox-row">
-
-            <input
-                id="entity_isLost"
-                type="checkbox"
-                ${
-                    entity.isLost
-                    ? "checked"
-                    : ""
-                }
-            >
-
-            <span>
-                Утраченный объект
-            </span>
-
-        </span>
-
-    </label>
-    `
-    :
-    ""
-}
         <label>
 
             Родители
@@ -598,6 +569,36 @@ ${
         ${fileField}
 
         ${coverField}
+
+${
+    cfg.lost
+    ?
+    `
+    <label class="entity-editor__checkbox">
+
+        <span class="entity-editor__checkbox-row">
+
+            <input
+                id="entity_isLost"
+                type="checkbox"
+                ${
+                    entity.isLost
+                    ? "checked"
+                    : ""
+                }
+            >
+
+            <span>
+                Утраченный объект
+            </span>
+
+        </span>
+
+    </label>
+    `
+    :
+    ""
+}
 
         <div class="entity-editor__buttons">
 
