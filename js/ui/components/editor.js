@@ -11,6 +11,19 @@ import {
 } from "./editor/status.js";
 
 
+// ======================================
+// Entity editor UI
+// ======================================
+
+// ======================================
+// Render Entity Editor
+// ======================================
+
+import {
+    getObjectStatus,
+    renderStatusEditor
+} from "./editor/status.js";
+
 export function renderEntityEditor(
 
     cfg,
@@ -116,7 +129,6 @@ export function renderEntityEditor(
             <select id="entityType">
 
                 ${
-
                     sortedTypes
 
                         .map(type=>`
@@ -176,117 +188,118 @@ export function renderEntityEditor(
 
         "";
 
-// ==================================
-// Date editor
-// ==================================
+    // ==================================
+    // Date editor
+    // ==================================
 
-const hasSingleDate =
-    cfg.fields?.includes("date");
+    const hasSingleDate =
+        cfg.fields?.includes("date");
 
-const hasDatePeriod =
-    cfg.fields?.includes("dateStart") &&
-    cfg.fields?.includes("dateEnd");
+    const hasDatePeriod =
+        cfg.fields?.includes("dateStart") &&
+        cfg.fields?.includes("dateEnd");
 
-const hasDateEditor =
-    hasSingleDate ||
-    hasDatePeriod;
+    const hasDateEditor =
+        hasSingleDate ||
+        hasDatePeriod;
 
-const dateEditor =
+    const dateEditor =
 
-    hasDateEditor
+        hasDateEditor
 
-    ?
+        ?
 
-    `
-
-    <div
-        id="entityDateEditor"
-        class="entity-date-editor"
-    >
-
-        <span
-            id="entityDateLabel"
-            class="entity-date-editor__label"
-        >
-            ${
-                cfg.dateMode === "period"
-                    ? "Период"
-                    : "Дата"
-            }
-        </span>
-
-        <!-- ==============================
-             Single date
-        ============================== -->
+        `
 
         <div
-            id="entityDateSingle"
-            class="entity-date-editor__single"
-            ${
-                cfg.dateMode === "period"
-                    ? "hidden"
-                    : ""
-            }
+            id="entityDateEditor"
+            class="entity-date-editor"
         >
 
-            <input
-                id="entity_date"
-                value="${entity.date ?? ""}"
+            <span
+                id="entityDateLabel"
+                class="entity-date-editor__label"
             >
+
+                ${
+                    cfg.dateMode === "period"
+                        ? "Период": "Дата"
+                }
+
+            </span>
+
+            <!-- ==============================
+                 Single date
+            ============================== -->
+
+            <div
+                id="entityDateSingle"
+                class="entity-date-editor__single"
+                ${
+                    cfg.dateMode === "period"
+                        ? "hidden"
+                        : ""
+                }
+            >
+
+                <input
+                    id="entity_date"
+                    value="${entity.date ?? ""}"
+                >
+
+            </div>
+
+            <!-- ==============================
+                 Date period
+            ============================== -->
+
+            <div
+                id="entityDatePeriod"
+                class="entity-date-editor__period"
+                ${
+                    cfg.dateMode === "period"
+                        ? ""
+                        : "hidden"
+                }
+            >
+
+                <input
+                    id="entity_dateStart"
+                    value="${entity.dateStart ?? ""}"
+                >
+
+                <input
+                    id="entity_dateEnd"
+                    value="${entity.dateEnd ?? ""}"
+                >
+
+            </div>
+
+            <!-- ==============================
+                 Switch
+            ============================== -->
+
+            <button
+                type="button"
+                id="entityDateModeSwitch"
+                class="entity-date-editor__switch"
+            >
+
+                ${
+                    cfg.dateMode === "period"
+                        ? "Сменить на дату"
+                        : "Сменить на период"
+                }
+
+            </button>
 
         </div>
 
-        <!-- ==============================
-             Date period
-        ============================== -->
+        `
 
-        <div
-            id="entityDatePeriod"
-            class="entity-date-editor__period"
-            ${
-                cfg.dateMode === "period"
-                    ? ""
-                    : "hidden"
-            }
-        >
+        :
 
-            <input
-                id="entity_dateStart"
-                value="${entity.dateStart ?? ""}"
-            >
-
-            <input
-                id="entity_dateEnd"
-                value="${entity.dateEnd ?? ""}"
-            >
-
-        </div>
-
-        <!-- ==============================
-             Switch
-        ============================== -->
-
-        <button
-            type="button"
-            id="entityDateModeSwitch"
-            class="entity-date-editor__switch"
-        >
-
-            ${
-                cfg.dateMode === "period"
-                    ? "Сменить на дату"
-                    : "Сменить на период"
-            }
-
-        </button>
-
-    </div>
-
-    `
-
-    :
-
-    "";
+        "";
 
     // ==================================
     // Author
@@ -406,11 +419,12 @@ const dateEditor =
                 <option value="">
 
                     Без фотографии
-                
+
                 </option>
 
                 ${
                     (cfg.cover.photos ?? [])
+
                         .map(photo=>`
 
                             <option
@@ -437,12 +451,37 @@ const dateEditor =
                             </option>
 
                         `)
+
                         .join("")
+
                 }
 
             </select>
 
         </label>
+
+        `
+
+        :
+
+        "";
+
+    // ==================================
+    // Status
+    // ==================================
+
+    const statusContainer =
+
+        cfg.status
+
+        ?
+
+        `
+
+        <div
+            id="entityStatus"
+            class="entity-status"
+        ></div>
 
         `
 
@@ -532,6 +571,7 @@ const dateEditor =
             ></div>
 
         </label>
+
         <label>
 
             Родители
@@ -553,46 +593,46 @@ const dateEditor =
 
         </label>
 
-${
-    authorField
-    ?
-    `
-    <div
-        class="entity-row entity-row--author-date"
-    >
+        ${
+            authorField
 
-        ${authorField}
+            ?
 
-        ${dateEditor}
+            `
 
-    </div>
-    `
-    :
-    dateEditor
-}
+            <div
+                class="entity-row entity-row--author-date"
+            >
+
+                ${authorField}
+
+                ${dateEditor}
+
+            </div>
+
+            `
+
+            :
+
+            dateEditor
+
+        }
 
         ${fileField}
 
         ${coverField}
 
-<div
-    id="entityStatus"
-    class="entity-status"
-></div>
+        ${statusContainer}
 
         <div class="entity-editor__buttons">
 
-            <button
-                id="entitySave"
-            >
+            <button id="entitySave">
 
                 Сохранить
 
             </button>
 
-            <button
-                id="entityCancel"
-            >
+            <button id="entityCancel">
 
                 Отмена
 
@@ -605,6 +645,7 @@ ${
     `;
 
 }
+                
 
 // ======================================
 // Cover editor
@@ -1046,15 +1087,65 @@ export function setupEntityFieldsEditor(
             root,
 
             {
-
-mode:
-    entity?.dateMode ??
-    cfg.dateMode ??
-    "date"
-
+                mode:
+                    entity?.dateMode ??
+                    cfg.dateMode ??
+                    "date"
             }
 
         );
+
+    // ==================================
+    // Status editor
+    // ==================================
+
+    let currentStatus =
+        getObjectStatus(entity);
+
+    const statusContainer =
+        root.querySelector(
+            "#entityStatus"
+        );
+
+    if(
+        cfg.status &&
+        statusContainer
+    ){
+
+        function renderStatus(){
+
+            statusContainer.innerHTML =
+                "";
+
+            const editor =
+                renderStatusEditor(
+
+                    currentStatus,
+
+                    status => {
+
+                        currentStatus =
+                            status;
+
+                        renderStatus();
+
+                    }
+
+                );
+
+            statusContainer.appendChild(
+                editor
+            );
+
+        }
+
+        renderStatus();
+
+    }
+
+    // ==================================
+    // Data
+    // ==================================
 
     return {
 
@@ -1091,75 +1182,21 @@ mode:
             // ==================================
 
             (cfg.fields ?? [])
-            .forEach(field=>{
+                .forEach(field=>{
 
-                if(
-                    field === "date" ||
-                    field === "dateStart" ||
-                    field === "dateEnd"
-                ){
+                    if(
+                        field === "date" ||
+                        field === "dateStart" ||
+                        field === "dateEnd"
+                    ){
 
-                    return;
+                        return;
 
-                }
-
-                const input =
-                    root.querySelector(
-                        `#entity_${field}`
-                    );
-
-                if(input){
-
-                    data[field] =
-                        input.value.trim();
-
-                }
-
-            });
-
-if(cfg.lost){
-
-    const lostInput =
-        root.querySelector(
-            "#entity_lost"
-        );
-
-    if(lostInput){
-
-        data.lost =
-            lostInput.checked;
-
-    }
-
-}
-            
-// ==================================
-// Dates
-// ==================================
-
-if(dateModeEditor){
-
-    Object.assign(
-        data,
-        dateModeEditor.getData()
-    );
-
-    data.dateMode =
-        dateModeEditor.getMode();
-
-}
-
-            // ==================================
-            // Extra fields
-            // ==================================
-
-            Object.entries(extraFields)
-            .forEach(
-                ([field, selector])=>{
+                    }
 
                     const input =
                         root.querySelector(
-                            selector
+                            `#entity_${field}`
                         );
 
                     if(input){
@@ -1169,9 +1206,57 @@ if(dateModeEditor){
 
                     }
 
-                }
+                });
 
-            );
+            // ==================================
+            // Status
+            // ==================================
+
+            if(cfg.status){
+
+                data.status =
+                    currentStatus;
+
+            }
+
+            // ==================================
+            // Dates
+            // ==================================
+
+            if(dateModeEditor){
+
+                Object.assign(
+                    data,
+                    dateModeEditor.getData()
+                );
+
+                data.dateMode =
+                    dateModeEditor.getMode();
+
+            }
+
+            // ==================================
+            // Extra fields
+            // ==================================
+
+            Object.entries(extraFields)
+                .forEach(
+                    ([field, selector])=>{
+
+                        const input =
+                            root.querySelector(
+                                selector
+                            );
+
+                        if(input){
+
+                            data[field] =
+                                input.value.trim();
+
+                        }
+
+                    }
+                );
 
             return data;
 
@@ -1181,6 +1266,12 @@ if(dateModeEditor){
 
             return dateModeEditor
                 ?.getMode();
+
+        },
+
+        getStatus(){
+
+            return currentStatus;
 
         }
 
