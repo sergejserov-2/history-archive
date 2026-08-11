@@ -5,7 +5,7 @@
 import {setupStatusEditor} from "./editor/status.js";
 import {setupParentsEditor} from "./editor/parents.js";
 import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
-import {setupCoverEditor} from "./editor/cover.js";
+import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
 import {setupFieldCounters} from "./editor/counters.js";
 
@@ -181,23 +181,46 @@ export function renderEntityEditor(
     // Date editor
     // ==================================
 
-    const hasSingleDate =
-        cfg.fields?.includes("date");
+        const hasSingleDate =
+            cfg.fields?.includes("date");
+    
+        const hasDatePeriod =
+            cfg.fields?.includes("dateStart") &&
+            cfg.fields?.includes("dateEnd");
+    
+        const hasDateEditor =
+            hasSingleDate ||
+            hasDatePeriod;
 
-    const hasDatePeriod =
-        cfg.fields?.includes("dateStart") &&
-        cfg.fields?.includes("dateEnd");
+    const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity): "";
+    const fileField = cfg.file ? renderFileEditorHTML(): "";
+    const coverField = cfg.cover ? renderCoverEditorHTML(cfg, entity): "";
 
-    const hasDateEditor =
-        hasSingleDate ||
-        hasDatePeriod;
+const statusContainer =
 
-const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity): "";
+    cfg.status
 
-    // ==================================
-    // Author
-    // ==================================
+    ?
 
+    `
+
+    <label>
+
+        Статус
+
+        <div
+            id="entityStatus"
+            class="entity-status"
+        ></div>
+
+    </label>
+
+    `
+
+    :
+
+    "";
+    
     const authorField =
 
         cfg.fields?.includes("author")
@@ -228,105 +251,6 @@ const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity): "";
         :
 
         "";
-
-    const fileField = cfg.file ? renderFileEditorHTML(): "";
-    const coverField =
-
-        cfg.cover
-
-        ?
-
-        `
-
-        <label>
-
-            Обложка
-
-            <select id="entityCover">
-
-                <option value="">
-
-                    Без фотографии
-
-                </option>
-
-                ${
-                    (cfg.cover.photos ?? [])
-
-                        .map(photo=>`
-
-                            <option
-
-                                value="${photo.id}"
-
-                                ${
-                                    photo.id ===
-                                    entity.coverPhotoId
-
-                                    ?
-
-                                    "selected"
-
-                                    :
-
-                                    ""
-                                }
-
-                            >
-
-                                ${photo.title ?? photo.id}
-
-                            </option>
-
-                        `)
-
-                        .join("")
-
-                }
-
-            </select>
-
-        </label>
-
-        `
-
-        :
-
-        "";
-
-    // ==================================
-    // Status
-    // ==================================
-
-// ==================================
-// Status
-// ==================================
-
-const statusContainer =
-
-    cfg.status
-
-    ?
-
-    `
-
-    <label>
-
-        Статус
-
-        <div
-            id="entityStatus"
-            class="entity-status"
-        ></div>
-
-    </label>
-
-    `
-
-    :
-
-    "";
-
     // ==================================
     // Render
     // ==================================
