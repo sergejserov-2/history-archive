@@ -1,7 +1,7 @@
 // ======================================
 // Editor UI
 // ======================================
-
+import {setupTypesEditor, renderTypesEditorHTML} from "./editor/types.js";
 import {setupStatusEditor, renderStatusEditorHTML} from "./editor/status.js";
 import {setupParentsEditor, renderParentsEditorHTML} from "./editor/parents.js";
 import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
@@ -9,11 +9,8 @@ import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
 import {setupFieldCounters, renderFieldCounterHTML} from "./editor/counters.js";
 
-// ======================================
-// Render Editor
-// ======================================
-
 export function renderEntityEditor(cfg, entity){
+    
     entity = entity ?? {};
     const options = cfg.options ?? {};
     const limits = {
@@ -23,153 +20,11 @@ export function renderEntityEditor(cfg, entity){
         ...(cfg.limits ?? {})
     };
 
-    // ==================================
-    // Sort types
-    // ==================================
-
-    const sortedTypes =
-
-        [...(options.types ?? [])]
-
-        .sort((a, b)=>{
-
-            const levelA =
-
-                Array.isArray(a.levels)
-
-                    ?
-
-                    Math.max(
-                        ...a.levels.map(Number)
-                    )
-
-                    :
-
-                    Number(
-                        a.level ?? Infinity
-                    );
-
-            const levelB =
-
-                Array.isArray(b.levels)
-
-                    ?
-
-                    Math.max(
-                        ...b.levels.map(Number)
-                    )
-
-                    :
-
-                    Number(
-                        b.level ?? Infinity
-                    );
-
-            if(levelA !== levelB){
-
-                return levelB - levelA;
-
-            }
-
-            return (
-
-                (a.title ?? "")
-                    .localeCompare(
-                        b.title ?? "",
-                        "ru"
-                    )
-
-            );
-
-        });
-
-    // ==================================
-    // Type selector
-    // ==================================
-
-    const typeSelector =
-
-        options.typeSelector
-
-        ?
-
-        `
-
-        <label class="entity-type">
-
-            Тип
-
-            <select id="entityType">
-
-                ${
-                    sortedTypes
-
-                        .map(type=>`
-
-                            <option
-
-                                value="${type.id}"
-
-                                ${
-                                    type.id ===
-                                    (
-                                        entity.typeId ??
-                                        options.defaultTypeId
-                                    )
-
-                                    ?
-
-                                    "selected"
-
-                                    :
-
-                                    ""
-                                }
-
-                                ${
-                                    options.disabledTypeIds
-                                        ?.includes(type.id)
-
-                                    ?
-
-                                    "disabled"
-
-                                    :
-
-                                    ""
-                                }
-
-                            >
-
-                                ${type.title}
-
-                            </option>
-
-                        `)
-
-                        .join("")
-
-                }
-
-            </select>
-
-        </label>
-
-        `
-
-        :
-
-        "";
-
-    // ==================================
-    // Date editor
-    // ==================================
-
         const hasSingleDate = cfg.fields?.includes("date");
         const hasDatePeriod = cfg.fields?.includes("dateStart") && cfg.fields?.includes("dateEnd");
         const hasDateEditor = hasSingleDate || hasDatePeriod;
-
     const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity) : "";
+    const typeEditorHTML = options.typeSelector ? renderTypesEditorHTML(options.types ?? [], entity, options) : "";
     const fileField = cfg.file ? renderFileEditorHTML() : "";
     const coverField = cfg.cover ? renderCoverEditorHTML(cfg, entity) : "";
     const statusContainer = cfg.status ? renderStatusEditorHTML() : "";
@@ -194,7 +49,7 @@ export function renderEntityEditor(cfg, entity){
     <div class="entity-editor">
         ${options.typeSelector ?
           `<div class="entity-row entity-row--title-type">
-                ${typeSelector}
+                ${typeEditorHTML}
                 <label class="entity-title">
                     Название
                     <input
@@ -366,7 +221,11 @@ const statusEditor =
                     descriptionInput.value.trim();
 
             }
-
+const typeEditor =
+    setupTypesEditor(root, entity);
+if(typeEditor.getTypeId()){
+    data.typeId = typeEditor.getTypeId();
+}
             // ==================================
             // Regular fields
             // ==================================
