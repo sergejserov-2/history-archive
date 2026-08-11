@@ -111,7 +111,19 @@ export async function renderChildren(
                         <div class="child-card__name">
 
                             ${child.title}
-
+                            
+                            ${
+                                object.isLost
+                                ?
+                                `
+                                <span class="object__lost-badge">
+                                    Утрачено
+                                </span>
+                                `
+                                :
+                                ""
+                            }
+                            
                         </div>
 
                         <div class="child-card__address">
