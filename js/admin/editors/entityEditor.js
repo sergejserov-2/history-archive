@@ -3,27 +3,17 @@
 // ======================================
 
 import {createModal} from "../../ui/components/modal.js";
+
+import {uploadPhoto, uploadSourceDocument} from "../../api/storage.js";
+import {updatePhoto, createPhoto} from "../../api/photos.js";
+import {updateSource, createSource} from "../../api/sources.js";
+import {updateRecord, createRecord} from "../../api/records.js";
+
 import {
     renderConfiguredEntityEditor,
     setupEditorComponents,
     setupEditorButtons
 } from "../../ui/components/editor.js";
-import {
-    uploadPhoto,
-    uploadSourceDocument
-} from "../../api/storage.js";
-import {
-    updatePhoto,
-    createPhoto
-} from "../../api/photos.js";
-import {
-    updateSource,
-    createSource
-} from "../../api/sources.js";
-import {
-    updateRecord,
-    createRecord
-} from "../../api/records.js";
 
 // ======================================
 // Config
@@ -125,10 +115,6 @@ export function openEntityEditor(type, entity, context, onSave) {
         root,
         async() => {
             try {
-                if(type === "photo" && !editor.fileEditor?.hasFile()) {
-                    alert("Для фотографии необходимо выбрать файл");
-                    return;
-                }
                 const data = await editor.getData();
                 if(!isNew) {
                     await cfg.update(entity.id, data);
