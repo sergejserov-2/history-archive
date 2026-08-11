@@ -8,7 +8,7 @@ import {moveFileToDeleted} from "../../../api/storage.js";
 // Setup
 // ======================================
 
-export function setupFileEditor(root, entity, upload) {
+export function setupFileEditor(root, entity, upload, options = {}) {
     const fileInput = root.querySelector("#entityFile");
     if(!fileInput) return null;
 
@@ -69,6 +69,17 @@ export function setupFileEditor(root, entity, upload) {
     return {
         hasFile() {
             return !!file || (!!oldStoragePath && !removeOldFile);
+        },
+
+        validate() {
+            if(!options.required || this.hasFile()) return true;
+
+            alert(
+                options.requiredMessage ??
+                "Необходимо выбрать файл"
+            );
+
+            return false;
         },
 
         async getData() {
