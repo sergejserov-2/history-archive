@@ -2,7 +2,7 @@
 // Children cards
 // ======================================
 
-import { 
+import {
     getType,
     getParents
 } from "../../api/objects.js";
@@ -12,11 +12,6 @@ import {
 }
 from "../../api/photos.js";
 
-import { 
-    renderBreadcrumbs 
-}
-from "./breadcrumbs.js";
-
 // ======================================
 // Render children
 // ======================================
@@ -25,11 +20,13 @@ export async function renderChildren(
 
     children,
 
-    ADMIN_MODE = false
+    ADMIN_MODE = false,
+
+    currentObject = null
 
 ) {
 
-    const cards = await Promise.all(
+    const preparedChildren = await Promise.all(
 
         (children ?? []).map(async child => {
 
@@ -45,53 +42,275 @@ export async function renderChildren(
                 child.id
             );
 
-            const coverPhoto = photos.find(
+            const coverPhoto =
+                photos.find(
+                    photo =>
+                        photo.id === child.coverPhotoId
+                );
 
-                photo =>
+            // ==================================
+            // Address
+            // ==================================
 
-                photo.id === child.coverPhotoId
+            const parentRelations =
+                Array.isArray(child.parents)
+                    ? child.parents
+                    : [];
 
-            );
+            /*
+             * Для карточки ребёнка строим адрес
+             * именно из связи с родителем:
+             *
+             * Родитель, Ребёнок
+             *
+             * Если родителей два — получаем
+             * две отдельные строки.
+             */
 
-            const address = renderBreadcrumbs(
+            const addressLines =
+                parentRelations
+                    .map(parent => {
+
+                        const parentId =
+                            parent?.objectId;
+
+                        if(!parentId){
+
+                            return null;
+
+                        }
+
+                        const parentObject =
+                            parents
+                                .flat()
+                                .find(
+                                    item =>
+                                        item.id === parentId
+                                );
+
+                        if(!parentObject){
+
+                            return null;
+
+                        }
+
+                        const parentAddress =
+                            parent?.address?.trim()
+                            ||
+                            parentObject.address?.trim()
+                            ||
+                            parentObject.title
+                            ||
+                            "";
+
+                        const childAddress =
+                            child.address?.trim()
+                            ||
+                            child.title
+                            ||
+                            "";
+
+                        return {
+
+                            parentId,
+
+                            parentAddress,
+
+                            childAddress
+
+                        };
+
+                    })
+                    .filter(Boolean);
+
+            // ==================================
+            // Order address lines
+            //
+            // Если текущий объект является
+            // одним из родителей — его строка
+            // должна быть первой.
+            // ==================================
+
+            if(currentObject){
+
+                addressLines.sort(
+                    (a, b) => {
+
+                        const aCurrent =
+                            a.parentId ===
+                            currentObject.id;
+
+                        const bCurrent =
+                            b.parentId ===
+                            currentObject.id;
+
+                        if(aCurrent && !bCurrent){
+
+                            return -1;
+
+                        }
+
+                        if(!aCurrent && bCurrent){
+
+                            return 1;
+
+                        }
+
+                        return 0;
+
+                    }
+                );
+
+            }
+
+            // ==================================
+            // Address HTML
+            // ==================================
+
+            const addressHTML =
+                addressLines.length > 0
+
+                    ?
+
+                    addressLines
+                        .map(line => `
+
+                            <div
+                                class="child-card__address-line"
+                            >
+
+                                ${line.parentAddress},
+
+                                ${line.childAddress}
+
+                            </div>
+
+                        `)
+                        .join("")
+
+                    :
+
+                    `
+
+                        <div
+                            class="child-card__address-line"
+                        >
+
+                            ${
+                                child.address?.trim()
+                                ||
+                                child.title
+                                ||
+                                ""
+                            }
+
+                        </div>
+
+                    `;
+
+            // ==================================
+            // Image
+            // ==================================
+
+            const image =
+                coverPhoto?.previewPath
+
+                    ?
+
+                    `
+
+                    <img
+                        class="child-card__image"
+                        src="${coverPhoto.previewPath}"
+                        alt="${child.title ?? ""}"
+                    >
+
+                    `
+
+                    :
+
+                    `
+
+                    <div class="child-card__placeholder">
+
+                        Фото отсутствует
+
+                    </div>
+
+                    `;
+
+            // ==================================
+            // Sort key
+            // ==================================
+
+            /*
+             * Сортируем по первой строке адреса,
+             * которая является приоритетной для
+             * текущей страницы.
+             */
+
+            const sortAddress =
+                addressLines
+                    .map(
+                        line =>
+                            `${line.parentAddress}, ${line.childAddress}`
+                    )
+                    .join(" ");
+
+            return {
+
+                child,
+
                 type,
-                parents
+
+                image,
+
+                addressHTML,
+
+                sortAddress
+
+            };
+
+        })
+
+    );
+
+    // ======================================
+    // Sort
+    // ======================================
+
+    preparedChildren.sort(
+        (a, b) => {
+
+            return a.sortAddress.localeCompare(
+                b.sortAddress,
+                "ru",
+                {
+                    numeric: true,
+                    sensitivity: "base"
+                }
             );
 
-            const image = coverPhoto?.previewPath
-            
-                ?
-            
-                `
-                <img
-            
-                    class="child-card__image"
-            
-                    src="${coverPhoto.previewPath}"
-            
-                    alt="${child.title}"
-            
-                >
-                `
-            
-                :
-            
-                `
-                <div class="child-card__placeholder">
-            
-                    Фото отсутствует
-            
-                </div>
-                `;
+        }
+    );
 
-            return `
+    // ======================================
+    // Cards
+    // ======================================
+
+    const cards =
+        preparedChildren.map(
+
+            ({
+                child,
+                type,
+                image,
+                addressHTML
+            }) => `
 
                 <a
-
                     class="child-card"
-
                     href="object.html?id=${child.id}"
-
                 >
 
                     <div class="child-card__media">
@@ -110,25 +329,28 @@ export async function renderChildren(
 
                         <div class="child-card__name">
 
-                            ${child.title}
-                            
+                            <span>
+                                ${child.title ?? ""}
+                            </span>
+
                             ${
-                                object.isLost
+                                child.isLost
                                 ?
                                 `
-                                <span class="object__lost-badge">
+                                <spanclass="object__lost-badge"
+                                >
                                     Утрачено
                                 </span>
                                 `
                                 :
                                 ""
                             }
-                            
+
                         </div>
 
                         <div class="child-card__address">
 
-                            ${address}
+                            ${addressHTML}
 
                         </div>
 
@@ -136,11 +358,9 @@ export async function renderChildren(
 
                 </a>
 
-            `;
+            `
 
-        })
-
-    );
+        );
 
     // ======================================
     // Add object card
@@ -151,11 +371,8 @@ export async function renderChildren(
         cards.unshift(`
 
             <div
-
                 class="child-card child-card--add admin-button"
-
                 data-action="add-object"
-
             >
 
                 + Добавить объект
