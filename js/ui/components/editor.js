@@ -25,11 +25,7 @@ export function renderEntityEditor(cfg, entity) {
         ...(cfg.limits ?? {})
     };
 
-    const hasSingleDate = cfg.fields?.includes("date");
-    const hasDatePeriod = cfg.fields?.includes("dateStart") && cfg.fields?.includes("dateEnd");
-    const hasDateEditor = hasSingleDate || hasDatePeriod;
-
-    const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity) : "";
+    const dateEditor = renderDateModeEditorHTML(cfg, entity) : "";
     const typeEditorHTML = options.typeSelector ? renderTypesEditorHTML(options.types ?? [], entity, options) : "";
     const fieldsHTML = renderFieldsEditorHTML(cfg, entity, limits);
     const parentsHTML = cfg.parentsType ? renderParentsEditorHTML() : "";
@@ -108,6 +104,13 @@ export function setupEditorComponents(root, cfg, context, entity) {
         entity
     );
 
+    const dateModeEditor =
+    setupDateModeEditor(
+        root,
+        cfg,
+        entity
+    );
+    
     const coverEditor = cfg.cover
         ? setupCoverEditor(root, cfg.cover.photos ?? [], entity)
         : null;
@@ -116,6 +119,7 @@ export function setupEditorComponents(root, cfg, context, entity) {
         fileEditor,
         parentsEditor,
         fieldsEditor,
+        dateModeEditor,
         coverEditor,
 
         async getData() {
@@ -183,9 +187,6 @@ export function setupEditorButtons(root, onSave, onCancel) {
 // ======================================
 
 export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity = {}) {
-    const dateModeEditor = setupDateModeEditor(root, {
-        mode: entity?.dateMode ?? cfg.dateMode ?? "date"
-    });
 
     const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
     const typeEditor = setupTypesEditor(root, entity);
@@ -198,12 +199,10 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
 
             if(typeEditor.getTypeId()) data.typeId = typeEditor.getTypeId();
             if(cfg.status) data.status = statusEditor.getStatus();
-
             if(dateModeEditor) {
-                Object.assign(data, dateModeEditor.getData());
+                Object.assign(data, dateModeEditor.getData()); 
                 data.dateMode = dateModeEditor.getMode();
             }
-
             Object.entries(extraFields).forEach(([field, selector]) => {
                 const input = root.querySelector(selector);
                 if(input) data[field] = input.value.trim();
@@ -211,8 +210,7 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
 
             return data;
         },
-
-        getDateMode() {return dateModeEditor?.getMode();},
+        
         getStatus() {return statusEditor.getStatus();}
     };
 }
@@ -222,23 +220,13 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
 // ======================================
 
 export function renderConfiguredEntityEditor(cfg, entity, context) {
-    const savedDateMode = entity?.dateMode ?? cfg.dateMode ?? "date";
-
     const options = {
         ...(cfg.options ?? {}),
         types: cfg.options?.typeSelector
             ? (context.recordTypes ?? [])
             : []
     };
-
-    return renderEntityEditor(
-        {
-            ...cfg,
-            dateMode: savedDateMode,
-            options
-        },
-        entity
-    );
+    return renderEntityEditor({ ...cfg, options}, entity);
 }
 
 // ======================================
