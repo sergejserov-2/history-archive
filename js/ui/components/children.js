@@ -94,19 +94,17 @@ export async function renderChildren(
 
             }
 
-            return {
+return {
+    parentId,
 
-                parentId,
+    parentAddress:
+        parentObject.address?.trim()
+        || "",
 
-                parentAddress:
-                    parentObject.address?.trim()
-                    || "",
-
-                childAddress:
-                    child.address?.trim()
-                    || ""
-
-            };
+    childAddress:
+        parent?.address?.trim()
+        || ""
+};
 
         })
         .filter(Boolean);
