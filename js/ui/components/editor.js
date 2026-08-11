@@ -527,7 +527,35 @@ const dateEditor =
             ></div>
 
         </label>
+${
+    cfg.lost
+    ?
+    `
+    <label class="entity-editor__checkbox">
 
+        <span class="entity-editor__checkbox-row">
+
+            <input
+                id="entity_isLost"
+                type="checkbox"
+                ${
+                    entity.isLost
+                    ? "checked"
+                    : ""
+                }
+            >
+
+            <span>
+                Утраченный объект
+            </span>
+
+        </span>
+
+    </label>
+    `
+    :
+    ""
+}
         <label>
 
             Родители
@@ -1108,6 +1136,22 @@ mode:
 
             });
 
+if(cfg.lost){
+
+    const lostInput =
+        root.querySelector(
+            "#entity_isLost"
+        );
+
+    if(lostInput){
+
+        data.isLost =
+            lostInput.checked;
+
+    }
+
+}
+            
 // ==================================
 // Dates
 // ==================================
