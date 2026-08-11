@@ -57,7 +57,8 @@ export function getStatusDefinition(status) {
 }
 
 /**
- * Создаёт публичный badge статуса.
+ * Создаёт публичный badge статуса
+ * как DOM-элемент.
  */
 export function renderStatusBadge(status) {
 
@@ -81,6 +82,31 @@ export function renderStatusBadge(status) {
 }
 
 /**
+ * Создаёт публичный badge статуса
+ * как HTML-строку.
+ *
+ * Используется компонентами,
+ * которые строят интерфейс через template string.
+ */
+export function renderStatusBadgeHTML(status) {
+
+    const definition =
+        getStatusDefinition(status);
+
+    if (!definition) {
+        return "";
+    }
+
+    return `
+        <span
+            class="status-badge ${definition.className}"
+        >
+            ${definition.label}
+        </span>
+    `;
+}
+
+/**
  * Создаёт выбор статуса для редактора.
  *
  * Если статус не выбран:
@@ -95,7 +121,7 @@ export function renderStatusBadge(status) {
 export function renderStatusEditor(
     currentStatus,
     onChange
-){
+) {
 
     const container =
         document.createElement('div');
@@ -103,27 +129,16 @@ export function renderStatusEditor(
     container.className =
         'status-editor';
 
-    /*
-     * Если статус уже выбран,
-     * показываем только его.
-     */
-    const statuses =
-        currentStatus
-
-            ?
-
+    const statuses = currentStatus
+        ? [
             [
-                [
-                    currentStatus,
-                    STATUS_DEFINITIONS[currentStatus]
-                ]
+                currentStatus,
+                STATUS_DEFINITIONS[currentStatus]
             ]
-
-            :
-
-            Object.entries(
-                STATUS_DEFINITIONS
-            );
+        ]
+        : Object.entries(
+            STATUS_DEFINITIONS
+        );
 
     statuses.forEach(
         ([status, definition]) => {
@@ -141,9 +156,7 @@ export function renderStatusEditor(
             button.className =
                 'status-editor__badge';
 
-            if (
-                status === currentStatus
-            ){
+            if(status === currentStatus){
 
                 button.classList.add(
                     'is-selected'
@@ -162,13 +175,7 @@ export function renderStatusEditor(
 
             button.appendChild(text);
 
-            /*
-             * Крестик есть только
-             * у выбранного статуса.
-             */
-            if (
-                status === currentStatus
-            ){
+            if(status === currentStatus){
 
                 const remove =
                     document.createElement('span');
@@ -187,13 +194,7 @@ export function renderStatusEditor(
                 'click',
                 () => {
 
-                    /*
-                     * Повторный клик по выбранному
-                     * статусу полностью снимает его.
-                     */
-                    if (
-                        status === currentStatus
-                    ){
+                    if(status === currentStatus){
 
                         onChange(null);
 
@@ -201,10 +202,6 @@ export function renderStatusEditor(
 
                     }
 
-                    /*
-                     * Новый статус автоматически
-                     * заменяет предыдущий.
-                    */
                     onChange(status);
 
                 }
