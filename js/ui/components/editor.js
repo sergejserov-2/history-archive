@@ -9,7 +9,7 @@ import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
 import {setupFieldsEditor, renderFieldsEditorHTML} from "./editor/fields.js";
-import {setupFieldCounters, renderFieldCounterHTML} from "./editor/counters.js";//Для совместимости с обжектэдитором
+import {setupFieldCounters, renderFieldCounterHTML} from "./editor/counters.js";
 
 // ======================================
 // Render Editor
@@ -83,13 +83,38 @@ export function renderEntityEditor(cfg, entity) {
 // ======================================
 
 export function setupEditorComponents(root, cfg, context, entity, parents) {
-    const fileEditor = setupFileEditor(root, entity, cfg.upload);
-    const parentsEditor = setupParentsEditor(root, context.objects, entity, parents);
-    const fieldsEditor = setupEntityFieldsEditor(root, cfg, cfg.options?.typeSelector ? {typeId: "#entityType"} : {}, entity);
+    const fileEditor = cfg.file
+        ? setupFileEditor(root, entity, cfg.upload)
+        : null;
+
+    const parentsEditor = setupParentsEditor(
+        root,
+        context.objects ?? [],
+        entity,
+        parents
+    );
+
+    const coverEditor = cfg.cover
+        ? setupCoverEditor(
+            root,
+            cfg.cover.photos ?? [],
+            entity
+        )
+        : null;
+
+    const fieldsEditor = setupEntityFieldsEditor(
+        root,
+        cfg,
+        cfg.options?.typeSelector
+            ? {typeId: "#entityType"}
+            : {},
+        entity
+    );
 
     return {
         fileEditor,
         parentsEditor,
+        coverEditor,
         fieldsEditor
     };
 }
@@ -113,14 +138,24 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
     const dateModeEditor = setupDateModeEditor(root, {
         mode: entity?.dateMode ?? cfg.dateMode ?? "date"
     });
-    const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
+
+    const statusEditor = setupStatusEditor(
+        root,
+        entity,
+        cfg.status === true
+    );
+
     const typeEditor = setupTypesEditor(root, entity);
     const fieldsEditor = setupFieldsEditor(root, cfg, entity);
 
     return {
         getData() {
             const data = {};
-            Object.assign(data, fieldsEditor.getData());
+
+            Object.assign(
+                data,
+                fieldsEditor.getData()
+            );
 
             if(typeEditor.getTypeId()) {
                 data.typeId = typeEditor.getTypeId();
@@ -131,7 +166,11 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
             }
 
             if(dateModeEditor) {
-                Object.assign(data, dateModeEditor.getData());
+                Object.assign(
+                    data,
+                    dateModeEditor.getData()
+                );
+
                 data.dateMode = dateModeEditor.getMode();
             }
 
@@ -142,17 +181,24 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
 
             return data;
         },
+
         getDateMode() {
             return dateModeEditor?.getMode();
         },
+
         getStatus() {
             return statusEditor.getStatus();
         }
     };
 }
 
+// ======================================
+// Configured editor
+// ======================================
+
 export function renderConfiguredEntityEditor(cfg, entity, context) {
     const savedDateMode = entity?.dateMode ?? cfg.dateMode ?? "date";
+
     const options = {
         ...(cfg.options ?? {}),
         types: cfg.options?.typeSelector
@@ -170,7 +216,11 @@ export function renderConfiguredEntityEditor(cfg, entity, context) {
     );
 }
 
-export {//Для совместимости с обжектэдитором
+// ======================================
+// Component access
+// ======================================
+
+export {
     setupParentsEditor,
     setupFileEditor,
     setupCoverEditor,
