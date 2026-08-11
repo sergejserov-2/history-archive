@@ -84,7 +84,7 @@ from "../components/sources.js";
 import {
     renderStatusBadgeHTML
 }
-from "../components/status.js";
+from "../components/editor/status.js";
 
 import {
     restoreModalFromUrl
