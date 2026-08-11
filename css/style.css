@@ -2345,6 +2345,8 @@ text-align:right;
 .entity-editor__checkbox {
     display: block;
     margin: 0;
+   margin-top: 10px;
+   padding: 0 15px;
 }
 
 .entity-editor__checkbox-row {
