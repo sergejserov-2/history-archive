@@ -1,147 +1,35 @@
 export function setupParentsEditor(
-
-    root,
-
-    objects,
-
-    entity,
-
-    parents,
-
-    options = {}
-
+    root, objects, entity, parents, options = {}
 ){
-
-    const withAddress =
-        options.address === true;
-
-    const parentsBox =
-        root.querySelector(
-            "#entityParents"
-        );
-
-    const searchInput =
-        root.querySelector(
-            "#entityParentSearch"
-        );
-
-    const resultsBox =
-        root.querySelector(
-            "#entityParentResults"
-        );
-
-    if(
-        !parentsBox ||
-        !searchInput ||
-        !resultsBox
-    ){
-
+    const withAddress = options.address === true;
+    const parentsBox = root.querySelector("#entityParents");
+    const searchInput = root.querySelector("#entityParentSearch");
+    const resultsBox = root.querySelector("#entityParentResults");
+    if(!parentsBox || !searchInput || !resultsBox){
         return {
-
-            getParents(){
-
-                return parents;
-
-            },
-
-            clearParents(){
-
-                parents.splice(0);
-
-            }
-
+            getParents(){return parents;},
+            clearParents(){parents.splice(0);}
         };
-
     }
 
     function getParentId(parent){
-
-        return withAddress
-            ? parent.objectId
-            : parent;
-
+        return withAddress ? parent.objectId : parent;
     }
 
-    function renderParents(){
-
-        parentsBox.innerHTML =
-
-            parents
-
-                .map(parent=>{
-
-                    const id =
-                        getParentId(parent);
-
-                    const obj =
-                        objects.find(
-                            o =>
-                                o.id === id
-                        );
-
-                    return `
-
-                    <div class="parent-item">
-
-                        <div class="parent-badge">
-
-                            <span class="parent-title">
-
-                                ${obj?.title ?? id}
-
-                            </span>
-
-                            <span
-                                class="parent-remove"
-                                data-remove="${id}"
-                            >
-
-                                ×
-
-                            </span>
-
-                        </div>
-
-                        ${
-                            withAddress
-                            ?
-                            `
-
-                            <input
-                                class="parent-address"
-                                data-id="${id}"
-                                value="${parent.address ?? ""}"
-                                placeholder="Адрес"
-                            >
-
-                            `
-                            :
-                            ""
-                        }
-
-                    </div>
-
-                    `;
-
-                })
-
-                .join("");
-
+    function renderParents() {
+        parentsBox.innerHTML = parents
+            .map(parent => {
+                const id = getParentId(parent);
+                const obj = objects.find(o => o.id === id);
+                return renderParentItemHTML(parent, obj, withAddress);
+            })
+            .join("");
     }
 
     parentsBox.onclick = e=>{
-
-        const id =
-            e.target.dataset.remove;
-
-        if(!id){
-
-            return;
-
-        }
-
+        const id = e.target.dataset.remove;
+        if(!id){return;}
         parents =
-
             parents.filter(parent=>{
 
                 return (
@@ -149,204 +37,118 @@ export function setupParentsEditor(
                 );
 
             });
-
         renderParents();
-
     };
 
     if(withAddress){
-
         parentsBox.oninput = e=>{
-
-            if(
-                !e.target.classList.contains(
-                    "parent-address"
-                )
-            ){
-
-                return;
-
-            }
-
-            const parent =
-
-                parents.find(
-
-                    p =>
-                        p.objectId ===
-                        e.target.dataset.id
-
-                );
-
-            if(parent){
-
-                parent.address =
-                    e.target.value;
-
-            }
-
+            if(!e.target.classList.contains("parent-address")){return;}
+            const parent = parents.find(p => p.objectId === e.target.dataset.id);
+            if(parent){parent.address = e.target.value;}
         };
-
     }
 
     searchInput.oninput = ()=>{
-
-        const text =
-
-            searchInput.value
-                .toLowerCase()
-                .trim();
-
+        const text = searchInput.value.toLowerCase().trim();
         if(!text){
-
-            resultsBox.innerHTML =
-                "";
-
+            resultsBox.innerHTML = "";
             return;
-
         }
-
         resultsBox.innerHTML =
-
             objects
-
                 .filter(o=>{
-
-                    if(
-                        o.id === entity?.id
-                    ){
-
-                        return false;
-
-                    }
-
+                    if(o.id === entity?.id){return false;}
                     const exists =
-
-                        parents.some(
-
-                            parent =>
-                                getParentId(parent) ===
-                                o.id);
-
-                    if(exists){
-
-                        return false;
-
-                    }
-
+                        parents.some(parent => getParentId(parent) === o.id);
+                    if(exists){return false;}
                     if(
                         options.filter &&
-                        !options.filter(
-                            o,
-                            parents
-                        )
-                    ){
-
-                        return false;
-
-                    }
-
+                        !options.filter(o, parents)
+                    ){return false;}
                     return (
-
                         o.title ?? ""
-
                     )
-
                         .toLowerCase()
-
                         .includes(text);
-
                 })
-
                 .slice(0,20)
-
                 .map(o=>`
-
                     <div
                         class="parent-result"
                         data-id="${o.id}"
                     >
-
                         ${o.title}
-
                     </div>
-
                 `)
-
                 .join("");
-
     };
 
     resultsBox.onclick = e=>{
-
-        const item =
-
-            e.target.closest(
-                ".parent-result"
-            );
-
-        if(!item){
-
-            return;
-
-        }
-
+        const item = e.target.closest(".parent-result");
+        if(!item){return;}
         if(withAddress){
-
             parents.push({
-
-                objectId:
-                    item.dataset.id,
-
-                address:
-                    ""
-
+                objectId: item.dataset.id,
+                address: ""
             });
-
         }
-
-        else{
-
-            parents.push(
-                item.dataset.id
-            );
-
-        }
+        else{parents.push(item.dataset.id);}
 
         renderParents();
-
-        searchInput.value =
-            "";
-
-        resultsBox.innerHTML =
-            "";
-
+        searchInput.value = "";
+        resultsBox.innerHTML =  "";
     };
 
     renderParents();
-
     return {
-
-        getParents(){
-
-            return parents;
-
-        },
-
+        getParents(){return parents;},
         clearParents(){
-
             parents.splice(0);
-
             renderParents();
-
-            searchInput.value =
-                "";
-
-            resultsBox.innerHTML =
-                "";
-
+            searchInput.value = "";
+            resultsBox.innerHTML = "";
         }
-
     };
+}
 
+
+export function renderParentsEditorHTML() {
+    return `
+        <div class="parents-group">
+            <div id="entityParents"></div>
+            <input
+                id="entityParentSearch"
+                placeholder="Начните вводить имя"
+            >
+            <div id="entityParentResults"></div>
+        </div>
+    `;
+}
+
+export function renderParentItemHTML(parent, object, withAddress) {
+    const id = withAddress ? parent.objectId : parent;
+    const title = object?.title ?? id;
+    return `
+        <div class="parent-item">
+            <div class="parent-badge">
+                <span class="parent-title">
+                    ${title}
+                </span>
+                <span
+                    class="parent-remove"
+                    data-remove="${id}"
+                >
+                    ×
+                </span>
+            </div>
+            ${withAddress ? `
+                <input
+                    class="parent-address"
+                    data-id="${id}"
+                    value="${parent.address ?? ""}"
+                    placeholder="Адрес"
+                >
+            ` : ""}
+        </div>
+    `;
 }
