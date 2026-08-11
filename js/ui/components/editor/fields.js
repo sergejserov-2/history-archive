@@ -50,28 +50,34 @@ export function renderFieldsEditorHTML(cfg = {}, entity = {}, limits = {}) {
 }
 
 export function setupFieldsEditor(root, cfg = {}, entity = {}) {
-    const limits = {
-        title: 45,
-        description: 350,
-        author: 45,
-        ...(cfg.limits ?? {})
-    };
-
-    setupFieldCounters(root, cfg, limits);
-
     return {
         getData() {
             const data = {};
-            const fields = ["title", "description", ...(cfg.fields ?? [])];
+            const titleInput = root.querySelector("#entityTitle");
+            const descriptionInput = root.querySelector("#entityDescription");
 
-            fields.forEach(field => {
+            console.log("TITLE INPUT:", titleInput);
+            console.log("TITLE VALUE:", titleInput?.value);
+
+            if(titleInput) {
+                data.title = titleInput.value.trim();
+            }
+
+            if(descriptionInput) {
+                data.description = descriptionInput.value.trim();
+            }
+
+            (cfg.fields ?? []).forEach(field => {
                 if(field === "date" || field === "dateStart" || field === "dateEnd") return;
 
                 const input = root.querySelector(`#entity_${field}`);
 
-                if(input) data[field] = input.value.trim();
+                if(input) {
+                    data[field] = input.value.trim();
+                }
             });
 
+            console.log("FIELDS DATA:", data);
             return data;
         }
     };
