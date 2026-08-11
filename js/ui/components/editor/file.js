@@ -1,17 +1,11 @@
-
 // ======================================
 // File picker editor
 // ======================================
 
-//1. SETUP
-export function setupFileEditor(
-    root, entity,upload
-){
-    const fileInput =
-        root.querySelector("#entityFile");
+export function setupFileEditor(root, entity, upload) {
+    const fileInput = root.querySelector("#entityFile");
+    if(!fileInput) return null;
 
-    if(!fileInput){return null;}
-    
     let file = null;
     let removeOldFile = false;
 
@@ -23,38 +17,40 @@ export function setupFileEditor(
     const fileName = root.querySelector("#entityFileName");
     const fileRemove = root.querySelector("#entityFileRemove");
 
-    function renderFileState(){
-        if(file){
+    function renderFileState() {
+        if(file) {
             fileSelect.hidden = true;
             fileCurrent.hidden = false;
             fileInput.disabled = true;
             fileName.textContent = file.name;
             return;
         }
-        if(oldStoragePath && !removeOldFile){
+
+        if(oldStoragePath && !removeOldFile) {
             fileSelect.hidden = true;
             fileCurrent.hidden = false;
             fileInput.disabled = true;
             fileName.textContent = oldStoragePath.split("/").pop();
             return;
         }
-        fileSelect.hidden =false;
+
+        fileSelect.hidden = false;
         fileCurrent.hidden = true;
         fileInput.disabled = false;
         fileName.textContent = "";
     }
 
-    fileSelect.onclick = ()=>{
-        if(!fileInput.disabled){fileInput.click();}
+    fileSelect.onclick = () => {
+        if(!fileInput.disabled) fileInput.click();
     };
 
-    fileInput.onchange = e=>{
-        file = e.target.files[0] || null;
+    fileInput.onchange = event => {
+        file = event.target.files[0] || null;
         renderFileState();
     };
 
-    fileRemove.onclick = e=>{
-        e.stopPropagation();
+    fileRemove.onclick = event => {
+        event.stopPropagation();
         file = null;
         fileInput.value = "";
         removeOldFile = true;
@@ -62,45 +58,50 @@ export function setupFileEditor(
     };
 
     renderFileState();
+
     return {
-        hasFile(){
-            return (
-                !!file || (!!oldStoragePath && !removeOldFile)
-            );
+        hasFile() {
+            return !!file || (!!oldStoragePath && !removeOldFile);
         },
 
-        async getData(){
+        async getData() {
             const data = {};
-            if(removeOldFile && oldStoragePath){
+
+            if(removeOldFile && oldStoragePath) {
                 data.removedStoragePath = oldStoragePath;
             }
-            if(removeOldFile && oldPreviewPath){
+
+            if(removeOldFile && oldPreviewPath) {
                 data.removedPreviewPath = oldPreviewPath;
             }
-            if(file){
+
+            if(file) {
                 const result = await upload(file);
-                if(result?.storagePath){
+
+                if(result?.storagePath) {
                     data.storagePath = result.storagePath;
                 }
-                if(result?.previewPath){
+
+                if(result?.previewPath) {
                     data.previewPath = result.previewPath;
                 }
             }
-            if(!data.storagePath &&
+
+            if(
+                !data.storagePath &&
                 !data.previewPath &&
                 !data.removedStoragePath &&
                 !data.removedPreviewPath
-            ){return null;}
-            
+            ) {
+                return null;
+            }
+
             return data;
         }
-
     };
-
 }
 
-
-export function renderFileEditorHTML(){
+export function renderFileEditorHTML() {
     return `
         <label>
             Файл
@@ -126,6 +127,7 @@ export function renderFileEditorHTML(){
                 </div>
             </div>
         </label>
+
         <input
             id="entityFile"
             type="file"
