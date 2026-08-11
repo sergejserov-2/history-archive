@@ -2,7 +2,7 @@
 // Field counters
 // ======================================
 
-export function setupCounters(root){
+export function setupFieldCounters(root){
 
     const fields = [
 
