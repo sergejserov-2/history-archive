@@ -16,7 +16,7 @@ from "../../api/photos.js";
 import {
     renderStatusBadgeHTML
 }
-from "./status.js";
+from "./editor/status.js";
 
 // ======================================
 // Render children
