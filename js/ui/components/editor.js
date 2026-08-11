@@ -8,7 +8,7 @@ import {setupParentsEditor, renderParentsEditorHTML} from "./editor/parents.js";
 import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
-import {setupFieldCounters, renderFieldsEditorHTML} from "./editor/fields.js";
+import {setupFieldsEditor, renderFieldsEditorHTML} from "./editor/fields.js";
 
 // ======================================
 // Render Editor
@@ -23,11 +23,19 @@ export function renderEntityEditor(cfg, entity) {
         author: 45,
         ...(cfg.limits ?? {})
     };
+
     const hasSingleDate = cfg.fields?.includes("date");
     const hasDatePeriod = cfg.fields?.includes("dateStart") && cfg.fields?.includes("dateEnd");
     const hasDateEditor = hasSingleDate || hasDatePeriod;
-    const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity) : "";
-    const typeEditorHTML = options.typeSelector ? renderTypesEditorHTML(options.types ?? [], entity, options) : "";
+
+    const dateEditor = hasDateEditor
+        ? renderDateModeEditorHTML(cfg, entity)
+        : "";
+
+    const typeEditorHTML = options.typeSelector
+        ? renderTypesEditorHTML(options.types ?? [], entity, options)
+        : "";
+
     const fieldsHTML = renderFieldsEditorHTML(cfg, entity, limits);
     const parentsHTML = renderParentsEditorHTML();
     const fileField = cfg.file ? renderFileEditorHTML() : "";
@@ -36,26 +44,39 @@ export function renderEntityEditor(cfg, entity) {
 
     return `
     <div class="entity-editor">
-        ${options.typeSelector ? `
+        ${
+            options.typeSelector
+                ? `
         <div class="entity-row entity-row--title-type">
             ${typeEditorHTML}
-            ${fieldsHTML.title}
+            ${fieldsHTML.titleField}
         </div>
-        ` : fieldsHTML.title}
-        ${fieldsHTML.description}
+        `
+                : fieldsHTML.titleField
+        }
+
+        ${fieldsHTML.descriptionField}
+
         <label>
             Родители
             ${parentsHTML}
         </label>
-        ${fieldsHTML.author ? `
+
+        ${
+            fieldsHTML.authorField
+                ? `
         <div class="entity-row entity-row--author-date">
-            ${fieldsHTML.author}
+            ${fieldsHTML.authorField}
             ${dateEditor}
         </div>
-        ` : dateEditor}
+        `
+                : dateEditor
+        }
+
         ${fileField}
         ${coverField}
         ${statusContainer}
+
         <div class="entity-editor__buttons">
             <button id="entitySave">Сохранить</button>
             <button id="entityCancel">Отмена</button>
@@ -71,6 +92,7 @@ export function renderEntityEditor(cfg, entity) {
 export function setupEditorButtons(root, onSave, onCancel) {
     const saveButton = root.querySelector("#entitySave");
     const cancelButton = root.querySelector("#entityCancel");
+
     if(saveButton) saveButton.onclick = onSave;
     if(cancelButton) cancelButton.onclick = onCancel;
 }
@@ -83,49 +105,63 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
     const dateModeEditor = setupDateModeEditor(root, {
         mode: entity?.dateMode ?? cfg.dateMode ?? "date"
     });
-    const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
+
+    const statusEditor = setupStatusEditor(
+        root,
+        entity,
+        cfg.status === true
+    );
+
     const typeEditor = setupTypesEditor(root, entity);
-    setupFieldCounters(root, cfg, limitsForFields(cfg));
+    const fieldsEditor = setupFieldsEditor(root, cfg, entity);
 
     return {
         getData() {
             const data = {};
-            Object.assign(data, getFieldsData(root, cfg));
-            if(typeEditor.getTypeId()) data.typeId = typeEditor.getTypeId();
-            if(cfg.status) data.status = statusEditor.getStatus();
-            if(dateModeEditor) {
-                Object.assign(data, dateModeEditor.getData());
-                data.dateMode = dateModeEditor.getMode();
+
+            Object.assign(
+                data,
+                fieldsEditor.getData()
+            );
+
+            if(typeEditor.getTypeId()) {
+                data.typeId = typeEditor.getTypeId();
             }
+
+            if(cfg.status) {
+                data.status = statusEditor.getStatus();
+                }
+
+            if(dateModeEditor) {
+                Object.assign(
+                    data,
+                    dateModeEditor.getData()
+                );
+
+                data.dateMode =
+                    dateModeEditor.getMode();
+            }
+
             Object.entries(extraFields).forEach(([field, selector]) => {
                 const input = root.querySelector(selector);
-                if(input) data[field] = input.value.trim();
+
+                if(input) {
+                    data[field] =
+                        input.value.trim();
+                }
             });
+
             return data;
         },
-        getDateMode() {return dateModeEditor?.getMode();},
-        getStatus() {return statusEditor.getStatus();}
-    };
-}
 
-function limitsForFields(cfg) {
-    return {
-        title: 45,
-        description: 350,
-        author: 45,
-        ...(cfg.limits ?? {})
-    };
-}
+        getDateMode() {
+            return dateModeEditor?.getMode();
+        },
 
-function getFieldsData(root, cfg) {
-    const data = {};
-    const fields = ["title", "description", ...(cfg.fields ?? [])];
-    fields.forEach(field => {
-        if(field === "date" || field === "dateStart" || field === "dateEnd") return;
-        const input = root.querySelector(`#entity_${field}`);
-        if(input) data[field] = input.value.trim();
-    });
-    return data;
+        getStatus() {
+            return statusEditor.getStatus();
+        }
+    };
 }
 
 // ======================================
@@ -135,6 +171,5 @@ function getFieldsData(root, cfg) {
 export {
     setupParentsEditor,
     setupFileEditor,
-    setupCoverEditor,
-    setupFieldCounters
+    setupCoverEditor
 };
