@@ -40,6 +40,7 @@ const CONFIG = {
             "date"
         ]
     },
+
     source: {
         title: "Источник",
         update: updateSource,
@@ -58,6 +59,7 @@ const CONFIG = {
             "date"
         ]
     },
+
     record: {
         title: "Запись",
         update: updateRecord,
@@ -104,13 +106,12 @@ export function openEntityEditor(type, entity, context, onSave) {
         };
     }
 
-    const parents = entity.parents
-        ? [...entity.parents]
-        : context.parentId
-            ? [context.parentId]
-            : [];
-
-    const form = renderConfiguredEntityEditor(cfg, entity, context);
+    const form =
+        renderConfiguredEntityEditor(
+            cfg,
+            entity,
+            context
+        );
 
     const modal = createModal({
         title: entity?.id
@@ -121,33 +122,29 @@ export function openEntityEditor(type, entity, context, onSave) {
 
     const root = modal.root;
 
-    const editor = setupEditorComponents(
-        root,
-        cfg,
-        context,
-        entity,
-        parents
-    );
+    const editor =
+        setupEditorComponents(
+            root,
+            cfg,
+            context,
+            entity
+        );
 
     setupEditorButtons(
         root,
         async() => {
             try {
-                const data = await editor.getData();
+                const data =
+                    await editor.getData();
 
                 if(!data) return;
 
                 if(!isNew) {
-                    await cfg.update(entity.id, data);
+                    await cfg.update(
+                        entity.id,
+                        data
+                    );
                 } else {
-                    if(
-                        editor.parentsEditor &&
-                        editor.parentsEditor.getParents().length === 0
-                    ) {
-                        alert("Нужен хотя бы один родитель");
-                        return;
-                    }
-
                     await cfg.create(data);
                 }
 
@@ -159,6 +156,7 @@ export function openEntityEditor(type, entity, context, onSave) {
                 alert("Ошибка сохранения");
             }
         },
+
         () => {
             modal.close();
         }
