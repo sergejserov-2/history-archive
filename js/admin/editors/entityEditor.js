@@ -28,6 +28,7 @@ const CONFIG = {
         file: true,
         fileRequired: true,
         fileRequiredMessage: "Для фотографии необходимо выбрать файл",
+        parentsType: "objects",
         dateMode: "date",
         limits: {
             title: 45,
@@ -45,6 +46,7 @@ const CONFIG = {
         create: createSource,
         upload: uploadSourceDocument,
         file: true,
+        parentsType: "objects",
         dateMode: "date",
         limits: {
             title: 45,
@@ -61,6 +63,7 @@ const CONFIG = {
         update: updateRecord,
         create: createRecord,
         file: false,
+        parentsType: "objects",
         dateMode: "period",
         limits: {
             title: 45,
@@ -82,11 +85,14 @@ const CONFIG = {
 
 export function openEntityEditor(type, entity, context, onSave) {
     const cfg = CONFIG[type];
+
     if(!cfg) {
         console.error("Unknown entity type", type);
         return;
     }
+
     const isNew = !entity;
+
     if(isNew) {
         entity = {
             title:
@@ -97,36 +103,57 @@ export function openEntityEditor(type, entity, context, onSave) {
                         : "Новая запись"
         };
     }
+
     const parents = entity.parents
         ? [...entity.parents]
         : context.parentId
             ? [context.parentId]
             : [];
+
     const form = renderConfiguredEntityEditor(cfg, entity, context);
+
     const modal = createModal({
         title: entity?.id
             ? `Изменить ${cfg.title.toLowerCase()}`
             : `Добавить ${cfg.title.toLowerCase()}`,
         content: form
     });
+
     const root = modal.root;
-    const editor = setupEditorComponents(root, cfg, context, entity, parents);
+
+    const editor = setupEditorComponents(
+        root,
+        cfg,
+        context,
+        entity,
+        parents
+    );
+
     setupEditorButtons(
         root,
         async() => {
             try {
                 const data = await editor.getData();
+
+                if(!data) return;
+
                 if(!isNew) {
                     await cfg.update(entity.id, data);
                 } else {
-                    if(editor.parentsEditor.getParents().length === 0) {
+                    if(
+                        editor.parentsEditor &&
+                        editor.parentsEditor.getParents().length === 0
+                    ) {
                         alert("Нужен хотя бы один родитель");
                         return;
                     }
+
                     await cfg.create(data);
                 }
+
                 modal.close();
                 onSave?.();
+
             } catch(error) {
                 console.error(error);
                 alert("Ошибка сохранения");
