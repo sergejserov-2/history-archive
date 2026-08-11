@@ -311,10 +311,10 @@ const addressHTML =
                             </span>
 
                             ${
-                                child.isLost
+                                child.lost
                                 ?
                                 `
-                                <spanclass="object__lost-badge"
+                                <span class="object__lost-badge"
                                 >
                                     Утрачено
                                 </span>
