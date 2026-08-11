@@ -8,7 +8,7 @@
 import {
     getObjectStatus,
     renderStatusEditor
-} from "./status.js";
+} from "./editor/status.js";
 
 
 export function renderEntityEditor(
