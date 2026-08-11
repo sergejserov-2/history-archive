@@ -4,7 +4,7 @@
 
 import {createModal} from "../../ui/components/modal.js";
 import {
-    renderEntityEditor,
+    renderConfiguredEntityEditor,
     setupEditorComponents,
     setupEditorButtons
 } from "../../ui/components/editor.js";
@@ -124,28 +124,11 @@ export function openEntityEditor(type, entity, context, onSave) {
             ? [context.parentId]
             : [];
 
-    // ==================================
-    // Render form
-    // ==================================
 
-    const savedDateMode =
-        entity?.dateMode ??
-        cfg.dateMode ??
-        "date";
-
-    const form = renderEntityEditor(
-        {
-            ...cfg,
-            dateMode: savedDateMode,
-            options: {
-                ...(cfg.options ?? {}),
-                types:
-                    type === "record"
-                        ? (context.recordTypes ?? [])
-                        : []
-            }
-        },
-        entity
+    const form = renderConfiguredEntityEditor(
+    cfg,
+    entity,
+    context
     );
 
     // ==================================
