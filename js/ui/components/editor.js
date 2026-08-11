@@ -457,24 +457,34 @@ export function renderEntityEditor(
     // Status
     // ==================================
 
-    const statusContainer =
+// ==================================
+// Status
+// ==================================
 
-        cfg.status
+const statusContainer =
 
-        ?
+    cfg.status
 
-        `
+    ?
+
+    `
+
+    <label>
+
+        Статус
 
         <div
             id="entityStatus"
             class="entity-status"
         ></div>
 
-        `
+    </label>
 
-        :
+    `
 
-        "";
+    :
+
+    "";
 
     // ==================================
     // Render
