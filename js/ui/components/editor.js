@@ -9,7 +9,6 @@ import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
 import {setupFieldsEditor, renderFieldsEditorHTML} from "./editor/fields.js";
-import {setupFieldCounters, renderFieldCounterHTML} from "./editor/counters.js";
 
 // ======================================
 // Render Editor
@@ -34,42 +33,28 @@ export function renderEntityEditor(cfg, entity) {
     const fileField = cfg.file ? renderFileEditorHTML() : "";
     const coverField = cfg.cover ? renderCoverEditorHTML(cfg, entity) : "";
     const statusContainer = cfg.status ? renderStatusEditorHTML() : "";
-
     return `
     <div class="entity-editor">
-        ${
-            options.typeSelector
-                ? `
+        ${options.typeSelector ? `
         <div class="entity-row entity-row--title-type">
             ${typeEditorHTML}
             ${fieldsHTML.titleField}
         </div>
-        `
-                : fieldsHTML.titleField
-        }
-
+        ` : fieldsHTML.titleField}
         ${fieldsHTML.descriptionField}
-
         <label>
             Родители
             ${parentsHTML}
         </label>
-
-        ${
-            fieldsHTML.authorField
-                ? `
+        ${fieldsHTML.authorField ? `
         <div class="entity-row entity-row--author-date">
             ${fieldsHTML.authorField}
             ${dateEditor}
         </div>
-        `
-                : dateEditor
-        }
-
+        ` : dateEditor}
         ${fileField}
         ${coverField}
         ${statusContainer}
-
         <div class="entity-editor__buttons">
             <button id="entitySave">Сохранить</button>
             <button id="entityCancel">Отмена</button>
@@ -83,39 +68,26 @@ export function renderEntityEditor(cfg, entity) {
 // ======================================
 
 export function setupEditorComponents(root, cfg, context, entity, parents) {
-    const fileEditor = cfg.file
-        ? setupFileEditor(root, entity, cfg.upload)
-        : null;
-
-    const parentsEditor = setupParentsEditor(
-        root,
-        context.objects ?? [],
-        entity,
-        parents
-    );
-
-    const coverEditor = cfg.cover
-        ? setupCoverEditor(
-            root,
-            cfg.cover.photos ?? [],
-            entity
-        )
-        : null;
-
-    const fieldsEditor = setupEntityFieldsEditor(
-        root,
-        cfg,
-        cfg.options?.typeSelector
-            ? {typeId: "#entityType"}
-            : {},
-        entity
-    );
-
+    const fileEditor = setupFileEditor(root, entity, cfg.upload);
+    const parentsEditor = setupParentsEditor(root, context.objects, entity, parents, cfg.parents ?? {});
+    const fieldsEditor = setupEntityFieldsEditor(root, cfg, cfg.options?.typeSelector ? {typeId: "#entityType"} : {}, entity);
+    const coverEditor = cfg.cover ? setupCoverEditor(root, cfg.cover.photos ?? [], entity) : null;
     return {
         fileEditor,
         parentsEditor,
+        fieldsEditor,
         coverEditor,
-        fieldsEditor
+        async getData() {
+            const data = {};
+            Object.assign(data, fieldsEditor.getData());
+            if(parentsEditor) data.parents = parentsEditor.getParents();
+            if(fileEditor) {
+                const fileData = await fileEditor.getData();
+                if(fileData) Object.assign(data, fileData);
+            }
+            if(coverEditor) Object.assign(data, coverEditor.getData());
+            return data;
+        }
     };
 }
 
@@ -138,57 +110,27 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
     const dateModeEditor = setupDateModeEditor(root, {
         mode: entity?.dateMode ?? cfg.dateMode ?? "date"
     });
-
-    const statusEditor = setupStatusEditor(
-        root,
-        entity,
-        cfg.status === true
-    );
-
+    const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
     const typeEditor = setupTypesEditor(root, entity);
     const fieldsEditor = setupFieldsEditor(root, cfg, entity);
-
     return {
         getData() {
             const data = {};
-
-            Object.assign(
-                data,
-                fieldsEditor.getData()
-            );
-
-            if(typeEditor.getTypeId()) {
-                data.typeId = typeEditor.getTypeId();
-            }
-
-            if(cfg.status) {
-                data.status = statusEditor.getStatus();
-            }
-
+            Object.assign(data, fieldsEditor.getData());
+            if(typeEditor.getTypeId()) data.typeId = typeEditor.getTypeId();
+            if(cfg.status) data.status = statusEditor.getStatus();
             if(dateModeEditor) {
-                Object.assign(
-                    data,
-                    dateModeEditor.getData()
-                );
-
+                Object.assign(data, dateModeEditor.getData());
                 data.dateMode = dateModeEditor.getMode();
             }
-
             Object.entries(extraFields).forEach(([field, selector]) => {
                 const input = root.querySelector(selector);
                 if(input) data[field] = input.value.trim();
             });
-
             return data;
         },
-
-        getDateMode() {
-            return dateModeEditor?.getMode();
-        },
-
-        getStatus() {
-            return statusEditor.getStatus();
-        }
+        getDateMode() {return dateModeEditor?.getMode();},
+        getStatus() {return statusEditor.getStatus();}
     };
 }
 
@@ -198,31 +140,19 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
 
 export function renderConfiguredEntityEditor(cfg, entity, context) {
     const savedDateMode = entity?.dateMode ?? cfg.dateMode ?? "date";
-
     const options = {
         ...(cfg.options ?? {}),
-        types: cfg.options?.typeSelector
-            ? (context.recordTypes ?? [])
-            : []
+        types: cfg.options?.typeSelector ? (context.recordTypes ?? []) : []
     };
-
-    return renderEntityEditor(
-        {
-            ...cfg,
-            dateMode: savedDateMode,
-            options
-        },
-        entity
-    );
+    return renderEntityEditor({...cfg, dateMode: savedDateMode, options}, entity);
 }
 
 // ======================================
-// Component access
+// Compatibility exports
 // ======================================
 
 export {
     setupParentsEditor,
     setupFileEditor,
-    setupCoverEditor,
-    setupFieldCounters
+    setupCoverEditor
 };
