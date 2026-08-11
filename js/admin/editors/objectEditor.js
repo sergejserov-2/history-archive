@@ -340,7 +340,7 @@ export function renderObjectEditor(
 
         limits: {
 
-            title: 45,
+            title: 60,
 
             description: 350
 
