@@ -7,8 +7,7 @@
 // ======================================
 
 import {
-    getObjectStatus,
-    renderStatusEditor
+    setupStatusEditor
 } from "./editor/status.js";
 
 export function renderEntityEditor(
@@ -1092,53 +1091,16 @@ export function setupEntityFieldsEditor(
 
         );
 
-    // ==================================
-    // Status editor
-    // ==================================
+// ==================================
+// Status editor
+// ==================================
 
-    let currentStatus =
-        getObjectStatus(entity);
-
-    const statusContainer =
-        root.querySelector(
-            "#entityStatus"
-        );
-
-    if(
-        cfg.status &&
-        statusContainer
-    ){
-
-        function renderStatus(){
-
-            statusContainer.innerHTML =
-                "";
-
-            const editor =
-                renderStatusEditor(
-
-                    currentStatus,
-
-                    status => {
-
-                        currentStatus =
-                            status;
-
-                        renderStatus();
-
-                    }
-
-                );
-
-            statusContainer.appendChild(
-                editor
-            );
-
-        }
-
-        renderStatus();
-
-    }
+const statusEditor =
+    setupStatusEditor(
+        root,
+        entity,
+        cfg.status === true
+    );
 
     // ==================================
     // Data
@@ -1209,12 +1171,12 @@ export function setupEntityFieldsEditor(
             // Status
             // ==================================
 
-            if(cfg.status){
-
-                data.status =
-                    currentStatus;
-
-            }
+                if(cfg.status){
+                
+                    data.status =
+                        statusEditor.getStatus();
+                
+                }
 
             // ==================================
             // Dates
