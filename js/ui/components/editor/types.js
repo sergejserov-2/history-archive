@@ -35,19 +35,7 @@ export function renderTypesEditorHTML(types, entity, options = {}) {
 export function setupTypesEditor(root, entity) {
     const select = root.querySelector("#entityType");
     let typeId = entity?.typeId ?? null;
-    if (!select) {
-        return {
-            getTypeId() {
-                return typeId;
-            }
-        };
-    }
-    select.addEventListener("change", () => {
-        typeId = select.value || null;
-    });
-    return {
-        getTypeId() {
-            return typeId;
-        }
-    };
+    if(!select) {return {getTypeId() {return typeId;}};}
+    select.addEventListener("change", () => {typeId = select.value || null;});
+    return {getTypeId() {return typeId;}};
 }
