@@ -290,7 +290,12 @@ const addressHTML =
                     href="object.html?id=${child.id}"
                 >
 
-                    <div class="child-card__media ${child.lost ? "object__cover--lost" : ""}>
+                    <div
+                    class="
+                    child-card__media
+                    ${child.lost ? "object__cover--lost" : ""}
+                    "
+                    >
 
                         ${image}
 
