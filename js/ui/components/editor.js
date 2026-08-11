@@ -156,6 +156,5 @@ export {//для совместимости с обжектедитором
     setupParentsEditor,
     setupFileEditor,
         setupCoverEditor,
-    setupFieldCounters,
-    setupCoverEditor
+    setupFieldCounters
 };
