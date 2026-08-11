@@ -579,10 +579,10 @@ ${
         <span class="entity-editor__checkbox-row">
 
             <input
-                id="entity_isLost"
+                id="entity_lost"
                 type="checkbox"
                 ${
-                    entity.isLost
+                    entity.lost
                     ? "checked"
                     : ""
                 }
@@ -1141,12 +1141,12 @@ if(cfg.lost){
 
     const lostInput =
         root.querySelector(
-            "#entity_isLost"
+            "#entity_lost"
         );
 
     if(lostInput){
 
-        data.isLost =
+        data.lost =
             lostInput.checked;
 
     }
