@@ -326,7 +326,7 @@ const cfg = {
 
     limits: {
 
-        title: 50,
+        title: 45,
 
         description: 350
 
@@ -348,10 +348,11 @@ const cfg = {
 
         disabledTypeIds
 
-    }
+    },
+
+    lost: true
 
 };
-
     return renderEntityEditor(
 
         cfg,
