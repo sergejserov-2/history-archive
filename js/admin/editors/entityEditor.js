@@ -11,7 +11,6 @@ import {
 import {
     uploadPhoto,
     uploadSourceDocument,
-    moveFileToDeleted
 } from "../../api/storage.js";
 import {
     updatePhoto,
