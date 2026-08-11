@@ -1240,10 +1240,7 @@ const statusEditor =
 
 }
 
-}
 export {
     setupParentsEditor
 };
-export {
-    setupFileEditor
-};
+
