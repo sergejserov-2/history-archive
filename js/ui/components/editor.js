@@ -79,6 +79,10 @@ export function setupEditorComponents(root, cfg, context, entity, parents) {
         fieldsEditor,
         coverEditor,
         async getData() {
+            if(cfg.fileRequired && !fileEditor?.hasFile()) {
+                alert(cfg.fileRequiredMessage ?? "Необходимо выбрать файл");
+                return null;
+            }
             const data = {};
             Object.assign(data, fieldsEditor.getData());
             if(parentsEditor) data.parents = parentsEditor.getParents();
