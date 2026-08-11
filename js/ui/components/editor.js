@@ -18,8 +18,7 @@ import {setupFieldCounters} from "./editor/counters.js";
 export function renderEntityEditor(cfg, entity) {
     entity = entity ?? {};
     const options = cfg.options ?? {};
-    const limits = cfg.limits ?? {}
-    };
+    const limits = cfg.limits ?? {};
 
     const dateEditor = renderDateModeEditorHTML(cfg, entity);
     const typeEditorHTML = options.typeSelector ? renderTypesEditorHTML(options.types ?? [], entity, options) : "";
@@ -29,8 +28,7 @@ export function renderEntityEditor(cfg, entity) {
     const coverField = cfg.cover ? renderCoverEditorHTML(cfg, entity) : "";
     const statusContainer = cfg.status ? renderStatusEditorHTML() : "";
 
-    return 
-    `<div class="entity-editor">
+    return `<div class="entity-editor">
         ${options.typeSelector ? `
         <div class="entity-row entity-row--title-type">
             ${typeEditorHTML}
