@@ -151,7 +151,24 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
     };
 }
 
+export function renderConfiguredEntityEditor(cfg, entity, context) {
+    const savedDateMode = entity?.dateMode ?? cfg.dateMode ?? "date";
+    const options = {
+        ...(cfg.options ?? {}),
+        types: cfg.options?.typeSelector
+            ? (context.recordTypes ?? [])
+            : []
+    };
 
+    return renderEntityEditor(
+        {
+            ...cfg,
+            dateMode: savedDateMode,
+            options
+        },
+        entity
+    );
+}
 
 export {//Для совместимости с обжектэдитором
     setupParentsEditor,
