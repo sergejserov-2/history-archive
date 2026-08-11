@@ -259,7 +259,12 @@ async function renderPage(
 
             <section class="object">
             
-                <div class="object__cover">
+<div
+    class="
+        object__cover
+        ${object.isLost ? "object__cover--lost" : ""}
+    "
+>
             
                     ${
                         coverPhoto?.previewPath
@@ -293,11 +298,23 @@ async function renderPage(
 
                 <div class="object__info">
 
-                    <div class="object__type">
+<div class="object__type">
 
-                        ${type?.title ?? ""}
+    ${type?.title ?? ""}
 
-                    </div>
+    ${
+        object.isLost
+        ?
+        `
+        <span class="object__lost-badge">
+            Утрачено
+        </span>
+        `
+        :
+        ""
+    }
+
+</div>
 
 <h1 class="object__title">
 
