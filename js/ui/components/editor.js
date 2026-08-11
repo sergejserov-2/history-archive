@@ -18,11 +18,7 @@ import {setupFieldCounters} from "./editor/counters.js";
 export function renderEntityEditor(cfg, entity) {
     entity = entity ?? {};
     const options = cfg.options ?? {};
-    const limits = {
-        title: 45,
-        description: 350,
-        author: 45,
-        ...(cfg.limits ?? {})
+    const limits = cfg.limits ?? {}
     };
 
     const dateEditor = renderDateModeEditorHTML(cfg, entity);
@@ -95,22 +91,13 @@ export function setupEditorComponents(root, cfg, context, entity) {
         )
         : null;
 
-    const fieldsEditor = setupEntityFieldsEditor(
-        root,
-        cfg,
-        cfg.options?.typeSelector
-            ? {typeId: "#entityType"}
-            : {},
-        entity
-    );
+    const fieldsEditor = setupFieldsEditor(root, cfg, entity);
+    const typeEditor = setupTypesEditor(root, entity);
+    const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
+    const dateModeEditor = setupDateModeEditor(root, {
+        mode: entity?.dateMode ?? cfg.dateMode ?? "date"
+    });
 
-    const dateModeEditor =
-    setupDateModeEditor(
-        root,
-        cfg,
-        entity
-    );
-    
     const coverEditor = cfg.cover
         ? setupCoverEditor(root, cfg.cover.photos ?? [], entity)
         : null;
@@ -119,58 +106,38 @@ export function setupEditorComponents(root, cfg, context, entity) {
         fileEditor,
         parentsEditor,
         fieldsEditor,
+        typeEditor,
+        statusEditor,
         dateModeEditor,
         coverEditor,
 
         async getData() {
             if(cfg.fileRequired && !fileEditor?.hasFile()) {
-                alert(
-                    cfg.fileRequiredMessage ??
-                    "Необходимо выбрать файл"
-                );
+                alert(cfg.fileRequiredMessage ?? "Необходимо выбрать файл");
                 return null;
             }
-
-            if(
-                cfg.parentsType &&
-                parentsEditor.getParents().length === 0
-            ) {
-                alert(
-                    cfg.parentsRequiredMessage ??
-                    "Нужен хотя бы один родитель"
-                );
+            
+            if(cfg.parentsType && parentsEditor.getParents().length === 0) {
+                alert(cfg.parentsRequiredMessage ?? "Нужен хотя бы один родитель");
                 return null;
             }
-
+            
             const data = {};
+
             Object.assign(data, fieldsEditor.getData());
-
-            if(parentsEditor) {
-                data.parents =
-                    parentsEditor.getParents();
-            }
-
+            if(typeEditor.getTypeId()) {data.typeId = typeEditor.getTypeId();}
+            if(cfg.status) {data.status = statusEditor.getStatus();}
+            if(dateModeEditor) {Object.assign(data, dateModeEditor.getData());}
+            if(parentsEditor) {data.parents = parentsEditor.getParents();}
+            if(coverEditor) {Object.assign(data, coverEditor.getData());}
             if(fileEditor) {
-                const fileData =
-                    await fileEditor.getData();
-
-                if(fileData) {
-                    Object.assign(data, fileData);
-                }
+                const fileData = await fileEditor.getData();
+                if(fileData) {Object.assign(data, fileData);}
             }
-
-            if(coverEditor) {
-                Object.assign(
-                    data,
-                    coverEditor.getData()
-                );
-            }
-
             return data;
         }
     };
 }
-
 // ======================================
 // Editor buttons
 // ======================================
@@ -180,39 +147,6 @@ export function setupEditorButtons(root, onSave, onCancel) {
     const cancelButton = root.querySelector("#entityCancel");
     if(saveButton) saveButton.onclick = onSave;
     if(cancelButton) cancelButton.onclick = onCancel;
-}
-
-// ======================================
-// Entity fields editor
-// ======================================
-
-export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity = {}) {
-
-    const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
-    const typeEditor = setupTypesEditor(root, entity);
-    const fieldsEditor = setupFieldsEditor(root, cfg, entity);
-
-    return {
-        getData() {
-            const data = {};
-            Object.assign(data, fieldsEditor.getData());
-
-            if(typeEditor.getTypeId()) data.typeId = typeEditor.getTypeId();
-            if(cfg.status) data.status = statusEditor.getStatus();
-            if(dateModeEditor) {
-                Object.assign(data, dateModeEditor.getData()); 
-                data.dateMode = dateModeEditor.getMode();
-            }
-            Object.entries(extraFields).forEach(([field, selector]) => {
-                const input = root.querySelector(selector);
-                if(input) data[field] = input.value.trim();
-            });
-
-            return data;
-        },
-        
-        getStatus() {return statusEditor.getStatus();}
-    };
 }
 
 // ======================================
