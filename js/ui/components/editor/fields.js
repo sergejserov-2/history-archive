@@ -2,6 +2,8 @@
 // Entity fields editor
 // ======================================
 
+import {setupFieldCounters, renderFieldCounterHTML} from "./counters.js";
+
 export function renderFieldsEditorHTML(cfg = {}, entity = {}, limits = {}) {
     const titleField = `
         <label>
@@ -11,10 +13,7 @@ export function renderFieldsEditorHTML(cfg = {}, entity = {}, limits = {}) {
                 value="${entity.title ?? ""}"
                 maxlength="${limits.title ?? 45}"
             >
-            <div
-                class="entity-field-counter"
-                data-counter-for="entityTitle"
-            ></div>
+            ${renderFieldCounterHTML("entityTitle", entity.title, limits.title ?? 45)}
         </label>
     `;
 
@@ -25,10 +24,7 @@ export function renderFieldsEditorHTML(cfg = {}, entity = {}, limits = {}) {
                 id="entityDescription"
                 maxlength="${limits.description ?? 350}"
             >${entity.description ?? ""}</textarea>
-            <div
-                class="entity-field-counter"
-                data-counter-for="entityDescription"
-            ></div>
+            ${renderFieldCounterHTML("entityDescription", entity.description, limits.description ?? 350)}
         </label>
     `;
 
@@ -41,10 +37,7 @@ export function renderFieldsEditorHTML(cfg = {}, entity = {}, limits = {}) {
                     value="${entity.author ?? ""}"
                     maxlength="${limits.author ?? 45}"
                 >
-                <div
-                    class="entity-field-counter"
-                    data-counter-for="entity_author"
-                ></div>
+                ${renderFieldCounterHTML("entity_author", entity.author, limits.author ?? 45)}
             </label>
         `
         : "";
@@ -57,30 +50,26 @@ export function renderFieldsEditorHTML(cfg = {}, entity = {}, limits = {}) {
 }
 
 export function setupFieldsEditor(root, cfg = {}, entity = {}) {
+    const limits = {
+        title: 45,
+        description: 350,
+        author: 45,
+        ...(cfg.limits ?? {})
+    };
+
+    setupFieldCounters(root, cfg, limits);
+
     return {
         getData() {
             const data = {};
-            const titleInput = root.querySelector("#entityTitle");
-            const descriptionInput = root.querySelector("#entityDescription");
+            const fields = ["title", "description", ...(cfg.fields ?? [])];
 
-            if(titleInput) {
-                data.title = titleInput.value.trim();
-            }
-
-            if(descriptionInput) {
-                data.description = descriptionInput.value.trim();
-            }
-
-            (cfg.fields ?? []).forEach(field => {
-                if(field === "date" || field === "dateStart" || field === "dateEnd") {
-                    return;
-                }
+            fields.forEach(field => {
+                if(field === "date" || field === "dateStart" || field === "dateEnd") return;
 
                 const input = root.querySelector(`#entity_${field}`);
 
-                if(input) {
-                    data[field] = input.value.trim();
-                }
+                if(input) data[field] = input.value.trim();
             });
 
             return data;
