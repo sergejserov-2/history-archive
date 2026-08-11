@@ -2,6 +2,12 @@
 // File picker editor
 // ======================================
 
+import {moveFileToDeleted} from "../../../api/storage.js";
+
+// ======================================
+// Setup
+// ======================================
+
 export function setupFileEditor(root, entity, upload) {
     const fileInput = root.querySelector("#entityFile");
     if(!fileInput) return null;
@@ -46,6 +52,7 @@ export function setupFileEditor(root, entity, upload) {
 
     fileInput.onchange = event => {
         file = event.target.files[0] || null;
+        removeOldFile = false;
         renderFileState();
     };
 
@@ -65,41 +72,42 @@ export function setupFileEditor(root, entity, upload) {
         },
 
         async getData() {
-            const data = {};
-
-            if(removeOldFile && oldStoragePath) {
-                data.removedStoragePath = oldStoragePath;
-            }
-
-            if(removeOldFile && oldPreviewPath) {
-                data.removedPreviewPath = oldPreviewPath;
-            }
-
-            if(file) {
-                const result = await upload(file);
-
-                if(result?.storagePath) {
-                    data.storagePath = result.storagePath;
+            if(removeOldFile) {
+                if(oldStoragePath) {
+                    await moveFileToDeleted(oldStoragePath);
                 }
 
-                if(result?.previewPath) {
-                    data.previewPath = result.previewPath;
+                if(oldPreviewPath) {
+                    await moveFileToDeleted(oldPreviewPath);
                 }
             }
 
-            if(
-                !data.storagePath &&
-                !data.previewPath &&
-                !data.removedStoragePath &&
-                !data.removedPreviewPath
-            ) {
+            if(!file) {
+                return removeOldFile
+                    ? {
+                        storagePath: null,
+                        previewPath: null
+                    }
+                    : null;
+            }
+
+            const result = await upload(file);
+
+            if(!result) {
                 return null;
             }
 
-            return data;
+            return {
+                storagePath: result.storagePath ?? null,
+                previewPath: result.previewPath ?? null
+            };
         }
     };
 }
+
+// ======================================
+// Render
+// ======================================
 
 export function renderFileEditorHTML() {
     return `
@@ -112,12 +120,14 @@ export function renderFileEditorHTML() {
                 >
                     Выбрать файл
                 </div>
+
                 <div
                     id="entityFileCurrent"
                     class="entity-file__current"
                     hidden
                 >
                     <span id="entityFileName"></span>
+
                     <span
                         id="entityFileRemove"
                         class="entity-file__remove"
