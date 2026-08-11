@@ -5,6 +5,7 @@
 import {setupStatusEditor} from "./editor/status.js";
 import {setupParentsEditor} from "./editor/parents.js";
 import {setupFileEditor} from "./editor/files.js";
+import {setupCoverEditor} from "./editor/cover.js";
 
 // ======================================
 // Render Editor
@@ -1240,3 +1241,4 @@ const statusEditor =
 
 export {setupParentsEditor};
 export {setupFileEditor};
+export {setupCoverEditor};
