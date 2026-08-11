@@ -323,6 +323,8 @@ const cfg = {
     title: "Объект",
 
     fields: [],
+    
+    lost: true,
 
     limits: {
 
@@ -348,9 +350,7 @@ const cfg = {
 
         disabledTypeIds
 
-    },
-
-    lost: true
+    }
 
 };
     return renderEntityEditor(
