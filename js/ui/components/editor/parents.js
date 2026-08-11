@@ -11,7 +11,8 @@ export function setupParentsEditor(root, objects, entity, parents, options = {})
     if(!parentsBox || !searchInput || !resultsBox) {
         return {
             getParents() {return parents;},
-            clearParents() {parents.splice(0);}
+            clearParents() {parents.splice(0);},
+            validate() {return true;}
         };
     }
 
@@ -99,6 +100,16 @@ export function setupParentsEditor(root, objects, entity, parents, options = {})
             renderParents();
             searchInput.value = "";
             resultsBox.innerHTML = "";
+        },
+        validate() {
+            if(parents.length > 0) return true;
+
+            alert(
+                options.requiredMessage ??
+                "Нужен хотя бы один родитель"
+            );
+
+            return false;
         }
     };
 }
