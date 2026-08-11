@@ -1492,3 +1492,6 @@ fileSelect.hidden =
     };
 
 }
+export {
+    setupParentsEditor
+};
