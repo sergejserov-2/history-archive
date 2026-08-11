@@ -78,8 +78,14 @@ export function renderEntityEditor(cfg, entity) {
 // Editor components
 // ======================================
 
-export function setupEditorComponents(root, cfg, context, entity, parents) {
+export function setupEditorComponents(root, cfg, context, entity) {
     const fileEditor = setupFileEditor(root, entity, cfg.upload);
+
+    const parents = entity.parents
+        ? [...entity.parents]
+        : context.parentId
+            ? [context.parentId]
+            : [];
 
     const parentsEditor = cfg.parentsType
         ? setupParentsEditor(
@@ -114,7 +120,21 @@ export function setupEditorComponents(root, cfg, context, entity, parents) {
 
         async getData() {
             if(cfg.fileRequired && !fileEditor?.hasFile()) {
-                alert(cfg.fileRequiredMessage ?? "Необходимо выбрать файл");
+                alert(
+                    cfg.fileRequiredMessage ??
+                    "Необходимо выбрать файл"
+                );
+                return null;
+            }
+
+            if(
+                cfg.parentsType &&
+                parentsEditor.getParents().length === 0
+            ) {
+                alert(
+                    cfg.parentsRequiredMessage ??
+                    "Нужен хотя бы один родитель"
+                );
                 return null;
             }
 
@@ -122,16 +142,24 @@ export function setupEditorComponents(root, cfg, context, entity, parents) {
             Object.assign(data, fieldsEditor.getData());
 
             if(parentsEditor) {
-                data.parents = parentsEditor.getParents();
+                data.parents =
+                    parentsEditor.getParents();
             }
 
             if(fileEditor) {
-                const fileData = await fileEditor.getData();
-                if(fileData) Object.assign(data, fileData);
+                const fileData =
+                    await fileEditor.getData();
+
+                if(fileData) {
+                    Object.assign(data, fileData);
+                }
             }
 
             if(coverEditor) {
-                Object.assign(data, coverEditor.getData());
+                Object.assign(
+                    data,
+                    coverEditor.getData()
+                );
             }
 
             return data;
