@@ -392,6 +392,10 @@ body {
 ========================================== */
 
 .object__cover--lost {
+   border:2px solid #8f3434;
+}
+
+.object__cover--lost img{
     filter:grayscale(100%);
 }
 
