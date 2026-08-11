@@ -189,49 +189,13 @@ export function openEntityEditor(type, entity, context, onSave) {
                 // ==================================
                 // File data
                 // ==================================
-
+                
                 const fileData = await fileEditor?.getData();
-
+                
                 if(fileData) {
-                    // ==================================
-                    // Old original file removed
-                    // ==================================
-
-                    if(fileData.removedStoragePath) {
-                        await moveFileToDeleted(
-                            fileData.removedStoragePath
-                        );
-                        data.storagePath = null;
-                    }
-
-                    // ==================================
-                    // Old preview removed
-                    // ==================================
-
-                    if(fileData.removedPreviewPath) {
-                        await moveFileToDeleted(
-                            fileData.removedPreviewPath
-                        );
-                        data.previewPath = null;
-                    }
-
-                    // ==================================
-                    // New original file
-                    // ==================================
-
-                    if(fileData.storagePath) {
-                        data.storagePath = fileData.storagePath;
-                    }
-
-                    // ==================================
-                    // New preview
-                    // ==================================
-
-                    if(fileData.previewPath) {
-                        data.previewPath = fileData.previewPath;
-                    }
+                    Object.assign(data, fileData);
                 }
-
+                
                 // ==================================
                 // Update existing entity
                 // ==================================
