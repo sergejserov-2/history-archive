@@ -9,7 +9,6 @@ import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
 import {setupFieldsEditor, renderFieldsEditorHTML} from "./editor/fields.js";
-import {setupFieldCounters, renderFieldCounterHTML} from "./editor/counters.js";
 
 // ======================================
 // Render Editor
@@ -24,19 +23,11 @@ export function renderEntityEditor(cfg, entity) {
         author: 45,
         ...(cfg.limits ?? {})
     };
-
     const hasSingleDate = cfg.fields?.includes("date");
     const hasDatePeriod = cfg.fields?.includes("dateStart") && cfg.fields?.includes("dateEnd");
     const hasDateEditor = hasSingleDate || hasDatePeriod;
-
-    const dateEditor = hasDateEditor
-        ? renderDateModeEditorHTML(cfg, entity)
-        : "";
-
-    const typeEditorHTML = options.typeSelector
-        ? renderTypesEditorHTML(options.types ?? [], entity, options)
-        : "";
-
+    const dateEditor = hasDateEditor ? renderDateModeEditorHTML(cfg, entity) : "";
+    const typeEditorHTML = options.typeSelector ? renderTypesEditorHTML(options.types ?? [], entity, options) : "";
     const fieldsHTML = renderFieldsEditorHTML(cfg, entity, limits);
     const parentsHTML = renderParentsEditorHTML();
     const fileField = cfg.file ? renderFileEditorHTML() : "";
@@ -87,13 +78,28 @@ export function renderEntityEditor(cfg, entity) {
 }
 
 // ======================================
+// Editor components
+// ======================================
+
+export function setupEditorComponents(root, cfg, context, entity, parents) {
+    const fileEditor = setupFileEditor(root, entity, cfg.upload);
+    const parentsEditor = setupParentsEditor(root, context.objects, entity, parents);
+    const fieldsEditor = setupEntityFieldsEditor(root, cfg, cfg.options?.typeSelector ? {typeId: "#entityType"} : {}, entity);
+
+    return {
+        fileEditor,
+        parentsEditor,
+        fieldsEditor
+    };
+}
+
+// ======================================
 // Editor buttons
 // ======================================
 
 export function setupEditorButtons(root, onSave, onCancel) {
     const saveButton = root.querySelector("#entitySave");
     const cancelButton = root.querySelector("#entityCancel");
-
     if(saveButton) saveButton.onclick = onSave;
     if(cancelButton) cancelButton.onclick = onCancel;
 }
@@ -106,24 +112,14 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
     const dateModeEditor = setupDateModeEditor(root, {
         mode: entity?.dateMode ?? cfg.dateMode ?? "date"
     });
-
-    const statusEditor = setupStatusEditor(
-        root,
-        entity,
-        cfg.status === true
-    );
-
+    const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
     const typeEditor = setupTypesEditor(root, entity);
     const fieldsEditor = setupFieldsEditor(root, cfg, entity);
 
     return {
         getData() {
             const data = {};
-
-            Object.assign(
-                data,
-                fieldsEditor.getData()
-            );
+            Object.assign(data, fieldsEditor.getData());
 
             if(typeEditor.getTypeId()) {
                 data.typeId = typeEditor.getTypeId();
@@ -131,47 +127,25 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
 
             if(cfg.status) {
                 data.status = statusEditor.getStatus();
-                }
+            }
 
             if(dateModeEditor) {
-                Object.assign(
-                    data,
-                    dateModeEditor.getData()
-                );
-
-                data.dateMode =
-                    dateModeEditor.getMode();
+                Object.assign(data, dateModeEditor.getData());
+                data.dateMode = dateModeEditor.getMode();
             }
 
             Object.entries(extraFields).forEach(([field, selector]) => {
                 const input = root.querySelector(selector);
-
-                if(input) {
-                    data[field] =
-                        input.value.trim();
-                }
+                if(input) data[field] = input.value.trim();
             });
 
             return data;
         },
-
         getDateMode() {
             return dateModeEditor?.getMode();
         },
-
         getStatus() {
             return statusEditor.getStatus();
         }
     };
 }
-
-// ======================================
-// Component access
-// ======================================
-
-export {
-    setupParentsEditor,
-    setupFileEditor,
-    setupCoverEditor,
-    setupFieldCounters
-};
