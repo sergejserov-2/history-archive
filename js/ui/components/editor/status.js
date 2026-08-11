@@ -214,3 +214,75 @@ export function renderStatusEditor(
 
     return container;
 }
+
+export function setupStatusEditor(
+    root,
+    entity,
+    enabled = false
+){
+
+    let currentStatus =
+        getObjectStatus(entity);
+
+    const statusContainer =
+        root.querySelector(
+            "#entityStatus"
+        );
+
+    if(
+        !enabled ||
+        !statusContainer
+    ){
+
+        return {
+
+            getStatus(){
+
+                return currentStatus;
+
+            }
+
+        };
+
+    }
+
+    function renderStatus(){
+
+        statusContainer.innerHTML =
+            "";
+
+        const editor =
+            renderStatusEditor(
+
+                currentStatus,
+
+                status => {
+
+                    currentStatus =
+                        status;
+
+                    renderStatus();
+
+                }
+
+            );
+
+        statusContainer.appendChild(
+            editor
+        );
+
+    }
+
+    renderStatus();
+
+    return {
+
+        getStatus(){
+
+            return currentStatus;
+
+        }
+
+    };
+
+}
