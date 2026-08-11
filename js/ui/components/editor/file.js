@@ -5,7 +5,7 @@
 
 //1. SETUP
 export function setupFileEditor(
-    root, entity,pload
+    root, entity,upload
 ){
     const fileInput =
         root.querySelector("#entityFile");
