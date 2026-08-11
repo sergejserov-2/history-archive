@@ -107,11 +107,7 @@ export function openEntityEditor(type, entity, context, onSave) {
     }
 
     const form =
-        renderConfiguredEntityEditor(
-            cfg,
-            entity,
-            context
-        );
+        renderConfiguredEntityEditor(cfg, entity, context);
 
     const modal = createModal({
         title: entity?.id
@@ -123,12 +119,7 @@ export function openEntityEditor(type, entity, context, onSave) {
     const root = modal.root;
 
     const editor =
-        setupEditorComponents(
-            root,
-            cfg,
-            context,
-            entity
-        );
+        setupEditorComponents(root, cfg, context, entity);
 
     setupEditorButtons(
         root,
