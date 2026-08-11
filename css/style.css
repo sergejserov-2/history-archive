@@ -365,6 +365,8 @@ body {
 
 .object__lost-badge {
 
+   text-transform: uppercase;
+      
     display:inline-flex;
 
     align-items:center;
@@ -2335,6 +2337,48 @@ text-align:right;
 
 }
 
+
+/* ==========================================
+   LOST OBJECT CHECKBOX
+========================================== */
+
+.entity-editor__checkbox {
+    display: block;
+    margin: 0;
+}
+
+.entity-editor__checkbox-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    cursor: pointer;
+
+    color: #d8dadd;
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+/* Сам чекбокс */
+
+.entity-editor__checkbox-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+
+    margin: 0;
+
+    flex-shrink: 0;
+
+    cursor: pointer;
+
+    accent-color: #d4a72c;
+}
+
+/* Текст */
+
+.entity-editor__checkbox-row span {
+    display: inline-block;
+}
 
 /* ==========================================
    MOBILE
