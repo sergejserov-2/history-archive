@@ -5,12 +5,18 @@
 import {
     getType,
     getParents
-} from "../../api/objects.js";
+}
+from "../../api/objects.js";
 
 import {
     getPhotos
 }
 from "../../api/photos.js";
+
+import {
+    renderStatusBadgeHTML
+}
+from "./status.js";
 
 // ======================================
 // Render children
@@ -24,231 +30,259 @@ export async function renderChildren(
 
     currentObject = null
 
-) {
+){
 
-    const preparedChildren = await Promise.all(
+    const preparedChildren =
+        await Promise.all(
 
-        (children ?? []).map(async child => {
+            (children ?? []).map(
+                async child => {
 
-            const type = await getType(
-                child.typeId
-            );
+                    const type =
+                        await getType(
+                            child.typeId
+                        );
 
-            const parents = await getParents(
-                child
-            );
+                    const parents =
+                        await getParents(
+                            child
+                        );
 
-            const photos = await getPhotos(
-                child.id
-            );
+                    const photos =
+                        await getPhotos(
+                            child.id
+                        );
 
-            const coverPhoto =
-                photos.find(
-                    photo =>
-                        photo.id === child.coverPhotoId
-                );
+                    const coverPhoto =
+                        photos.find(
+                            photo =>
+                                photo.id ===
+                                child.coverPhotoId
+                        );
 
-            // ==================================
-            // Address
-            // ==================================
+                    // ==================================
+                    // Address
+                    // ==================================
 
-            const parentRelations =
-                Array.isArray(child.parents)
-                    ? child.parents
-                    : [];
+                    const parentRelations =
+                        Array.isArray(
+                            child.parents
+                        )
 
-            /*
-             * Для карточки ребёнка строим адрес
-             * именно из связи с родителем:
-             *
-             * Родитель, Ребёнок
-             *
-             * Если родителей два — получаем
-             * две отдельные строки.
-             */
+                            ?
 
-    const addressLines =
-    parentRelations
-        .map(parent => {
+                            child.parents
 
-            const parentId =
-                parent?.objectId;
+                            :
 
-            if(!parentId){
+                            [];
 
-                return null;
+                    const addressLines =
 
-            }
+                        parentRelations
 
-            const parentObject =
-                parents
-                    .flat()
-                    .find(
-                        item =>
-                            item.id === parentId
-                    );
+                            .map(parent => {
 
-            if(!parentObject){
+                                const parentId =
+                                    parent?.objectId;
 
-                return null;
+                                if(!parentId){
 
-            }
+                                    return null;
 
-return {
-    parentId,
+                                }
 
-    parentAddress:
-        parentObject.address?.trim()
-        || "",
+                                const parentObject =
+                                    parents
+                                        .flat()
+                                        .find(
+                                            item =>
+                                                item.id ===
+                                                parentId
+                                        );
 
-    childAddress:
-        parent?.address?.trim()
-        || ""
-};
+                                if(!parentObject){
 
-        })
-        .filter(Boolean);
+                                    return null;
 
-            // ==================================
-            // Order address lines
-            //
-            // Если текущий объект является
-            // одним из родителей — его строка
-            // должна быть первой.
-            // ==================================
+                                }
 
-            if(currentObject){
+                                return {
 
-                addressLines.sort(
-                    (a, b) => {
+                                    parentId,
 
-                        const aCurrent =
-                            a.parentId ===
-                            currentObject.id;
+                                    parentAddress:
+                                        parentObject.address?.trim()
+                                        || "",
 
-                        const bCurrent =
-                            b.parentId ===
-                            currentObject.id;
+                                    childAddress:
+                                        parent?.address?.trim()
+                                        || ""
 
-                        if(aCurrent && !bCurrent){
+                                };
 
-                            return -1;
+                            })
 
-                        }
+                            .filter(Boolean);
 
-                        if(!aCurrent && bCurrent){
+                    // ==================================
+                    // Order address lines
+                    // ==================================
 
-                            return 1;
+                    if(currentObject){
 
-                        }
+                        addressLines.sort(
+                            (a, b) => {
 
-                        return 0;
+                                const aCurrent =
+                                    a.parentId ===
+                                    currentObject.id;
+
+                                const bCurrent =
+                                    b.parentId ===
+                                    currentObject.id;
+
+                                if(
+                                    aCurrent &&
+                                    !bCurrent
+                                ){
+
+                                    return -1;
+                                    }
+
+                                if(
+                                    !aCurrent &&
+                                    bCurrent
+                                ){
+
+                                    return 1;
+
+                                }
+
+                                return 0;
+
+                            }
+                        );
 
                     }
-                );
 
-            }
+                    // ==================================
+                    // Address HTML
+                    // ==================================
 
-            // ==================================
-            // Address HTML
-            // ==================================
+                    const addressHTML =
 
-const addressHTML =
+                        addressLines.length > 0
 
-    addressLines.length > 0
+                            ?
 
-        ?
+                            addressLines
+                                .map(line => `
 
-        addressLines
-            .map(line => `
+                                    <div
+                                        class="
+                                            child-card__address-line
+                                        "
+                                    >
 
-                <div
-                    class="child-card__address-line"
-                >
+                                        ${
+                                            line.parentAddress
 
-                    ${
-                        line.parentAddress
-                            ? `${line.parentAddress}, `
-                            : ""
-                    }
+                                                ?
 
-                    ${line.childAddress}
+                                                `${line.parentAddress}, `
 
-                </div>
+                                                :
 
-            `)
-            .join("")
+                                                ""
+                                        }
 
-        :
+                                        ${line.childAddress}
 
-        "";
+                                    </div>
 
-            // ==================================
-            // Image
-            // ==================================
+                                `)
+                                .join("")
 
-            const image =
-                coverPhoto?.previewPath
+                            :
 
-                    ?
+                            "";
 
-                    `
+                    // ==================================
+                    // Image
+                    // ==================================
 
-                    <img
-                        class="child-card__image"
-                        src="${coverPhoto.previewPath}"
-                        alt="${child.title ?? ""}"
-                    >
+                    const image =
 
-                    `
+                        coverPhoto?.previewPath
 
-                    :
+                            ?
 
-                    `
+                            `
 
-                    <div class="child-card__placeholder">
+                            <img
+                                class="child-card__image"
+                                src="${coverPhoto.previewPath}"
+                                alt="${child.title ?? ""}"
+                            >
 
-                        Фото отсутствует
+                            `
 
-                    </div>
+                            :
 
-                    `;
+                            `
 
-            // ==================================
-            // Sort key
-            // ==================================
+                            <div
+                                class="
+                                    child-card__placeholder
+                                "
+                            >
+                                Фото отсутствует
+                            </div>
 
-            /*
-             * Сортируем по первой строке адреса,
-             * которая является приоритетной для
-             * текущей страницы.
-             */
+                            `;
 
-            const sortAddress =
-                addressLines
-                    .map(
-                        line =>
-                            `${line.parentAddress}, ${line.childAddress}`
-                    )
-                    .join(" ");
+                    // ==================================
+                    // Status
+                    // ==================================
 
-            return {
+                    const status =
+                        renderStatusBadgeHTML(
+                            child.status
+                        );
 
-                child,
+                    // ==================================
+                    // Sort key
+                    // ==================================
 
-                type,
+                    const sortAddress =
+                        addressLines
+                            .map(
+                                line =>
+                                    `${line.parentAddress}, ${line.childAddress}`
+                            )
+                            .join(" ");
 
-                image,
+                    return {
 
-                addressHTML,
+                        child,
 
-                sortAddress
+                        type,
 
-            };
+                        image,
 
-        })
+                        addressHTML,
 
-    );
+                        status,
+
+                        sortAddress
+
+                    };
+
+                }
+            )
+
+        );
 
     // ======================================
     // Sort
@@ -258,15 +292,20 @@ const addressHTML =
         (a, b) => {
 
             return a.sortAddress.localeCompare(
+
                 b.sortAddress,
+
                 "ru",
+
                 {
+
                     numeric: true,
                     sensitivity: "base"
-                }
-            );
 
-        }
+                }
+
+            );
+            }
     );
 
     // ======================================
@@ -274,13 +313,15 @@ const addressHTML =
     // ======================================
 
     const cards =
+
         preparedChildren.map(
 
             ({
                 child,
                 type,
                 image,
-                addressHTML
+                addressHTML,
+                status
             }) => `
 
                 <a
@@ -289,46 +330,42 @@ const addressHTML =
                 >
 
                     <div
-                    class="
-                    child-card__media
-                    ${child.lost ? "object__cover--lost" : ""}
-                    "
+                        class="
+                            child-card__media
+                        "
                     >
 
                         ${image}
 
                     </div>
 
-                    <div class="child-card__body">
+                    <div
+                        class="child-card__body"
+                    >
 
-                        <div class="child-card__type">
+                        <div
+                            class="child-card__type"
+                        >
 
                             ${type?.title ?? ""}
 
                         </div>
 
-                        <div class="child-card__name">
+                        <div
+                            class="child-card__name"
+                        >
 
                             <span>
                                 ${child.title ?? ""}
                             </span>
 
-                            ${
-                                child.lost
-                                ?
-                                `
-                                <span class="object__lost-badge"
-                                >
-                                    Утрачено
-                                </span>
-                                `
-                                :
-                                ""
-                            }
+                            ${status}
 
                         </div>
 
-                        <div class="child-card__address">
+                        <div
+                            class="child-card__address"
+                        >
 
                             ${addressHTML}
 
@@ -351,7 +388,11 @@ const addressHTML =
         cards.unshift(`
 
             <div
-                class="child-card child-card--add admin-button"
+                class="
+                    child-card
+                    child-card--add
+                    admin-button
+                "
                 data-action="add-object"
             >
 
