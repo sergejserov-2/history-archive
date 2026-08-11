@@ -7,7 +7,7 @@ import {setupParentsEditor} from "./editor/parents.js";
 import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
-import {setupFieldCounters} from "./editor/counters.js";
+import {setupFieldCounters, renderFieldCounterHTML} from "./editor/counters.js";
 
 // ======================================
 // Render Editor
@@ -239,10 +239,7 @@ const statusContainer =
                 maxlength="${limits.author}"
             >
 
-            <div
-                class="entity-field-counter"
-                data-counter-for="entity_author"
-            ></div>
+            ${renderFieldCounterHTML("entity_author", entity.author, limits.author)}
 
         </label>
 
@@ -282,10 +279,7 @@ const statusContainer =
                         maxlength="${limits.title}"
                     >
 
-                    <div
-                        class="entity-field-counter"
-                        data-counter-for="entityTitle"
-                    ></div>
+                ${renderFieldCounterHTML("entityTitle", entity.title, limits.title)}
 
                 </label>
 
@@ -307,10 +301,8 @@ const statusContainer =
                     maxlength="${limits.title}"
                 >
 
-                <div
-                    class="entity-field-counter"
-                    data-counter-for="entityTitle"
-                ></div>
+                ${renderFieldCounterHTML("entityTitle", entity.title, limits.title)}
+
 
             </label>
 
@@ -327,10 +319,7 @@ const statusContainer =
                 maxlength="${limits.description}"
             >${entity.description ?? ""}</textarea>
 
-            <div
-                class="entity-field-counter"
-                data-counter-for="entityDescription"
-            ></div>
+            ${renderFieldCounterHTML("entityDescription", entity.description, limits.description)}
 
         </label>
 
