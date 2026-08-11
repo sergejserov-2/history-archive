@@ -12,36 +12,38 @@ from "../../admin/adminMode.js";
 
 import {
     initAdmin
-} from "../../admin/admin.js";
+}
+from "../../admin/admin.js";
 
 import {
 
     getObject,
-
     getType,
-
     getParents,
-
     getChildren,
-
     getAllObjects
 
-} from "../../api/objects.js";
+}
+from "../../api/objects.js";
 
 import {
-    getTypes }
-    from "../../api/types.js";
+    getTypes
+}
+from "../../api/types.js";
 
-import { renderHeader }
-
+import {
+    renderHeader
+}
 from "../components/header.js";
 
-import { renderBreadcrumbs }
-
+import {
+    renderBreadcrumbs
+}
 from "../components/breadcrumbs.js";
 
-import { renderChildren }
-
+import {
+    renderChildren
+}
 from "../components/children.js";
 
 import {
@@ -80,6 +82,11 @@ import {
 from "../components/sources.js";
 
 import {
+    renderStatusBadgeHTML
+}
+from "../components/status.js";
+
+import {
     restoreModalFromUrl
 }
 from "../components/modal.js";
@@ -88,95 +95,104 @@ from "../components/modal.js";
 // Get object id
 // ======================================
 
-const params = new URLSearchParams(
-    window.location.search
-);
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
 
-const objectId = params.get("id");
+const objectId =
+    params.get("id");
 
 // ======================================
 // Load page
 // ======================================
 
-async function loadPage() {
+async function loadPage(){
 
-    const object = await getObject(
-        objectId
-    );
-    
-    if (!object) {
-    
+    const object =
+        await getObject(
+            objectId
+        );
+
+    if(!object){
+
         document.body.innerHTML = `
-    
+
             <h1>
                 Объект не найден
             </h1>
-    
+
         `;
-    
+
         return;
-    
+
     }
-    
-    document.title = object.title || "Исторический архив";
-    
-    const type = await getType(
-        object.typeId
-    );
 
-    const types = await getTypes ();
-    const objects = await getAllObjects ();
-    const recordTypes = await getRecordTypes();
-    const parents = await getParents(
-        object
-    );
+    document.title =
+        object.title ||
+        "Исторический архив";
 
-    const children = await getChildren(
-        object.id
-    );
-
-    const records = await getRecords(
-        object.id
-    );
-
-    const photos = await getPhotos(
-        object.id
-    );
-
-    const sources = await getSources(
-        object.id
-    );
-
-onAdminStateChanged(
-
-    async ADMIN_MODE => {
-
-        // ==================================
-        // Сначала полностью рисуем страницу
-        // ==================================
-
-        await renderPage(
-
-            object,
-            type,
-            parents,
-            children,
-            records,
-            photos,
-            sources,
-            recordTypes,
-            ADMIN_MODE
-
+    const type =
+        await getType(
+            object.typeId
         );
 
-        // ==================================
-        // Затем подключаем admin
-        // ==================================
+    const types =
+        await getTypes();
 
-        if (ADMIN_MODE) {
+    const objects =
+        await getAllObjects();
+
+    const recordTypes =
+        await getRecordTypes();
+
+    const parents =
+        await getParents(
+            object
+        );
+
+    const children =
+        await getChildren(
+            object.id
+        );
+
+    const records =
+        await getRecords(
+            object.id
+        );
+
+    const photos =
+        await getPhotos(
+            object.id
+        );
+
+    const sources =
+        await getSources(
+            object.id
+        );
+
+    onAdminStateChanged(
+
+        async ADMIN_MODE => {
+
+            await renderPage(
+
+                object,
+                type,
+                parents,
+                children,
+                records,
+                photos,
+                sources,
+                recordTypes,
+                ADMIN_MODE
+
+            );
+
+            if(ADMIN_MODE){
 
                 initAdmin(
-                
+
                     object,
                     types,
                     objects,
@@ -185,21 +201,16 @@ onAdminStateChanged(
                     records,
                     children,
                     recordTypes
-                
+
                 );
+
+            }
+
+            await restoreModalFromUrl();
 
         }
 
-        // ==================================
-        // И только после этого
-        // восстанавливаем модалку из URL
-        // ==================================
-
-        await restoreModalFromUrl();
-
-    }
-
-);
+    );
 
 }
 
@@ -210,34 +221,25 @@ onAdminStateChanged(
 async function renderPage(
 
     object,
-
     type,
-
     parents,
-
     children,
-
     records,
-
     photos,
-
     sources,
-
     recordTypes,
-
     ADMIN_MODE
 
-) {
+){
 
-    const childrenHTML = await renderChildren(
+    const childrenHTML =
+        await renderChildren(
 
-        children,
+            children,
+            ADMIN_MODE,
+            object
 
-        ADMIN_MODE,
-
-        object
-
-    );
+        );
 
     const breadcrumbsHTML =
         await renderBreadcrumbs(
@@ -247,138 +249,168 @@ async function renderPage(
     const coverPhoto =
         photos.find(
             photo =>
-                photo.id === object.coverPhotoId
+                photo.id ===
+                object.coverPhotoId
+        );
+
+    const status =
+        renderStatusBadgeHTML(
+            object.status
         );
 
     document.body.innerHTML = `
 
         ${renderHeader()}
 
-
-<main class="page">
-
-    ${breadcrumbsHTML}
+        <main class="page">
+        ${breadcrumbsHTML}
 
             <section class="object">
-            
-<div
-    class="
-        object__cover
-        ${object.lost ? "object__cover--lost" : ""}
-    "
->
-            
+
+                <div class="object__cover">
+
                     ${
                         coverPhoto?.previewPath
-            
+
                         ?
-            
+
                         `
-            
+
                         <div
                             class="object__cover-bg"
-                            style="background-image:url('${coverPhoto.previewPath}')"
+                            style="
+                                background-image:
+                                url('${coverPhoto.previewPath}')
+                            "
                         ></div>
-            
+
                         <img
                             class="object__cover-image"
                             src="${coverPhoto.previewPath}"
                             alt="${coverPhoto.title ?? ""}"
                         >
-            
+
                         `
-            
+
                         :
-            
-                        `<div class="object__cover-placeholder">
+
+                        `
+                        <div
+                            class="object__cover-placeholder"
+                        >
                             Фото отсутствует
-                        </div>`
-            
+                        </div>
+                        `
+
                     }
-            
+
                 </div>
 
                 <div class="object__info">
 
-<div class="object__type">
-    ${type?.title ?? ""}
-</div>
+                    <div class="object__type">
 
-<h1 class="object__title">
+                        ${type?.title ?? ""}
 
-    <span class="object__title-text">
-        ${object.title}
-    </span>
+                    </div>
 
-    ${
-        ADMIN_MODE
-        ?
+                    <h1 class="object__title">
 
-        `
-        <button class="admin-button" data-action="edit-object">
-            <img src="icons/edit.svg" class="admin-icon">
-        </button>
-        <button class="admin-button" data-action="delete-object" data-id="${object.id}">
-            <img src="icons/delete.svg" class="admin-icon">
-        </button>
+                        <span class="object__title-text">
+                            ${object.title ?? ""}
+                        </span>
 
-        `
+                        ${
+                            ADMIN_MODE
 
-        :
+                            ?
 
-        ""
+                            `
 
-    }
-    ${
-        object.lost
-        ?
-        `
-        <span class="object__lost-badge">
-            Утрачено
-        </span>
-        `
-        :
-        ""
-    }
-</h1>
+                            <button
+                                class="admin-button"
+                                data-action="edit-object"
+                            >
+                                <img
+                                    src="icons/edit.svg"
+                                    class="admin-icon"
+                                >
+                            </button>
 
-${
-    object.description?.trim()
-    ?
-    `
-    <div class="object__description">
-        ${object.description}
-    </div>
-    `
-    :
-    ""
-}
+                            <button
+                                class="admin-button"
+                                data-action="delete-object"
+                                data-id="${object.id}"
+                            >
+                                <img
+                                    src="icons/delete.svg"
+                                    class="admin-icon"
+                                >
+                            </button>
 
-${
-    (
-        ADMIN_MODE ||
-        records.length > 0
-    )
-    ?
-    renderRecords(
-        records,
-        recordTypes,
-        ADMIN_MODE
-    )
-    :
-    ""
-}
+                            `
+
+                            :
+
+                            ""
+
+                        }
+
+                        ${status}
+
+                    </h1>
+
+                    ${
+                        object.description?.trim()
+
+                        ?
+
+                        `
+                        <div
+                            class="object__description"
+                        >
+                            ${object.description}
+                        </div>
+                        `
+
+                        :
+
+                        ""
+
+                    }
+
+                    ${
+                        (
+                            ADMIN_MODE ||
+                            records.length > 0
+                        )
+
+                        ?
+
+                        renderRecords(
+                            records,
+                            recordTypes,
+                            ADMIN_MODE
+                        )
+
+                        :
+
+                        ""
+
+                    }
 
                 </div>
 
             </section>
 
-        ${
+            ${
                 (
                     ADMIN_MODE ||
                     photos.length > 0
                 )
+
                 ?
+
                 `
                 <section id="gallery">
 
@@ -387,16 +419,21 @@ ${
                     </h2>
 
                     ${
+
                         renderPhotos(
                             photos,
                             ADMIN_MODE
-                        )
+                            )
+
                     }
 
                 </section>
                 `
+
                 :
+
                 ""
+
             }
 
             ${
@@ -404,7 +441,9 @@ ${
                     ADMIN_MODE ||
                     sources.length > 0
                 )
+
                 ?
+
                 `
                 <section id="sources">
 
@@ -413,16 +452,21 @@ ${
                     </h2>
 
                     ${
+
                         renderSources(
                             sources,
                             ADMIN_MODE
                         )
+
                     }
 
                 </section>
                 `
+
                 :
+
                 ""
+
             }
 
             ${
@@ -430,7 +474,9 @@ ${
                     ADMIN_MODE ||
                     children.length > 0
                 )
+
                 ?
+
                 `
                 <section id="children">
 
@@ -442,9 +488,13 @@ ${
 
                 </section>
                 `
+
                 :
+
                 ""
+
             }
+
         </main>
 
     `;
