@@ -9,7 +9,7 @@ import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
 import {setupFieldsEditor, renderFieldsEditorHTML} from "./editor/fields.js";
-import {setupFieldCounters, renderFieldCounterHTML} from "./counters.js";
+import {setupFieldCounters, renderFieldCounterHTML} from "./editor/counters.js";
 
 // ======================================
 // Render Editor
