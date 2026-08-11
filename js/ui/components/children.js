@@ -67,61 +67,49 @@ export async function renderChildren(
              * две отдельные строки.
              */
 
-            const addressLines =
-                parentRelations
-                    .map(parent => {
+    const addressLines =
+    parentRelations
+        .map(parent => {
 
-                        const parentId =
-                            parent?.objectId;
+            const parentId =
+                parent?.objectId;
 
-                        if(!parentId){
+            if(!parentId){
 
-                            return null;
+                return null;
 
-                        }
+            }
 
-                        const parentObject =
-                            parents
-                                .flat()
-                                .find(
-                                    item =>
-                                        item.id === parentId
-                                );
+            const parentObject =
+                parents
+                    .flat()
+                    .find(
+                        item =>
+                            item.id === parentId
+                    );
 
-                        if(!parentObject){
+            if(!parentObject){
 
-                            return null;
+                return null;
 
-                        }
+            }
 
-                        const parentAddress =
-                            parent?.address?.trim()
-                            ||
-                            parentObject.address?.trim()
-                            ||
-                            parentObject.title
-                            ||
-                            "";
+            return {
 
-                        const childAddress =
-                            child.address?.trim()
-                            ||
-                            child.title
-                            ||
-                            "";
+                parentId,
 
-                        return {
+                parentAddress:
+                    parentObject.address?.trim()
+                    || "",
 
-                            parentId,
+                childAddress:
+                    child.address?.trim()
+                    || ""
 
-                            parentAddress,
+            };
 
-                            childAddress
-
-                        };
-
-                    })
-                    .filter(Boolean);
+        })
+        .filter(Boolean);
 
             // ==================================
             // Order address lines
@@ -167,46 +155,35 @@ export async function renderChildren(
             // Address HTML
             // ==================================
 
-            const addressHTML =
-                addressLines.length > 0
+const addressHTML =
 
-                    ?
+    addressLines.length > 0
 
-                    addressLines
-                        .map(line => `
+        ?
 
-                            <div
-                                class="child-card__address-line"
-                            >
+        addressLines
+            .map(line => `
 
-                                ${line.parentAddress},
+                <div
+                    class="child-card__address-line"
+                >
 
-                                ${line.childAddress}
+                    ${
+                        line.parentAddress
+                            ? `${line.parentAddress}, `
+                            : ""
+                    }
 
-                            </div>
+                    ${line.childAddress}
 
-                        `)
-                        .join("")
+                </div>
 
-                    :
+            `)
+            .join("")
 
-                    `
+        :
 
-                        <div
-                            class="child-card__address-line"
-                        >
-
-                            ${
-                                child.address?.trim()
-                                ||
-                                child.title
-                                ||
-                                ""
-                            }
-
-                        </div>
-
-                    `;
+        "";
 
             // ==================================
             // Image
