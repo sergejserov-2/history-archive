@@ -5,6 +5,11 @@
 // ======================================
 // Render Entity Editor
 // ======================================
+import {
+    getObjectStatus,
+    renderStatusEditor
+} from "./status.js";
+
 
 export function renderEntityEditor(
 
@@ -570,35 +575,10 @@ ${
 
         ${coverField}
 
-${
-    cfg.lost
-    ?
-    `
-    <label class="entity-editor__checkbox">
-
-        <span class="entity-editor__checkbox-row">
-
-            <input
-                id="entity_lost"
-                type="checkbox"
-                ${
-                    entity.lost
-                    ? "checked"
-                    : ""
-                }
-            >
-
-            <span>
-                Утраченный объект
-            </span>
-
-        </span>
-
-    </label>
-    `
-    :
-    ""
-}
+<div
+    id="entityStatus"
+    class="entity-status"
+></div>
 
         <div class="entity-editor__buttons">
 
