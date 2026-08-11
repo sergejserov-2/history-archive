@@ -69,9 +69,14 @@ export function renderEntityEditor(cfg, entity) {
 // ======================================
 // Editor components
 // ======================================
-
 export function setupEditorComponents(root, cfg, context, entity) {
-    const fileEditor = setupFileEditor(root, entity, cfg.upload);
+    const fileEditor = setupFileEditor(
+        root, entity, cfg.upload,
+        {
+            required: cfg.fileRequired === true,
+            requiredMessage: cfg.fileRequiredMessage
+        }
+    );
 
     const parents = entity.parents
         ? [...entity.parents]
@@ -81,13 +86,11 @@ export function setupEditorComponents(root, cfg, context, entity) {
 
     const parentsEditor = cfg.parentsType
         ? setupParentsEditor(
-            root,
-            context.objects,
-            entity,
-            parents,
-            cfg.parentsType === "objectsWithAddress"
-                ? {address: true}
-                : {}
+            root, context.objects, entity, parents,
+            {
+                address: cfg.parentsType === "objectsWithAddress",
+                requiredMessage: cfg.parentsRequiredMessage
+            }
         )
         : null;
 
@@ -99,8 +102,7 @@ export function setupEditorComponents(root, cfg, context, entity) {
     });
 
     const coverEditor = cfg.cover
-        ? setupCoverEditor(root, cfg.cover.photos ?? [], entity)
-        : null;
+        ? setupCoverEditor(root, cfg.cover.photos ?? [], entity) : null;
 
     return {
         fileEditor,
@@ -112,15 +114,8 @@ export function setupEditorComponents(root, cfg, context, entity) {
         coverEditor,
 
         async getData() {
-            if(cfg.fileRequired && !fileEditor?.hasFile()) {
-                alert(cfg.fileRequiredMessage ?? "Необходимо выбрать файл");
-                return null;
-            }
-            
-            if(cfg.parentsType && parentsEditor.getParents().length === 0) {
-                alert(cfg.parentsRequiredMessage ?? "Нужен хотя бы один родитель");
-                return null;
-            }
+            if(fileEditor && !fileEditor.validate()) {return null;}
+            if(parentsEditor && !parentsEditor.validate()) {return null;}
             
             const data = {};
 
@@ -132,7 +127,9 @@ export function setupEditorComponents(root, cfg, context, entity) {
             if(coverEditor) {Object.assign(data, coverEditor.getData());}
             if(fileEditor) {
                 const fileData = await fileEditor.getData();
-                if(fileData) {Object.assign(data, fileData);}
+                if(fileData) {
+                    Object.assign(data, fileData);
+                }
             }
             return data;
         }
