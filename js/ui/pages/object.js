@@ -233,7 +233,9 @@ async function renderPage(
 
         children,
 
-        ADMIN_MODE
+        ADMIN_MODE,
+
+        object
 
     );
 
