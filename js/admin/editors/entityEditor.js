@@ -10,7 +10,7 @@ import {
 } from "../../ui/components/editor.js";
 import {
     uploadPhoto,
-    uploadSourceDocument,
+    uploadSourceDocument
 } from "../../api/storage.js";
 import {
     updatePhoto,
@@ -123,11 +123,14 @@ export function openEntityEditor(type, entity, context, onSave) {
             ? [context.parentId]
             : [];
 
+    // ==================================
+    // Render form
+    // ==================================
 
     const form = renderConfiguredEntityEditor(
-    cfg,
-    entity,
-    context
+        cfg,
+        entity,
+        context
     );
 
     // ==================================
@@ -151,6 +154,7 @@ export function openEntityEditor(type, entity, context, onSave) {
     const {
         fileEditor,
         parentsEditor,
+        coverEditor,
         fieldsEditor
     } = setupEditorComponents(
         root,
@@ -187,15 +191,26 @@ export function openEntityEditor(type, entity, context, onSave) {
                 };
 
                 // ==================================
+                // Cover data
+                // ==================================
+
+                if(coverEditor) {
+                    Object.assign(
+                        data,
+                        coverEditor.getData()
+                    );
+                }
+
+                // ==================================
                 // File data
                 // ==================================
-                
+
                 const fileData = await fileEditor?.getData();
-                
+
                 if(fileData) {
                     Object.assign(data, fileData);
                 }
-                
+
                 // ==================================
                 // Update existing entity
                 // ==================================
