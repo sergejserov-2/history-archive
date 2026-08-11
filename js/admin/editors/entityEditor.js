@@ -36,6 +36,8 @@ const CONFIG = {
         create: createPhoto,
         upload: uploadPhoto,
         file: true,
+        fileRequired: true,
+        fileRequiredMessage: "Для фотографии необходимо выбрать файл",
         dateMode: "date",
         limits: {
             title: 45,
