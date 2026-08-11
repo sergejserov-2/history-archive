@@ -255,146 +255,64 @@ const statusContainer =
     return `
 
     <div class="entity-editor">
-
-        ${
-            options.typeSelector
-
-            ?
-
-            `
-
-            <div
-                class="entity-row entity-row--title-type"
-            >
-
+        ${options.typeSelector ?
+          `<div class="entity-row entity-row--title-type">
                 ${typeSelector}
-
                 <label class="entity-title">
-
                     Название
-
                     <input
                         id="entityTitle"
                         value="${entity.title ?? ""}"
                         maxlength="${limits.title}"
                     >
-
                 ${renderFieldCounterHTML("entityTitle", entity.title, limits.title)}
-
                 </label>
-
-            </div>
-
-            `
-
-            :
-
-            `
-
-            <label>
-
+            </div>` :
+            `<label>
                 Название
-
                 <input
                     id="entityTitle"
                     value="${entity.title ?? ""}"
                     maxlength="${limits.title}"
                 >
-
                 ${renderFieldCounterHTML("entityTitle", entity.title, limits.title)}
-
-
-            </label>
-
-            `
-
+            </label>`
         }
 
         <label>
-
             Описание
-
             <textarea
                 id="entityDescription"
                 maxlength="${limits.description}"
-            >${entity.description ?? ""}</textarea>
-
-            ${renderFieldCounterHTML("entityDescription", entity.description, limits.description)}
-
-        </label>
-
-        <label>
-
-            Родители
-
-            <div class="parents-group">
-
-                <div id="entityParents"></div>
-
-                <input
-                    id="entityParentSearch"
-                    placeholder="Начните вводить имя"
-                >
-
-                <div
-                    id="entityParentResults"
-                ></div>
-
-            </div>
-
-        </label>
-
-        ${
-            authorField
-
-            ?
-
-            `
-
-            <div
-                class="entity-row entity-row--author-date"
             >
+            ${entity.description ?? ""}
+            </textarea>
+            ${renderFieldCounterHTML("entityDescription", entity.description, limits.description)}
+        </label>
+        <label>
+            Родители
+            ${renderParentsEditorHTML()}
+        </label>
 
+        ${authorField ?
+          `<div class="entity-row entity-row--author-date" >
                 ${authorField}
-
                 ${dateEditor}
-
-            </div>
-
-            `
-
-            :
-
-            dateEditor
-
-        }
-
+            </div>` :  dateEditor}
         ${fileField}
-
         ${coverField}
-
         ${statusContainer}
 
         <div class="entity-editor__buttons">
-
             <button id="entitySave">
-
                 Сохранить
-
             </button>
-
             <button id="entityCancel">
-
                 Отмена
-
             </button>
-
         </div>
-
     </div>
-
     `;
-
 }
 
 // ======================================
@@ -543,75 +461,24 @@ const statusEditor =
 
                 });
 
-            // ==================================
-            // Status
-            // ==================================
-
-                if(cfg.status){
-                
-                    data.status =
-                        statusEditor.getStatus();
-                
-                }
-
-            // ==================================
-            // Dates
-            // ==================================
-
+            if(cfg.status){data.status = statusEditor.getStatus();}
             if(dateModeEditor){
-
-                Object.assign(
-                    data,
-                    dateModeEditor.getData()
-                );
-
-                data.dateMode =
-                    dateModeEditor.getMode();
-
+                Object.assign(data, dateModeEditor.getData());
+                data.dateMode = dateModeEditor.getMode();
             }
-
-            // ==================================
-            // Extra fields
-            // ==================================
 
             Object.entries(extraFields)
                 .forEach(
                     ([field, selector])=>{
-
-                        const input =
-                            root.querySelector(
-                                selector
-                            );
-
-                        if(input){
-
-                            data[field] =
-                                input.value.trim();
-
-                        }
-
+                        const input = root.querySelector(selector);
+                        if(input){data[field] = input.value.trim();}
                     }
                 );
-
             return data;
-
         },
-
-        getDateMode(){
-
-            return dateModeEditor
-                ?.getMode();
-
-        },
-
-        getStatus(){
-
-            return currentStatus;
-
-        }
-
+        getDateMode(){return dateModeEditor ?.getMode();},
+        getStatus(){return currentStatus;}
     };
-
 }
 
 export {setupParentsEditor};
