@@ -865,3 +865,4 @@ const statusEditor =
 export {setupParentsEditor};
 export {setupFileEditor};
 export {setupCoverEditor};
+export {setupFieldCounters};
