@@ -149,3 +149,12 @@ export function setupEntityFieldsEditor(root, cfg = {}, extraFields = {}, entity
         }
     };
 }
+
+
+
+export {
+    setupParentsEditor,
+    setupFileEditor,
+    setupCoverEditor,
+    setupFieldCounters
+};
