@@ -29,8 +29,8 @@ export function renderEntityEditor(cfg, entity) {
     const coverField = cfg.cover ? renderCoverEditorHTML(cfg, entity) : "";
     const statusContainer = cfg.status ? renderStatusEditorHTML() : "";
 
-    return `
-    <div class="entity-editor">
+    return 
+    `<div class="entity-editor">
         ${options.typeSelector ? `
         <div class="entity-row entity-row--title-type">
             ${typeEditorHTML}
@@ -62,8 +62,7 @@ export function renderEntityEditor(cfg, entity) {
             <button id="entitySave">Сохранить</button>
             <button id="entityCancel">Отмена</button>
         </div>
-    </div>
-    `;
+    </div>`;
 }
 
 // ======================================
