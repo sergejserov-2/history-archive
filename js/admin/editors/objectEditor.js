@@ -1,7 +1,3 @@
-// ======================================
-// Object editor
-// ======================================
-
 import {
     doc,
     updateDoc
@@ -77,14 +73,16 @@ export function renderObjectEditor(
 
     const parent =
 
-        !object && context?.parentId
+        !object &&
+        context?.parentId
 
         ?
 
         objects.find(
 
             o =>
-            o.id === context.parentId
+                o.id ===
+                context.parentId
 
         )
 
@@ -92,267 +90,283 @@ export function renderObjectEditor(
 
         null;
 
-   const parentType =
+    const parentType =
 
-    parent
+        parent
 
-    ?
+        ?
 
-    types.find(
+        types.find(
 
-        t =>
-        t.id === parent.typeId
+            t =>
+                t.id ===
+                parent.typeId
 
-    )
+        )
 
-    :
+        :
 
-    null;
+        null;
 
 // ======================================
 // Default type
 // ======================================
 
-let defaultTypeId = "";
+    let defaultTypeId = "";
 
 // ======================================
 // Редактирование существующего объекта
 // ======================================
 
-if(object){
+    if(object){
 
-    defaultTypeId =
-        object.typeId ?? "";
+        defaultTypeId =
+            object.typeId ?? "";
 
-}
+    }
 
 // ======================================
 // Создание нового объекта
 // ======================================
 
-else if(parentType){
-
-    // ==================================
-    // Ребёнок должен быть ровно
-    // на один уровень ниже родителя
-    // ==================================
-
-    const targetLevel =
-
-        Number(parentType.level) - 1;
-
-    // ==================================
-    // Берём только типы нужного уровня
-    // ==================================
-
-    const availableTypes =
-
-        types.filter(
-
-            type =>
-
-                Number(type.level) ===
-                targetLevel
-
-        );
-
-    if(
-        availableTypes.length > 0
-    ){
+    else if(parentType){
 
         // ==================================
-        // Считаем количество объектов
-        // каждого типа
+        // Ребёнок должен быть ровно
+        // на один уровень ниже родителя
         // ==================================
 
-        const typeCounts = {};
+        const targetLevel =
 
-        objects.forEach(
-
-            existingObject => {
-
-                if(
-                    !existingObject.typeId
-                ){
-
-                    return;
-
-                }
-
-                typeCounts[
-                    existingObject.typeId
-                ] =
-
-                    (
-                        typeCounts[
-                            existingObject.typeId
-                        ]
-                        ??
-                        0
-                    ) + 1;
-
-            }
-
-        );
+            Number(parentType.level) - 1;
 
         // ==================================
-        // Сортировка:
-        //
-        // 1. Популярность — от большей
-        //    к меньшей
-        //
-        // 2. При одинаковой популярности —
-        //    название А → Я
+        // Берём только типы нужного уровня
         // ==================================
 
-        const sortedTypes =
+        const availableTypes =
 
-            [...availableTypes].sort(
+            types.filter(
 
-                (a, b) => {
+                type =>
 
-                    const countA =
-                        typeCounts[a.id] ?? 0;
+                    Number(type.level) ===
+                    targetLevel
 
-                    const countB =
-                        typeCounts[b.id] ?? 0;
+            );
+
+        if(
+            availableTypes.length > 0
+        ){
+
+            // ==================================
+            // Считаем количество объектов
+            // каждого типа
+            // ==================================
+
+            const typeCounts = {};
+
+            objects.forEach(
+
+                existingObject => {
 
                     if(
-                        countA !== countB
+                        !existingObject.typeId
                     ){
 
-                        return countB - countA;
+                        return;
 
                     }
 
-                    return (
+                    typeCounts[
+                        existingObject.typeId
+                    ] =
 
-                        a.title ?? ""
-
-                    ).localeCompare(
-
-                        b.title ?? "",
-
-                        "ru"
-
-                    );
+                        (
+                            typeCounts[
+                                existingObject.typeId
+                            ]
+                            ??
+                            0
+                        ) + 1;
 
                 }
 
             );
 
-        defaultTypeId =
-            sortedTypes[0].id;
+            // ==================================
+            // Сортировка:
+            //
+            // 1. Популярность — от большей
+            //    к меньшей
+            //
+            // 2. При одинаковой популярности —
+            //    название А → Я
+            // ==================================
+
+            const sortedTypes =
+
+                [...availableTypes].sort(
+
+                    (a, b) => {
+
+                        const countA =
+                            typeCounts[a.id] ?? 0;
+
+                        const countB =
+                            typeCounts[b.id] ?? 0;
+
+                        if(
+                            countA !== countB
+                        ){
+
+                            return countB - countA;
+                        }
+
+                        return (
+
+                            a.title ?? ""
+
+                        ).localeCompare(
+
+                            b.title ?? "",
+
+                            "ru"
+
+                        );
+
+                    }
+
+                );
+
+            defaultTypeId =
+                sortedTypes[0].id;
+
+        }
 
     }
-
-}
 
 // ======================================
 // Disabled types
 // ======================================
 
-const maxChildLevel =
+    const maxChildLevel =
 
-    children.length > 0
+        children.length > 0
 
-    ?
+        ?
 
-    Math.max(
+        Math.max(
 
-        ...children.map(
+            ...children.map(
 
-            child => {
+                child => {
 
-                const childType =
+                    const childType =
 
-                    types.find(
+                        types.find(
 
-                        type =>
-                        type.id === child.typeId
+                            type =>
+                                type.id ===
+                                child.typeId
+
+                        );
+
+                    return (
+
+                        childType?.level
+                        ??
+                        -Infinity
 
                     );
 
-                return (
+                }
 
-                    childType?.level
-                    ??
-                    -Infinity
-
-                );
-
-            }
+            )
 
         )
 
-    )
+        :
 
-    :
+        -Infinity;
 
-    -Infinity;
+    const disabledTypeIds =
 
-const disabledTypeIds =
+        object &&
+        children.length > 0
 
-    object && children.length > 0
+        ?
 
-    ?
+        types
 
-    types
+            .filter(
 
-        .filter(
+                type =>
 
-            type =>
+                    Number(type.level) <=
+                    Number(maxChildLevel)
 
-                Number(type.level) <=
-                Number(maxChildLevel)
+            )
 
-        )
+            .map(
 
-        .map(
+                type =>
+                    type.id
 
-            type => type.id
+            )
 
-        )
+        :
 
-    :
+        [];
 
-    [];
+// ======================================
+// Config
+// ======================================
 
-const cfg = {
+    const cfg = {
 
-    title: "Объект",
+        title:
+            "Объект",
 
-    fields: [],
-    
-    lost: true,
+        fields: [],
 
-    limits: {
+        /*
+         * Новая схема статуса.
+         *
+         * Больше не используем:
+         * lost: true
+         */
+        status: true,
 
-        title: 45,
+        limits: {
 
-        description: 350
+            title: 45,
 
-    },
+            description: 350
 
-    cover: {
+        },
 
-        photos: objectPhotos
+        cover: {
 
-    },
+            photos:
+                objectPhotos
 
-    options: {
+        },
 
-        typeSelector: true,
+        options: {
 
-        types,
+            typeSelector: true,
 
-        defaultTypeId,
+            types,
 
-        disabledTypeIds
+            defaultTypeId,
 
-    }
+            disabledTypeIds
 
-};
+        }
+
+    };
+
     return renderEntityEditor(
 
         cfg,
@@ -368,7 +382,7 @@ const cfg = {
 // ======================================
 
 export function openObjectEditor(
-    
+
     object,
 
     types,
@@ -380,7 +394,7 @@ export function openObjectEditor(
     children,
 
     context,
-    
+
     onSave
 
 ){
@@ -403,20 +417,30 @@ export function openObjectEditor(
 
         );
 
-const modal =
-    createModal({
+    const modal =
 
-        title:
-            object
-            ? "Изменить объект"
-            : "Добавить объект",
+        createModal({
 
-        content:form
+            title:
 
-    });
+                object
+
+                ?
+
+                "Изменить объект"
+
+                :
+
+                "Добавить объект",
+
+            content:
+                form
+
+        });
 
     const root =
         modal.root;
+
     setupFieldCounters(root);
 
     initObjectEditor(
@@ -435,7 +459,7 @@ const modal =
 
         context,
 
-        ()=>{
+        () => {
 
             modal.close();
 
@@ -471,106 +495,423 @@ export function initObjectEditor(
 
 ){
 
-let parents =
+    let parents =
 
-    object
+        object
 
-    ?
+        ?
 
-    JSON.parse(
+        JSON.parse(
 
-        JSON.stringify(
+            JSON.stringify(
 
-            object.parents ?? []
+                object.parents ?? []
+
+            )
 
         )
 
-    )
+        :
 
-    :
+        context?.parentId
 
-    context?.parentId
+        ?
 
-    ?
+        [
 
-    [
+            {
 
-        {
+                objectId:
+                    context.parentId,
 
-            objectId:
-                context.parentId,
+                address:
+                    ""
 
-            address:""
+            }
 
-        }
+        ]
 
-    ]
+        :
 
-    :
-
-    [];
+        [];
 
 // ======================================
 // Parents
 // ======================================
 
-const parentsEditor =
+    const parentsEditor =
 
-setupParentsEditor(
+        setupParentsEditor(
 
-    root,
+            root,
 
-    objects,
+            objects,
 
-    object,
+            object,
 
-    parents,
+            parents,
 
-    {
+            {
+                address: true,
 
-        address:true,
+                filter(
 
-        filter(
+                    parent,
 
-            parent,
-            currentParents
+                    currentParents
 
-        ){
+                ){
 
-            // ======================================
-            // Нельзя выбрать самого себя
-            // ======================================
+                    // ======================================
+                    // Нельзя выбрать самого себя
+                    // ======================================
 
-            if(
-                parent.id === object?.id
-            ){
+                    if(
+                        parent.id === object?.id
+                    ){
 
-                return false;
+                        return false;
+
+                    }
+
+                    const parentType =
+
+                        types.find(
+
+                            t =>
+                                t.id ===
+                                parent.typeId
+
+                        );
+
+                    if(!parentType){
+
+                        return false;
+
+                    }
+
+                    // ======================================
+                    // Если родитель уже выбран
+                    // ======================================
+
+                    if(
+                        currentParents.length > 0
+                    ){
+
+                        const firstParentId =
+
+                            currentParents[0].objectId;
+
+                        const firstParent =
+
+                            objects.find(
+
+                                o =>
+                                    o.id ===
+                                    firstParentId
+
+                            );
+
+                        const firstParentType =
+
+                            types.find(
+
+                                t =>
+                                    t.id ===
+                                    firstParent?.typeId
+
+                            );
+
+                        if(!firstParentType){
+
+                            return false;
+
+                        }
+
+                        // ======================================
+                        // Второй родитель должен быть
+                        // строго того же уровня
+                        // ======================================
+
+                        return (
+
+                            Number(parentType.level) ===
+                            Number(firstParentType.level)
+
+                        );
+
+                    }
+
+                    // ======================================
+                    // Родителей пока нет
+                    // ======================================
+
+                    const selectedTypeId =
+
+                        root.querySelector(
+                            "#entityType"
+                        )?.value;
+
+                    const objectType =
+
+                        types.find(
+
+                            t =>
+                                t.id ===
+                                selectedTypeId
+
+                        );
+
+                    if(!objectType){
+
+                        return false;
+
+                    }
+
+                    // ======================================
+                    // Первый родитель должен быть
+                    // выше объекта
+                    // ======================================
+
+                    return (
+
+                        Number(parentType.level) >
+                        Number(objectType.level)
+
+                    );
+
+                }
 
             }
 
-            const parentType =
+        );
+
+// ======================================
+// Fields
+// ======================================
+
+    const fieldsEditor =
+
+        setupEntityFieldsEditor(
+
+            root,
+
+            {
+                fields: [],
+
+                /*
+                 * Новая схема статуса.
+                 *
+                 * setupEntityFieldsEditor
+                 * получает статус через
+                 * renderEntityEditor.
+                 */
+                status: true
+            },
+
+            {
+
+                typeId:
+                    "#entityType"
+
+            },
+
+            object
+
+        );
+
+// ======================================
+// Type change
+// ======================================
+
+    const typeSelect =
+
+        root.querySelector(
+            "#entityType"
+        );
+
+    if(typeSelect){
+
+        typeSelect.onchange = () => {
+
+            const newType =
 
                 types.find(
 
-                    t =>
-                    t.id === parent.typeId
+                    type =>
+                        type.id ===
+                        typeSelect.value
 
                 );
 
-            if(!parentType){
+            if(!newType){
 
-                return false;
+                return;
 
             }
 
             // ======================================
-            // Если родитель уже выбран
+            // Проверяем первого родителя
             // ======================================
+
+            const currentParents =
+
+                parentsEditor.getParents();
 
             if(
                 currentParents.length > 0
             ){
+
+                const firstParent =
+
+                    objects.find(
+
+                        o =>
+                            o.id ===
+                            currentParents[0].objectId
+
+                    );
+
+                const firstParentType =
+
+                    types.find(
+
+                        type =>
+                            type.id ===
+                            firstParent?.typeId
+
+                    );
+
+                if(
+
+                    firstParentType &&
+
+                    Number(newType.level) >=
+                    Number(firstParentType.level)
+
+                ){
+
+                    alert(
+
+                        "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
+
+                    );
+
+                    parentsEditor.clearParents();
+
+                }
+
+            }
+
+        };
+
+    }
+
+// ======================================
+// Cover
+// ======================================
+
+    const coverEditor =
+
+        setupCoverEditor(
+
+            root,
+
+            photos,
+
+            object
+
+        );
+
+// ======================================
+// Buttons
+// ======================================
+
+    setupEditorButtons(
+
+        root,
+
+        async () => {
+
+            try{
+
+                // ==================================
+                // Проверяем родителей
+                // ==================================
+
+                if(
+
+                    parentsEditor
+                        .getParents()
+                        .length === 0
+
+                ){
+
+                    alert(
+
+                        "Нужен хотя бы один родитель"
+
+                    );
+
+                    return;
+
+                }
+
+                // ==================================
+                // Получаем данные полей
+                // ==================================
+
+                const fieldsData =
+
+                    fieldsEditor.getData();
+
+                const newTypeId =
+
+                    fieldsData.typeId;
+
+                const newType =
+
+                    types.find(
+
+                        t =>
+                            t.id ===
+                            newTypeId
+
+                    );
+
+                if(!newType){
+
+                    alert(
+
+                        "Не выбран тип"
+
+                    );
+
+                    return;
+
+                }
+
+                // ======================================
+                // Проверка уровня первого родителя
+                // ======================================
+
+                const currentParents =
+
+                    parentsEditor.getParents();
+
+                if(
+                    currentParents.length === 0
+                ){
+
+                    alert(
+
+                        "Нужен хотя бы один родитель"
+
+                    );
+
+                    return;
+
+                }
 
                 const firstParentId =
 
@@ -581,497 +922,210 @@ setupParentsEditor(
                     objects.find(
 
                         o =>
-                        o.id === firstParentId
+                            o.id ===
+                            firstParentId
 
                     );
 
-                const firstParentType =
-
-                    types.find(
+                const parentType =types.find(
 
                         t =>
-                        t.id === firstParent?.typeId
+                            t.id ===
+                            firstParent?.typeId
+
                     );
 
-                if(!firstParentType){
+                if(
 
-                    return false;
+                    parentType &&
+
+                    Number(newType.level) >=
+                    Number(parentType.level)
+
+                ){
+
+                    alert(
+
+                        "Тип объекта должен быть ниже уровня родителя."
+
+                    );
+
+                    return;
 
                 }
 
-                // ==================================
-                // Второй родитель должен быть
-                // строго того же уровня
-                // ==================================
+                // ======================================
+                // Проверки существующего объекта
+                // ======================================
 
-                return (
+                if(object){
 
-                    Number(parentType.level) ===
-                    Number(firstParentType.level)
+                    // ==================================
+                    // Проверка уровня детей
+                    // ==================================
 
-                );
+                    if(
+                        children.length > 0
+                    ){
 
-            }
+                        const maxChildLevel =
 
-            // ======================================
-            // Родителей пока нет
-            // ======================================
+                            Math.max(
 
-            const selectedTypeId =
+                                ...children.map(
 
-                root.querySelector(
-                    "#entityType"
-                )?.value;
+                                    child => {
 
-            const objectType =
+                                        const childType =
 
-                types.find(
+                                            types.find(
 
-                    t =>
-                    t.id === selectedTypeId
+                                                t =>
+                                                    t.id ===
+                                                    child.typeId
 
-                );
+                                            );
 
-            if(!objectType){
+                                        return (
 
-                return false;
-
-            }
-
-            // ======================================
-            // Первый родитель должен быть
-            // выше объекта
-            // ======================================
-
-            return (
-
-                Number(parentType.level) >
-                Number(objectType.level)
-
-            );
-
-        }
-
-    }
-
-);
-
-// ======================================
-// Fields
-// ======================================
-
-const fieldsEditor =
-    setupEntityFieldsEditor(
-        root,
-        {
-            fields:[],
-            lost:true
-        },
-        {
-            typeId:"#entityType"
-        },
-        object
-    );
-
-// ======================================
-// Type change
-// ======================================
-
-const typeSelect =
-
-    root.querySelector(
-        "#entityType"
-    );
-
-if(typeSelect){
-
-    typeSelect.onchange = ()=>{
-
-        const newType =
-
-            types.find(
-
-                type =>
-                type.id === typeSelect.value
-
-            );
-
-        if(!newType){
-
-            return;
-
-        }
-
-        // ======================================
-        // Проверяем первого родителя
-        // ======================================
-
-        const currentParents =
-
-            parentsEditor.getParents();
-
-        if(
-            currentParents.length > 0
-        ){
-
-            const firstParent =
-
-                objects.find(
-
-                    o =>
-                    o.id ===
-                    currentParents[0].objectId
-
-                );
-
-            const firstParentType =
-
-                types.find(
-
-                    type =>
-                    type.id ===
-                    firstParent?.typeId
-
-                );
-
-            if(
-
-                firstParentType &&
-
-                Number(newType.level) >=
-                Number(firstParentType.level)
-
-            ){
-
-                alert(
-
-                    "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
-
-                );
-
-                parentsEditor.clearParents();
-
-            }
-
-        }
-
-    };
-
-}
-
-// ======================================
-// Cover
-// ======================================
-
-const coverEditor =
-
-setupCoverEditor(
-
-    root,
-
-    photos,
-
-    object
-
-);
-
-// ======================================
-// Buttons
-// ======================================
-
-setupEditorButtons(
-
-    root,
-
-    async()=>{
-
-        try{
-
-            // ==================================
-            // Проверяем родителей
-            // ==================================
-
-            if(
-
-                parentsEditor
-                    .getParents()
-                    .length === 0
-
-            ){
-
-                alert(
-
-                    "Нужен хотя бы один родитель"
-
-                );
-
-                return;
-
-            }
-
-            // ==================================
-            // Получаем данные полей
-            // ==================================
-
-            const fieldsData =
-
-                fieldsEditor.getData();
-
-            const newTypeId =
-
-                fieldsData.typeId;
-
-            const newType =
-
-                types.find(
-
-                    t =>
-                    t.id === newTypeId
-
-                );
-
-            if(!newType){
-
-                alert(
-
-                    "Не выбран тип"
-
-                );
-
-                return;
-
-            }
-
-            // ======================================
-            // Проверка уровня первого родителя
-            // ======================================
-
-            const currentParents =
-
-                parentsEditor.getParents();
-
-            if(
-                currentParents.length === 0
-            ){
-
-                alert(
-
-                    "Нужен хотя бы один родитель"
-
-                );
-
-                return;
-
-            }
-
-            const firstParentId =
-
-                currentParents[0].objectId;
-
-            const firstParent =
-
-                objects.find(
-
-                    o =>
-                    o.id === firstParentId
-
-                );
-
-            const parentType =
-
-                types.find(
-
-                    t =>
-                    t.id === firstParent?.typeId
-
-                );
-
-            if(
-
-                parentType &&
-
-                Number(newType.level) >=
-                Number(parentType.level)
-
-            ){
-
-                alert(
-
-                    "Тип объекта должен быть ниже уровня родителя."
-
-                );
-
-                return;
-
-            }
-
-            // ======================================
-            // Проверки существующего объекта
-            // ======================================
-
-            if(object){
-
-                // ==================================
-                // Проверка уровня детей
-                // ==================================
-
-                if(
-                    children.length > 0
-                ){
-
-                    const maxChildLevel =
-
-                        Math.max(
-
-                            ...children.map(
-
-                                child => {
-
-                                    const childType =
-
-                                        types.find(
-
-                                            t =>
-                                            t.id === child.typeId
+                                            childType?.level
+                                            ??
+                                            -Infinity
 
                                         );
 
-                                    return (
+                                    }
 
-                                        childType?.level
-                                        ??
-                                        -Infinity
+                                )
 
-                                    );
+                            );
 
-                                }
+                        if(
 
-                            )
+                            Number(newType.level) <=
+                            Number(maxChildLevel)
 
-                        );
+                        ){
 
-                    if(
+                            alert(
 
-                        Number(newType.level) <=
-                        Number(maxChildLevel)
+                                "Тип объекта должен быть выше уровня всех его детей."
 
-                    ){
+                            );
 
-                        alert(
+                            return;
 
-                            "Тип объекта должен быть выше уровня всех его детей."
-
-                        );
-
-                        return;
+                        }
 
                     }
 
                 }
 
-            }
+                // ======================================
+                // Parents + auto address
+                // ======================================
 
-            // ======================================
-            // Parents + auto address
-            // ======================================
+                const parentsWithAddress =
 
-            const parentsWithAddress =
+                    parentsEditor
 
-                parentsEditor
-                    .getParents()
-                    .map(
+                        .getParents()
 
-                        parent => ({
+                        .map(
 
-                            ...parent,
+                            parent => ({
 
-                            // Если адрес пустой —
-                            // используем название объекта.
-                            //
-                            // Если адрес уже указан —
-                            // оставляем его.
+                                ...parent,
 
-                            address:
+                                /*
+                                 * Если адрес пустой —
+                                 * используем название объекта.
+                                 *
+                                 * Если адрес уже указан —
+                                 * оставляем его.
+                                 */
+                                address:
 
-                                parent.address?.trim()
-                                ||
-                                (fieldsData.title ?? "")
+                                    parent.address?.trim()
+                                    ||
+                                    (fieldsData.title ?? "")
 
-                        })
+                            })
+
+                        );
+
+                // ======================================
+                // Data
+                // ======================================
+
+                const data = {
+
+                    ...fieldsData,
+
+                    ...coverEditor.getData(),
+
+                    parents:
+                        parentsWithAddress
+
+                };
+
+                // ======================================
+                // Save
+                // ======================================
+
+                if(object){
+
+                    await updateDoc(
+
+                        doc(
+
+                            db,
+
+                            "objects",
+
+                            object.id
+
+                        ),
+                        data
 
                     );
 
-            // ======================================
-            // Data
-            // ======================================
+                }
 
-            const data = {
+                else{
 
-                ...fieldsData,...coverEditor.getData(),
+                    await createObject(
 
-                parents:
-                    parentsWithAddress
+                        data
 
-            };
+                    );
 
-            // ======================================
-            // Save
-            // ======================================
+                }
 
-            if(object){
+                onSave();
 
-                await updateDoc(
+            }
 
-                    doc(
+            catch(error){
 
-                        db,
+                console.error(error);
 
-                        "objects",
+                alert(
 
-                        object.id
-
-                    ),
-
-                    data
+                    "Ошибка сохранения"
 
                 );
 
             }
 
-            else{
+        },
 
-                await createObject(
-
-                    data
-
-                );
-
-            }
+        () => {
 
             onSave();
 
         }
 
-        catch(error){
-
-            console.error(error);
-
-            alert(
-
-                "Ошибка сохранения"
-
-            );
-
-        }
-
-    },
-
-    ()=>{
-
-        onSave();
-
-    }
-
-);
+    );
 
 }
