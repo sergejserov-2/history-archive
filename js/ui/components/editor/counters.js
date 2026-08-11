@@ -5,69 +5,45 @@
 export function setupFieldCounters(root){
 
     const fields = [
-
         {
-            selector:
-                "#entityTitle",
-
-            counter:
-                '[data-counter-for="entityTitle"]'
+            selector: "#entityTitle",
+            counter: '[data-counter-for="entityTitle"]'
         },
-
         {
-            selector:
-                "#entityDescription",
-
-            counter:
-                '[data-counter-for="entityDescription"]'
+            selector: "#entityDescription",
+            counter: '[data-counter-for="entityDescription"]'
         },
-
         {
-            selector:
-                "#entity_author",
-
-            counter:
-                '[data-counter-for="entity_author"]'
+            selector: "#entity_author",
+            counter: '[data-counter-for="entity_author"]'
         }
-
     ];
 
     fields.forEach(field=>{
-
-        const input =
-            root.querySelector(
-                field.selector
-            );
-
-        const counter =
-            root.querySelector(
-                field.counter
-            );
-
-        if(!input || !counter){
-
-            return;
-
-        }
+        const input = root.querySelector(field.selector);
+        const counter = root.querySelector(field.counter);
+        if(!input || !counter){return;}
 
         function updateCounter(){
-
             const remaining =
                 input.maxLength -
                 input.value.length;
-
-            counter.textContent =
-                `Осталось: ${remaining}`;
-
+            counter.textContent = `Осталось: ${remaining}`;
         }
 
-        input.addEventListener(
-            "input",
-            updateCounter
-        );
-
+        input.addEventListener("input", updateCounter);
         updateCounter();
-
     });
+}
 
+export function renderFieldCounterHTML(field, value, maxLength) {
+    const remaining = maxLength - (value ?? "").length;
+    return `
+        <div
+            class="entity-field-counter"
+            data-counter-for="${field}"
+        >
+            Осталось: ${remaining}
+        </div>
+    `;
 }
