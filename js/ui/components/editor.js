@@ -4,7 +4,7 @@
 
 import {setupStatusEditor} from "./editor/status.js";
 import {setupParentsEditor} from "./editor/parents.js";
-import {setupFileEditor} from "./editor/file.js";
+import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor} from "./editor/cover.js";
 import {setupDateModeEditor} from "./editor/date.js";
 import {setupFieldCounters} from "./editor/counters.js";
@@ -325,72 +325,7 @@ export function renderEntityEditor(
 
         "";
 
-    // ==================================
-    // File
-    // ==================================
-
-    const fileField =
-
-        cfg.file
-
-        ?
-
-        `
-
-        <label>
-
-            Файл
-
-            <div class="entity-file">
-
-                <div
-                    id="entityFileSelect"
-                    class="entity-file__select admin-button"
-                >
-
-                    Выбрать файл
-
-                </div>
-
-                <div
-                    id="entityFileCurrent"
-                    class="entity-file__current"
-                    hidden
-                >
-
-                    <span id="entityFileName"></span>
-
-                    <span
-                        id="entityFileRemove"
-                        class="entity-file__remove"
-                    >
-
-                        ×
-
-                    </span>
-
-                </div>
-
-            </div>
-
-        </label>
-
-        <input
-            id="entityFile"
-            type="file"
-            hidden
-        >
-
-        `
-
-        :
-
-        "";
-
-    // ==================================
-    // Cover
-    // ==================================
-
+    const fileField = cfg.file ? renderFileEditorHTML(): "";
     const coverField =
 
         cfg.cover
