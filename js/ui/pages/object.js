@@ -122,47 +122,6 @@ let pageObjects = [];
 // ======================================
 
 async function loadPage() {
-    console.time("LOAD DATA");
-
-    const objects = await getAllObjects();
-    const object = objects.find(item => item.id === objectId);
-
-    if(!object) {
-        document.body.innerHTML = `
-            <h1>
-                Объект не найден
-            </h1>
-        `;
-        return;
-    }
-
-    document.title = object.title || "Исторический архив";
-    pageObject = object;
-
-    console.time("getType");
-    pageType = await getType(object.typeId);
-    console.timeEnd("getType");
-
-    [
-        pageTypes,
-        pageRecordTypes,
-        pageParents,
-        pageChildren,
-        pageRecords,
-        pagePhotos,
-        pageSources
-    ] = await Promise.all([
-        getTypes(),
-        getRecordTypes(),
-        getParents(object),
-        getChildren(object.id),
-        getRecords(object.id),
-        getPhotos(object.id),
-        getSources(object.id)
-    ]);
-
-    pageObjects = objects;
-
 console.time("LOAD DATA");
 
 const objects = await getAllObjects();
