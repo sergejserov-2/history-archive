@@ -1,36 +1,16 @@
-// ======================================
-// Admin updates
-// ======================================
-import {
-    createObject,
-    updateObject,
-    deleteObject
+import {getObject, deleteObject, createObject, updateObject} from "../api/objects.js";
+import {getPhoto, deletePhoto, createPhoto, updatePhoto} from "../api/photos.js";
+import {getSource, deleteSource, createSource, updateSource} from "../api/sources.js";
+import {getRecord, deleteRecord, createRecord, updateRecord} from "../api/records.js";
+import {moveFileToDeleted} from "../api/storage.js";
+
+export async function getEntity(type, id) {
+    if(type === "object") return await getObject(id);
+    if(type === "photo") return await getPhoto(id);
+    if(type === "source") return await getSource(id);
+    if(type === "record") return await getRecord(id);
+    throw new Error(`Unknown entity type: ${type}`);
 }
-from "../api/objects.js";
-import {
-    createPhoto,
-    updatePhoto,
-    deletePhoto
-}
-from "../api/photos.js";
-import {
-    createSource,
-    updateSource,
-    deleteSource
-}
-from "../api/sources.js";
-import {
-    createRecord,
-    updateRecord,
-    deleteRecord
-}
-from "../api/records.js";
-import {
-    uploadPhoto,
-    uploadSourceDocument,
-    moveFileToDeleted
-}
-from "../api/storage.js";
 // ======================================
 // Save
 // ======================================
@@ -55,7 +35,7 @@ const API = {
 // ======================================
 // Save entity
 // ======================================
-export async function saveEntity(type, entity, data, context = {}, updates = []) {
+export async function updateEntity(type, entity, data, context = {}, updates = []) {
     const api = API[type];
     if(!api) throw new Error(`Unknown entity type: ${type}`);
     let savedData;
