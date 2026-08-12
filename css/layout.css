@@ -1,0 +1,9 @@
+/* ==========================================
+   PAGE
+========================================== */
+
+.page {
+    max-width: var(--page-width);
+    margin: var(--space-11) auto;
+    padding: 0 var(--page-padding);
+}
