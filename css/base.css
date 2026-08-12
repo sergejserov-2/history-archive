@@ -53,10 +53,8 @@
 
     /* ---------- LAYOUT ---------- */
 
-    --page-width: 1200px;
-    --page-padding: 25px;
-
-    --header-width: 1150px;
+    --page-width: 1100px;
+    --header-width: 1100px;
     --header-logo-width: 220px;
     --header-buttons-width: 110px;
 
@@ -239,7 +237,6 @@ body {
 .page {
     max-width: var(--page-width);
     margin: var(--space-11) auto;
-    padding: 0 var(--page-padding);
 }
 
 
