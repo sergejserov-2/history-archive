@@ -56,20 +56,26 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
 // Historical date inputs
 // ==========================================
 
-    const dateEditor =
-        dateInput
-            ? setupHistoricalDateInput(dateInput)
-            : null;
+const dateEditor =
+    dateInput
+        ? setupHistoricalDateInput(dateInput, {
+            showHelp: true
+        })
+        : null;
 
-    const dateStartEditor =
-        dateStartInput
-            ? setupHistoricalDateInput(dateStartInput)
-            : null;
+const dateStartEditor =
+    dateStartInput
+        ? setupHistoricalDateInput(dateStartInput, {
+            showHelp: false
+        })
+        : null;
 
-    const dateEndEditor =
-        dateEndInput
-            ? setupHistoricalDateInput(dateEndInput)
-            : null;
+const dateEndEditor =
+    dateEndInput
+        ? setupHistoricalDateInput(dateEndInput, {
+            showHelp: true
+        })
+        : null;
 
 
 // ==========================================
