@@ -1,3 +1,5 @@
+import {getParents} from "../../api/objects.js";
+
 export async function renderChildren(children, ADMIN_MODE = false, currentObject = null, objects = [], types = []) {
     const typeMap = new Map(types.map(type => [type.id, type]));
     const preparedChildren = await Promise.all((children ?? []).map(async child => {
