@@ -1,0 +1,144 @@
+/* ==========================================
+   PUBLIC STATUS BADGES
+========================================== */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+
+    width: max-content;
+
+    padding: 3px 7px;
+
+    border-radius: var(--radius-md);
+
+    font-size: var(--font-size-xs);
+    line-height: 1;
+
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.status-badge--lost {
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
+    color: var(--color-danger);
+}
+
+.status-badge--attention {
+    background: var(--color-attention-bg);
+    border: 1px solid var(--color-attention-border);
+    color: var(--color-attention);
+}
+
+.status-badge--deteriorating {
+    background: var(--color-deteriorating-bg);
+    border: 1px solid var(--color-deteriorating-border);
+    color: var(--color-deteriorating);
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 800px) {
+
+    /* ---------- Header ---------- */
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header__logo,
+    .header__buttons {
+        width: auto;
+        text-align: left;
+    }
+
+
+    /* ---------- Object ---------- */
+
+    .object {
+        flex-direction: column;
+    }
+
+    .object__cover {
+        width: 100%;
+    }
+
+    .object__cover-image,
+    .object__cover-placeholder {
+        width: 100%;
+    }
+
+
+    /* ---------- Children ---------- */
+
+    .children-list {
+        grid-template-columns: 1fr;
+    }
+
+
+    /* ---------- Records ---------- */
+
+    .record {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+
+    .record__date {
+        margin-top: var(--space-2);
+        text-align: left;
+    }
+
+
+    /* ---------- Sources ---------- */
+
+    .source__header {
+        grid-template-columns: 1fr;
+        gap: var(--space-2);
+    }
+
+    .source__date {
+        text-align: left;
+    }
+
+
+    /* ---------- Editors ---------- */
+
+    .entity-row {
+        flex-direction: column;
+    }
+
+    .entity-row--title-type .entity-type,
+    .entity-row--title-type .entity-title,
+    .entity-row--author-date > label:first-child,
+    .entity-row--author-date > .entity-date-editor,
+    .entity-row--author-date-period > label:first-child,
+    .entity-row--author-date-period > .entity-date-editor {
+        flex: none;
+        width: 100%;
+    }
+
+
+    /* ---------- Photo viewer ---------- */
+
+    .photo-viewer {
+        grid-template-columns: 1fr;
+    }
+
+    .photo-viewer__image-area {
+        height: 55vh;
+        min-height: 280px;
+    }
+
+    .photo-viewer__download {
+        margin-top: var(--space-6);
+    }
+
+    .modal--photo-viewer {
+        width: 90vw;
+    }
+}
