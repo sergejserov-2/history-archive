@@ -1,13 +1,18 @@
 // ======================================
 // Parents editor
 // ======================================
-
-export function setupParentsEditor(root, objects, entity, parents, options = {}) {
+export function setupParentsEditor(
+    root,
+    objects,
+    entity,
+    parents,
+    options = {}
+) {
     const withAddress = options.address === true;
+    const types = options.types ?? [];
     const parentsBox = root.querySelector("#entityParents");
     const searchInput = root.querySelector("#entityParentSearch");
     const resultsBox = root.querySelector("#entityParentResults");
-
     if(!parentsBox || !searchInput || !resultsBox) {
         return {
             getParents() {return parents;},
@@ -15,105 +20,301 @@ export function setupParentsEditor(root, objects, entity, parents, options = {})
             validate() {return true;}
         };
     }
-
     function getParentId(parent) {
-        return withAddress ? parent.objectId : parent;
+        return withAddress
+            ? parent.objectId
+            : parent;
     }
-
+    function getType(id) {
+        return types.find(
+            type => type.id === id
+        );
+    }
+    function getParentType(parent) {
+        const id = getParentId(parent);
+        const object = objects.find(
+            object => object.id === id
+        );
+        return getType(object?.typeId);
+    }
+    function getEntityType() {
+        if(options.getTypeId) {
+            return getType(
+                options.getTypeId()
+            );
+        }
+        const typeId =
+            root.querySelector(
+                "#entityType"
+            )?.value;
+        return getType(typeId);
+    }
+    function getMaxChildLevel() {
+        if(!options.children?.length) {
+            return -Infinity;
+        }
+        return Math.max(
+            ...options.children.map(child => {
+                const type = getType(
+                    child.typeId
+                );
+                return type?.level ?? -Infinity;
+            })
+        );
+    }
+    function isParentAllowed(parent) {
+        if(parent.id === entity?.id) {
+            return false;
+        }
+        const parentType =
+            getType(parent.typeId);
+        if(!parentType) {
+            return false;
+        }
+        const entityType =
+            getEntityType();
+        if(!entityType) {
+            return false;
+        }
+        const currentParents =
+            parents;
+        if(currentParents.length > 0) {
+            const firstParentType =
+                getParentType(
+                    currentParents[0]
+                );
+            if(!firstParentType) {
+                return false;
+            }
+            return Number(parentType.level) ===
+                Number(firstParentType.level);
+        }
+        return Number(parentType.level) >
+            Number(entityType.level);
+    }
+    function validateParentLevels() {
+        const entityType =
+            getEntityType();
+        if(!entityType) {
+            return true;
+        }
+        const maxChildLevel =
+            getMaxChildLevel();
+        if(maxChildLevel === -Infinity) {
+            return true;
+        }
+        if(
+            Number(entityType.level) <=
+            Number(maxChildLevel)
+        ) {
+            alert(
+                "Тип объекта должен быть выше уровня всех его детей."
+            );
+            return false;
+        }
+        return true;
+    }
+    function validateParents() {
+        if(parents.length > 0) {
+            return true;
+        }
+        alert(
+            options.requiredMessage ??
+            "Нужен хотя бы один родитель"
+        );
+        return false;
+    }
     function renderParents() {
-        parentsBox.innerHTML = parents.map(parent => {
-            const id = getParentId(parent);
-            const object = objects.find(o => o.id === id);
-            return renderParentItemHTML(parent, object, withAddress);
-        }).join("");
+        parentsBox.innerHTML =
+            parents.map(parent => {
+                const id =
+                    getParentId(parent);
+                const object =
+                    objects.find(
+                        object =>
+                            object.id === id
+                    );
+                return renderParentItemHTML(
+                    parent,
+                    object,
+                    withAddress
+                );
+            }).join("");
     }
-
-    parentsBox.onclick = e => {
-        const id = e.target.dataset.remove;
-        if(!id) return;
-
-        parents = parents.filter(parent => getParentId(parent) !== id);
-        renderParents();
-    };
-
-    if(withAddress) {
-        parentsBox.oninput = e => {
-            if(!e.target.classList.contains("parent-address")) return;
-
-            const parent = parents.find(p => p.objectId === e.target.dataset.id);
-            if(parent) parent.address = e.target.value;
-        };
+    function clearSearch() {
+        searchInput.value = "";
+        resultsBox.innerHTML = "";
     }
-
-    searchInput.oninput = () => {
-        const text = searchInput.value.toLowerCase().trim();
-
+    function renderResults(text) {
         if(!text) {
             resultsBox.innerHTML = "";
             return;
         }
-
-        resultsBox.innerHTML = objects
-            .filter(o => {
-                if(o.id === entity?.id) return false;
-
-                const exists = parents.some(parent => getParentId(parent) === o.id);
-                if(exists) return false;
-
-                if(options.filter && !options.filter(o, parents)) return false;
-
-                return (o.title ?? "").toLowerCase().includes(text);
-            })
-            .slice(0, 20)
-            .map(o => `
-                <div class="parent-result" data-id="${o.id}">
-                    ${o.title}
-                </div>
-            `)
-            .join("");
+        resultsBox.innerHTML =
+            objects
+                .filter(object => {
+                    if(
+                        object.id ===
+                        entity?.id
+                    ) {
+                        return false;
+                    }
+                    if(
+                        parents.some(
+                            parent =>
+                                getParentId(parent) ===
+                                object.id
+                        )
+                    ) {
+                        return false;
+                    }
+                    if(
+                        !isParentAllowed(object)
+                    ) {
+                        return false;
+                    }
+                    if(
+                        options.filter &&
+                        !options.filter(
+                            object,
+                            parents
+                        )
+                    ) {
+                        return false;
+                    }
+                    return (
+                        object.title ?? ""
+                    ).toLowerCase().includes(text);
+                })
+                .slice(0, 20)
+                .map(object => `
+                    <div
+                        class="parent-result"
+                        data-id="${object.id}"
+                    >
+                        ${object.title}
+                    </div>
+                `)
+                .join("");
+    }
+    parentsBox.onclick = event => {
+        const id =
+            event.target.dataset.remove;
+        if(!id) {
+            return;
+        }
+        parents =
+            parents.filter(
+                parent =>
+                    getParentId(parent) !== id
+            );
+        renderParents();
     };
-
-    resultsBox.onclick = e => {
-        const item = e.target.closest(".parent-result");
-        if(!item) return;
-
+    if(withAddress) {
+        parentsBox.oninput = event => {
+            if(
+                !event.target.classList.contains(
+                    "parent-address"
+                )
+            ) {
+                return;
+            }
+            const parent =
+                parents.find(
+                    parent =>
+                        parent.objectId ===
+                        event.target.dataset.id
+                );
+            if(parent) {
+                parent.address =
+                    event.target.value;
+            }
+        };
+    }
+    searchInput.oninput = () => {
+        renderResults(
+            searchInput.value
+                .toLowerCase()
+                .trim()
+        );
+    };
+    resultsBox.onclick = event => {
+        const item =
+            event.target.closest(
+                ".parent-result"
+            );
+        if(!item) {
+            return;
+        }
+        const id = item.dataset.id;
         if(withAddress) {
             parents.push({
-                objectId: item.dataset.id,
+                objectId: id,
                 address: ""
             });
         } else {
-            parents.push(item.dataset.id);
+            parents.push(id);
         }
-
         renderParents();
-        searchInput.value = "";
-        resultsBox.innerHTML = "";
+        clearSearch();
     };
-
+    if(options.typeSelector) {
+        const typeSelect =
+            root.querySelector(
+                "#entityType"
+            );
+        if(typeSelect) {
+            typeSelect.onchange = () => {
+                const newType =
+                    getEntityType();
+                if(!newType) {
+                    return;
+                }
+                const firstParent =
+                    parents[0];
+                if(!firstParent) {
+                    return;
+                }
+                const parentType =
+                    getParentType(
+                        firstParent
+                    );
+                if(
+                    parentType &&
+                    Number(newType.level) >=
+                    Number(parentType.level)
+                ) {
+                    alert(
+                        "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
+                    );
+                    parents.splice(0);
+                    renderParents();
+                    clearSearch();
+                }
+            };
+        }
+    }
     renderParents();
-
     return {
-        getParents() {return parents;},
+        getParents() {
+            return parents;
+        },
         clearParents() {
             parents.splice(0);
             renderParents();
-            searchInput.value = "";
-            resultsBox.innerHTML = "";
+            clearSearch();
         },
         validate() {
-            if(parents.length > 0) return true;
-
-            alert(
-                options.requiredMessage ??
-                "Нужен хотя бы один родитель"
-            );
-
-            return false;
+            if(!validateParentLevels()) {
+                return false;
+            }
+            return validateParents();
         }
     };
 }
-
+// ======================================
+// Render
+// ======================================
 export function renderParentsEditorHTML() {
     return `
         <div class="parents-group">
@@ -126,16 +327,29 @@ export function renderParentsEditorHTML() {
         </div>
     `;
 }
-
-export function renderParentItemHTML(parent, object, withAddress) {
-    const id = withAddress ? parent.objectId : parent;
-    const title = object?.title ?? id;
-
+export function renderParentItemHTML(
+    parent,
+    object,
+    withAddress
+) {
+    const id =
+        withAddress
+            ? parent.objectId
+            : parent;
+    const title =
+        object?.title ?? id;
     return `
         <div class="parent-item">
             <div class="parent-badge">
-                <span class="parent-title">${title}</span>
-                <span class="parent-remove" data-remove="${id}">×</span>
+                <span class="parent-title">
+                    ${title}
+                </span>
+                <span
+                    class="parent-remove"
+                    data-remove="${id}"
+                >
+                    ×
+                </span>
             </div>
             ${withAddress ? `
                 <input
