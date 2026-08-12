@@ -428,16 +428,23 @@ export function renderDateModeEditorHTML(
     const isPeriod =
         mode === "period";
 
-
     return `
         <div
             id="entityDateEditor"
             class="entity-date-editor"
         >
 
-            <!-- ==================================
-                 DATE
-            ================================== -->
+            <div class="entity-date-editor__label-row">
+
+                <span
+                    id="entityDateLabel"
+                    class="entity-date-editor__label"
+                >
+                    ${isPeriod ? "Период" : "Дата"}
+                </span>
+
+            </div>
+
 
             <div
                 id="entityDateSingle"
@@ -445,21 +452,14 @@ export function renderDateModeEditorHTML(
                 ${isPeriod ? "hidden" : ""}
             >
 
-                <div class="entity-date-editor__input-row">
-
-                    <input
-                        id="entity_date"
-                        value="${entity.date ?? ""}"
-                        autocomplete="off"
-                    >
-                </div>
+                <input
+                    id="entity_date"
+                    value="${entity.date ?? ""}"
+                    autocomplete="off"
+                >
 
             </div>
 
-
-            <!-- ==================================
-                 PERIOD
-            ================================== -->
 
             <div
                 id="entityDatePeriod"
@@ -480,30 +480,15 @@ export function renderDateModeEditorHTML(
 
                 <div class="entity-date-editor__period-input">
 
-                    <div class="entity-date-editor__input-row">
-
-                        <input
-                            id="entity_dateEnd"
-                            value="${entity.dateEnd ?? ""}"
-                            autocomplete="off"
-                        >
-                    </div>
+                    <input
+                        id="entity_dateEnd"
+                        value="${entity.dateEnd ?? ""}"
+                        autocomplete="off"
+                    >
 
                 </div>
 
             </div>
-
-
-            <!-- ==================================
-                 LABEL + SWITCH
-            ================================== -->
-
-            <span
-                id="entityDateLabel"
-                class="entity-date-editor__label"
-            >
-                ${isPeriod ? "Период" : "Дата"}
-            </span>
 
 
             <button
