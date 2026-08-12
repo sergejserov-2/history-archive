@@ -2,215 +2,107 @@
 // Parents editor
 // ======================================
 
-export function setupParentsEditor(
-    root,
-    objects,
-    entity,
-    parents,
-    options = {}
-) {
+export function setupParentsEditor(root, objects, entity, parents, options = {}){
     const withAddress = options.address === true;
     const types = options.types ?? [];
-
-    const parentsBox =
-        root.querySelector("#entityParents");
-
-    const searchInput =
-        root.querySelector("#entityParentSearch");
-
-    const resultsBox =
-        root.querySelector("#entityParentResults");
+    const parentsBox = root.querySelector("#entityParents");
+    const searchInput = root.querySelector("#entityParentSearch");
+    const resultsBox = root.querySelector("#entityParentResults");
 
     if(!parentsBox || !searchInput || !resultsBox) {
         return {
-            getParents() {
-                return parents;
-            },
-            clearParents() {
-                parents.splice(0);
-            },
-            validate() {
-                return true;
-            }
+            getParents() {return parents;},
+            clearParents() {parents.splice(0);},
+            validate() {return true;}
         };
     }
 
     function getParentId(parent) {
-        return withAddress
-            ? parent.objectId
-            : parent;
+        return withAddress ? parent.objectId : parent;
     }
 
     function getType(id) {
-        return types.find(
-            type => type.id === id
-        );
+        return types.find(type => type.id === id);
     }
 
     function getParentType(parent) {
-        const id =
-            getParentId(parent);
-
-        const object =
-            objects.find(
-                object => object.id === id
-            );
-
-        return getType(
-            object?.typeId
-        );
+        const id = getParentId(parent);
+        const object = objects.find(object => object.id === id);
+        return getType(object?.typeId);
     }
 
     function getObjectType() {
         if(options.getTypeId) {
-            return getType(
-                options.getTypeId()
-            );
+            return getType(options.getTypeId());
         }
-
-        const typeId =
-            root.querySelector(
-                "#entityType"
-            )?.value;
-
+        const typeId = root.querySelector("#entityType")?.value;
         return getType(typeId);
     }
 
     function getMaxChildLevel() {
-        if(!options.children?.length) {
-            return -Infinity;
-        }
-
+        if(!options.children?.length) {return -Infinity;}
+        
         return Math.max(
             ...options.children.map(child => {
-                const type =
-                    getType(
-                        child.typeId
-                    );
-
+                const type = getType(child.typeId);
                 return type?.level ?? -Infinity;
             })
         );
     }
 
     function isObjectParentAllowed(parent) {
-        if(parent.id === entity?.id) {
-            return false;
-        }
-
-        const parentType =
-            getType(parent.typeId);
-
-        if(!parentType) {
-            return false;
-        }
-
-        const objectType =
-            getObjectType();
-
-        if(!objectType) {
-            return false;
-        }
-
+        if(parent.id === entity?.id) {return false;}
+        const parentType = getType(parent.typeId);
+        if(!parentType) {return false;}
+        const objectType =,getObjectType();
+        if(!objectType) {return false;}
         if(parents.length > 0) {
-            const firstParentType =
-                getParentType(
-                    parents[0]
-                );
-
-            if(!firstParentType) {
-                return false;
-            }
-
+            const firstParentType = getParentType(parents[0]);
+            if(!firstParentType) {return false;}
             return (
-                Number(parentType.level) ===
-                Number(firstParentType.level)
+                Number(parentType.level) === Number(firstParentType.level)
             );
         }
 
         return (
-            Number(parentType.level) >
-            Number(objectType.level)
+            Number(parentType.level) > Number(objectType.level)
         );
     }
 
     function isParentAllowed(parent) {
-        if(parent.id === entity?.id) {
-            return false;
-        }
-
-        if(withAddress) {
-            return isObjectParentAllowed(
-                parent
-            );
-        }
-
+        if(parent.id === entity?.id) {return false;}
+        if(withAddress) {return isObjectParentAllowed(parent);}
         return true;
     }
 
     function validateObjectLevels() {
-        if(!withAddress) {
-            return true;
-        }
-
-        const objectType =
-            getObjectType();
-
-        if(!objectType) {
-            return true;
-        }
-
-        const maxChildLevel =
-            getMaxChildLevel();
-
-        if(maxChildLevel === -Infinity) {
-            return true;
-        }
-
-        if(
-            Number(objectType.level) <=
-            Number(maxChildLevel)
+        if(!withAddress) {return true;}
+        const objectType = getObjectType();
+        if(!objectType) {return true;}
+        const maxChildLevel = getMaxChildLevel();
+        if(maxChildLevel === -Infinity) {return true;}
+        if(Number(objectType.level) <= Number(maxChildLevel)
         ) {
-            alert(
-                "Тип объекта должен быть выше уровня всех его детей."
-            );
-
+            alert("Тип объекта должен быть выше уровня всех его детей.");
             return false;
         }
-
         return true;
     }
 
     function validateParents() {
-        if(parents.length > 0) {
-            return true;
-        }
-
+        if(parents.length > 0) {return true;}
         alert(
-            options.requiredMessage ??
-            "Нужен хотя бы один родитель"
+            options.requiredMessage ?? "Нужен хотя бы один родитель"
         );
-
         return false;
     }
 
     function renderParents() {
         parentsBox.innerHTML =
             parents.map(parent => {
-                const id =
-                    getParentId(parent);
-
-                const object =
-                    objects.find(
-                        object =>
-                            object.id === id
-                    );
-
-                return renderParentItemHTML(
-                    parent,
-                    object,
-                    withAddress
-                );
+                const id = getParentId(parent);
+                const object = objects.find(object => object.id === id);
+                return renderParentItemHTML(parent, object, withAddress);
             }).join("");
     }
 
@@ -228,166 +120,75 @@ export function setupParentsEditor(
         resultsBox.innerHTML =
             objects
                 .filter(object => {
+                    if(object.id === entity?.id) {return false;}
                     if(
-                        object.id ===
-                        entity?.id
-                    ) {
-                        return false;
-                    }
-
+                        parents.some(parent => getParentId(parent) === object.id)
+                    ) {return false;}
+                    if(!isParentAllowed(object)) {return false;}
                     if(
-                        parents.some(
-                            parent =>
-                                getParentId(parent) ===
-                                object.id
-                        )
-                    ) {
-                        return false;
-                    }
+                        options.filter && !options.filter(object, parents)
+                    ) {return false;}
 
-                    if(
-                        !isParentAllowed(object)
-                    ) {
-                        return false;
-                    }
-
-                    if(
-                        options.filter &&
-                        !options.filter(
-                            object,
-                            parents
-                        )
-                    ) {
-                        return false;
-                    }
-
-                    return (
-                        object.title ?? ""
-                    )
-                        .toLowerCase()
-                        .includes(text);
-                })
-                .slice(0, 20)
-                .map(object => `
+                    return (object.title ?? "").toLowerCase().includes(text);
+                }).slice(0, 20).map(object => `
                     <div
                         class="parent-result"
                         data-id="${object.id}"
                     >
                         ${object.title}
                     </div>
-                `)
-                .join("");
+                `).join("");
     }
 
     parentsBox.onclick = event => {
-        const id =
-            event.target.dataset.remove;
-
-        if(!id) {
-            return;
-        }
-
+        const id = event.target.dataset.remove;
+        if(!id) {return;}
         parents =
-            parents.filter(
-                parent =>
-                    getParentId(parent) !== id
-            );
-
+            parents.filter(parent => getParentId(parent) !== id);
         renderParents();
     };
 
     if(withAddress) {
         parentsBox.oninput = event => {
             if(
-                !event.target.classList.contains(
-                    "parent-address"
-                )
-            ) {
-                return;
-            }
-
+                !event.target.classList.contains("parent-address")
+            ) {return;}
             const parent =
                 parents.find(
-                    parent =>
-                        parent.objectId ===
-                        event.target.dataset.id
+                    parent => parent.objectId === event.target.dataset.id
                 );
-
-            if(parent) {
-                parent.address =
-                    event.target.value;
-            }
+            if(parent) {parent.address = event.target.value;}
         };
     }
 
     searchInput.oninput = () => {
-        renderResults(
-            searchInput.value
-                .toLowerCase()
-                .trim()
-        );
+        renderResults(searchInput.value.toLowerCase().trim());
     };
 
     resultsBox.onclick = event => {
-        const item =
-            event.target.closest(
-                ".parent-result"
-            );
-
-        if(!item) {
-            return;
-        }
-
-        const id =
-            item.dataset.id;
-
-        if(withAddress) {
-            parents.push({
-                objectId: id,
-                address: ""
-            });
-        } else {
-            parents.push(id);
-        }
+        const item = event.target.closest(".parent-result");
+        if(!item) {return;}
+        const id = item.dataset.id;
+        if(withAddress) {parents.push({objectId: id, address: ""});
+        } else {parents.push(id);}
 
         renderParents();
         clearSearch();
     };
 
     if(
-        withAddress &&
-        options.typeSelector
+        withAddress && options.typeSelector
     ) {
-        const typeSelect =
-            root.querySelector(
-                "#entityType"
-            );
-
+        const typeSelect = root.querySelector("#entityType");
         if(typeSelect) {
             typeSelect.onchange = () => {
-                const newType =
-                    getObjectType();
-
-                if(!newType) {
-                    return;
-                }
-
-                const firstParent =
-                    parents[0];
-
-                if(!firstParent) {
-                    return;
-                }
-
-                const parentType =
-                    getParentType(
-                        firstParent
-                    );
-
+                const newType = getObjectType();
+                if(!newType) {return;}
+                const firstParent = parents[0];
+                if(!firstParent) {return;}
+                const parentType = getParentType(firstParent);
                 if(
-                    parentType &&
-                    Number(newType.level) >=
-                    Number(parentType.level)
+                    parentType && Number(newType.level) >= Number(parentType.level)
                 ) {
                     alert(
                         "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
@@ -405,21 +206,14 @@ export function setupParentsEditor(
     renderParents();
 
     return {
-        getParents() {
-            return parents;
-        },
-
+        getParents() {return parents;},
         clearParents() {
             parents.splice(0);
             renderParents();
             clearSearch();
         },
-
         validate() {
-            if(!validateObjectLevels()) {
-                return false;
-            }
-
+            if(!validateObjectLevels()) {return false;}
             return validateParents();
         }
     };
@@ -442,18 +236,9 @@ export function renderParentsEditorHTML() {
     `;
 }
 
-export function renderParentItemHTML(
-    parent,
-    object,
-    withAddress
-) {
-    const id =
-        withAddress
-            ? parent.objectId
-            : parent;
-
-    const title =
-        object?.title ?? id;
+export function renderParentItemHTML(parent, object, withAddress) {
+    const id = withAddress ? parent.objectId : parent;
+    const title = object?.title ?? id;
 
     return `
         <div class="parent-item">
