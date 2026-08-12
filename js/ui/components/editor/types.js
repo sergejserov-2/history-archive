@@ -6,6 +6,7 @@ export function renderTypesEditorHTML(types, entity, options = {}) {
     const defaultTypeId = getDefaultTypeId(entity, types, options);
     const disabledTypeIds = getDisabledTypeIds(entity, types, options);
     const sortedTypes = sortTypes(types);
+    const selectedTypeId = entity?.typeId ?? defaultTypeId;
     return `
         <label class="entity-type">
             Тип
@@ -13,7 +14,7 @@ export function renderTypesEditorHTML(types, entity, options = {}) {
                 ${sortedTypes.map(type => `
                     <option
                         value="${type.id}"
-                        ${type.id === (entity?.typeId ?? defaultTypeId) ? "selected" : ""}
+                        ${type.id === selectedTypeId ? "selected" : ""}
                         ${disabledTypeIds.includes(type.id) ? "disabled" : ""}
                     >
                         ${type.title}
@@ -30,14 +31,8 @@ export function renderTypesEditorHTML(types, entity, options = {}) {
 
 export function setupTypesEditor(root, entity, options = {}) {
     const select = root.querySelector("#entityType");
-    let typeId = entity?.typeId ?? getDefaultTypeId(entity, options.types ?? [], options);
-    if(!select) return {getTypeId() {return typeId;}};
-    typeId = select.value || typeId || null;
-    select.onchange = () => {
-        typeId = select.value || null;
-        options.onChange?.(getType(typeId, options.types ?? []));
-    };
-    return {getTypeId() {return typeId;}};
+    if(!select) return {getTypeId() {return null;}};
+    return {getTypeId() {return select.value || null;}};
 }
 
 // ======================================
@@ -48,14 +43,11 @@ function getDefaultTypeId(entity, types, options) {
     if(entity?.typeId) return entity.typeId;
     const parentType = getParentType(options);
     if(!parentType) return "";
-    const parentLevel = getTypeLevel(parentType);
-    if(parentLevel === null) return "";
-    const level = parentLevel - 1;
-    const available = types.filter(type => getTypeLevel(type) === level);
+    const parentLevel = Number(parentType.level);
+    const available = types.filter(type => Number(type.level) === parentLevel - 1);
     if(!available.length) return "";
     const counts = {};
-    const objects = options.objects ?? [];
-    objects.forEach(object => {
+    (options.objects ?? []).forEach(object => {
         if(object.typeId) counts[object.typeId] = (counts[object.typeId] ?? 0) + 1;
     });
     available.sort((a, b) => {
@@ -75,18 +67,11 @@ function getDisabledTypeIds(entity, types, options) {
     if(!entity?.id) return [];
     const children = options.children ?? [];
     if(!children.length) return [];
-    const maxLevel = Math.max(
-        ...children.map(child => {
-            const type = getType(child.typeId, types);
-            return getTypeLevel(type) ?? -Infinity;
-        })
-    );
-    return types
-        .filter(type => {
-            const level = getTypeLevel(type);
-            return level !== null && level <= maxLevel;
-        })
-        .map(type => type.id);
+    const maxLevel = Math.max(...children.map(child => {
+        const type = getType(child.typeId, types);
+        return type ? Number(type.level) : -Infinity;
+    }));
+    return types.filter(type => Number(type.level) <= maxLevel).map(type => type.id);
 }
 
 // ======================================
@@ -94,12 +79,9 @@ function getDisabledTypeIds(entity, types, options) {
 // ======================================
 
 function getParentType(options) {
-    const parentId = options.parentId;
-    if(!parentId) return null;
-    const objects = options.objects ?? [];
-    const types = options.types ?? [];
-    const parent = objects.find(object => object.id === parentId);
-    return getType(parent?.typeId, types);
+    if(!options.parentId) return null;
+    const parent = (options.objects ?? []).find(object => object.id === options.parentId);
+    return getType(parent?.typeId, options.types ?? []);
 }
 
 // ======================================
@@ -107,26 +89,13 @@ function getParentType(options) {
 // ======================================
 
 function getType(id, types) {
-    return types.find(type => type.id === id);
-}
-
-function getTypeLevel(type) {
-    if(!type) return null;
-    if(type.level !== undefined && type.level !== null) {
-        const level = Number(type.level);
-        return Number.isFinite(level) ? level : null;
-    }
-    if(Array.isArray(type.levels) && type.levels.length) {
-        const levels = type.levels.map(Number).filter(Number.isFinite);
-        return levels.length ? Math.max(...levels) : null;
-    }
-    return null;
+    return types.find(type => type.id === id) ?? null;
 }
 
 function sortTypes(types) {
     return [...types].sort((a, b) => {
-        const levelA = getTypeLevel(a) ?? Infinity;
-        const levelB = getTypeLevel(b) ?? Infinity;
+        const levelA = Number(a.level ?? Infinity);
+        const levelB = Number(b.level ?? Infinity);
         if(levelA !== levelB) return levelB - levelA;
         return (a.title ?? "").localeCompare(b.title ?? "", "ru");
     });
