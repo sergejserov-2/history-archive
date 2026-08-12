@@ -165,6 +165,50 @@ async function loadPage() {
 
     console.timeEnd("LOAD DATA");
 
+    onAdminStateChanged(
+        async ADMIN_MODE => {
+            console.time("ADMIN CALLBACK");
+
+            pageAdminMode = ADMIN_MODE;
+
+            console.time("renderPage");
+            await renderPage();
+            console.timeEnd("renderPage");
+
+            if(ADMIN_MODE) {
+                console.time("initAdmin");
+
+                initAdmin(
+                    pageObject,
+                    pageTypes,
+                    pageObjects,
+                    pagePhotos,
+                    pageSources,
+                    pageRecords,
+                    pageChildren,
+                    pageRecordTypes,
+                    {
+                        updateObjectBlock,
+                        updateRecordsBlock,
+                        updatePhotosBlock,
+                        updateSourcesBlock
+                    }
+                );
+
+                console.timeEnd("initAdmin");
+            }
+
+            console.time("restoreModalFromUrl");
+            await restoreModalFromUrl();
+            console.timeEnd("restoreModalFromUrl");
+
+            console.timeEnd("ADMIN CALLBACK");
+        }
+    );
+
+    console.timeEnd("LOAD PAGE");
+}
+
 export async function onPhotoDeleted() {
     await updatePhotosBlock();
 }
