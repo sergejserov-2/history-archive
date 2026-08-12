@@ -83,9 +83,14 @@ const parents = entity.parents
         requiredMessage: cfg.parentsRequiredMessage
     }) : null;
     const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
-    const dateModeEditor = cfg.dateMode ? setupDateModeEditor(root, {
-        mode: entity?.dateMode ?? cfg.dateMode
-    }) : null;
+    const dateModeEditor =
+        cfg.dateMode
+            ? setupDateModeEditor(
+                root,
+                cfg,
+                entity
+            )
+            : null;
     const coverEditor = cfg.cover ? setupCoverEditor(root, cfg.cover.photos ?? [], entity) : null;
     return {
         fileEditor,
