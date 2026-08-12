@@ -6,7 +6,7 @@ export async function renderChildren(children, ADMIN_MODE = false, currentObject
     const typeMap = new Map(types.map(type => [type.id, type]));
     const preparedChildren = await Promise.all((children ?? []).map(async child => {
         const type = typeMap.get(child.typeId);
-        const parents = getParents(child, objects, types);
+        const parents = await getParents(child, objects, types);
         const photos = await getPhotos(child.id);
         const coverPhoto = photos.find(photo => photo.id === child.coverPhotoId);
         const parentRelations = Array.isArray(child.parents) ? child.parents : [];
