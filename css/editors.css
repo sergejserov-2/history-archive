@@ -35,10 +35,10 @@
     min-width: 0;
 }
 
-/* Автор + дата: 2 : 1 */
+/* Автор + дата: 1,5 : 1 */
 
 .entity-row--author-date .entity-author {
-    flex: 2 1 0;
+    flex: 1.5 1 0;
     width: 0;
     min-width: 0;
 }
