@@ -1,40 +1,4 @@
 // ======================================
-// Parent type
-// ======================================
-
-function getParentType(options) {
-    const parentId = options.parentId;
-    if(!parentId) return null;
-    const objects = options.objects ?? [];
-    const types = options.types ?? [];
-    const parent = objects.find(object => object.id === parentId);
-    return getType(parent?.typeId, types);
-}
-
-// ======================================
-// Type helpers
-// ======================================
-
-function getType(id, types) {
-    return types.find(type => type.id === id);
-}
-
-function getTypeLevel(type) {
-    if(!type) return -Infinity;
-    if(Array.isArray(type.levels) && type.levels.length) return Math.max(...type.levels.map(Number));
-    return Number(type.level ?? -Infinity);
-}
-
-function sortTypes(types) {
-    return [...types].sort((a, b) => {
-        const levelA = getTypeLevel(a);
-        const levelB = getTypeLevel(b);
-        if(levelA !== levelB) return levelB - levelA;
-        return (a.title ?? "").localeCompare(b.title ?? "", "ru");
-    });
-}
-
-// ======================================
 // Types editor
 // ======================================
 
@@ -84,11 +48,14 @@ function getDefaultTypeId(entity, types, options) {
     if(entity?.typeId) return entity.typeId;
     const parentType = getParentType(options);
     if(!parentType) return "";
-    const targetLevel = getTypeLevel(parentType) - 1;
-    const available = types.filter(type => getTypeLevel(type) === targetLevel);
+    const parentLevel = getTypeLevel(parentType);
+    if(parentLevel === null) return "";
+    const level = parentLevel - 1;
+    const available = types.filter(type => getTypeLevel(type) === level);
     if(!available.length) return "";
     const counts = {};
-    (options.objects ?? []).forEach(object => {
+    const objects = options.objects ?? [];
+    objects.forEach(object => {
         if(object.typeId) counts[object.typeId] = (counts[object.typeId] ?? 0) + 1;
     });
     available.sort((a, b) => {
@@ -108,6 +75,59 @@ function getDisabledTypeIds(entity, types, options) {
     if(!entity?.id) return [];
     const children = options.children ?? [];
     if(!children.length) return [];
-    const maxLevel = Math.max(...children.map(child => getTypeLevel(getType(child.typeId, types))));
-    return types.filter(type => getTypeLevel(type) <= maxLevel).map(type => type.id);
+    const maxLevel = Math.max(
+        ...children.map(child => {
+            const type = getType(child.typeId, types);
+            return getTypeLevel(type) ?? -Infinity;
+        })
+    );
+    return types
+        .filter(type => {
+            const level = getTypeLevel(type);
+            return level !== null && level <= maxLevel;
+        })
+        .map(type => type.id);
+}
+
+// ======================================
+// Parent type
+// ======================================
+
+function getParentType(options) {
+    const parentId = options.parentId;
+    if(!parentId) return null;
+    const objects = options.objects ?? [];
+    const types = options.types ?? [];
+    const parent = objects.find(object => object.id === parentId);
+    return getType(parent?.typeId, types);
+}
+
+// ======================================
+// Type helpers
+// ======================================
+
+function getType(id, types) {
+    return types.find(type => type.id === id);
+}
+
+function getTypeLevel(type) {
+    if(!type) return null;
+    if(type.level !== undefined && type.level !== null) {
+        const level = Number(type.level);
+        return Number.isFinite(level) ? level : null;
+    }
+    if(Array.isArray(type.levels) && type.levels.length) {
+        const levels = type.levels.map(Number).filter(Number.isFinite);
+        return levels.length ? Math.max(...levels) : null;
+    }
+    return null;
+}
+
+function sortTypes(types) {
+    return [...types].sort((a, b) => {
+        const levelA = getTypeLevel(a) ?? Infinity;
+        const levelB = getTypeLevel(b) ?? Infinity;
+        if(levelA !== levelB) return levelB - levelA;
+        return (a.title ?? "").localeCompare(b.title ?? "", "ru");
+    });
 }
