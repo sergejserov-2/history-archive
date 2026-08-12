@@ -122,10 +122,12 @@ let pageObjects = [];
 // ======================================
 
 async function loadPage() {
-    const object =
-        await getObject(
-            objectId
-        );
+
+    console.time("LOAD PAGE");
+
+    console.time("getObject");
+    const object = await getObject(objectId);
+    console.timeEnd("getObject");
 
     if(!object) {
         document.body.innerHTML = `
@@ -133,6 +135,7 @@ async function loadPage() {
                 Объект не найден
             </h1>
         `;
+        console.timeEnd("LOAD PAGE");
         return;
     }
 
@@ -140,52 +143,49 @@ async function loadPage() {
         object.title ||
         "Исторический архив";
 
-    pageObject =
-        object;
+    pageObject = object;
 
-    pageType =
-        await getType(
-            object.typeId
-        );
+    console.time("getType");
+    pageType = await getType(object.typeId);
+    console.timeEnd("getType");
 
-    pageTypes =
-        await getTypes();
+    console.time("getTypes");
+    pageTypes = await getTypes();
+    console.timeEnd("getTypes");
 
-    pageObjects =
-        await getAllObjects();
+    console.time("getAllObjects");
+    pageObjects = await getAllObjects();
+    console.timeEnd("getAllObjects");
 
-    pageRecordTypes =
-        await getRecordTypes();
+    console.time("getRecordTypes");
+    pageRecordTypes = await getRecordTypes();
+    console.timeEnd("getRecordTypes");
 
-    pageParents =
-        await getParents(
-            object
-        );
+    console.time("getParents");
+    pageParents = await getParents(object);
+    console.timeEnd("getParents");
 
-    pageChildren =
-        await getChildren(
-            object.id
-        );
+    console.time("getChildren");
+    pageChildren = await getChildren(object.id);
+    console.timeEnd("getChildren");
 
-    pageRecords =
-        await getRecords(
-            object.id
-        );
+    console.time("getRecords");
+    pageRecords = await getRecords(object.id);
+    console.timeEnd("getRecords");
 
-    pagePhotos =
-        await getPhotos(
-            object.id
-        );
+    console.time("getPhotos");
+    pagePhotos = await getPhotos(object.id);
+    console.timeEnd("getPhotos");
 
-    pageSources =
-        await getSources(
-            object.id
-        );
+    console.time("getSources");
+    pageSources = await getSources(object.id);
+    console.timeEnd("getSources");
+
+    console.timeEnd("LOAD PAGE");
 
     onAdminStateChanged(
         async ADMIN_MODE => {
-            pageAdminMode =
-                ADMIN_MODE;
+            pageAdminMode = ADMIN_MODE;
 
             await renderPage();
 
