@@ -3,9 +3,8 @@
 // ==========================================
 
 import {
-    setupHistoricalDateInput,
+    setupHistoricalDateInput
 } from "./historicalDate.js";
-
 
 // ==========================================
 // Setup
@@ -13,13 +12,15 @@ import {
 
 export function setupDateModeEditor(root, cfg = {}, entity = {}) {
 
-    const container = root.querySelector("#entityDateEditor");
+    const container =
+        root.querySelector("#entityDateEditor");
 
     if(!container) {
         return null;
     }
 
-    const row = container.closest(".entity-row");
+    const row =
+        container.closest(".entity-row");
 
     const dateInput =
         root.querySelector("#entity_date");
@@ -42,11 +43,15 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
     const singleField =
         root.querySelector("#entityDateSingle");
 
-    const helpButton =
+    const dateHelp =
         root.querySelector("#entityDateHelp");
+
+    const periodEndHelp =
+        root.querySelector("#entityDateEndHelp");
 
 
     if(!switchButton || !dateLabel) {
+
         console.error(
             "Date mode editor: switch or label not found"
         );
@@ -55,34 +60,29 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
     }
 
 
-    // ==========================================
-    // Historical date inputs
-    // ==========================================
+// ==========================================
+// Historical date inputs
+// ==========================================
 
-    const historicalDateInputs = [];
+    const dateEditor =
+        dateInput
+            ? setupHistoricalDateInput(dateInput)
+            : null;
 
-    if(dateInput) {
-        historicalDateInputs.push(
-            setupHistoricalDateInput(dateInput)
-        );
-    }
+    const dateStartEditor =
+        dateStartInput
+            ? setupHistoricalDateInput(dateStartInput)
+            : null;
 
-    if(dateStartInput) {
-        historicalDateInputs.push(
-            setupHistoricalDateInput(dateStartInput)
-        );
-    }
-
-    if(dateEndInput) {
-        historicalDateInputs.push(
-            setupHistoricalDateInput(dateEndInput)
-        );
-    }
+    const dateEndEditor =
+        dateEndInput
+            ? setupHistoricalDateInput(dateEndInput)
+            : null;
 
 
-    // ==========================================
-    // Mode
-    // ==========================================
+// ==========================================
+// Mode
+// ==========================================
 
     let mode =
         entity?.dateMode ??
@@ -95,15 +95,40 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
             : "date";
 
 
-    // ==========================================
-    // Help
-    // ==========================================
+// ==========================================
+// Help
+// ==========================================
 
- 
+    function updateHelpVisibility() {
 
-    // ==========================================
-    // Render
-    // ==========================================
+        const isPeriod =
+            mode === "period";
+
+        /*
+         * Обычная дата:
+         * ? показывается у единственного инпута.
+         */
+        if(dateHelp) {
+
+            dateHelp.hidden =
+                isPeriod;
+        }
+
+        /*
+         * Период:
+         * ? показывается только у конечной даты.
+         */
+        if(periodEndHelp) {
+
+            periodEndHelp.hidden =
+                !isPeriod;
+        }
+    }
+
+
+// ==========================================
+// Render
+// ==========================================
 
     function render() {
 
@@ -136,11 +161,13 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
         // --------------------------------------
 
         if(singleField) {
+
             singleField.hidden =
                 isPeriod;
         }
 
         if(periodFields) {
+
             periodFields.hidden =
                 !isPeriod;
         }
@@ -163,12 +190,19 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
                     : "entity-row--author-date"
             );
         }
+
+
+        // --------------------------------------
+        // Help buttons
+        // --------------------------------------
+
+        updateHelpVisibility();
     }
 
 
-    // ==========================================
-    // Switch date / period
-    // ==========================================
+// ==========================================
+// Switch date / period
+// ==========================================
 
     switchButton.addEventListener(
         "click",
@@ -195,6 +229,25 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
 
                     dateEndInput.value =
                         "";
+                }
+
+
+                /*
+                 * После переноса значения
+                 * обновляем состояние редакторов.
+                 */
+                if(dateStartEditor) {
+
+                    dateStartEditor.setValue(
+                        date
+                    );
+                }
+
+                if(dateEndEditor) {
+
+                    dateEndEditor.setValue(
+                        ""
+                    );
                 }
 
 
@@ -232,6 +285,18 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
                 }
 
 
+                /*
+                 * Синхронизируем historical-date
+                 * editor обычной даты.
+                 */
+                if(dateEditor) {
+
+                    dateEditor.setValue(
+                        date
+                    );
+                }
+
+
                 mode = "date";
             }
 
@@ -241,24 +306,32 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
     );
 
 
-    // ==========================================
-    // Initial render
-    // ==========================================
+// ==========================================
+// Initial render
+// ==========================================
 
     render();
 
 
-    // ==========================================
-    // Public API
-    // ==========================================
+// ==========================================
+// Public API
+// ==========================================
 
     return {
+
+        // --------------------------------------
+        // Mode
+        // --------------------------------------
 
         getMode() {
 
             return mode;
         },
 
+
+        // --------------------------------------
+        // Data
+        // --------------------------------------
 
         getData() {
 
@@ -297,7 +370,15 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
         },
 
 
+        // --------------------------------------
+        // Validation
+        // --------------------------------------
+
         validate() {
+
+            // ----------------------------------
+            // Period
+            // ----------------------------------
 
             if(mode === "period") {
 
@@ -308,16 +389,18 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
                     dateEndInput?.value.trim() || "";
 
 
+                /*
+                 * Пустая граница допустима.
+                 * Если значение есть — оно должно
+                 * соответствовать историческому шаблону.
+                 */
+
                 if(start) {
 
-                    const editor =
-                        historicalDateInputs.find(
-                            editor =>
-                                editor &&
-                                editor.getValue() === start
-                        );
-
-                    if(editor && !editor.validate()) {
+                    if(
+                        !dateStartEditor ||
+                        !dateStartEditor.validate()
+                    ) {
                         return false;
                     }
                 }
@@ -325,23 +408,25 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
 
                 if(end) {
 
-                    const editor =
-                        historicalDateInputs.find(
-                            editor =>
-                                editor &&
-                                editor.getValue() === end
-                        );
-
-                    if(editor && !editor.validate()) {
+                    if(
+                        !dateEndEditor ||
+                        !dateEndEditor.validate()
+                    ) {
                         return false;
                     }
                 }
+
 
                 return true;
             }
 
 
+            // ----------------------------------
+            // Single date
+            // ----------------------------------
+
             if(!dateInput) {
+
                 return true;
             }
 
@@ -349,22 +434,20 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
             const value =
                 dateInput.value.trim();
 
+
             if(!value) {
+
                 return false;
             }
 
 
-            const editor =
-                historicalDateInputs.find(
-                    editor =>
-                        editor &&
-                        editor.getValue() === value
-                );
+            if(!dateEditor) {
+
+                return true;
+            }
 
 
-            return editor
-                ? editor.validate()
-                : true;
+            return dateEditor.validate();
         }
     };
 }
@@ -394,27 +477,9 @@ export function renderDateModeEditorHTML(
             class="entity-date-editor"
         >
 
-            <div class="entity-date-editor__label-row">
-
-                <span
-                    id="entityDateLabel"
-                    class="entity-date-editor__label"
-                >
-                    ${isPeriod ? "Период" : "Дата"}
-                </span>
-
-                <button
-                    type="button"
-                    id="entityDateHelp"
-                    class="entity-date-editor__help"
-                    title="Разрешённые форматы"
-                    aria-label="Разрешённые форматы"
-                >
-                    ?
-                </button>
-
-            </div>
-
+            <!-- ==================================
+                 DATE
+            ================================== -->
 
             <div
                 id="entityDateSingle"
@@ -422,14 +487,32 @@ export function renderDateModeEditorHTML(
                 ${isPeriod ? "hidden" : ""}
             >
 
-                <input
-                    id="entity_date"
-                    value="${entity.date ?? ""}"
-                    autocomplete="off"
-                >
+                <div class="entity-date-editor__input-row">
+
+                    <input
+                        id="entity_date"
+                        value="${entity.date ?? ""}"
+                        autocomplete="off"
+                    >
+
+                    <button
+                        type="button"
+                        id="entityDateHelp"
+                        class="entity-date-editor__help"
+                        title="Разрешённые форматы"
+                        aria-label="Разрешённые форматы"
+                    >
+                        ?
+                    </button>
+
+                </div>
 
             </div>
 
+
+            <!-- ==================================
+                 PERIOD
+            ================================== -->
 
             <div
                 id="entityDatePeriod"
@@ -437,19 +520,54 @@ export function renderDateModeEditorHTML(
                 ${isPeriod ? "" : "hidden"}
             >
 
-                <input
-                    id="entity_dateStart"
-                    value="${entity.dateStart ?? ""}"
-                    autocomplete="off"
-                >
+                <div class="entity-date-editor__period-input">
 
-                <input
-                    id="entity_dateEnd"
-                    value="${entity.dateEnd ?? ""}"
-                    autocomplete="off"
-                >
+                    <input
+                        id="entity_dateStart"
+                        value="${entity.dateStart ?? ""}"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="entity-date-editor__period-input">
+
+                    <div class="entity-date-editor__input-row">
+
+                        <input
+                            id="entity_dateEnd"
+                            value="${entity.dateEnd ?? ""}"
+                            autocomplete="off"
+                        >
+
+                        <button
+                            type="button"
+                            id="entityDateEndHelp"
+                            class="entity-date-editor__help"
+                            title="Разрешённые форматы"
+                            aria-label="Разрешённые форматы"
+                        >
+                            ?
+                        </button>
+
+                    </div>
+
+                </div>
 
             </div>
+
+
+            <!-- ==================================
+                 LABEL + SWITCH
+            ================================== -->
+
+            <span
+                id="entityDateLabel"
+                class="entity-date-editor__label"
+            >
+                ${isPeriod ? "Период" : "Дата"}
+            </span>
 
 
             <button
@@ -457,9 +575,11 @@ export function renderDateModeEditorHTML(
                 id="entityDateModeSwitch"
                 class="entity-date-editor__switch"
             >
-                ${isPeriod
-                    ? "Сменить на дату"
-                    : "Сменить на период"}
+                ${
+                    isPeriod
+                        ? "Сменить на дату"
+                        : "Сменить на период"
+                }
             </button>
 
         </div>
