@@ -213,14 +213,21 @@ export async function openEditor(type, entity, context = {}) {
                 const data =
                     await editor.getData();
                 if(!data) return;
-                await updateEntity(
-                    type,
-                    entity,
-                    data,
-                    context,
-                    cfg.updates ?? []
-                );
+                const savedEntity =
+                    await updateEntity(
+                        type,
+                        entity,
+                        data,
+                        context,
+                        cfg.updates ?? []
+                    );
+                
                 modal.close();
+                
+                if(type === "object" && !entity?.id) {
+                    window.location.href =
+                        `object.html?id=${savedEntity.id}`;
+                }
             } catch(error) {
                 console.error(
                     "Ошибка сохранения:",
