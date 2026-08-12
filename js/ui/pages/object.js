@@ -336,15 +336,31 @@ export async function updateRecordsBlock() {
 // Update photos block
 // ======================================
 
-export async function updatePhotosBlock() {
+export async function updatePhotosBlock(data) {
     if(!pageObject) {
         return;
     }
 
-    pagePhotos =
-        await getPhotos(
-            pageObject.id
-        );
+    if(data?.id) {
+        const index =
+            pagePhotos.findIndex(
+                photo => photo.id === data.id
+            );
+
+        if(index >= 0) {
+            pagePhotos[index] = {
+                ...pagePhotos[index],
+                ...data
+            };
+        } else {
+            pagePhotos.push(data);
+        }
+    } else {
+        pagePhotos =
+            await getPhotos(
+                pageObject.id
+            );
+    }
 
     const gallery =
         document.querySelector(
@@ -406,15 +422,31 @@ export async function updatePhotosBlock() {
 // Update sources block
 // ======================================
 
-export async function updateSourcesBlock() {
+export async function updateSourcesBlock(data) {
     if(!pageObject) {
         return;
     }
 
-    pageSources =
-        await getSources(
-            pageObject.id
-        );
+    if(data?.id) {
+        const index =
+            pageSources.findIndex(
+                source => source.id === data.id
+            );
+
+        if(index >= 0) {
+            pageSources[index] = {
+                ...pageSources[index],
+                ...data
+            };
+        } else {
+            pageSources.push(data);
+        }
+    } else {
+        pageSources =
+            await getSources(
+                pageObject.id
+            );
+    }
 
     const sourcesBlock =
         document.querySelector(
