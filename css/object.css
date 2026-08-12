@@ -168,8 +168,6 @@
     text-decoration: none;
 
     transition: var(--transition-bg);
-
-    min-width: 0;
 }
 
 .child-card:hover {
@@ -209,6 +207,12 @@
     font-size: var(--font-size-sm);
 }
 
+.child-card__body {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+}
+
 .child-card__type {
     margin-bottom: var(--space-3);
 
@@ -238,9 +242,7 @@
 
 .child-card__name > span:first-child {
     flex: 1 1 auto;
-
     min-width: 0;
-    max-width: 100%;
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -249,9 +251,7 @@
 
 .child-card__name .object__lost-badge {
     flex: 0 0 auto;
-
-    min-width: max-content;
-    max-width: max-content;
+    flex-shrink: 0;
 
     white-space: nowrap;
 }
