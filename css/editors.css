@@ -104,16 +104,16 @@
     gap: 0;
 }
 
-.entity-date-editor__period-input {
+.historical-date__input {
     flex: 1 1 0;
     min-width: 0;
 }
 
-.entity-date-editor__period-input input {
+.historical-date__input input {
     width: 100%;
     min-width: 0;
 }
-.entity-date-editor__period-input:first-child  {
+.historical-date__input input:first-child  {
     border-radius:
         0
         var(--radius-lg)
@@ -123,7 +123,7 @@
     border-left: none;
 }
 
-.entity-date-editor__period-input:last-child  {
+.historical-date__input input:last-child  {
     border-radius:
         var(--radius-lg)
         0
@@ -131,7 +131,7 @@
         var(--radius-lg);
 }
 
-.entity-date-editor__period-input:focus-within {
+.historical-date__input input:focus{
     z-index: 30;
 }
 
