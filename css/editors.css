@@ -1,11 +1,6 @@
 /* ==========================================
    EDITORS
 ========================================== */
-
-.modal__content {
-    padding: var(--space-9);
-}
-
 .entity-editor,
 .object-editor,
 .login-form {
