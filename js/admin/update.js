@@ -2,7 +2,7 @@ import {getObject, deleteObject, createObject, updateObject} from "../api/object
 import {getPhoto, deletePhoto, createPhoto, updatePhoto} from "../api/photos.js";
 import {getSource, deleteSource, createSource, updateSource} from "../api/sources.js";
 import {getRecord, deleteRecord, createRecord, updateRecord} from "../api/records.js";
-import {moveFileToDeleted} from "../api/storage.js";
+import {moveFileToDeleted, uploadPhoto, uploadSourceDocument} from "../api/storage.js";
 
 export async function getEntity(type, id) {
     if(type === "object") return await getObject(id);
