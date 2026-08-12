@@ -196,7 +196,7 @@ export function openObjectEditor(
         content: form
     });
     const root = modal.root;
-    const editor = setupEditorComponents(
+      const editor = setupEditorComponents(
         root,
         {
             ...CONFIG,
@@ -210,8 +210,8 @@ export function openObjectEditor(
                             type =>
                                 type.id ===
                                 objects.find(
-                                    o =>
-                                        o.id ===
+                                    item =>
+                                        item.id ===
                                         context.parentId
                                 )?.typeId
                         )
@@ -237,7 +237,12 @@ export function openObjectEditor(
                     : []
             }
         },
-        context,
+        {
+            ...context,
+            objects,
+            types,
+            children
+        },
         object
     );
     setupEditorButtons(
