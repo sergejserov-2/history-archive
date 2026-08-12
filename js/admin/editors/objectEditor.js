@@ -29,26 +29,6 @@ const CONFIG = {
 };
 
 // ======================================
-// Render
-// ======================================
-
-export function renderObjectEditor(object, types, objects, photos, children, context) {
-    const objectPhotos = object ? photos.filter(photo => photo.parents?.includes(object.id)) : [];
-    const cfg = {
-        ...CONFIG,
-        cover: {...CONFIG.cover, photos: objectPhotos},
-        options: {
-            ...CONFIG.options,
-            types,
-            objects,
-            children,
-            parentId: context?.parentId
-        }
-    };
-    return renderEntityEditor(cfg, object);
-}
-
-// ======================================
 // Open
 // ======================================
 
