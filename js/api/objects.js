@@ -159,7 +159,6 @@ export async function getParents(object, objects = null, types = null) {
     return chains;
 }
 
-}
 // ======================================
 // Get children
 // ======================================
