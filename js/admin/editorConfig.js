@@ -206,40 +206,77 @@ export async function openEditor(type, entity, context = {}) {
             context,
             entity
         );
-    setupEditorButtons(
-        root,
-        async() => {
-            try {
-                const data =
-                    await editor.getData();
-                if(!data) return;
-const savedEntity =
-    await updateEntity(
-        type,
-        entity,
-        data,
-        context,
-        type === "object" && !entity?.id
-            ? []
-            : cfg.updates ?? []
-    );
-                
-                modal.close();
-                
-                if(type === "object" && !entity?.id) {
-                    window.location.href =
-                        `object.html?id=${savedEntity.id}`;
-                }
-            } catch(error) {
-                console.error(
-                    "Ошибка сохранения:",
-                    error
-                );
-                alert(
-                    "Ошибка сохранения"
-                );
+setupEditorButtons(
+    root,
+    async() => {
+        try {
+            const result =
+                await editor.getData();
+
+            if(!result) {
+                return;
             }
-        },
-        () => modal.close()
-    );
+
+            const {
+                data,
+                backgroundTask
+            } = result;
+
+            const savedEntity =
+                await updateEntity(
+                    type,
+                    entity,
+                    data,
+                    context,
+                    type === "object" &&
+                    !entity?.id
+                        ? []
+                        : cfg.updates ?? []
+                );
+
+            modal.close();
+
+            if(
+                type === "object" &&
+                !entity?.id
+            ) {
+                window.location.href =
+                    `object.html?id=${savedEntity.id}`;
+
+                return;
+            }
+
+            if(backgroundTask) {
+                void backgroundTask(
+                    savedEntity,
+                    async(id, updateData) => {
+                        await updateEntity(
+                            type,
+                            savedEntity,
+                            updateData,
+                            context,
+                            cfg.updates ?? []
+                        );
+                    }
+                ).catch(error => {
+                    console.error(
+                        "Ошибка фоновой загрузки файла:",
+                        error
+                    );
+                });
+            }
+
+        } catch(error) {
+            console.error(
+                "Ошибка сохранения:",
+                error
+            );
+
+            alert(
+                "Ошибка сохранения"
+            );
+        }
+    },
+    () => modal.close()
+);
 }
