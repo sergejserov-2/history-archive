@@ -124,16 +124,35 @@ export function setupDateModeEditor(
     // Mode
     // ==========================================
 
-    let mode =
-        entity?.dateMode ??
-        cfg.dateMode ??
-        "date";
+let mode;
 
+if(entity?.dateMode) {
+
+    mode = entity.dateMode;
+
+}
+else if(
+    entity?.dateStart ||
+    entity?.dateEnd
+) {
+
+    // Обратная совместимость:
+    // если dateMode ещё не сохранён,
+    // но есть границы периода — это период.
+    mode = "period";
+
+}
+else {
 
     mode =
-        mode === "period"
-            ? "period"
-            : "date";
+        cfg.dateMode ??
+        "date";
+}
+
+mode =
+    mode === "period"
+        ? "period"
+        : "date";
 
 
     // ==========================================
@@ -541,15 +560,31 @@ export function renderDateModeEditorHTML(
     entity = {}
 ) {
 
-    const mode =
-        entity?.dateMode ??
+let mode;
+
+if(entity?.dateMode) {
+
+    mode = entity.dateMode;
+
+}
+else if(
+    entity?.dateStart ||
+    entity?.dateEnd
+) {
+
+    // Обратная совместимость со старыми данными.
+    mode = "period";
+
+}
+else {
+
+    mode =
         cfg.dateMode ??
         "date";
+}
 
-
-    const isPeriod =
-        mode === "period";
-
+const isPeriod =
+    mode === "period";
 
     return `
         <div
