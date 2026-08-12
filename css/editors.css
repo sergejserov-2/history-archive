@@ -1,0 +1,489 @@
+/* ==========================================
+   EDITORS
+========================================== */
+
+.modal__content {
+    padding: var(--space-9);
+}
+
+.entity-editor,
+.object-editor,
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+
+/* ==========================================
+   EDITOR ROWS
+========================================== */
+
+.entity-row {
+    display: flex;
+    gap: var(--space-6);
+}
+
+.entity-row--title-type .entity-type {
+    flex: 1;
+    min-width: 0;
+}
+
+.entity-row--title-type .entity-title {
+    flex: 2;
+    min-width: 0;
+}
+
+
+/* ==========================================
+   AUTHOR + DATE / PERIOD
+========================================== */
+
+/* Автор + дата */
+
+.entity-row--author-date > label:first-child {
+    flex: 2;
+    min-width: 0;
+}
+
+.entity-row--author-date > .entity-date-editor {
+    flex: 1;
+    min-width: 0;
+}
+
+
+/* Автор + период */
+
+.entity-row--author-date-period > label:first-child,
+.entity-row--author-date-period > .entity-date-editor {
+    flex: 1;
+    min-width: 0;
+}
+
+
+/* ==========================================
+   DATES
+========================================== */
+
+.entity-row--dates label {
+    flex: 1;
+}
+
+
+/* ==========================================
+   DATE / PERIOD EDITOR
+========================================== */
+
+.entity-date-editor {
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--space-2);
+
+    min-width: 0;
+}
+
+.entity-date-editor__label {
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--space-2);
+
+    color: var(--color-text-dim);
+    font-size: var(--font-size-sm);
+}
+
+.entity-date-editor__single {
+    width: 100%;
+}
+
+.entity-date-editor__period {
+    display: flex;
+    width: 100%;
+}
+
+.entity-date-editor__period input {
+    width: 50%;
+    min-width: 0;
+    z-index: 1;
+}
+
+.entity-date-editor__period input:focus {
+    z-index: 2;
+}
+
+.entity-date-editor__period input:first-child {
+    border-radius:
+        var(--radius-lg)
+        0
+        0
+        var(--radius-lg);
+}
+
+.entity-date-editor__period input:last-child {
+    border-radius:
+        0
+        var(--radius-lg)
+        var(--radius-lg)
+        0;
+
+    border-left: none;
+}
+
+.entity-date-editor__switch {
+    align-self: flex-end;
+
+    width: fit-content;
+
+    margin-top: var(--space-2);
+    padding: 0 !important;
+
+    background: none !important;
+    border: none !important;
+
+    color: var(--color-text-disabled) !important;
+
+    font-size: var(--font-size-xs) !important;
+    line-height: 1.2;
+
+    text-align: right;
+
+    cursor: pointer;
+}
+
+.entity-date-editor__switch:hover {
+    color: var(--color-accent) !important;
+}
+
+
+/* ==========================================
+   EDITOR LABELS
+========================================== */
+
+.entity-editor label,
+.object-editor label,
+.login-form label {
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--space-2);
+
+    color: var(--color-text-dim);
+    font-size: var(--font-size-sm);
+}
+
+
+/* ==========================================
+   EDITOR INPUTS
+========================================== */
+
+.entity-editor input,
+.entity-editor textarea,
+.entity-editor select,
+.object-editor input,
+.object-editor textarea,
+.object-editor select,
+.login-form input {
+    width: 100%;
+
+    padding: var(--space-5) var(--space-6);
+
+    background: var(--color-input);
+    border: var(--border-thin);
+    border-radius: var(--radius-lg);
+
+    color: var(--color-text-light);
+
+    font-family: inherit;
+    font-size: var(--font-size-lg);
+}
+
+
+/* ==========================================
+   TEXTAREAS
+========================================== */
+
+.entity-editor textarea,
+.object-editor textarea {
+    min-height: 70px;
+
+    resize: vertical;
+
+    font-size: var(--font-size-lg);
+    line-height: 1.45;
+}
+
+
+/* ==========================================
+   FIELD COUNTER
+========================================== */
+
+.entity-field-counter {
+    margin-top: var(--space-2);
+
+    color: var(--color-text-disabled);
+    font-size: var(--font-size-xs);
+    line-height: 1.2;
+
+    text-align: right;
+
+    transition: color .15s ease;
+}
+
+
+/* ==========================================
+   FILE SELECTOR
+========================================== */
+
+.entity-file {
+    display: flex;
+    width: max-content;
+}
+
+.entity-file__select,
+.entity-file__current {
+    display: inline-flex;
+    align-items: center;
+
+    gap: var(--space-4);
+
+    width: max-content;
+
+    padding: var(--space-2) var(--space-5);
+
+    background: var(--color-accent-bg);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-xl);
+
+    color: var(--color-accent);
+}
+
+#entityFileName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.entity-file__remove {
+    width: auto;
+    height: auto;
+
+    margin: 0;
+    padding: 0;
+
+    background: none;
+    border: none;
+
+    color: var(--color-accent);
+    font-size: 15px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+
+/* ==========================================
+   EDITOR BUTTONS
+========================================== */
+
+/* Обычные кнопки редакторов */
+
+.entity-editor button:not(.admin-button),
+.object-editor button:not(.admin-button),
+.login-form button:not(.admin-button) {
+    padding: var(--space-5) var(--space-8);
+
+    background: var(--color-media);
+    border: none;
+    border-radius: var(--radius-lg);
+
+    color: var(--color-text-button);
+
+    cursor: pointer;
+}
+
+.entity-editor button:not(.admin-button):hover,
+.object-editor button:not(.admin-button):hover,
+.login-form button:not(.admin-button):hover {
+    background: var(--color-media-hover);
+}
+
+
+/* Кнопки формы entity editor */
+
+.entity-editor__buttons {
+    display: flex;
+
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+}
+
+.entity-editor__buttons button {
+    flex: 1;
+}
+
+
+/* ==========================================
+   ENTITY PARENTS
+========================================== */
+
+.parents-group {
+    display: flex;
+    flex-direction: column;
+
+    gap: var(--space-4);
+}
+
+#entityParents,
+#entityParentResults {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: var(--space-4);
+}
+
+#entityParentResults {
+    margin-bottom: var(--space-2);
+}
+
+.parent-item {
+    display: flex;
+    align-items: center;
+
+    gap: var(--space-4);
+    margin: 0;
+}
+
+.parent-badge {
+    display: inline-flex;
+    align-items: center;
+
+    gap: var(--space-4);
+
+    padding: var(--space-2) var(--space-5);
+
+    background: var(--color-accent-bg);
+    border: 1px solid var(--color-accent-border);
+    border-radius: var(--radius-xl);
+
+    color: var(--color-accent);
+}
+
+.parent-title {
+    white-space: nowrap;
+}
+
+.parent-address {
+    width: auto !important;
+    height: 100% !important;
+
+    margin: 0;
+    padding: 0 var(--space-5) !important;
+
+    font-size: inherit !important;
+    line-height: normal;
+}
+
+.parent-remove {
+    width: auto;
+    height: auto;
+
+    margin: 0;
+    padding: 0;
+
+    border: none;
+    background: none;
+
+    color: var(--color-accent);
+
+    font-size: 15px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+#entityParentSearch {
+    margin: 0;
+}
+
+.parent-result {
+    display: inline-flex;
+    align-items: center;
+
+    width: auto;
+
+    padding: var(--space-2) var(--space-5);
+
+    background: var(--color-surface-alt);
+    border: var(--border-light);
+    border-radius: var(--radius-lg);
+
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.3;
+
+    cursor: pointer;
+
+    transition:
+        background .15s ease,
+        border-color .15s ease,
+        color .15s ease;
+}
+
+.parent-result:hover {
+    background: var(--color-media-dark);
+    border-color: var(--color-border-hover);
+    color: var(--color-text);
+}
+
+
+/* ==========================================
+   STATUS EDITOR
+========================================== */
+
+.status-editor {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: var(--space-4);
+}
+
+.status-editor__badge {
+    display: inline-flex;
+    align-items: center;
+
+    gap: var(--space-4);
+
+    width: auto !important;
+
+    padding: var(--space-2) var(--space-5) !important;
+
+    background: var(--color-surface-alt) !important;
+    border: var(--border-light) !important;
+    border-radius: var(--radius-lg) !important;
+
+    color: var(--color-text-faded) !important;
+    font-size: var(--font-size-sm) !important;
+    line-height: 1.3;
+
+    cursor: pointer;
+
+    transition: var(--transition-fast);
+}
+
+.status-editor__badge:hover {
+    background: var(--color-media-dark) !important;
+    border-color: var(--color-border-hover) !important;
+    color: var(--color-text) !important;
+}
+
+.status-editor__badge.is-selected {
+    background: var(--color-accent-bg) !important;
+    border-color: var(--color-accent-border) !important;
+    color: var(--color-accent) !important;
+}
+
+.status-editor__remove {
+    font-size: 15px;
+    line-height: 1;
+}
