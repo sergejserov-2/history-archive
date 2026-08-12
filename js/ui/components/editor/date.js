@@ -6,11 +6,16 @@ import {
     setupHistoricalDateInput
 } from "./historicalDate.js";
 
+
 // ==========================================
 // Setup
 // ==========================================
 
-export function setupDateModeEditor(root, cfg = {}, entity = {}) {
+export function setupDateModeEditor(
+    root,
+    cfg = {},
+    entity = {}
+) {
 
     const container =
         root.querySelector("#entityDateEditor");
@@ -19,29 +24,39 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
         return null;
     }
 
+
     const row =
         container.closest(".entity-row");
+
 
     const dateInput =
         root.querySelector("#entity_date");
 
+
     const dateStartInput =
         root.querySelector("#entity_dateStart");
+
 
     const dateEndInput =
         root.querySelector("#entity_dateEnd");
 
+
     const switchButton =
         root.querySelector("#entityDateModeSwitch");
+
 
     const dateLabel =
         root.querySelector("#entityDateLabel");
 
+
     const periodFields =
         root.querySelector("#entityDatePeriod");
 
+
     const singleField =
         root.querySelector("#entityDateSingle");
+
+
     if(!switchButton || !dateLabel) {
 
         console.error(
@@ -52,40 +67,68 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
     }
 
 
-// ==========================================
-// Historical date inputs
-// ==========================================
+    // ==========================================
+    // Historical date inputs
+    // ==========================================
 
-const dateEditor =
-    dateInput
-        ? setupHistoricalDateInput(dateInput, {
-            showHelp: true
-        })
-        : null;
+    /*
+     * Обычная дата:
+     * исторический формат + ?
+     */
 
-const dateStartEditor =
-    dateStartInput
-        ? setupHistoricalDateInput(dateStartInput, {
-            showHelp: false
-        })
-        : null;
-
-const dateEndEditor =
-    dateEndInput
-        ? setupHistoricalDateInput(dateEndInput, {
-            showHelp: true
-        })
-        : null;
+    const dateEditor =
+        dateInput
+            ? setupHistoricalDateInput(
+                dateInput,
+                {
+                    showHelp: true
+                }
+            )
+            : null;
 
 
-// ==========================================
-// Mode
-// ==========================================
+    /*
+     * Начало периода:
+     * только historical dropdown,
+     * без вопросика.
+     */
+
+    const dateStartEditor =
+        dateStartInput
+            ? setupHistoricalDateInput(
+                dateStartInput,
+                {
+                    showHelp: false
+                }
+            )
+            : null;
+
+
+    /*
+     * Конец периода:
+     * historical dropdown + ?
+     */
+
+    const dateEndEditor =
+        dateEndInput
+            ? setupHistoricalDateInput(
+                dateEndInput,
+                {
+                    showHelp: true
+                }
+            )
+            : null;
+
+
+    // ==========================================
+    // Mode
+    // ==========================================
 
     let mode =
         entity?.dateMode ??
         cfg.dateMode ??
         "date";
+
 
     mode =
         mode === "period"
@@ -93,9 +136,9 @@ const dateEndEditor =
             : "date";
 
 
-// ==========================================
-// Render
-// ==========================================
+    // ==========================================
+    // Render
+    // ==========================================
 
     function render() {
 
@@ -133,6 +176,7 @@ const dateEndEditor =
                 isPeriod;
         }
 
+
         if(periodFields) {
 
             periodFields.hidden =
@@ -151,16 +195,19 @@ const dateEndEditor =
                 "entity-row--author-date-period"
             );
 
+
             row.classList.add(
                 isPeriod
                     ? "entity-row--author-date-period"
                     : "entity-row--author-date"
             );
         }
+    }
 
-// ==========================================
-// Switch date / period
-// ==========================================
+
+    // ==========================================
+    // Switch date / period
+    // ==========================================
 
     switchButton.addEventListener(
         "click",
@@ -176,36 +223,41 @@ const dateEndEditor =
                     dateInput?.value.trim() || "";
 
 
-                if(dateStartInput) {
+                /*
+                 * Переносим дату
+                 * в начало периода.
+                 */
+
+                if(dateStartEditor) {
+
+                    dateStartEditor.setValue(
+                        date
+                    );
+
+                }
+                else if(dateStartInput) {
 
                     dateStartInput.value =
                         date;
                 }
 
 
-                if(dateEndInput) {
-
-                    dateEndInput.value =
-                        "";
-                }
-
-
                 /*
-                 * После переноса значения
-                 * обновляем состояние редакторов.
+                 * Конец периода
+                 * при переключении пустой.
                  */
-                if(dateStartEditor) {
-
-                    dateStartEditor.setValue(
-                        date
-                    );
-                }
 
                 if(dateEndEditor) {
 
                     dateEndEditor.setValue(
                         ""
                     );
+
+                }
+                else if(dateEndInput) {
+
+                    dateEndInput.value =
+                        "";
                 }
 
 
@@ -222,36 +274,67 @@ const dateEndEditor =
                 let date = "";
 
 
-                if(dateStartInput) {
+                /*
+                 * При возврате к дате
+                 * сначала берём начало периода.
+                 */
+
+                if(dateStartEditor) {
 
                     date =
-                        dateStartInput.value.trim();
+                        dateStartEditor
+                            .getValue();
+
                 }
-
-
-                if(!date && dateEndInput) {
+                else if(dateStartInput) {
 
                     date =
-                        dateEndInput.value.trim();
-                }
-
-
-                if(dateInput) {
-
-                    dateInput.value =
-                        date;
+                        dateStartInput
+                            .value
+                            .trim();
                 }
 
 
                 /*
-                 * Синхронизируем historical-date
-                 * editor обычной даты.
+                 * Если начало пустое,
+                 * используем конец.
                  */
+
+                if(!date) {
+
+                    if(dateEndEditor) {
+
+                        date =
+                            dateEndEditor
+                                .getValue();
+
+                    }
+                    else if(dateEndInput) {
+
+                        date =
+                            dateEndInput
+                                .value
+                                .trim();
+                    }
+                }
+
+
+                /*
+                 * Передаём значение
+                 * в обычный historical input.
+                 */
+
                 if(dateEditor) {
 
                     dateEditor.setValue(
                         date
                     );
+
+                }
+                else if(dateInput) {
+
+                    dateInput.value =
+                        date;
                 }
 
 
@@ -264,16 +347,16 @@ const dateEndEditor =
     );
 
 
-// ==========================================
-// Initial render
-// ==========================================
+    // ==========================================
+    // Initial render
+    // ==========================================
 
     render();
 
 
-// ==========================================
-// Public API
-// ==========================================
+    // ==========================================
+    // Public API
+    // ==========================================
 
     return {
 
@@ -302,10 +385,24 @@ const dateEndEditor =
                 return {
 
                     dateStart:
-                        dateStartInput?.value.trim() || "",
+                        dateStartEditor
+                            ? dateStartEditor.getValue()
+                            : (
+                                dateStartInput
+                                    ?.value
+                                    .trim() || ""
+                            ),
+
 
                     dateEnd:
-                        dateEndInput?.value.trim() || "",
+                        dateEndEditor
+                            ? dateEndEditor.getValue()
+                            : (
+                                dateEndInput
+                                    ?.value
+                                    .trim() || ""
+                            ),
+
 
                     dateMode:
                         "period"
@@ -320,7 +417,14 @@ const dateEndEditor =
             return {
 
                 date:
-                    dateInput?.value.trim() || "",
+                    dateEditor
+                        ? dateEditor.getValue()
+                        : (
+                            dateInput
+                                ?.value
+                                .trim() || ""
+                        ),
+
 
                 dateMode:
                     "date"
@@ -341,16 +445,31 @@ const dateEndEditor =
             if(mode === "period") {
 
                 const start =
-                    dateStartInput?.value.trim() || "";
+                    dateStartEditor
+                        ? dateStartEditor.getValue()
+                        : (
+                            dateStartInput
+                                ?.value
+                                .trim() || ""
+                        );
+
 
                 const end =
-                    dateEndInput?.value.trim() || "";
+                    dateEndEditor
+                        ? dateEndEditor.getValue()
+                        : (
+                            dateEndInput
+                                ?.value
+                                .trim() || ""
+                        );
 
 
                 /*
-                 * Пустая граница допустима.
-                 * Если значение есть — оно должно
-                 * соответствовать историческому шаблону.
+                 * Обе границы могут быть пустыми.
+                 *
+                 * Если значение есть —
+                 * оно обязано соответствовать
+                 * историческому шаблону.
                  */
 
                 if(start) {
@@ -390,7 +509,9 @@ const dateEndEditor =
 
 
             const value =
-                dateInput.value.trim();
+                dateEditor
+                    ? dateEditor.getValue()
+                    : dateInput.value.trim();
 
 
             if(!value) {
@@ -425,8 +546,10 @@ export function renderDateModeEditorHTML(
         cfg.dateMode ??
         "date";
 
+
     const isPeriod =
         mode === "period";
+
 
     return `
         <div
@@ -438,9 +561,17 @@ export function renderDateModeEditorHTML(
                 id="entityDateLabel"
                 class="entity-date-editor__label"
             >
-                ${isPeriod ? "Период" : "Дата"}
+                ${
+                    isPeriod
+                        ? "Период"
+                        : "Дата"
+                }
             </span>
 
+
+            <!-- ==============================
+                 SINGLE DATE
+            =============================== -->
 
             <div
                 id="entityDateSingle"
@@ -457,29 +588,37 @@ export function renderDateModeEditorHTML(
             </div>
 
 
-              <div
+            <!-- ==============================
+                 PERIOD
+            =============================== -->
+
+            <div
                 id="entityDatePeriod"
                 class="entity-date-editor__period"
                 ${isPeriod ? "" : "hidden"}
             >
-            
-                <div class="entity-date-editor__period-input">
-                    <input
-                        id="entity_dateStart"
-                        value="${entity.dateStart ?? ""}"
-                        autocomplete="off"
-                    >
-                </div>
-            
-                <div class="entity-date-editor__period-input">
-                    <input
-                        id="entity_dateEnd"
-                        value="${entity.dateEnd ?? ""}"
-                        autocomplete="off"
-                    >
-                </div>
-            
+
+                <input
+                    id="entity_dateStart"
+                    class="entity-date-editor__period-input"
+                    value="${entity.dateStart ?? ""}"
+                    autocomplete="off"
+                >
+
+
+                <input
+                    id="entity_dateEnd"
+                    class="entity-date-editor__period-input"
+                    value="${entity.dateEnd ?? ""}"
+                    autocomplete="off"
+                >
+
             </div>
+
+
+            <!-- ==============================
+                 SWITCH
+            =============================== -->
 
             <button
                 type="button"
