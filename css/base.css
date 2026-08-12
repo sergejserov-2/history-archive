@@ -367,3 +367,54 @@ button.admin-button {
     align-items: center;
     justify-content: center;
 }
+
+/* ==========================================
+   MODAL
+========================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--modal-z-index);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--modal-overlay-bg);
+}
+
+.modal {
+    width: 420px;
+    max-width: 90vw;
+
+    overflow: hidden;
+
+    background: var(--color-surface);
+    border-radius: var(--radius-2xl);
+}
+
+.modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: var(--space-7) var(--space-9);
+
+    background: #24282d;
+}
+
+.modal__header h2 {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-2xl);
+}
+
+.modal__close {
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.modal__content {
+    padding: var(--space-9);
+}
