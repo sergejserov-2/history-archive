@@ -56,7 +56,7 @@
     --page-width: 1200px;
     --page-padding: 25px;
 
-    --header-width: 1200px;
+    --header-width: 1150px;
     --header-logo-width: 220px;
     --header-buttons-width: 110px;
 
@@ -175,7 +175,7 @@ body {
 .header {
     max-width: var(--header-width);
     margin: 20px auto 0;
-    padding: 12px var(--page-padding);
+    padding: 12px var(--space-9);
 
     display: flex;
     align-items: center;
