@@ -59,19 +59,26 @@ export function setupEditorComponents(root, cfg, context = {}, entity = {}) {
         required: cfg.fileRequired === true,
         requiredMessage: cfg.fileRequiredMessage
     });
+    const fieldsEditor = setupFieldsEditor(root, cfg, entity);
+    const typeEditor = cfg.options?.typeSelector ? setupTypesEditor(root, entity, {
+        types: context.types ?? [],
+        objects: context.objects ?? [],
+        children: context.children ?? [],
+        parentId: context.parentId
+    }) : null;
     const parents = entity.parents ? [...entity.parents] : context.parentId ? [context.parentId] : [];
     const parentsEditor = cfg.parentsType ? setupParentsEditor(root, context.objects ?? [], entity, parents, {
         address: cfg.parentsType === "objectsWithAddress",
         types: context.types ?? [],
         typeSelector: cfg.options?.typeSelector === true,
         children: context.children ?? [],
-        getTypeId: () => root.querySelector("#entityType")?.value,
+        getTypeId: () => typeEditor?.getTypeId(),
         requiredMessage: cfg.parentsRequiredMessage
     }) : null;
-    const fieldsEditor = setupFieldsEditor(root, cfg, entity);
-    const typeEditor = setupTypesEditor(root, entity);
     const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
-    const dateModeEditor = setupDateModeEditor(root, {mode: entity?.dateMode ?? cfg.dateMode ?? "date"});
+    const dateModeEditor = setupDateModeEditor(root, {
+        mode: entity?.dateMode ?? cfg.dateMode ?? "date"
+    });
     const coverEditor = cfg.cover ? setupCoverEditor(root, cfg.cover.photos ?? [], entity) : null;
     return {
         fileEditor,
@@ -86,7 +93,7 @@ export function setupEditorComponents(root, cfg, context = {}, entity = {}) {
             if(parentsEditor && !parentsEditor.validate()) return null;
             const data = {};
             Object.assign(data, fieldsEditor.getData());
-            if(typeEditor.getTypeId()) data.typeId = typeEditor.getTypeId();
+            if(typeEditor?.getTypeId()) data.typeId = typeEditor.getTypeId();
             if(cfg.status) data.status = statusEditor.getStatus();
             if(dateModeEditor) Object.assign(data, dateModeEditor.getData());
             if(parentsEditor) data.parents = parentsEditor.getParents();
