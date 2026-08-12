@@ -163,50 +163,58 @@ async function loadPage() {
 
     pageObjects = objects;
 
-    console.timeEnd("LOAD DATA");
+console.time("LOAD DATA");
 
-    onAdminStateChanged(
-        async ADMIN_MODE => {
-            console.time("ADMIN CALLBACK");
+const objects = await getAllObjects();
+const object = objects.find(item => item.id === objectId);
 
-            pageAdminMode = ADMIN_MODE;
+if(!object) {
+    document.body.innerHTML = `<h1>Объект не найден</h1>`;
+    return;
+}
 
-            console.time("renderPage");
-            await renderPage();
-            console.timeEnd("renderPage");
+document.title = object.title || "Исторический архив";
+pageObject = object;
 
-            if(ADMIN_MODE) {
-                console.time("initAdmin");
+console.time("getType");
+pageType = await getType(object.typeId);
+console.timeEnd("getType");
 
-                initAdmin(
-                    pageObject,
-                    pageTypes,
-                    pageObjects,
-                    pagePhotos,
-                    pageSources,
-                    pageRecords,
-                    pageChildren,
-                    pageRecordTypes,
-                    {
-                        updateObjectBlock,
-                        updateRecordsBlock,
-                        updatePhotosBlock,
-                        updateSourcesBlock
-                    }
-                );
+const timed = (name, promise) =>
+    promise.then(result => {
+        console.timeEnd(name);
+        return result;
+    });
 
-                console.timeEnd("initAdmin");
-            }
+console.time("getTypes");
+console.time("getRecordTypes");
+console.time("getParents");
+console.time("getChildren");
+console.time("getRecords");
+console.time("getPhotos");
+console.time("getSources");
 
-            console.time("restoreModalFromUrl");
-            await restoreModalFromUrl();
-            console.timeEnd("restoreModalFromUrl");
+[
+    pageTypes,
+    pageRecordTypes,
+    pageParents,
+    pageChildren,
+    pageRecords,
+    pagePhotos,
+    pageSources
+] = await Promise.all([
+    timed("getTypes", getTypes()),
+    timed("getRecordTypes", getRecordTypes()),
+    timed("getParents", getParents(object)),
+    timed("getChildren", getChildren(object.id)),
+    timed("getRecords", getRecords(object.id)),
+    timed("getPhotos", getPhotos(object.id)),
+    timed("getSources", getSources(object.id))
+]);
 
-            console.timeEnd("ADMIN CALLBACK");
-        }
-    );
+pageObjects = objects;
 
-    console.timeEnd("LOAD PAGE");
+console.timeEnd("LOAD DATA");
 }
 
 export async function onPhotoDeleted() {
