@@ -20,12 +20,12 @@
 }
 
 .entity-row--title-type .entity-type {
-    flex: 1;
+    flex: 1 1 0;
     min-width: 0;
 }
 
 .entity-row--title-type .entity-title {
-    flex: 2;
+    flex: 2 1 0;
     min-width: 0;
 }
 
@@ -37,21 +37,20 @@
 /* Автор + дата */
 
 .entity-row--author-date > label:first-child {
-    flex: 2;
+    flex: 2 1 0;
     min-width: 0;
 }
 
 .entity-row--author-date > .entity-date-editor {
-    flex: 1;
+    flex: 1 1 0;
     min-width: 0;
 }
-
 
 /* Автор + период */
 
 .entity-row--author-date-period > label:first-child,
 .entity-row--author-date-period > .entity-date-editor {
-    flex: 1;
+    flex: 1 1 0;
     min-width: 0;
 }
 
