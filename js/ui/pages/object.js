@@ -401,10 +401,7 @@ export async function updateSourcesBlock() {
             pageAdminMode ||
             pageSources.length > 0
         ) {
-            const children =
-                document.querySelector(
-                    "#children"
-                );
+            const childrenHTML = await renderChildren(pageChildren, pageAdminMode, pageObject);
 
             const html = `
                 <section id="sources">
