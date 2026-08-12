@@ -1,3 +1,7 @@
+// ======================================
+// Object page
+// ======================================
+
 import {
     isAdmin,
     onAdminStateChanged,
@@ -5,10 +9,12 @@ import {
     login
 }
 from "../../admin/adminMode.js";
+
 import {
     initAdmin
 }
 from "../../admin/admin.js";
+
 import {
     getObject,
     getType,
@@ -17,65 +23,87 @@ import {
     getAllObjects
 }
 from "../../api/objects.js";
+
 import {
     getTypes
 }
 from "../../api/types.js";
+
 import {
     renderHeader
 }
 from "../components/header.js";
+
 import {
     renderBreadcrumbs
 }
 from "../components/breadcrumbs.js";
+
 import {
     renderChildren
 }
 from "../components/children.js";
+
 import {
     getRecords
 }
 from "../../api/records.js";
+
 import {
     renderRecords
 }
 from "../components/records.js";
+
 import {
     getRecordTypes
 }
 from "../../api/recordTypes.js";
+
 import {
     getPhotos
 }
 from "../../api/photos.js";
+
 import {
     renderPhotos
 }
 from "../components/photos.js";
+
 import {
     getSources
 }
 from "../../api/sources.js";
+
 import {
     renderSources
 }
 from "../components/sources.js";
+
 import {
     renderStatusBadgeHTML
 }
 from "../components/editor/status.js";
+
 import {
     restoreModalFromUrl
 }
 from "../components/modal.js";
 
+// ======================================
+// Get object id
+// ======================================
+
 const params =
     new URLSearchParams(
         window.location.search
     );
+
 const objectId =
     params.get("id");
+
+// ======================================
+// Page state
+// ======================================
 
 let pageObject = null;
 let pageType = null;
@@ -89,11 +117,16 @@ let pageAdminMode = false;
 let pageTypes = [];
 let pageObjects = [];
 
+// ======================================
+// Load page
+// ======================================
+
 async function loadPage() {
     const object =
         await getObject(
             objectId
         );
+
     if(!object) {
         document.body.innerHTML = `
             <h1>
@@ -102,45 +135,60 @@ async function loadPage() {
         `;
         return;
     }
+
     document.title =
         object.title ||
         "Исторический архив";
-    pageObject = object;
+
+    pageObject =
+        object;
+
     pageType =
         await getType(
             object.typeId
         );
+
     pageTypes =
         await getTypes();
+
     pageObjects =
         await getAllObjects();
+
     pageRecordTypes =
         await getRecordTypes();
+
     pageParents =
         await getParents(
             object
         );
+
     pageChildren =
         await getChildren(
             object.id
         );
+
     pageRecords =
         await getRecords(
             object.id
         );
+
     pagePhotos =
         await getPhotos(
             object.id
         );
+
     pageSources =
         await getSources(
             object.id
         );
+
     onAdminStateChanged(
         async ADMIN_MODE => {
             pageAdminMode =
                 ADMIN_MODE;
+
             await renderPage();
+
             if(ADMIN_MODE) {
                 initAdmin(
                     pageObject,
@@ -152,40 +200,253 @@ async function loadPage() {
                     pageChildren,
                     pageRecordTypes,
                     {
-                        onObjectSaved:
-                            handleObjectSaved
+                        updateObjectBlock,
+                        updateRecordsBlock,
+                        updatePhotosBlock,
+                        updateSourcesBlock
                     }
                 );
             }
+
             await restoreModalFromUrl();
         }
     );
 }
 
-async function handleObjectSaved(data) {
-    if(!pageObject) return;
-    pageObject = {
-        ...pageObject,
-        ...data
-    };
-    pageType =
+// ======================================
+// Update object block
+// ======================================
+
+export async function updateObjectBlock(data) {
+    if(data) {
+        pageObject = {
+            ...pageObject,
+            ...data
+        };
+    }
+
+    pageObject =
+        await getObject(
+            pageObject.id
+        );
+
+    if(!pageObject) {
+        return;
+    }
+
+pageType =
         await getType(
             pageObject.typeId
         );
-    updateObjectBlock();
-}
 
-function updateObjectBlock() {
     const oldBlock =
         document.querySelector(
             ".object"
         );
-    if(!oldBlock) return;
-    const newBlock =
-        renderObjectBlock();
+
+    if(!oldBlock) {
+        return;
+    }
+
     oldBlock.outerHTML =
-        newBlock;
+        renderObjectBlock();
 }
+
+// ======================================
+// Update records block
+// ======================================
+
+export async function updateRecordsBlock() {
+    if(!pageObject) {
+        return;
+    }
+
+    pageRecords =
+        await getRecords(
+            pageObject.id
+        );
+
+    const recordsBlock =
+        document.querySelector(
+            ".records"
+        );
+
+    if(recordsBlock) {
+        recordsBlock.outerHTML =
+            renderRecords(
+                pageRecords,
+                pageRecordTypes,
+                pageAdminMode
+            );
+
+        return;
+    }
+
+    if(
+        pageAdminMode ||
+        pageRecords.length > 0
+    ) {
+        const objectInfo =
+            document.querySelector(
+                ".object__info"
+            );
+
+        if(objectInfo) {
+            objectInfo.insertAdjacentHTML(
+                "beforeend",
+                renderRecords(
+                    pageRecords,
+                    pageRecordTypes,
+                    pageAdminMode
+                )
+            );
+        }
+    }
+}
+
+// ======================================
+// Update photos block
+// ======================================
+
+export async function updatePhotosBlock() {
+    if(!pageObject) {
+        return;
+    }
+
+    pagePhotos =
+        await getPhotos(
+            pageObject.id
+        );
+
+    const gallery =
+        document.querySelector(
+            "#gallery"
+        );
+
+    if(!gallery) {
+        if(
+            pageAdminMode ||
+            pagePhotos.length > 0
+        ) {
+            const sources =
+                document.querySelector(
+                    "#sources"
+                );
+
+            const html = `
+                <section id="gallery">
+                    <h2>
+                        Фотографии
+                    </h2>
+                    ${renderPhotos(
+                        pagePhotos,
+                        pageAdminMode
+                    )}
+                </section>
+            `;
+
+            if(sources) {
+                sources.insertAdjacentHTML(
+                    "beforebegin",
+                    html
+                );
+            } else {
+                document
+                    .querySelector(".page")
+                    ?.insertAdjacentHTML(
+                        "beforeend",
+                        html
+                    );
+            }
+        }
+
+        return;
+    }
+
+    gallery.innerHTML = `
+        <h2>
+            Фотографии
+        </h2>
+        ${renderPhotos(
+            pagePhotos,
+            pageAdminMode
+        )}
+    `;
+}
+
+// ======================================
+// Update sources block
+// ======================================
+
+export async function updateSourcesBlock() {
+    if(!pageObject) {
+        return;
+    }
+
+    pageSources =
+        await getSources(
+            pageObject.id
+        );
+
+    const sourcesBlock =
+        document.querySelector(
+            "#sources"
+        );
+
+    if(!sourcesBlock) {
+        if(
+            pageAdminMode ||
+            pageSources.length > 0
+        ) {
+            const children =
+                document.querySelector(
+                    "#children"
+                );
+
+            const html = `
+                <section id="sources">
+                    <h2>
+                        Источники
+                    </h2>
+                    ${renderSources(
+                        pageSources,
+                        pageAdminMode
+                    )}
+                </section>
+            `;
+
+            if(children) {
+                children.insertAdjacentHTML(
+                    "beforebegin",
+                    html
+                );
+            } else {
+                document
+                    .querySelector(".page")
+                    ?.insertAdjacentHTML(
+                        "beforeend",
+                        html
+                    );
+            }
+        }
+
+        return;
+    }
+
+    sourcesBlock.innerHTML = `
+        <h2>
+            Источники
+        </h2>
+        ${renderSources(
+            pageSources,
+            pageAdminMode
+        )}
+    `;
+}
+
+// ======================================
+// Render object block
+// ======================================
 
 function renderObjectBlock() {
     const coverPhoto =
@@ -194,15 +455,18 @@ function renderObjectBlock() {
                 photo.id ===
                 pageObject.coverPhotoId
         );
+
     const status =
         renderStatusBadgeHTML(
             pageObject.status
         );
+
     return `
         <section class="object">
             <div class="object__cover">
                 ${
-                    coverPhoto?.previewPath?
+                    coverPhoto?.previewPath
+                    ?
                     `
                     <div
                         class="object__cover-bg"
@@ -227,14 +491,17 @@ function renderObjectBlock() {
                     `
                 }
             </div>
+
             <div class="object__info">
                 <div class="object__type">
                     ${pageType?.title ?? ""}
                 </div>
+
                 <h1 class="object__title">
                     <span class="object__title-text">
                         ${pageObject.title ?? ""}
                     </span>
+
                     ${
                         pageAdminMode
                         ?
@@ -248,6 +515,7 @@ function renderObjectBlock() {
                                 class="admin-icon"
                             >
                         </button>
+
                         <button
                             class="admin-button"
                             data-action="delete-object"
@@ -262,8 +530,10 @@ function renderObjectBlock() {
                         :
                         ""
                     }
+
                     ${status}
                 </h1>
+
                 ${
                     pageObject.description?.trim()
                     ?
@@ -275,6 +545,7 @@ function renderObjectBlock() {
                     :
                     ""
                 }
+
                 ${
                     (
                         pageAdminMode ||
@@ -294,6 +565,10 @@ function renderObjectBlock() {
     `;
 }
 
+// ======================================
+// Render page
+// ======================================
+
 async function renderPage() {
     const childrenHTML =
         await renderChildren(
@@ -301,15 +576,20 @@ async function renderPage() {
             pageAdminMode,
             pageObject
         );
+
     const breadcrumbsHTML =
         await renderBreadcrumbs(
             pageObject
         );
+
     document.body.innerHTML = `
         ${renderHeader()}
+
         <main class="page">
             ${breadcrumbsHTML}
+
             ${renderObjectBlock()}
+
             ${
                 (
                     pageAdminMode ||
@@ -321,6 +601,7 @@ async function renderPage() {
                     <h2>
                         Фотографии
                     </h2>
+
                     ${renderPhotos(
                         pagePhotos,
                         pageAdminMode
@@ -330,9 +611,11 @@ async function renderPage() {
                 :
                 ""
             }
+
             ${
                 (
-                    pageAdminMode || pageSources.length > 0
+                    pageAdminMode ||
+                    pageSources.length > 0
                 )
                 ?
                 `
@@ -340,6 +623,7 @@ async function renderPage() {
                     <h2>
                         Источники
                     </h2>
+
                     ${renderSources(
                         pageSources,
                         pageAdminMode
@@ -349,9 +633,11 @@ async function renderPage() {
                 :
                 ""
             }
+
             ${
                 (
-                    pageAdminMode || pageChildren.length > 0
+                    pageAdminMode ||
+                    pageChildren.length > 0
                 )
                 ?
                 `
@@ -359,6 +645,7 @@ async function renderPage() {
                     <h2>
                         Дочерние объекты
                     </h2>
+
                     ${childrenHTML}
                 </section>
                 `
