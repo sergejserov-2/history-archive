@@ -2,9 +2,7 @@
 // Object editor
 // ======================================
 
-import {doc, updateDoc} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-import {db} from "../../firebase.js";
-import {createObject} from "../../api/objects.js";
+import {createObject, updateObject} from "../../api/objects.js";
 import {createModal} from "../../ui/components/modal.js";
 import {renderEntityEditor, setupEditorComponents, setupEditorButtons} from "../../ui/components/editor.js";
 
@@ -58,7 +56,7 @@ export function openObjectEditor(object, types, objects, photos, children, conte
         try {
             const data = await editor.getData();
             if(!data) return;
-            if(object) await updateDoc(doc(db, "objects", object.id), data);
+            if(object) await updateObject(object.id, data);
             else await createObject(data);
             modal.close();
             onSave?.();
