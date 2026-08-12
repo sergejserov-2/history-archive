@@ -9,7 +9,7 @@ import {getObject, getType, getChildren, getAllObjects} from "../../api/objects.
 import {getTypes} from "../../api/types.js";
 
 import {openPhotoViewer} from "./photoViewer.js";
-import {openEditor} from "../../admin/editors/editorConfig.js";
+import {openEditor} from "../../admin/editorConfig.js";
 
 // ======================================
 // PHOTO PREVIEW
