@@ -213,7 +213,7 @@ export async function openEditor(type, entity, context = {}) {
                 const data =
                     await editor.getData();
                 if(!data) return;
-                await saveEntity(
+                await updateEntity(
                     type,
                     entity,
                     data,
