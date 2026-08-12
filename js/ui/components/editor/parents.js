@@ -1,6 +1,7 @@
 // ======================================
 // Parents editor
 // ======================================
+
 export function setupParentsEditor(
     root,
     objects,
@@ -10,130 +11,201 @@ export function setupParentsEditor(
 ) {
     const withAddress = options.address === true;
     const types = options.types ?? [];
-    const parentsBox = root.querySelector("#entityParents");
-    const searchInput = root.querySelector("#entityParentSearch");
-    const resultsBox = root.querySelector("#entityParentResults");
+
+    const parentsBox =
+        root.querySelector("#entityParents");
+
+    const searchInput =
+        root.querySelector("#entityParentSearch");
+
+    const resultsBox =
+        root.querySelector("#entityParentResults");
+
     if(!parentsBox || !searchInput || !resultsBox) {
         return {
-            getParents() {return parents;},
-            clearParents() {parents.splice(0);},
-            validate() {return true;}
+            getParents() {
+                return parents;
+            },
+            clearParents() {
+                parents.splice(0);
+            },
+            validate() {
+                return true;
+            }
         };
     }
+
     function getParentId(parent) {
         return withAddress
             ? parent.objectId
             : parent;
     }
+
     function getType(id) {
         return types.find(
             type => type.id === id
         );
     }
+
     function getParentType(parent) {
-        const id = getParentId(parent);
-        const object = objects.find(
-            object => object.id === id
+        const id =
+            getParentId(parent);
+
+        const object =
+            objects.find(
+                object => object.id === id
+            );
+
+        return getType(
+            object?.typeId
         );
-        return getType(object?.typeId);
     }
-    function getEntityType() {
+
+    function getObjectType() {
         if(options.getTypeId) {
             return getType(
                 options.getTypeId()
             );
         }
+
         const typeId =
             root.querySelector(
                 "#entityType"
             )?.value;
+
         return getType(typeId);
     }
+
     function getMaxChildLevel() {
         if(!options.children?.length) {
             return -Infinity;
         }
+
         return Math.max(
             ...options.children.map(child => {
-                const type = getType(
-                    child.typeId
-                );
+                const type =
+                    getType(
+                        child.typeId
+                    );
+
                 return type?.level ?? -Infinity;
             })
         );
     }
+
+    function isObjectParentAllowed(parent) {
+        if(parent.id === entity?.id) {
+            return false;
+        }
+
+        const parentType =
+            getType(parent.typeId);
+
+        if(!parentType) {
+            return false;
+        }
+
+        const objectType =
+            getObjectType();
+
+        if(!objectType) {
+            return false;
+        }
+
+        if(parents.length > 0) {
+            const firstParentType =
+                getParentType(
+                    parents[0]
+                );
+
+            if(!firstParentType) {
+                return false;
+            }
+
+            return (
+                Number(parentType.level) ===
+                Number(firstParentType.level)
+            );
+        }
+
+        return (
+            Number(parentType.level) >
+            Number(objectType.level)
+        );
+    }
+
     function isParentAllowed(parent) {
         if(parent.id === entity?.id) {
             return false;
         }
-        const parentType =
-            getType(parent.typeId);
-        if(!parentType) {
-            return false;
+
+        if(withAddress) {
+            return isObjectParentAllowed(
+                parent
+            );
         }
-        const entityType =
-            getEntityType();
-        if(!entityType) {
-            return false;
-        }
-        const currentParents =
-            parents;
-        if(currentParents.length > 0) {
-            const firstParentType =
-                getParentType(
-                    currentParents[0]
-                );
-            if(!firstParentType) {
-                return false;
-            }
-            return Number(parentType.level) ===
-                Number(firstParentType.level);
-        }
-        return Number(parentType.level) >
-            Number(entityType.level);
+
+        return true;
     }
-    function validateParentLevels() {
-        const entityType =
-            getEntityType();
-        if(!entityType) {
+
+    function validateObjectLevels() {
+        if(!withAddress) {
             return true;
         }
+
+        const objectType =
+            getObjectType();
+
+        if(!objectType) {
+            return true;
+        }
+
         const maxChildLevel =
             getMaxChildLevel();
+
         if(maxChildLevel === -Infinity) {
             return true;
         }
+
         if(
-            Number(entityType.level) <=
+            Number(objectType.level) <=
             Number(maxChildLevel)
         ) {
             alert(
                 "Тип объекта должен быть выше уровня всех его детей."
             );
+
             return false;
         }
+
         return true;
     }
+
     function validateParents() {
         if(parents.length > 0) {
             return true;
         }
+
         alert(
             options.requiredMessage ??
             "Нужен хотя бы один родитель"
         );
+
         return false;
     }
+
     function renderParents() {
         parentsBox.innerHTML =
             parents.map(parent => {
                 const id =
                     getParentId(parent);
+
                 const object =
                     objects.find(
                         object =>
                             object.id === id
                     );
+
                 return renderParentItemHTML(
                     parent,
                     object,
@@ -141,15 +213,18 @@ export function setupParentsEditor(
                 );
             }).join("");
     }
+
     function clearSearch() {
         searchInput.value = "";
         resultsBox.innerHTML = "";
     }
+
     function renderResults(text) {
         if(!text) {
             resultsBox.innerHTML = "";
             return;
         }
+
         resultsBox.innerHTML =
             objects
                 .filter(object => {
@@ -159,6 +234,7 @@ export function setupParentsEditor(
                     ) {
                         return false;
                     }
+
                     if(
                         parents.some(
                             parent =>
@@ -168,11 +244,13 @@ export function setupParentsEditor(
                     ) {
                         return false;
                     }
+
                     if(
                         !isParentAllowed(object)
                     ) {
                         return false;
                     }
+
                     if(
                         options.filter &&
                         !options.filter(
@@ -182,9 +260,12 @@ export function setupParentsEditor(
                     ) {
                         return false;
                     }
+
                     return (
                         object.title ?? ""
-                    ).toLowerCase().includes(text);
+                    )
+                        .toLowerCase()
+                        .includes(text);
                 })
                 .slice(0, 20)
                 .map(object => `
@@ -197,19 +278,24 @@ export function setupParentsEditor(
                 `)
                 .join("");
     }
+
     parentsBox.onclick = event => {
         const id =
             event.target.dataset.remove;
+
         if(!id) {
             return;
         }
+
         parents =
             parents.filter(
                 parent =>
                     getParentId(parent) !== id
             );
+
         renderParents();
     };
+
     if(withAddress) {
         parentsBox.oninput = event => {
             if(
@@ -219,18 +305,21 @@ export function setupParentsEditor(
             ) {
                 return;
             }
+
             const parent =
                 parents.find(
                     parent =>
                         parent.objectId ===
                         event.target.dataset.id
                 );
+
             if(parent) {
                 parent.address =
                     event.target.value;
             }
         };
     }
+
     searchInput.oninput = () => {
         renderResults(
             searchInput.value
@@ -238,15 +327,20 @@ export function setupParentsEditor(
                 .trim()
         );
     };
+
     resultsBox.onclick = event => {
         const item =
             event.target.closest(
                 ".parent-result"
             );
+
         if(!item) {
             return;
         }
-        const id = item.dataset.id;
+
+        const id =
+            item.dataset.id;
+
         if(withAddress) {
             parents.push({
                 objectId: id,
@@ -255,30 +349,41 @@ export function setupParentsEditor(
         } else {
             parents.push(id);
         }
+
         renderParents();
         clearSearch();
     };
-    if(options.typeSelector) {
+
+    if(
+        withAddress &&
+        options.typeSelector
+    ) {
         const typeSelect =
             root.querySelector(
                 "#entityType"
             );
+
         if(typeSelect) {
             typeSelect.onchange = () => {
                 const newType =
-                    getEntityType();
+                    getObjectType();
+
                 if(!newType) {
                     return;
                 }
+
                 const firstParent =
                     parents[0];
+
                 if(!firstParent) {
                     return;
                 }
+
                 const parentType =
                     getParentType(
                         firstParent
                     );
+
                 if(
                     parentType &&
                     Number(newType.level) >=
@@ -287,34 +392,43 @@ export function setupParentsEditor(
                     alert(
                         "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
                     );
+
                     parents.splice(0);
+
                     renderParents();
                     clearSearch();
                 }
             };
         }
     }
+
     renderParents();
+
     return {
         getParents() {
             return parents;
         },
+
         clearParents() {
             parents.splice(0);
             renderParents();
             clearSearch();
         },
+
         validate() {
-            if(!validateParentLevels()) {
+            if(!validateObjectLevels()) {
                 return false;
             }
+
             return validateParents();
         }
     };
 }
+
 // ======================================
 // Render
 // ======================================
+
 export function renderParentsEditorHTML() {
     return `
         <div class="parents-group">
@@ -327,6 +441,7 @@ export function renderParentsEditorHTML() {
         </div>
     `;
 }
+
 export function renderParentItemHTML(
     parent,
     object,
@@ -336,8 +451,10 @@ export function renderParentItemHTML(
         withAddress
             ? parent.objectId
             : parent;
+
     const title =
         object?.title ?? id;
+
     return `
         <div class="parent-item">
             <div class="parent-badge">
