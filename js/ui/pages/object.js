@@ -122,17 +122,17 @@ let pageObjects = [];
 // ======================================
 
 async function loadPage() {
-    console.time("LOAD PAGE");
+    console.time("LOAD DATA");
 
-    console.time("getObject");
-    const object = await getObject(objectId);
-    console.timeEnd("getObject");
+    const objects = await getAllObjects();
+    const object = objects.find(item => item.id === objectId);
 
     if(!object) {
         document.body.innerHTML = `
-            <h1>Объект не найден</h1>
+            <h1>
+                Объект не найден
+            </h1>
         `;
-        console.timeEnd("LOAD PAGE");
         return;
     }
 
@@ -143,24 +143,8 @@ async function loadPage() {
     pageType = await getType(object.typeId);
     console.timeEnd("getType");
 
-    const timed = (name, promise) =>
-        promise.then(result => {
-            console.timeEnd(name);
-            return result;
-        });
-
-    console.time("getTypes");
-    console.time("getAllObjects");
-    console.time("getRecordTypes");
-    console.time("getParents");
-    console.time("getChildren");
-    console.time("getRecords");
-    console.time("getPhotos");
-    console.time("getSources");
-
     [
         pageTypes,
-        pageObjects,
         pageRecordTypes,
         pageParents,
         pageChildren,
@@ -168,70 +152,18 @@ async function loadPage() {
         pagePhotos,
         pageSources
     ] = await Promise.all([
-        timed("getTypes", getTypes()),
-        timed("getAllObjects", getAllObjects()),
-        timed("getRecordTypes", getRecordTypes()),
-        timed("getParents", getParents(object)),
-        timed("getChildren", getChildren(object.id)),
-        timed("getRecords", getRecords(object.id)),
-        timed("getPhotos", getPhotos(object.id)),
-        timed("getSources", getSources(object.id))
+        getTypes(),
+        getRecordTypes(),
+        getParents(object),
+        getChildren(object.id),
+        getRecords(object.id),
+        getPhotos(object.id),
+        getSources(object.id)
     ]);
 
-    console.log("LOAD DATA:", {
-        types: pageTypes.length,
-        objects: pageObjects.length,
-        recordTypes: pageRecordTypes.length,
-        parents: pageParents.length,
-        children: pageChildren.length,
-        records: pageRecords.length,
-        photos: pagePhotos.length,
-        sources: pageSources.length
-    });
+    pageObjects = objects;
 
-    onAdminStateChanged(
-        async ADMIN_MODE => {
-            console.time("ADMIN CALLBACK");
-
-            pageAdminMode = ADMIN_MODE;
-
-            console.time("renderPage");
-            await renderPage();
-            console.timeEnd("renderPage");
-
-            if(ADMIN_MODE) {
-                console.time("initAdmin");
-
-                initAdmin(
-                    pageObject,
-                    pageTypes,
-                    pageObjects,
-                    pagePhotos,
-                    pageSources,
-                    pageRecords,
-                    pageChildren,
-                    pageRecordTypes,
-                    {
-                        updateObjectBlock,
-                        updateRecordsBlock,
-                        updatePhotosBlock,
-                        updateSourcesBlock
-                    }
-                );
-
-                console.timeEnd("initAdmin");
-            }
-
-            console.time("restoreModalFromUrl");
-            await restoreModalFromUrl();
-            console.timeEnd("restoreModalFromUrl");
-
-            console.timeEnd("ADMIN CALLBACK");
-        }
-    );
-
-    console.timeEnd("LOAD PAGE");
-}
+    console.timeEnd("LOAD DATA");
 
 export async function onPhotoDeleted() {
     await updatePhotosBlock();
