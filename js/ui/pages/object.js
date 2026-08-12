@@ -122,12 +122,7 @@ let pageObjects = [];
 // ======================================
 
 async function loadPage() {
-
-    console.time("LOAD PAGE");
-
-    console.time("getObject");
     const object = await getObject(objectId);
-    console.timeEnd("getObject");
 
     if(!object) {
         document.body.innerHTML = `
@@ -135,99 +130,62 @@ async function loadPage() {
                 Объект не найден
             </h1>
         `;
-        console.timeEnd("LOAD PAGE");
         return;
     }
 
-    document.title =
-        object.title ||
-        "Исторический архив";
-
+    document.title = object.title || "Исторический архив";
     pageObject = object;
 
-    console.time("getType");
     pageType = await getType(object.typeId);
-    console.timeEnd("getType");
 
-    console.time("getTypes");
-    pageTypes = await getTypes();
-    console.timeEnd("getTypes");
+    [
+        pageTypes,
+        pageObjects,
+        pageRecordTypes,
+        pageParents,
+        pageChildren,
+        pageRecords,
+        pagePhotos,
+        pageSources
+    ] = await Promise.all([
+        getTypes(),
+        getAllObjects(),
+        getRecordTypes(),
+        getParents(object),
+        getChildren(object.id),
+        getRecords(object.id),
+        getPhotos(object.id),
+        getSources(object.id)
+    ]);
 
-    console.time("getAllObjects");
-    pageObjects = await getAllObjects();
-    console.timeEnd("getAllObjects");
+    onAdminStateChanged(
+        async ADMIN_MODE => {
+            pageAdminMode = ADMIN_MODE;
 
-    console.time("getRecordTypes");
-    pageRecordTypes = await getRecordTypes();
-    console.timeEnd("getRecordTypes");
+            await renderPage();
 
-    console.time("getParents");
-    pageParents = await getParents(object);
-    console.timeEnd("getParents");
+            if(ADMIN_MODE) {
+                initAdmin(
+                    pageObject,
+                    pageTypes,
+                    pageObjects,
+                    pagePhotos,
+                    pageSources,
+                    pageRecords,
+                    pageChildren,
+                    pageRecordTypes,
+                    {
+                        updateObjectBlock,
+                        updateRecordsBlock,
+                        updatePhotosBlock,
+                        updateSourcesBlock
+                    }
+                );
+            }
 
-    console.time("getChildren");
-    pageChildren = await getChildren(object.id);
-    console.timeEnd("getChildren");
-
-    console.time("getRecords");
-    pageRecords = await getRecords(object.id);
-    console.timeEnd("getRecords");
-
-    console.time("getPhotos");
-    pagePhotos = await getPhotos(object.id);
-    console.timeEnd("getPhotos");
-
-    console.time("getSources");
-    pageSources = await getSources(object.id);
-    console.timeEnd("getSources");
-
-    console.timeEnd("LOAD PAGE");
-
-onAdminStateChanged(
-    async ADMIN_MODE => {
-
-        console.time("ADMIN CALLBACK");
-
-        pageAdminMode =
-            ADMIN_MODE;
-
-        console.time("renderPage");
-        await renderPage();
-        console.timeEnd("renderPage");
-
-        if(ADMIN_MODE) {
-
-            console.time("initAdmin");
-
-            initAdmin(
-                pageObject,
-                pageTypes,
-                pageObjects,
-                pagePhotos,
-                pageSources,
-                pageRecords,
-                pageChildren,
-                pageRecordTypes,
-                {
-                    updateObjectBlock,
-                    updateRecordsBlock,
-                    updatePhotosBlock,
-                    updateSourcesBlock
-                }
-            );
-
-            console.timeEnd("initAdmin");
+            await restoreModalFromUrl();
         }
-
-        console.time("restoreModalFromUrl");
-
-        await restoreModalFromUrl();
-
-        console.timeEnd("restoreModalFromUrl");
-
-        console.timeEnd("ADMIN CALLBACK");
-    }
-);
+    );
 }
 
 export async function onPhotoDeleted() {
