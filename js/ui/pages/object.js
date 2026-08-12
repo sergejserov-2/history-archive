@@ -614,7 +614,13 @@ function renderObjectBlock() {
 async function renderPage() {
 
     console.time("renderChildren");
-    const childrenHTML = await renderChildren(pageChildren, pageAdminMode, pageObject);
+    const childrenHTML = await renderChildren(
+        pageChildren,
+        pageAdminMode,
+        pageObject,
+        pageObjects,
+        pageTypes
+    );
 
     console.timeEnd("renderChildren");
 
