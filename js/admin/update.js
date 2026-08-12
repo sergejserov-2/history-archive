@@ -48,12 +48,20 @@ export async function updateEntity(type, entity, data, context = {}, updates = [
     } else {
         savedData = await api.create(data);
     }
-    for(const update of updates) {
-        const callback = context.updates?.[update];
-        if(typeof callback === "function") {
-            await callback(savedData);
-        }
+for(const update of updates) {
+    const callback =
+        context.updates?.[update];
+
+    console.log(
+        "EDITOR UPDATE:",
+        update,
+        typeof callback
+    );
+
+    if(typeof callback === "function") {
+        await callback(savedData);
     }
+}
     return savedData;
 }
 // ======================================
