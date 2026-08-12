@@ -137,3 +137,57 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
         }
     };
 }
+
+export function renderDateModeEditorHTML(cfg = {}, entity = {}) {
+    const mode = entity?.dateMode ?? cfg.dateMode ?? "date";
+    const isPeriod = mode === "period";
+
+    return `
+        <div
+            id="entityDateEditor"
+            class="entity-date-editor"
+        >
+            <span
+                id="entityDateLabel"
+                class="entity-date-editor__label"
+            >
+                ${isPeriod ? "Период" : "Дата"}
+            </span>
+
+            <div
+                id="entityDateSingle"
+                class="entity-date-editor__single"
+                ${isPeriod ? "hidden" : ""}
+
+>
+                <input
+                    id="entity_date"
+                    value="${entity.date ?? ""}"
+                >
+            </div>
+
+            <div
+                id="entityDatePeriod"
+                class="entity-date-editor__period"
+                ${isPeriod ? "" : "hidden"}
+            >
+                <input
+                    id="entity_dateStart"
+                    value="${entity.dateStart ?? ""}"
+                >
+                <input
+                    id="entity_dateEnd"
+                    value="${entity.dateEnd ?? ""}"
+                >
+            </div>
+
+            <button
+                type="button"
+                id="entityDateModeSwitch"
+                class="entity-date-editor__switch"
+            >
+                ${isPeriod ? "Сменить на дату" : "Сменить на период"}
+            </button>
+        </div>
+    `;
+}
