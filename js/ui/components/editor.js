@@ -23,7 +23,7 @@ export function renderEntityEditor(cfg, entity) {
     const fields = renderFieldsEditorHTML(cfg, entity, limits);
     const parents = cfg.parentsType ? renderParentsEditorHTML() : "";
     const file = cfg.file ? renderFileEditorHTML() : "";
-    const cover = cfg.cover ? renderCoverEditorHTML(cfg, entity) : "";
+    const cover = cfg.cover && entity?.id ? renderCoverEditorHTML(cfg, entity) : "";
     const status = cfg.status ? renderStatusEditorHTML() : "";
     return `<div class="entity-editor">
         ${options.typeSelector ? `
