@@ -172,26 +172,12 @@ export async function getParents(object, objects = null, types = null) {
 // Get children
 // ======================================
 
-export async function getChildren(parentId) {
-
-    const objects = await getAllObjects();
-
-    return objects.filter(object => {
-
-        if (!object.parents) {
-
-            return false;
-
-        }
-
-        return object.parents.some(parent =>
-
+export function getChildren(parentId, objects) {
+    return (objects ?? []).filter(object =>
+        object.parents?.some(parent =>
             parent.objectId === parentId
-
-        );
-
-    });
-
+        )
+    );
 }
 
 
