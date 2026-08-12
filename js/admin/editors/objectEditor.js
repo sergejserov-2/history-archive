@@ -267,4 +267,4 @@ export function openObjectEditor(
             modal.close();
         }
     );
-});
+}
