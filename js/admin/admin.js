@@ -164,11 +164,17 @@ export function initAdmin(
                     return;
                 }
                 try {
-                    await deleteEntity(
-                        "photo",
-                        id,
-                        context
-                    );
+                    const result =
+                        await deleteEntity(
+                            "object",
+                            id,
+                            context
+                        );
+                    
+                    if(result?.parentId) {
+                        window.location.href =
+                            `object.html?id=${result.parentId}`;
+                    }
                 } catch(error) {
                     console.error(
                         "Ошибка удаления фотографии:",
