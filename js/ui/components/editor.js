@@ -95,22 +95,27 @@ const parents = entity.parents
         statusEditor,
         dateModeEditor,
         coverEditor,
-        async getData() {
-            if(fileEditor && !fileEditor.validate()) return null;
-            if(parentsEditor && !parentsEditor.validate()) return null;
-            const data = {};
-            Object.assign(data, fieldsEditor.getData());
-            if(typeEditor?.getTypeId()) data.typeId = typeEditor.getTypeId();
-            if(cfg.status) data.status = statusEditor.getStatus();
-            if(dateModeEditor) Object.assign(data, dateModeEditor.getData());
-            if(parentsEditor) data.parents = parentsEditor.getParents();
-            if(coverEditor) Object.assign(data, coverEditor.getData());
-            if(fileEditor) {
-                const fileData = await fileEditor.getData();
-                if(fileData) Object.assign(data, fileData);
-            }
-            return data;
+async getData() {
+    if(fileEditor && !fileEditor.validate()) {return null;}
+    if(parentsEditor && !parentsEditor.validate()) {return null;}
+    const data = {};
+    Object.assign(data, fieldsEditor.getData());
+    if(typeEditor?.getTypeId()) {data.typeId = typeEditor.getTypeId();}
+    if(cfg.status) {data.status = statusEditor.getStatus();}
+    if(dateModeEditor) {Object.assign(data, dateModeEditor.getData());}
+    if(parentsEditor) {data.parents = parentsEditor.getParents();}
+    if(coverEditor) {Object.assign(data, coverEditor.getData());}
+    let backgroundTask = null;
+    if(fileEditor) {const fileData = fileEditor.getData();
+        if(fileData) {
+            if(fileData.backgroundTask) {backgroundTask = fileData.backgroundTask;}
+            delete fileData.backgroundTask;
+            Object.assign(data, fileData);
         }
+    }
+    return {data, backgroundTask};
+}
+
     };
 }
 // ======================================
