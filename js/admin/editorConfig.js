@@ -9,7 +9,8 @@ import {
 }
 from "../ui/components/editor.js";
 import {
-    saveEntity,
+    getEntity,
+    updateEntity,
     uploadPhoto,
     uploadSourceDocument
 }
@@ -171,9 +172,16 @@ function getConfig(type, entity, context = {}) {
 // ======================================
 // Open
 // ======================================
-export function openEditor(type, entity, context = {}) {
+
+export async function openEditor(type, entity, context = {}) {
+    if(entity?.id) {
+        entity = await getEntity(type, entity.id);
+        if(!entity) return;
+    }
+
     const isNew = !entity;
     entity = entity ?? getDefaultEntity(type);
+
     const cfg = getConfig(type, entity, context);
     if(!cfg) return;
     const form =
