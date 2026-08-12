@@ -42,14 +42,6 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
 
     const singleField =
         root.querySelector("#entityDateSingle");
-
-    const dateHelp =
-        root.querySelector("#entityDateHelp");
-
-    const periodEndHelp =
-        root.querySelector("#entityDateEndHelp");
-
-
     if(!switchButton || !dateLabel) {
 
         console.error(
@@ -93,37 +85,6 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
         mode === "period"
             ? "period"
             : "date";
-
-
-// ==========================================
-// Help
-// ==========================================
-
-    function updateHelpVisibility() {
-
-        const isPeriod =
-            mode === "period";
-
-        /*
-         * Обычная дата:
-         * ? показывается у единственного инпута.
-         */
-        if(dateHelp) {
-
-            dateHelp.hidden =
-                isPeriod;
-        }
-
-        /*
-         * Период:
-         * ? показывается только у конечной даты.
-         */
-        if(periodEndHelp) {
-
-            periodEndHelp.hidden =
-                !isPeriod;
-        }
-    }
 
 
 // ==========================================
@@ -190,15 +151,6 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
                     : "entity-row--author-date"
             );
         }
-
-
-        // --------------------------------------
-        // Help buttons
-        // --------------------------------------
-
-        updateHelpVisibility();
-    }
-
 
 // ==========================================
 // Switch date / period
@@ -494,17 +446,6 @@ export function renderDateModeEditorHTML(
                         value="${entity.date ?? ""}"
                         autocomplete="off"
                     >
-
-                    <button
-                        type="button"
-                        id="entityDateHelp"
-                        class="entity-date-editor__help"
-                        title="Разрешённые форматы"
-                        aria-label="Разрешённые форматы"
-                    >
-                        ?
-                    </button>
-
                 </div>
 
             </div>
@@ -540,17 +481,6 @@ export function renderDateModeEditorHTML(
                             value="${entity.dateEnd ?? ""}"
                             autocomplete="off"
                         >
-
-                        <button
-                            type="button"
-                            id="entityDateEndHelp"
-                            class="entity-date-editor__help"
-                            title="Разрешённые форматы"
-                            aria-label="Разрешённые форматы"
-                        >
-                            ?
-                        </button>
-
                     </div>
 
                 </div>
