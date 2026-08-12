@@ -113,7 +113,7 @@
     width: 100%;
     min-width: 0;
 }
-.entity-date-editor__period-input:first-child input {
+.entity-date-editor__period-input:first-child  {
     border-radius:
         var(--radius-lg)
         0
@@ -121,7 +121,7 @@
         var(--radius-lg);
 }
 
-.entity-date-editor__period-input:last-child input {
+.entity-date-editor__period-input:last-child  {
     border-radius:
         0
         var(--radius-lg)
@@ -132,7 +132,7 @@
 }
 
 .entity-date-editor__period input:focus {
-    z-index: 2;
+    z-index: 20;
 }
 
 .entity-date-editor__switch {
