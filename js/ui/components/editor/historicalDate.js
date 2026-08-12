@@ -18,44 +18,82 @@ const TEMPLATES = [
     "вер., кон. 0000-х"
 ];
 
+const HELP_TEXT = `
+Допустимые форматы:
+
+0000
+ок. 0000
+0000-е
+нач. 0000-х
+сер. 0000-х
+кон. 0000-х
+
+вер., 0000
+вер., ок. 0000
+вер., 0000-е
+вер., нач. 0000-х
+вер., сер. 0000-х
+вер., кон. 0000-х
+
+Для периода можно использовать «с» и «до».
+Например:
+
+с 1920-х
+до 1950-х
+с 1920-х до 1950-х
+вер., с 1920-х
+вер., до 1950-х
+`;
+
 // ======================================
 // Public
 // ======================================
 
 export function setupHistoricalDateInput(input, options = {}) {
-    if (!input) return null;
+
+    if(!input) {
+        return null;
+    }
 
     input.setAttribute("autocomplete", "off");
 
-    const wrapper = createWrapper(input);
-    const suggestions = createSuggestions();
+    const datalist = createDatalist(input);
 
-    wrapper.appendChild(suggestions);
-
-    let currentTemplate = null;
+    let currentTemplate = findTemplate(input.value);
 
     // ----------------------------------
     // Input
     // ----------------------------------
 
     input.addEventListener("input", () => {
+
         const value = input.value;
 
-        const result = findTemplate(value);
+        /*
+         * Пока ничего не введено —
+         * никаких подсказок.
+         */
+        if(!value) {
+            input.removeAttribute("list");
+        }
+        else {
+            input.setAttribute("list", datalist.id);
+        }
 
-        if (!result) {
-            // Не позволяем уйти за пределы допустимых шаблонов.
-            input.value = getValidPrefix(value);
+        /*
+         * Не позволяем вводить символ,
+         * который не является допустимым
+         * продолжением одного из шаблонов.
+         */
+        const validValue = getValidPrefix(value);
+
+        if(validValue !== value) {
+            input.value = validValue;
         }
 
         currentTemplate = findTemplate(input.value);
 
-        renderSuggestions(
-            suggestions,
-            input.value
-        );
-
-        if (options.onInput) {
+        if(options.onInput) {
             options.onInput(input.value);
         }
     });
@@ -65,33 +103,39 @@ export function setupHistoricalDateInput(input, options = {}) {
     // ----------------------------------
 
     input.addEventListener("focus", () => {
-        renderSuggestions(
-            suggestions,
-            input.value
-        );
-    });
 
-    // ----------------------------------
-    // Blur
-    // ----------------------------------
-
-    input.addEventListener("blur", () => {
-        // Небольшая задержка позволяет
-        // успеть обработать клик по варианту.
-        setTimeout(() => {
-            suggestions.classList.remove("is-open");
-        }, 150);
-    });
-
-    // ----------------------------------
-    // Keyboard
-    // ----------------------------------
-
-    input.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-            suggestions.classList.remove("is-open");
+        /*
+         * Пустое поле — без выпадашки.
+         */
+        if(!input.value) {
+            input.removeAttribute("list");
+        }
+        else {
+            input.setAttribute("list", datalist.id);
         }
     });
+
+    // ----------------------------------
+    // Help
+    // ----------------------------------
+
+    const helpButton = createHelpButton();
+
+    helpButton.addEventListener("click", () => {
+        alert(HELP_TEXT.trim());
+    });
+
+    const wrapper = input.parentElement;
+
+    if(wrapper) {
+        wrapper.classList.add("historical-date");
+
+        /*
+         * (?) располагается справа сверху
+         * относительно поля.
+         */
+        wrapper.appendChild(helpButton);
+    }
 
     // ----------------------------------
     // Initial value
@@ -99,19 +143,28 @@ export function setupHistoricalDateInput(input, options = {}) {
 
     currentTemplate = findTemplate(input.value);
 
+    if(input.value) {
+        input.setAttribute("list", datalist.id);
+    }
+
     return {
+
         getValue() {
             return input.value.trim();
         },
 
         setValue(value) {
+
             input.value = value ?? "";
+
             currentTemplate = findTemplate(input.value);
 
-            renderSuggestions(
-                suggestions,
-                input.value
-            );
+            if(input.value) {
+                input.setAttribute("list", datalist.id);
+            }
+            else {
+                input.removeAttribute("list");
+            }
         },
 
         getTemplate() {
@@ -125,97 +178,49 @@ export function setupHistoricalDateInput(input, options = {}) {
 }
 
 // ======================================
-// Wrapper
+// Datalist
 // ======================================
 
-function createWrapper(input) {
-    let wrapper = input.parentElement;
+function createDatalist(input) {
 
-    if (
-        wrapper &&
-        wrapper.classList.contains("historical-date")
-    ) {
-        return wrapper;
-    }
+    const datalist = document.createElement("datalist");
 
-    wrapper = document.createElement("div");
-    wrapper.className = "historical-date";
+    /*
+     * Уникальный id, чтобы несколько
+     * редакторов на странице не конфликтовали.
+     */
+    datalist.id =
+        `historicalDateTemplates_${Math.random()
+            .toString(36)
+            .slice(2)}`;
 
-    input.parentNode.insertBefore(wrapper, input);
-    wrapper.appendChild(input);
+    TEMPLATES.forEach(template => {
 
-    return wrapper;
+        const option = document.createElement("option");
+
+        option.value = template;
+
+        datalist.appendChild(option);
+    });
+
+    input.parentNode.appendChild(datalist);
+
+    return datalist;
 }
 
 // ======================================
-// Suggestions
+// Help button
 // ======================================
 
-function createSuggestions() {
-    const container = document.createElement("div");
+function createHelpButton() {
 
-    container.className = "historical-date__suggestions";
+    const button = document.createElement("button");
 
-    return container;
-}
+    button.type = "button";
+    button.className = "historical-date__help";
+    button.textContent = "?";
 
-function renderSuggestions(container, value) {
-    const normalized = value.toLowerCase();
-
-    const matches = TEMPLATES.filter(template => {
-        return template
-            .toLowerCase()
-            .startsWith(normalized);
-    });
-
-    container.innerHTML = "";
-
-    if (!matches.length) {
-        container.classList.remove("is-open");
-        return;
-    }
-
-    matches.forEach(template => {
-        const item = document.createElement("button");
-
-        item.type = "button";
-        item.className = "historical-date__suggestion";
-
-        item.textContent = buildPreview(
-            template,
-            value
-        );
-
-        item.addEventListener("mousedown", event => {
-            event.preventDefault();
-        });
-
-        item.addEventListener("click", () => {
-            const valueToSet = createInitialValue(
-                template,
-                value
-            );
-
-            const input = container
-                .closest(".historical-date")
-                ?.querySelector("input");
-
-            if (!input) return;
-
-            input.value = valueToSet;
-            input.focus();
-
-            container.classList.remove("is-open");
-
-            input.dispatchEvent(
-                new Event("input", {bubbles: true})
-            );
-        });
-
-        container.appendChild(item);
-    });
-
-    container.classList.add("is-open");
+    return button;
 }
 
 // ======================================
@@ -223,7 +228,10 @@ function renderSuggestions(container, value) {
 // ======================================
 
 function findTemplate(value) {
-    if (!value) return null;
+
+    if(!value) {
+        return null;
+    }
 
     return TEMPLATES.find(template => {
         return matchesTemplate(value, template);
@@ -231,20 +239,24 @@ function findTemplate(value) {
 }
 
 function matchesTemplate(value, template) {
-    if (value.length > template.length) {
+
+    if(value.length > template.length) {
         return false;
     }
 
-    for (let i = 0; i < value.length; i++) {
+    for(let i = 0; i < value.length; i++) {
+
         const templateChar = template[i];
         const valueChar = value[i];
 
-        if (templateChar === "0") {
-            if (!/[0-9]/.test(valueChar)) {
+        if(templateChar === "0") {
+
+            if(!/[0-9]/.test(valueChar)) {
                 return false;
             }
+
         }
-        else if (templateChar !== valueChar) {
+        else if(templateChar !== valueChar) {
             return false;
         }
     }
@@ -257,18 +269,22 @@ function matchesTemplate(value, template) {
 // ======================================
 
 function getValidPrefix(value) {
-    if (!value) return "";
+
+    if(!value) {
+        return "";
+    }
 
     let result = "";
 
-    for (let i = 0; i < value.length; i++) {
+    for(let i = 0; i < value.length; i++) {
+
         const next = result + value[i];
 
         const matches = TEMPLATES.some(template => {
             return matchesTemplate(next, template);
         });
 
-        if (!matches) {
+        if(!matches) {
             break;
         }
 
@@ -279,59 +295,18 @@ function getValidPrefix(value) {
 }
 
 // ======================================
-// Preview
-// ======================================
-
-function buildPreview(template, value) {
-    let result = "";
-
-    for (let i = 0; i < template.length; i++) {
-        const templateChar = template[i];
-
-        if (templateChar === "0") {
-            result += value[i] ?? "0";
-        }
-        else {
-            result += templateChar;
-        }
-    }
-
-    return result;
-}
-
-// ======================================
-// Create initial value
-// ======================================
-
-function createInitialValue(template, value) {
-    let result = "";
-
-    let valueIndex = 0;
-
-    for (let i = 0; i < template.length; i++) {
-        const templateChar = template[i];
-
-        if (templateChar === "0") {
-            result += value[valueIndex] ?? "";
-            valueIndex++;
-        }
-        else {
-            result += templateChar;
-        }
-    }
-
-    return result;
-}
-
-// ======================================
 // Validation
 // ======================================
 
 export function isValidHistoricalDate(value) {
-    if (!value) return false;
+
+    if(!value) {
+        return false;
+    }
 
     return TEMPLATES.some(template => {
-        if (value.length !== template.length) {
+
+        if(value.length !== template.length) {
             return false;
         }
 
@@ -339,36 +314,30 @@ export function isValidHistoricalDate(value) {
     });
 }
 
-
 // ======================================
 // Format historical period
 // ======================================
 
-export function formatHistoricalPeriod(dateStart = "", dateEnd = "") {
+export function formatHistoricalPeriod(
+    dateStart = "",
+    dateEnd = ""
+) {
+
     const start = String(dateStart ?? "").trim();
     const end = String(dateEnd ?? "").trim();
 
-    // ----------------------------------
     // Обе даты
-    // ----------------------------------
-
-    if (start && end) {
+    if(start && end) {
         return `${formatPeriodDate(start)} — ${formatPeriodDate(end)}`;
     }
 
-    // ----------------------------------
     // Только начало
-    // ----------------------------------
-
-    if (start) {
+    if(start) {
         return formatPeriodBoundary(start, "с");
     }
 
-    // ----------------------------------
     // Только конец
-    // ----------------------------------
-
-    if (end) {
+    if(end) {
         return formatPeriodBoundary(end, "до");
     }
 
@@ -380,18 +349,18 @@ export function formatHistoricalPeriod(dateStart = "", dateEnd = "") {
 // ======================================
 
 function formatPeriodBoundary(value, prefix) {
+
     const normalized = value.trim();
 
-    // Вер., ...
-    if (normalized.startsWith("Вер.,")) {
+    if(normalized.startsWith("вер.,")) {
+
         const rest = normalized
-            .slice("Вер.,".length)
+            .slice("вер.,".length)
             .trim();
 
-        return `Вер., ${prefix} ${formatBoundaryDate(rest)}`;
+        return `вер., ${prefix} ${formatBoundaryDate(rest)}`;
     }
 
-    // Обычная дата
     return `${prefix} ${formatBoundaryDate(normalized)}`;
 }
 
@@ -400,15 +369,15 @@ function formatPeriodBoundary(value, prefix) {
 // ======================================
 
 function formatBoundaryDate(value) {
+
     const date = value.trim();
 
-    // 0000-е → 0000-х
-    if (/^\d{4}-е$/.test(date)) {
-        return date.replace(/-е$/, "-х");
-    }
-
-    // Вер., 0000-е
-    if (/^Вер\.,\s*\d{4}-е$/.test(date)) {
+    /*
+     * 0000-е → 0000-х
+     *
+     * Только для отображения границы периода.
+     */
+    if(/^\d{4}-е$/.test(date)) {
         return date.replace(/-е$/, "-х");
     }
 
