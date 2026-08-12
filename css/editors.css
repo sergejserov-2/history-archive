@@ -37,13 +37,13 @@
 
 /* Автор + дата: 2 : 1 */
 
-.entity-row--author-date > label:first-child {
+.entity-row--author-date .entity-author {
     flex: 2 1 0;
     width: 0;
     min-width: 0;
 }
 
-.entity-row--author-date > .entity-date-editor {
+.entity-row--author-date .entity-date-editor {
     flex: 1 1 0;
     width: 0;
     min-width: 0;
@@ -51,8 +51,8 @@
 
 /* Автор + период: 1 : 1 */
 
-.entity-row--author-date-period > label:first-child,
-.entity-row--author-date-period > .entity-date-editor {
+.entity-row--author-date-period .entity-author,
+.entity-row--author-date-period .entity-date-editor {
     flex: 1 1 0;
     width: 0;
     min-width: 0;
