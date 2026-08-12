@@ -2,7 +2,7 @@
 // Admin
 // ======================================
 
-import {openEditor} from "./editors/editorConfig.js";
+import {openEditor} from "./editorConfig.js";
 import {deleteObject} from "../api/objects.js";
 import {deletePhoto} from "../api/photos.js";
 import {deleteSource} from "../api/sources.js";
