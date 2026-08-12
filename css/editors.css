@@ -17,40 +17,44 @@
 .entity-row {
     display: flex;
     gap: var(--space-6);
+    width: 100%;
+    min-width: 0;
 }
 
-.entity-row--title-type .entity-type {
+/* Тип + название: 1 : 2 */
+
+.entity-row--title-type > .entity-type {
     flex: 1 1 0;
+    width: 0;
     min-width: 0;
 }
 
-.entity-row--title-type .entity-title {
+.entity-row--title-type > .entity-title {
     flex: 2 1 0;
+    width: 0;
     min-width: 0;
 }
 
-
-/* ==========================================
-   AUTHOR + DATE / PERIOD
-========================================== */
-
-/* Автор + дата */
+/* Автор + дата: 2 : 1 */
 
 .entity-row--author-date > label:first-child {
     flex: 2 1 0;
+    width: 0;
     min-width: 0;
 }
 
 .entity-row--author-date > .entity-date-editor {
     flex: 1 1 0;
+    width: 0;
     min-width: 0;
 }
 
-/* Автор + период */
+/* Автор + период: 1 : 1 */
 
 .entity-row--author-date-period > label:first-child,
 .entity-row--author-date-period > .entity-date-editor {
     flex: 1 1 0;
+    width: 0;
     min-width: 0;
 }
 
