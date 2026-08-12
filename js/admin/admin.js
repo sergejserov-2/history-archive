@@ -71,6 +71,10 @@ export function initAdmin(
             updates
         };
 
+        // ======================================
+        // Object edit
+        // ======================================
+
         if(action === "edit-object") {
             setModalUrl(
                 "object-editor",
@@ -89,6 +93,10 @@ export function initAdmin(
             return;
         }
 
+        // ======================================
+        // Object delete
+        // ======================================
+
         if(action === "delete-object") {
             if(
                 !confirm(
@@ -98,11 +106,29 @@ export function initAdmin(
                 return;
             }
 
-            await deleteObject(id);
-            location.reload();
+            try {
+                await deleteObject(id);
+
+                await updates.onObjectDeleted?.(
+                    id
+                );
+            } catch(error) {
+                console.error(
+                    "Ошибка удаления объекта:",
+                    error
+                );
+
+                alert(
+                    "Не удалось удалить объект"
+                );
+            }
 
             return;
         }
+
+        // ======================================
+        // Add object
+        // ======================================
 
         if(action === "add-object") {
             setModalUrl(
@@ -124,6 +150,10 @@ export function initAdmin(
             return;
         }
 
+        // ======================================
+        // Add photo
+        // ======================================
+
         if(action === "add-photo") {
             setModalUrl(
                 "entity-editor",
@@ -137,10 +167,14 @@ export function initAdmin(
                 "photo",
                 null,
                 context
-            );
+                );
 
             return;
         }
+
+        // ======================================
+        // Edit photo
+        // ======================================
 
         if(action === "edit-photo") {
             const photo =
@@ -168,6 +202,10 @@ export function initAdmin(
             return;
         }
 
+        // ======================================
+        // Delete photo
+        // ======================================
+
         if(action === "delete-photo") {
             if(
                 !confirm(
@@ -191,7 +229,10 @@ export function initAdmin(
                 }
 
                 await deletePhoto(id);
-                location.reload();
+
+                await updates.onPhotoDeleted?.(
+                    id
+                );
             } catch(error) {
                 console.error(
                     "Ошибка удаления фотографии:",
@@ -205,6 +246,10 @@ export function initAdmin(
 
             return;
         }
+
+        // ======================================
+        // Add source
+        // ======================================
 
         if(action === "add-source") {
             setModalUrl(
@@ -223,6 +268,10 @@ export function initAdmin(
 
             return;
         }
+
+        // ======================================
+        // Edit source
+        // ======================================
 
         if(action === "edit-source") {
             const source =
@@ -250,6 +299,10 @@ export function initAdmin(
             return;
         }
 
+        // ======================================
+        // Delete source
+        // ======================================
+
         if(action === "delete-source") {
             if(
                 !confirm(
@@ -273,7 +326,10 @@ export function initAdmin(
                 }
 
                 await deleteSource(id);
-                location.reload();
+
+                await updates.onSourceDeleted?.(
+                    id
+                );
             } catch(error) {
                 console.error(
                     "Ошибка удаления источника:",
@@ -282,11 +338,15 @@ export function initAdmin(
 
                 alert(
                     "Не удалось удалить источник"
-                );
+                    );
             }
 
             return;
         }
+
+        // ======================================
+        // Add record
+        // ======================================
 
         if(action === "add-record") {
             setModalUrl(
@@ -305,6 +365,10 @@ export function initAdmin(
 
             return;
         }
+
+        // ======================================
+        // Edit record
+        // ======================================
 
         if(action === "edit-record") {
             const record =
@@ -332,6 +396,10 @@ export function initAdmin(
             return;
         }
 
+        // ======================================
+        // Delete record
+        // ======================================
+
         if(action === "delete-record") {
             if(
                 !confirm(
@@ -341,8 +409,22 @@ export function initAdmin(
                 return;
             }
 
-            await deleteRecord(id);
-            location.reload();
+            try {
+                await deleteRecord(id);
+
+                await updates.onRecordDeleted?.(
+                    id
+                );
+            } catch(error) {
+                console.error(
+                    "Ошибка удаления записи:",
+                    error
+                );
+
+                alert(
+                    "Не удалось удалить запись"
+                );
+            }
 
             return;
         }
