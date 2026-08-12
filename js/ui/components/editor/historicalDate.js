@@ -174,7 +174,8 @@ function renderSuggestions(container, value) {
         container.classList.remove("is-open");
         return;
     }
-  > {
+
+    matches.forEach(template => {
         const item = document.createElement("button");
 
         item.type = "button";
@@ -249,5 +250,183 @@ function matchesTemplate(value, template) {
     }
 
     return true;
+}
 
-    matches.forEach(template =
+// ======================================
+// Valid prefix
+// ======================================
+
+function getValidPrefix(value) {
+    if (!value) return "";
+
+    let result = "";
+
+    for (let i = 0; i < value.length; i++) {
+        const next = result + value[i];
+
+        const matches = TEMPLATES.some(template => {
+            return matchesTemplate(next, template);
+        });
+
+        if (!matches) {
+            break;
+        }
+
+        result = next;
+    }
+
+    return result;
+}
+
+// ======================================
+// Preview
+// ======================================
+
+function buildPreview(template, value) {
+    let result = "";
+
+    for (let i = 0; i < template.length; i++) {
+        const templateChar = template[i];
+
+        if (templateChar === "0") {
+            result += value[i] ?? "0";
+        }
+        else {
+            result += templateChar;
+        }
+    }
+
+    return result;
+}
+
+// ======================================
+// Create initial value
+// ======================================
+
+function createInitialValue(template, value) {
+    let result = "";
+
+    let valueIndex = 0;
+
+    for (let i = 0; i < template.length; i++) {
+        const templateChar = template[i];
+
+        if (templateChar === "0") {
+            result += value[valueIndex] ?? "";
+            valueIndex++;
+        }
+        else {
+            result += templateChar;
+        }
+    }
+
+    return result;
+}
+
+// ======================================
+// Validation
+// ======================================
+
+export function isValidHistoricalDate(value) {
+    if (!value) return false;
+
+    return TEMPLATES.some(template => {
+        if (value.length !== template.length) {
+            return false;
+        }
+
+        return matchesTemplate(value, template);
+    });
+}
+
+
+// ======================================
+// Format historical period
+// ======================================
+
+export function formatHistoricalPeriod(dateStart = "", dateEnd = "") {
+    const start = String(dateStart ?? "").trim();
+    const end = String(dateEnd ?? "").trim();
+
+    // ----------------------------------
+    // Обе даты
+    // ----------------------------------
+
+    if (start && end) {
+        return `${formatPeriodDate(start)} — ${formatPeriodDate(end)}`;
+    }
+
+    // ----------------------------------
+    // Только начало
+    // ----------------------------------
+
+    if (start) {
+        return formatPeriodBoundary(start, "с");
+    }
+
+    // ----------------------------------
+    // Только конец
+    // ----------------------------------
+
+    if (end) {
+        return formatPeriodBoundary(end, "до");
+    }
+
+    return "";
+}
+
+// ======================================
+// Boundary
+// ======================================
+
+function formatPeriodBoundary(value, prefix) {
+    const normalized = value.trim();
+
+    // Вер., ...
+    if (normalized.startsWith("Вер.,")) {
+        const rest = normalized
+            .slice("Вер.,".length)
+            .trim();
+
+        return `Вер., ${prefix} ${formatBoundaryDate(rest)}`;
+    }
+
+    // Обычная дата
+    return `${prefix} ${formatBoundaryDate(normalized)}`;
+}
+
+// ======================================
+// Boundary date
+// ======================================
+
+function formatBoundaryDate(value) {
+    const date = value.trim();
+
+    // 0000-е → 0000-х
+    if (/^\d{4}-е$/.test(date)) {
+        return date.replace(/-е$/, "-х");
+    }
+
+    // Вер., 0000-е
+    if (/^Вер\.,\s*\d{4}-е$/.test(date)) {
+        return date.replace(/-е$/, "-х");
+    }
+
+    return date;
+}
+
+// ======================================
+// Normal period date
+// ======================================
+
+function formatPeriodDate(value) {
+    return value.trim();
+}
+
+// ======================================
+// Templates
+// ======================================
+
+export function getHistoricalDateTemplates() {
+    return [...TEMPLATES];
+}
