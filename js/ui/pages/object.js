@@ -122,60 +122,83 @@ let pageObjects = [];
 // ======================================
 
 async function loadPage() {
-console.time("LOAD DATA");
-console.time("getObj");
-const objects = await getAllObjects();
-const object = objects.find(item => item.id === objectId);
+    console.time("LOAD DATA");
 
-if(!object) {
-    document.body.innerHTML = `<h1>Объект не найден</h1>`;
-    return;
+    const [objects, types] =
+        await Promise.all([
+            getAllObjects(),
+            getTypes()
+        ]);
+
+    const object = objects.find(
+        item => item.id === objectId
+    );
+
+    if(!object) {
+        document.body.innerHTML =
+            `<h1>Объект не найден</h1>`;
+        return;
+    }
+
+    document.title =
+        object.title ||
+        "Исторический архив";
+
+    pageObject = object;
+    pageObjects = objects;
+    pageTypes = types;
+
+    pageType =
+        types.find(
+            type => type.id === object.typeId
+        ) ?? null;
+
+    const timed = (name, promise) =>
+        promise.then(result => {
+            console.timeEnd(name);
+            return result;
+        });
+
+    console.time("getRecordTypes");
+    console.time("getParents");
+    console.time("getChildren");
+    console.time("getRecords");
+    console.time("getPhotos");
+    console.time("getSources");
+
+    [
+        pageRecordTypes,
+        pageParents,
+        pageChildren,
+        pageRecords,
+        pagePhotos,
+        pageSources
+    ] = await Promise.all([
+        timed("getRecordTypes", getRecordTypes()),
+        timed(
+            "getParents",
+            getParents(object, objects, types)
+        ),
+        timed(
+            "getChildren",
+            getChildren(object.id)
+        ),
+        timed(
+            "getRecords",
+            getRecords(object.id)
+        ),
+        timed(
+            "getPhotos",
+            getPhotos(object.id)
+        ),
+        timed(
+            "getSources",
+            getSources(object.id)
+        )
+    ]);
+
+    console.timeEnd("LOAD DATA");
 }
-console.timeEnd("getObj");
-document.title = object.title || "Исторический архив";
-pageObject = object;
-
-console.time("getType");
-pageType = await getType(object.typeId);
-console.timeEnd("getType");
-
-const timed = (name, promise) =>
-    promise.then(result => {
-        console.timeEnd(name);
-        return result;
-    });
-
-console.time("getTypes");
-console.time("getRecordTypes");
-console.time("getParents");
-console.time("getChildren");
-console.time("getRecords");
-console.time("getPhotos");
-console.time("getSources");
-
-[
-    pageTypes,
-    pageRecordTypes,
-    pageParents,
-    pageChildren,
-    pageRecords,
-    pagePhotos,
-    pageSources
-] = await Promise.all([
-    timed("getTypes", getTypes()),
-    timed("getRecordTypes", getRecordTypes()),
-    timed("getParents", getParents(object)),
-    timed("getChildren", getChildren(object.id)),
-    timed("getRecords", getRecords(object.id)),
-    timed("getPhotos", getPhotos(object.id)),
-    timed("getSources", getSources(object.id))
-]);
-
-pageObjects = objects;
-
-console.timeEnd("LOAD DATA");
-}
-
 export async function onPhotoDeleted() {
     await updatePhotosBlock();
 }
