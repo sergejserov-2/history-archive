@@ -108,26 +108,16 @@ export async function getAllObjects() {
 // Get parents
 // ======================================
 
-// ======================================
-// Get parents
-// ======================================
-
-export async function getParents(object, objects = null, types = null) {
+export async function getParents(object) {
     if(!object) return [];
-
-    const allObjects = objects ?? await getAllObjects();
-    const allTypes = types ?? await getTypes();
-
-    const typeMap = new Map(allTypes.map(type => [type.id, type]));
-    const objectMap = new Map(allObjects.map(item => [item.id, item]));
 
     const validParents = Array.isArray(object.parents)
         ? object.parents.filter(parent => parent && typeof parent === "object" && parent.objectId)
         : [];
 
-    if(!validParents.length) {
-        const type = typeMap.get(object.typeId);
+    const type = await getType(object.typeId);
 
+    if(validParents.length === 0) {
         return [[{
             id: object.id,
             address: object.address ?? "",
@@ -138,13 +128,15 @@ export async function getParents(object, objects = null, types = null) {
     const chains = [];
 
     for(const parent of validParents) {
-        const parentObject = objectMap.get(parent.objectId);
+        const parentObject = await getObject(parent.objectId);
         if(!parentObject) continue;
 
-        const parentChains = getParents(parentObject, allObjects, allTypes);
-        const type = typeMap.get(object.typeId);
+        const parentChains = await getParents(parentObject);
+        if(!Array.isArray(parentChains)) continue;
 
         for(const parentChain of parentChains) {
+            if(!Array.isArray(parentChain)) continue;
+
             chains.push([
                 ...parentChain,
                 {
