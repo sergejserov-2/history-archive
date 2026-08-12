@@ -434,16 +434,12 @@ export function renderDateModeEditorHTML(
             class="entity-date-editor"
         >
 
-            <div class="entity-date-editor__label-row">
-
-                <span
-                    id="entityDateLabel"
-                    class="entity-date-editor__label"
-                >
-                    ${isPeriod ? "Период" : "Дата"}
-                </span>
-
-            </div>
+            <span
+                id="entityDateLabel"
+                class="entity-date-editor__label"
+            >
+                ${isPeriod ? "Период" : "Дата"}
+            </span>
 
 
             <div
@@ -461,35 +457,29 @@ export function renderDateModeEditorHTML(
             </div>
 
 
-            <div
+              <div
                 id="entityDatePeriod"
                 class="entity-date-editor__period"
                 ${isPeriod ? "" : "hidden"}
             >
-
+            
                 <div class="entity-date-editor__period-input">
-
                     <input
                         id="entity_dateStart"
                         value="${entity.dateStart ?? ""}"
                         autocomplete="off"
                     >
-
                 </div>
-
-
+            
                 <div class="entity-date-editor__period-input">
-
                     <input
                         id="entity_dateEnd"
                         value="${entity.dateEnd ?? ""}"
                         autocomplete="off"
                     >
-
                 </div>
-
+            
             </div>
-
 
             <button
                 type="button"
