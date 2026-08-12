@@ -34,16 +34,6 @@ const HELP_TEXT = `
 вер., нач. 0000-х
 вер., сер. 0000-х
 вер., кон. 0000-х
-
-Для периода можно использовать «с» и «до».
-
-Например:
-
-с 1920-х
-до 1950-х
-с 1920-х до 1950-х
-вер., с 1920-х
-вер., до 1950-х
 `;
 
 // ======================================
@@ -228,27 +218,20 @@ function ensureInputWrapper(input) {
     /*
      * Help button
      */
-    const helpButton =
-        createHelpButton();
+if(options.showHelp !== false) {
+    const helpButton = createHelpButton();
 
-    helpButton.addEventListener(
-        "click",
-        event => {
+    helpButton.addEventListener("click", () => {
+        alert(HELP_TEXT.trim());
+    });
 
-            event.preventDefault();
-            event.stopPropagation();
+    const wrapper = input.parentElement;
 
-            alert(
-                HELP_TEXT.trim()
-            );
-        }
-    );
-
-    wrapper.appendChild(
-        helpButton
-    );
-
-    return wrapper;
+    if(wrapper) {
+        wrapper.classList.add("historical-date");
+        wrapper.appendChild(helpButton);
+    }
+}
 }
 
 // ======================================
