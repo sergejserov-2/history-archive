@@ -162,31 +162,26 @@ export function openEditor(type, entity, context = {}, onSave) {
         entity
     );
 
-    setupEditorButtons(
-        root,
-        async() => {
-            try {
-                const data = await editor.getData();
-
-                if(!data) return;
-
-                if(isNew) {
-                    await cfg.create(data);
-                } else {
-                    await cfg.update(
-                        entity.id,
-                        data
-                    );
-                }
-
-                modal.close();
-                onSave?.();
-
-            } catch(error) {
-                console.error(error);
-                alert("Ошибка сохранения");
+setupEditorButtons(
+    root,
+    async() => {
+        try {
+            const data = await editor.getData();
+            console.log("EDITOR DATA:", data);
+            console.log("OBJECT TYPE ID:", data?.typeId);
+            if(!data) return;
+            if(isNew) {
+                await cfg.create(data);
+            } else {
+                await cfg.update(entity.id, data);
             }
-        },
-        () => modal.close()
-    );
+            modal.close();
+            onSave?.();
+        } catch(error) {
+            console.error(error);
+            alert("Ошибка сохранения");
+        }
+    },
+    () => modal.close()
+);
 }
