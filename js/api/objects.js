@@ -112,163 +112,52 @@ export async function getAllObjects() {
 // Get parents
 // ======================================
 
-export async function getParents(object) {
+export async function getParents(object, objects = null, types = null) {
+    if(!object) return [];
 
-    if (!object) {
+    const allObjects = objects ?? await getAllObjects();
+    const allTypes = types ?? await getTypes();
 
-        return [];
+    const typeMap = new Map(allTypes.map(type => [type.id, type]));
+    const objectMap = new Map(allObjects.map(item => [item.id, item]));
 
-    }
+    const validParents = Array.isArray(object.parents)
+        ? object.parents.filter(parent => parent && typeof parent === "object" && parent.objectId)
+        : [];
 
-    // ======================================
-    // Получаем только валидных родителей
-    // ======================================
+    if(!validParents.length) {
+        const type = typeMap.get(object.typeId);
 
-    const validParents =
-
-        Array.isArray(object.parents)
-
-            ?
-
-            object.parents.filter(parent => {
-
-                return (
-
-                    parent &&
-                    typeof parent === "object" &&
-                    parent.objectId
-
-                );
-
-            })
-
-            :
-
-            [];
-
-    // ======================================
-    // Корневой объект
-    //
-    // В базе может быть:
-    //
-    // parents: []
-    //
-    // или старое:
-    //
-    // parents: [""]
-    //
-    // В обоих случаях это корень.
-    // ======================================
-
-    if (
-        validParents.length === 0
-    ) {
-
-        const type =
-            await getType(
-                object.typeId
-            );
-
-        return [[
-
-            {
-
-                id:
-                    object.id,
-
-                address:
-                    object.address ?? "",
-
-                level:
-                    type?.level ?? null
-
-            }
-
-        ]];
-
+        return [[{
+            id: object.id,
+            address: object.address ?? "",
+            level: type?.level ?? null
+        }]];
     }
 
     const chains = [];
 
-    // ======================================
-    // Строим отдельную цепочку
-    // для каждого родителя
-    // ======================================
+    for(const parent of validParents) {
+        const parentObject = objectMap.get(parent.objectId);
+        if(!parentObject) continue;
 
-    for (
-        const parent
-        of validParents
-    ) {
+        const parentChains = getParents(parentObject, allObjects, allTypes);
+        const type = typeMap.get(object.typeId);
 
-        const parentObject =
-            await getObject(
-                parent.objectId
-            );
-
-        if (!parentObject) {
-
-            continue;
-
+        for(const parentChain of parentChains) {
+            chains.push([
+                ...parentChain,
+                {
+                    id: object.id,
+                    address: parent.address ?? "",
+                    level: type?.level ?? null
+                }
+            ]);
         }
-
-        // ==================================
-        // Получаем цепочки родителя
-        // ==================================
-
-        const parentChains =
-            await getParents(
-                parentObject
-            );
-
-        // ==================================
-        // Получаем тип текущего объекта
-        // ==================================
-
-        const type =
-            await getType(
-                object.typeId
-            );
-
-        // ==================================
-        // Добавляем текущий объект
-        //
-        // Адрес берём именно из связи
-        // текущий объект → родитель.
-        // ==================================
-
-        for (
-            const parentChain
-            of parentChains
-        ) {
-
-            chains.push(
-
-                [
-
-                    ...parentChain,
-
-                    {
-
-                        id:
-                            object.id,
-
-                        address:
-                            parent.address ?? "",
-
-                        level:
-                            type?.level ?? null
-
-                    }
-
-                ]
-
-            );
-
-        }
-
     }
 
     return chains;
+}
 
 }
 // ======================================
