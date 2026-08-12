@@ -181,7 +181,7 @@ console.timeEnd("getAllObjects");
         ),
         timed(
             "getChildren",
-            getChildren(object.id)
+getChildren(object.id, objects)
         ),
         timed(
             "getRecords",
