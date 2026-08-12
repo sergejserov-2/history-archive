@@ -8,20 +8,39 @@ import {moveFileToDeleted} from "../../../api/storage.js";
 // Setup
 // ======================================
 
-export function setupFileEditor(root, entity, upload, options = {}) {
-    const fileInput = root.querySelector("#entityFile");
-    if(!fileInput) return null;
+export function setupFileEditor(
+    root,
+    entity,
+    upload,
+    options = {}
+) {
+    const fileInput =
+        root.querySelector("#entityFile");
+
+    if(!fileInput) {
+        return null;
+    }
 
     let file = null;
     let removeOldFile = false;
 
-    const oldStoragePath = entity?.storagePath ?? null;
-    const oldPreviewPath = entity?.previewPath ?? null;
+    const oldStoragePath =
+        entity?.storagePath ?? null;
 
-    const fileSelect = root.querySelector("#entityFileSelect");
-    const fileCurrent = root.querySelector("#entityFileCurrent");
-    const fileName = root.querySelector("#entityFileName");
-    const fileRemove = root.querySelector("#entityFileRemove");
+    const oldPreviewPath =
+        entity?.previewPath ?? null;
+
+    const fileSelect =
+        root.querySelector("#entityFileSelect");
+
+    const fileCurrent =
+        root.querySelector("#entityFileCurrent");
+
+    const fileName =
+        root.querySelector("#entityFileName");
+
+    const fileRemove =
+        root.querySelector("#entityFileRemove");
 
     function renderFileState() {
         if(file) {
@@ -36,7 +55,8 @@ export function setupFileEditor(root, entity, upload, options = {}) {
             fileSelect.hidden = true;
             fileCurrent.hidden = false;
             fileInput.disabled = true;
-            fileName.textContent = oldStoragePath.split("/").pop();
+            fileName.textContent =
+                oldStoragePath.split("/").pop();
             return;
         }
 
@@ -47,20 +67,28 @@ export function setupFileEditor(root, entity, upload, options = {}) {
     }
 
     fileSelect.onclick = () => {
-        if(!fileInput.disabled) fileInput.click();
+        if(!fileInput.disabled) {
+            fileInput.click();
+        }
     };
 
     fileInput.onchange = event => {
-        file = event.target.files[0] || null;
+        file =
+            event.target.files[0] ||
+            null;
+
         removeOldFile = false;
+
         renderFileState();
     };
 
     fileRemove.onclick = event => {
         event.stopPropagation();
+
         file = null;
         fileInput.value = "";
         removeOldFile = true;
+
         renderFileState();
     };
 
@@ -68,11 +96,18 @@ export function setupFileEditor(root, entity, upload, options = {}) {
 
     return {
         hasFile() {
-            return !!file || (!!oldStoragePath && !removeOldFile);
+            return !!file ||
+                (!!oldStoragePath &&
+                !removeOldFile);
         },
 
         validate() {
-            if(!options.required || this.hasFile()) return true;
+            if(
+                !options.required ||
+                this.hasFile()
+            ) {
+                return true;
+            }
 
             alert(
                 options.requiredMessage ??
@@ -82,35 +117,62 @@ export function setupFileEditor(root, entity, upload, options = {}) {
             return false;
         },
 
-        async getData() {
+        getData() {
             if(removeOldFile) {
-                if(oldStoragePath) {
-                    await moveFileToDeleted(oldStoragePath);
-                }
+                return {
+                    storagePath: null,
+                    previewPath: null,
+                    backgroundTask: async() => {
+                        if(oldStoragePath) {
+                            await moveFileToDeleted(
+                                oldStoragePath
+                            );
+                        }
 
-                if(oldPreviewPath) {
-                    await moveFileToDeleted(oldPreviewPath);
-                }
+                        if(oldPreviewPath) {
+                            await moveFileToDeleted(
+                                oldPreviewPath
+                            );
+                        }
+                    }
+                };
             }
 
             if(!file) {
-                return removeOldFile
-                    ? {
-                        storagePath: null,
-                        previewPath: null
-                    }
-                    : null;
-            }
-
-            const result = await upload(file);
-
-            if(!result) {
                 return null;
             }
 
+            const selectedFile = file;
+
             return {
-                storagePath: result.storagePath ?? null,
-                previewPath: result.previewPath ?? null
+                storagePath: null,
+                previewPath: null,
+                backgroundTask: async(
+                    savedEntity,
+                    update
+                ) => {
+                    const result =
+                        await upload(
+                            selectedFile
+                        );
+
+                    if(!result) {
+                        return;
+                    }
+
+                    await update(
+                        savedEntity.id,
+                        {
+                            storagePath:
+                                result.storagePath ??
+                                null,
+
+                            previewPath:
+                                result.previewPath ??
+                                null
+                        }
+                    );
+                }
             };
         }
     };
