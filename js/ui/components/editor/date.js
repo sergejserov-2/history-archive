@@ -4,7 +4,6 @@
 
 import {
     setupHistoricalDateInput,
-    getHistoricalDateTemplates
 } from "./historicalDate.js";
 
 
@@ -100,36 +99,7 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
     // Help
     // ==========================================
 
-    if(helpButton) {
-
-        helpButton.addEventListener(
-            "click",
-            () => {
-
-                const templates =
-                    getHistoricalDateTemplates();
-
-                const message =
-                    "Разрешённые форматы даты:\n\n" +
-                    templates
-                        .map(template => `• ${template}`)
-                        .join("\n") +
-                    "\n\n" +
-                    "Для периода используются две такие даты.\n" +
-                    "Если указана только начальная дата — используется «с».\n" +
-                    "Если указана только конечная дата — используется «до».\n\n" +
-                    "Примеры:\n" +
-                    "• с 1920-х\n" +
-                    "• до 1950-х\n" +
-                    "• 1920-е — 1950-е\n" +
-                    "• вер., с 1920-х\n" +
-                    "• вер., до 1950-х";
-
-                alert(message);
-            }
-        );
-    }
-
+ 
 
     // ==========================================
     // Render
