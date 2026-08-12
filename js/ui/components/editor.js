@@ -18,7 +18,7 @@ export function renderEntityEditor(cfg, entity) {
     entity = entity ?? {};
     const options = cfg.options ?? {};
     const limits = cfg.limits ?? {};
-    const dateEditor = renderDateModeEditorHTML(cfg, entity);
+    const dateEditor = cfg.dateMode ? renderDateModeEditorHTML(cfg, entity) : "";
     const typeEditor = options.typeSelector ? renderTypesEditorHTML(options.types ?? [], entity, options) : "";
     const fields = renderFieldsEditorHTML(cfg, entity, limits);
     const parents = cfg.parentsType ? renderParentsEditorHTML() : "";
@@ -76,9 +76,9 @@ export function setupEditorComponents(root, cfg, context = {}, entity = {}) {
         requiredMessage: cfg.parentsRequiredMessage
     }) : null;
     const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
-    const dateModeEditor = setupDateModeEditor(root, {
-        mode: entity?.dateMode ?? cfg.dateMode ?? "date"
-    });
+    const dateModeEditor = cfg.dateMode ? setupDateModeEditor(root, {
+        mode: entity?.dateMode ?? cfg.dateMode
+    }) : null;
     const coverEditor = cfg.cover ? setupCoverEditor(root, cfg.cover.photos ?? [], entity) : null;
     return {
         fileEditor,
