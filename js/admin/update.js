@@ -60,35 +60,71 @@ export async function updateEntity(type, entity, data, context = {}, updates = [
 // Delete entity
 // ======================================
 export async function deleteEntity(type, id, context = {}) {
+
     if(type === "object") {
+
+        const object =
+            (context.objects ?? []).find(
+                object => object.id === id
+            );
+
+        const parentId =
+            object?.parents?.[0]?.objectId ??
+            object?.parents?.[0] ??
+            null;
+
         await deleteObject(id);
+
         await context.updates?.onObjectDeleted?.(id);
-        return;
+
+        return {
+            parentId
+        };
     }
+
     if(type === "photo") {
-        const photo = (context.photos ?? []).find(photo => photo.id === id);
+        const photo =
+            (context.photos ?? []).find(
+                photo => photo.id === id
+            );
+
         if(photo?.storagePath) {
-            await moveFileToDeleted(photo.storagePath);
+            await moveFileToDeleted(
+                photo.storagePath
+            );
         }
+
         await deletePhoto(id);
         await context.updates?.updatePhotosBlock?.();
         return;
     }
+
     if(type === "source") {
-        const source = (context.sources ?? []).find(source => source.id === id);
+        const source =
+            (context.sources ?? []).find(
+                source => source.id === id
+            );
+
         if(source?.storagePath) {
-            await moveFileToDeleted(source.storagePath);
+            await moveFileToDeleted(
+                source.storagePath
+            );
         }
+
         await deleteSource(id);
         await context.updates?.updateSourcesBlock?.();
         return;
     }
+
     if(type === "record") {
         await deleteRecord(id);
         await context.updates?.updateRecordsBlock?.();
         return;
     }
-    throw new Error(`Unknown entity type: ${type}`);
+
+    throw new Error(
+        `Unknown entity type: ${type}`
+    );
 }
 // ======================================
 // Upload
