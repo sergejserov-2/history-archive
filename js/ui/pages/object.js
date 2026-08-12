@@ -213,6 +213,34 @@ async function loadPage() {
     );
 }
 
+export async function onPhotoDeleted() {
+    await updatePhotosBlock();
+}
+
+export async function onSourceDeleted() {
+    await updateSourcesBlock();
+}
+
+export async function onRecordDeleted() {
+    await updateRecordsBlock();
+}
+
+export async function onObjectDeleted() {
+    const parent =
+        pageParents?.[0];
+
+    if(parent?.id) {
+        window.location.href =
+            `object.html?id=${parent.id}`;
+
+        return;
+    }
+
+    window.location.href =
+        "index.html";
+}
+
+
 // ======================================
 // Update object block
 // ======================================
