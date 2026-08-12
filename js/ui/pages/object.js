@@ -123,7 +123,7 @@ let pageObjects = [];
 
 async function loadPage() {
 console.time("LOAD DATA");
-
+console.time("getObj");
 const objects = await getAllObjects();
 const object = objects.find(item => item.id === objectId);
 
@@ -131,7 +131,7 @@ if(!object) {
     document.body.innerHTML = `<h1>Объект не найден</h1>`;
     return;
 }
-
+console.timeEnd("getObj");
 document.title = object.title || "Исторический архив";
 pageObject = object;
 
