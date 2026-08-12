@@ -577,10 +577,13 @@ async function renderPage() {
     console.time("renderChildren");
 
     const childrenHTML =
-        await renderChildren(
+        renderChildren(
             pageChildren,
             pageAdminMode,
-            pageObject
+            pageObject,
+            pageTypes,
+            pageObjects,
+            pagePhotos
         );
 
     console.timeEnd("renderChildren");
@@ -588,8 +591,9 @@ async function renderPage() {
     console.time("renderBreadcrumbs");
 
     const breadcrumbsHTML =
-        await renderBreadcrumbs(
-            pageObject
+        renderBreadcrumbs(
+            pageObject,
+            pageParents
         );
 
     console.timeEnd("renderBreadcrumbs");
