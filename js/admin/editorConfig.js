@@ -219,7 +219,9 @@ export async function openEditor(type, entity, context = {}) {
                         entity,
                         data,
                         context,
-                        cfg.updates ?? []
+                        entity?.id
+                            ? cfg.updates ?? []
+                            : []
                     );
                 
                 modal.close();
