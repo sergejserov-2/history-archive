@@ -401,7 +401,10 @@ export async function updateSourcesBlock() {
             pageAdminMode ||
             pageSources.length > 0
         ) {
-            const childrenHTML = await renderChildren(pageChildren, pageAdminMode, pageObject);
+            const children =
+                document.querySelector(
+                    "#children"
+                );
 
             const html = `
                 <section id="sources">
@@ -572,16 +575,7 @@ function renderObjectBlock() {
 async function renderPage() {
 
     console.time("renderChildren");
-
-    const childrenHTML =
-        renderChildren(
-            pageChildren,
-            pageAdminMode,
-            pageObject,
-            pageTypes,
-            pageObjects,
-            pagePhotos
-        );
+    const childrenHTML = await renderChildren(pageChildren, pageAdminMode, pageObject);
 
     console.timeEnd("renderChildren");
 
