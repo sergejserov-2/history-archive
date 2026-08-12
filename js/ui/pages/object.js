@@ -179,10 +179,7 @@ console.timeEnd("getAllObjects");
             "getParents",
             getParents(object, objects, types)
         ),
-        timed(
-            "getChildren",
-getChildren(object.id, objects)
-        ),
+        getChildren(object.id, objects),
         timed(
             "getRecords",
             getRecords(object.id)
