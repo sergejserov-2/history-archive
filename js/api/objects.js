@@ -297,6 +297,18 @@ export async function getChildren(parentId) {
 
 }
 
+
+export async function updateObject(id, data) {
+    if(!id) return null;
+
+    await updateDoc(
+        doc(db, "objects", id),
+        data
+    );
+
+    return id;
+}
+
 // ======================================
 // Create object
 // ======================================
