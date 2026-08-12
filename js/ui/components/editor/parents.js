@@ -54,7 +54,7 @@ export function setupParentsEditor(root, objects, entity, parents, options = {})
         if(parent.id === entity?.id) {return false;}
         const parentType = getType(parent.typeId);
         if(!parentType) {return false;}
-        const objectType =,getObjectType();
+        const objectType = getObjectType();
         if(!objectType) {return false;}
         if(parents.length > 0) {
             const firstParentType = getParentType(parents[0]);
