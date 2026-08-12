@@ -83,12 +83,19 @@ export function initAdmin(
                 ) {
                     return;
                 }
+            
                 try {
-                    await deleteEntity(
-                        "object",
-                        id,
-                        context
-                    );
+                    const result =
+                        await deleteEntity(
+                            "object",
+                            id,
+                            context
+                        );
+            
+                    if(result?.parentId) {
+                        window.location.href =
+                            `object.html?id=${result.parentId}`;
+                    }
                 } catch(error) {
                     console.error(
                         "Ошибка удаления объекта:",
@@ -98,6 +105,7 @@ export function initAdmin(
                         "Не удалось удалить объект"
                     );
                 }
+            
                 return;
             }
             if(action === "add-object") {
@@ -164,17 +172,11 @@ export function initAdmin(
                     return;
                 }
                 try {
-                    const result =
-                        await deleteEntity(
-                            "object",
-                            id,
-                            context
-                        );
-                    
-                    if(result?.parentId) {
-                        window.location.href =
-                            `object.html?id=${result.parentId}`;
-                    }
+                    await deleteEntity(
+                        "photo",
+                        id,
+                        context
+                    );
                 } catch(error) {
                     console.error(
                         "Ошибка удаления фотографии:",
