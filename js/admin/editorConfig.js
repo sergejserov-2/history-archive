@@ -3,14 +3,42 @@
 // ======================================
 
 import {createModal} from "../ui/components/modal.js";
-import {renderEntityEditor, setupEditorComponents, setupEditorButtons} from "../ui/components/editor.js";
+import {
+    renderEntityEditor,
+    setupEditorComponents,
+    setupEditorButtons
+}
+from "../ui/components/editor.js";
 
-import {createObject, updateObject} from "../api/objects.js";
-import {createPhoto, updatePhoto} from "../api/photos.js";
-import {createSource, updateSource} from "../api/sources.js";
-import {createRecord, updateRecord} from "../api/records.js";
+import {
+    createObject,
+    updateObject
+}
+from "../api/objects.js";
 
-import {uploadPhoto, uploadSourceDocument} from "../api/storage.js";
+import {
+    createPhoto,
+    updatePhoto
+}
+from "../api/photos.js";
+
+import {
+    createSource,
+    updateSource
+}
+from "../api/sources.js";
+
+import {
+    createRecord,
+    updateRecord
+}
+from "../api/records.js";
+
+import {
+    uploadPhoto,
+    uploadSourceDocument
+}
+from "../api/storage.js";
 
 // ======================================
 // Config
@@ -25,13 +53,23 @@ const CONFIG = {
         status: true,
         parentsType: "objectsWithAddress",
         parentsRequiredMessage: "Нужен хотя бы один родитель",
-        limits: {title: 60, description: 350},
-        cover: {photos: []},
+        limits: {
+            title: 60,
+            description: 350
+        },
+        cover: {
+            photos: []
+        },
         options: {
             typeSelector: true,
             types: [],
             defaultTypeId: "",
             disabledTypeIds: []
+        },
+        getUpdates(context) {
+            return [
+                context.updates?.updateObjectBlock
+            ];
         }
     },
 
@@ -42,11 +80,24 @@ const CONFIG = {
         upload: uploadPhoto,
         file: true,
         fileRequired: true,
-        fileRequiredMessage: "Для фотографии необходимо выбрать файл",
+        fileRequiredMessage:
+            "Для фотографии необходимо выбрать файл",
         parentsType: "objects",
         dateMode: "date",
-        limits: {title: 45, description: 350, author: 45},
-        fields: ["author", "date"]
+        limits: {
+            title: 45,
+            description: 350,
+            author: 45
+        },
+        fields: [
+            "author",
+            "date"
+        ],
+        getUpdates(context) {
+            return [
+                context.updates?.updatePhotosBlock
+            ];
+        }
     },
 
     source: {
@@ -57,8 +108,20 @@ const CONFIG = {
         file: true,
         parentsType: "objects",
         dateMode: "date",
-        limits: {title: 45, description: 2000, author: 45},
-        fields: ["author", "date"]
+        limits: {
+            title: 45,
+            description: 2000,
+            author: 45
+        },
+        fields: [
+            "author",
+            "date"
+        ],
+        getUpdates(context) {
+            return [
+                context.updates?.updateSourcesBlock
+            ];
+        }
     },
 
     record: {
@@ -68,9 +131,22 @@ const CONFIG = {
         file: false,
         parentsType: "objects",
         dateMode: "period",
-        limits: {title: 45, description: 75},
-        fields: ["dateStart", "dateEnd"],
-        options: {typeSelector: true}
+        limits: {
+            title: 45,
+            description: 75
+        },
+        fields: [
+            "dateStart",
+            "dateEnd"
+        ],
+        options: {
+            typeSelector: true
+        },
+        getUpdates(context) {
+            return [
+                context.updates?.updateRecordsBlock
+            ];
+        }
     }
 };
 
@@ -79,10 +155,30 @@ const CONFIG = {
 // ======================================
 
 function getDefaultEntity(type) {
-    if(type === "object") return {title: "Новый объект"};
-    if(type === "photo") return {title: "Новая фотография"};
-    if(type === "source") return {title: "Новый источник"};
-    if(type === "record") return {title: "Новая запись"};
+    if(type === "object") {
+        return {
+            title: "Новый объект"
+        };
+    }
+
+    if(type === "photo") {
+        return {
+            title: "Новая фотография"
+        };
+    }
+
+    if(type === "source") {
+        return {
+            title: "Новый источник"
+        };
+    }
+
+    if(type === "record") {
+        return {
+            title: "Новая запись"
+        };
+    }
+
     return {};
 }
 
@@ -90,39 +186,77 @@ function getDefaultEntity(type) {
 // Config
 // ======================================
 
-function getConfig(type, entity, context = {}) {
-    const base = CONFIG[type];
+function getConfig(
+    type,
+    entity,
+    context = {}
+) {
+    const base =
+        CONFIG[type];
 
     if(!base) {
-        console.error("Unknown entity type", type);
+        console.error(
+            "Unknown entity type",
+            type
+        );
+
         return null;
     }
 
-    const cfg = {
+    const cfg =
+        {
         ...base,
-        options: {...(base.options ?? {})}
+        options: {
+            ...(base.options ?? {})
+        }
     };
 
     if(cfg.options.typeSelector) {
-        cfg.options.types = context.recordTypes ?? context.types ?? [];
-        cfg.options.objects = context.objects ?? [];
-        cfg.options.children = context.children ?? [];
-        cfg.options.parentId = context.parentId;
+        cfg.options.types =
+            context.recordTypes ??
+            context.types ??
+            [];
+
+        cfg.options.objects =
+            context.objects ??
+            [];
+
+        cfg.options.children =
+            context.children ??
+            [];
+
+        cfg.options.parentId =
+            context.parentId;
     }
 
     if(type === "object") {
-        cfg.options.types = context.types ?? [];
-        cfg.options.objects = context.objects ?? [];
-        cfg.options.children = context.children ?? [];
-        cfg.options.parentId = context.parentId;
+        cfg.options.types =
+            context.types ??
+            [];
+
+        cfg.options.objects =
+            context.objects ??
+            [];
+
+        cfg.options.children =
+            context.children ??
+            [];
+
+        cfg.options.parentId =
+            context.parentId;
 
         cfg.cover = {
             ...cfg.cover,
             photos: entity
-                ? (context.photos ?? []).filter(
-                    photo => photo.parents?.includes(entity.id)
+                ?
+                (context.photos ?? []).filter(
+                    photo =>
+                        photo.parents?.includes(
+                            entity.id
+                        )
                 )
-                : []
+                :
+                []
         };
     }
 
@@ -130,58 +264,130 @@ function getConfig(type, entity, context = {}) {
 }
 
 // ======================================
+// Run updates
+// ======================================
+
+async function runUpdates(
+    cfg,
+    context,
+    data
+) {
+    const updates =
+        cfg.getUpdates?.(
+            context
+        ) ?? [];
+
+    for(const update of updates) {
+        if(typeof update === "function") {
+            await update(data);
+        }
+    }
+}
+
+// ======================================
 // Open
 // ======================================
 
-export function openEditor(type, entity, context = {}, onSave) {
-    const isNew = !entity;
-    entity = entity ?? getDefaultEntity(type);
+export function openEditor(
+    type,
+    entity,
+    context = {}
+) {
+    const isNew =
+        !entity;
 
-    const cfg = getConfig(type, entity, context);
+    entity =
+        entity ??
+        getDefaultEntity(type);
 
-    if(!cfg) return;
+    const cfg =
+        getConfig(
+            type,
+            entity,
+            context
+        );
 
-    const form = renderEntityEditor(
-        cfg,
-        entity
-    );
+    if(!cfg) {
+        return;
+    }
 
-    const modal = createModal({
-        title: entity.id
-            ? `Изменить ${cfg.title.toLowerCase()}`
-            : `Добавить ${cfg.title.toLowerCase()}`,
-        content: form
-    });
+    const form =
+        renderEntityEditor(
+            cfg,
+            entity
+        );
 
-    const root = modal.root;
+    const modal =
+        createModal({
+            title:
+                entity.id
+                ?
+                `Изменить ${cfg.title.toLowerCase()}`
+                :
+                `Добавить ${cfg.title.toLowerCase()}`,
+            content: form
+        });
 
-    const editor = setupEditorComponents(
+    const root =
+        modal.root;
+
+    const editor =
+        setupEditorComponents(
+            root,
+            cfg,
+            context,
+            entity
+        );
+
+    setupEditorButtons(
         root,
-        cfg,
-        context,
-        entity
-    );
+        async() => {
+            try {
+                const data =
+                    await editor.getData();
 
-setupEditorButtons(
-    root,
-    async() => {
-        try {
-            const data = await editor.getData();
-            console.log("EDITOR DATA:", data);
-            console.log("OBJECT TYPE ID:", data?.typeId);
-            if(!data) return;
-            if(isNew) {
-                await cfg.create(data);
-            } else {
-                await cfg.update(entity.id, data);
+                if(!data) {
+                    return;
+                }
+
+                let savedData;
+
+                if(isNew) {
+                    savedData =
+                        await cfg.create(
+                            data
+                        );
+                } else {
+                    await cfg.update(
+                        entity.id,
+                        data
+                    );
+
+                    savedData = {
+                        id: entity.id,
+                        ...data
+                    };
+                }
+
+                modal.close();
+
+                await runUpdates(
+                    cfg,
+                    context,
+                    savedData
+                );
+            } catch(error) {
+                console.error(
+                    error
+                );
+
+                alert(
+                    "Ошибка сохранения"
+                );
             }
+        },
+        () => {
             modal.close();
-            onSave?.();
-        } catch(error) {
-            console.error(error);
-            alert("Ошибка сохранения");
         }
-    },
-    () => modal.close()
-);
+    );
 }
