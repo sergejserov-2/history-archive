@@ -1,0 +1,33 @@
+/* ==========================================
+   BREADCRUMBS
+========================================== */
+
+.breadcrumbs {
+    margin: 0 var(--space-9) var(--space-9);
+}
+
+.breadcrumbs__chain {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-bottom: var(--space-4);
+}
+
+.breadcrumbs__item {
+    color: var(--color-text-faded);
+    text-decoration: none;
+    font-size: var(--font-size-lg);
+    line-height: 1.5;
+    transition: color .15s ease;
+}
+
+.breadcrumbs__item:hover {
+    color: #c4c7cb;
+}
+
+.breadcrumbs__separator {
+    margin: 0 var(--space-5);
+    color: #656a70;
+    font-size: var(--font-size-md);
+}
