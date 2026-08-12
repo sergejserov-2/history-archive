@@ -20,7 +20,12 @@ const CONFIG = {
     parentsRequiredMessage: "Нужен хотя бы один родитель",
     limits: {title: 60, description: 350},
     cover: {photos: []},
-    options: {typeSelector: true, types: [], defaultTypeId: "", disabledTypeIds: []}
+    options: {
+        typeSelector: true,
+        types: [],
+        defaultTypeId: "",
+        disabledTypeIds: []
+    }
 };
 
 // ======================================
@@ -29,7 +34,17 @@ const CONFIG = {
 
 export function renderObjectEditor(object, types, objects, photos, children, context) {
     const objectPhotos = object ? photos.filter(photo => photo.parents?.includes(object.id)) : [];
-    const cfg = {...CONFIG, cover: {...CONFIG.cover, photos: objectPhotos}, options: {...CONFIG.options, types}};
+    const cfg = {
+        ...CONFIG,
+        cover: {...CONFIG.cover, photos: objectPhotos},
+        options: {
+            ...CONFIG.options,
+            types,
+            objects,
+            children,
+            parentId: context?.parentId
+        }
+    };
     return renderEntityEditor(cfg, object);
 }
 
@@ -38,12 +53,27 @@ export function renderObjectEditor(object, types, objects, photos, children, con
 // ======================================
 
 export function openObjectEditor(object, types, objects, photos, children, context, onSave) {
-    const objectPhotos = object ? photos.filter(photo => photo.parents?.includes(object.id)) : [];
-    const cfg = {...CONFIG, cover: {...CONFIG.cover, photos: objectPhotos}, options: {...CONFIG.options, types}};
+    const cfg = {
+        ...CONFIG,
+        cover: {
+            ...CONFIG.cover,
+            photos: object ? photos.filter(photo => photo.parents?.includes(object.id)) : []
+        },
+        options: {
+            ...CONFIG.options,
+            types,
+            objects,
+            children,
+            parentId: context?.parentId
+        }
+    };
     const form = renderEntityEditor(cfg, object);
-    const modal = createModal({title: object ? "Изменить объект" : "Добавить объект", content: form});
+    const modal = createModal({
+        title: object ? "Изменить объект" : "Добавить объект",
+        content: form
+    });
     const root = modal.root;
-    const editor = setupEditorComponents(root, cfg, {...context, objects, types, children}, object);
+    const editor = setupEditorComponents(root, cfg, { ...context, objects, types, children }, object);
     setupEditorButtons(root, async() => {
         try {
             const data = await editor.getData();
