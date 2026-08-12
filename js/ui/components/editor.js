@@ -9,7 +9,6 @@ import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
 import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
 import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
 import {setupFieldsEditor, renderFieldsEditorHTML} from "./editor/fields.js";
-import {setupFieldCounters} from "./editor/counters.js";
 
 // ======================================
 // Render Editor
@@ -99,7 +98,7 @@ const parentsEditor = cfg.parentsType
                 requiredMessage:
                     cfg.parentsRequiredMessage
             }
-        ) : null;
+        );
 
     const fieldsEditor = setupFieldsEditor(root, cfg, entity);
     const typeEditor = setupTypesEditor(root, entity);
@@ -175,5 +174,4 @@ export {
     setupParentsEditor,
     setupFileEditor,
     setupCoverEditor,
-    setupFieldCounters
 };
