@@ -165,9 +165,6 @@ async function loadPage() {
 
 console.time("LOAD DATA");
 
-const objects = await getAllObjects();
-const object = objects.find(item => item.id === objectId);
-
 if(!object) {
     document.body.innerHTML = `<h1>Объект не найден</h1>`;
     return;
