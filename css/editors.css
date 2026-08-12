@@ -131,8 +131,8 @@
         var(--radius-lg);
 }
 
-.entity-date-editor__period-input:focus {
-    z-index: 20;
+.entity-date-editor__period-input:focus-within {
+    z-index: 30;
 }
 
 .entity-date-editor__switch {
