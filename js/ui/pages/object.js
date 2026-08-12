@@ -123,13 +123,13 @@ let pageObjects = [];
 
 async function loadPage() {
     console.time("LOAD DATA");
-
+console.time("getAllObjects");
     const [objects, types] =
         await Promise.all([
             getAllObjects(),
             getTypes()
         ]);
-
+console.timeEnd("getAllObjects");
     const object = objects.find(
         item => item.id === objectId
     );
