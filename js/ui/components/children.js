@@ -1,4 +1,6 @@
 import {getParents} from "../../api/objects.js";
+import {getPhotos} from "../../api/photos.js";
+import {renderStatusBadgeHTML} from "./editor/status.js";
 
 export async function renderChildren(children, ADMIN_MODE = false, currentObject = null, objects = [], types = []) {
     const typeMap = new Map(types.map(type => [type.id, type]));
