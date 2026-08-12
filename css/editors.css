@@ -104,17 +104,19 @@
 .entity-date-editor__period {
     display: flex;
     width: 100%;
+    gap: 0;
 }
 
-.entity-date-editor__period
-.historical-date__input {
-    width: 50%;
+.entity-date-editor__period-input {
+    flex: 1 1 0;
     min-width: 0;
 }
 
-.entity-date-editor__period
-.historical-date__input:first-child {
-    flex: 1 1 0;
+.entity-date-editor__period-input input {
+    width: 100%;
+    min-width: 0;
+}
+.entity-date-editor__period:first-child {
        border-radius:
         var(--radius-lg)
         0
@@ -122,9 +124,7 @@
         var(--radius-lg);
 }
 
-.entity-date-editor__period
-.historical-date__input:last-child {
-    flex: 1 1 0;
+.entity-date-editor__period:last-child {
        border-radius:
         0
         var(--radius-lg)
@@ -563,21 +563,52 @@
    INPUT WITH HELP
 ========================================== */
 
-.historical-date__input
-input {
+.historical-date {
+    position: relative;
     width: 100%;
     min-width: 0;
 }
 
-
-/*
- * Чтобы текст не заходил под (?).
- */
-.historical-date__input
-input:has(+ .historical-date__help) {
-    padding-right: 42px;
+.historical-date input {
+    width: 100%;
+    min-width: 0;
+    padding-right: 40px;
 }
 
+.historical-date__help {
+    position: absolute;
+
+    top: 50%;
+    right: 10px;
+
+    width: 22px;
+    height: 22px;
+
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 50%;
+
+    background: var(--color-surface-alt);
+    color: var(--color-text-dim);
+
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.historical-date__help:hover {
+    background: var(--color-media-dark);
+    color: var(--color-text);
+}
 
 /* ==========================================
    DROPDOWN
