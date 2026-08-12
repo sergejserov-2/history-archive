@@ -555,16 +555,14 @@
 ========================================== */
 
 .historical-date__suggestions {
-    position: absolute;
 
-    top: calc(100% + var(--space-2));
-    left: 0;
-    right: 0;
+    position: fixed;
 
     display: none;
     flex-direction: column;
 
     max-height: 240px;
+
     overflow-y: auto;
 
     padding: var(--space-2);
@@ -579,17 +577,23 @@
     z-index: 99999;
 }
 
+.historical-date__suggestions.is-open {
+    display: flex;
+}
+
 
 /* ==========================================
    DROPDOWN ITEM
 ========================================== */
 
 .historical-date__suggestion {
+
     display: block;
 
     width: 100%;
 
     margin: 0;
+
     padding: var(--space-3) var(--space-5) !important;
 
     background: transparent !important;
@@ -601,6 +605,7 @@
 
     font-family: inherit;
     font-size: var(--font-size-md) !important;
+
     line-height: 1.3;
 
     text-align: left;
@@ -611,8 +616,8 @@
 }
 
 .historical-date__suggestion:hover {
-    background: var(--color-media-dark) !important;
-    color: var(--color-text-light) !important;
 
-    border-radius: 0 !important;
+    background: var(--color-surface-hover) !important;
+
+    color: var(--color-text-primary) !important;
 }
