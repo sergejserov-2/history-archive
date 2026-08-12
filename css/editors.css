@@ -35,10 +35,10 @@
     min-width: 0;
 }
 
-/* Автор + дата: 1,5 : 1 */
+/* Автор + дата: 2 : 1 */
 
 .entity-row--author-date .entity-author {
-    flex: 1.5 1 0;
+    flex: 2 1 0;
     width: 0;
     min-width: 0;
 }
@@ -50,7 +50,7 @@
 }
 
 
-/* Автор + период: 1 : 2 */
+/* Автор + период: 1 : 1.5 */
 
 .entity-row--author-date-period .entity-author {
     flex: 1 1 0;
@@ -59,7 +59,7 @@
 }
 
 .entity-row--author-date-period .entity-date-editor {
-    flex: 2 1 0;
+    flex: 1.5 1 0;
     width: 0;
     min-width: 0;
 }
