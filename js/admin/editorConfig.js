@@ -2,8 +2,8 @@
 // Editor config
 // ======================================
 
-import {createModal} from "./components/modal.js";
-import {renderEntityEditor, setupEditorComponents, setupEditorButtons} from "./components/editor.js";
+import {createModal} from "../ui/components/modal.js";
+import {renderEntityEditor, setupEditorComponents, setupEditorButtons} from "../ui/components/editor.js";
 
 import {createObject, updateObject} from "../api/objects.js";
 import {createPhoto, updatePhoto} from "../api/photos.js";
