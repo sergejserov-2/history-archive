@@ -213,16 +213,16 @@ export async function openEditor(type, entity, context = {}) {
                 const data =
                     await editor.getData();
                 if(!data) return;
-                const savedEntity =
-                    await updateEntity(
-                        type,
-                        entity,
-                        data,
-                        context,
-                        entity?.id
-                            ? cfg.updates ?? []
-                            : []
-                    );
+const savedEntity =
+    await updateEntity(
+        type,
+        entity,
+        data,
+        context,
+        type === "object" && !entity?.id
+            ? []
+            : cfg.updates ?? []
+    );
                 
                 modal.close();
                 
