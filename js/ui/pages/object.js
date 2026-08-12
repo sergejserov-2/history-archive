@@ -194,7 +194,38 @@ console.timeEnd("getAllObjects");
         )
     ]);
 
-    console.timeEnd("LOAD DATA");
+console.timeEnd("LOAD DATA");
+
+console.time("RENDER PAGE");
+await renderPage();
+console.timeEnd("RENDER PAGE");
+
+onAdminStateChanged(
+    async ADMIN_MODE => {
+        pageAdminMode = ADMIN_MODE;
+
+        if(ADMIN_MODE) {
+            initAdmin(
+                pageObject,
+                pageTypes,
+                pageObjects,
+                pagePhotos,
+                pageSources,
+                pageRecords,
+                pageChildren,
+                pageRecordTypes,
+                {
+                    updateObjectBlock,
+                    updateRecordsBlock,
+                    updatePhotosBlock,
+                    updateSourcesBlock
+                }
+            );
+        }
+
+        await restoreModalFromUrl();
+    }
+);
 }
 export async function onPhotoDeleted() {
     await updatePhotosBlock();
