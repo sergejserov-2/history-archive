@@ -49,11 +49,17 @@
     min-width: 0;
 }
 
-/* Автор + период: 1 : 1 */
 
-.entity-row--author-date-period .entity-author,
-.entity-row--author-date-period .entity-date-editor {
+/* Автор + период: 1 : 2 */
+
+.entity-row--author-date-period .entity-author {
     flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+}
+
+.entity-row--author-date-period .entity-date-editor {
+    flex: 2 1 0;
     width: 0;
     min-width: 0;
 }
