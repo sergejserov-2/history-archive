@@ -99,9 +99,7 @@ const parentsEditor = cfg.parentsType
                 requiredMessage:
                     cfg.parentsRequiredMessage
             }
-        );
-    )
-    : null;
+        ) : null;
 
     const fieldsEditor = setupFieldsEditor(root, cfg, entity);
     const typeEditor = setupTypesEditor(root, entity);
