@@ -183,34 +183,51 @@ async function loadPage() {
 
     console.timeEnd("LOAD PAGE");
 
-    onAdminStateChanged(
-        async ADMIN_MODE => {
-            pageAdminMode = ADMIN_MODE;
+onAdminStateChanged(
+    async ADMIN_MODE => {
 
-            await renderPage();
+        console.time("ADMIN CALLBACK");
 
-            if(ADMIN_MODE) {
-                initAdmin(
-                    pageObject,
-                    pageTypes,
-                    pageObjects,
-                    pagePhotos,
-                    pageSources,
-                    pageRecords,
-                    pageChildren,
-                    pageRecordTypes,
-                    {
-                        updateObjectBlock,
-                        updateRecordsBlock,
-                        updatePhotosBlock,
-                        updateSourcesBlock
-                    }
-                );
-            }
+        pageAdminMode =
+            ADMIN_MODE;
 
-            await restoreModalFromUrl();
+        console.time("renderPage");
+        await renderPage();
+        console.timeEnd("renderPage");
+
+        if(ADMIN_MODE) {
+
+            console.time("initAdmin");
+
+            initAdmin(
+                pageObject,
+                pageTypes,
+                pageObjects,
+                pagePhotos,
+                pageSources,
+                pageRecords,
+                pageChildren,
+                pageRecordTypes,
+                {
+                    updateObjectBlock,
+                    updateRecordsBlock,
+                    updatePhotosBlock,
+                    updateSourcesBlock
+                }
+            );
+
+            console.timeEnd("initAdmin");
         }
-    );
+
+        console.time("restoreModalFromUrl");
+
+        await restoreModalFromUrl();
+
+        console.timeEnd("restoreModalFromUrl");
+
+        console.timeEnd("ADMIN CALLBACK");
+    }
+);
 }
 
 export async function onPhotoDeleted() {
@@ -598,6 +615,9 @@ function renderObjectBlock() {
 // ======================================
 
 async function renderPage() {
+
+    console.time("renderChildren");
+
     const childrenHTML =
         await renderChildren(
             pageChildren,
@@ -605,10 +625,18 @@ async function renderPage() {
             pageObject
         );
 
+    console.timeEnd("renderChildren");
+
+    console.time("renderBreadcrumbs");
+
     const breadcrumbsHTML =
         await renderBreadcrumbs(
             pageObject
         );
+
+    console.timeEnd("renderBreadcrumbs");
+
+    console.time("body.innerHTML");
 
     document.body.innerHTML = `
         ${renderHeader()}
@@ -682,6 +710,8 @@ async function renderPage() {
             }
         </main>
     `;
+
+    console.timeEnd("body.innerHTML");
 }
 
 loadPage();
