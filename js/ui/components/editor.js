@@ -81,24 +81,28 @@ export function setupEditorComponents(root, cfg, context, entity) {
             : [];
 
 const parentsEditor = cfg.parentsType
-        setupParentsEditor(
-            root,
-            context.objects,
-            entity,
-            parents,
-            {
-                address: true,
-                types: context.types,
-                typeSelector: true,
-                children: context.children,
-                getTypeId: () =>
-                    root.querySelector(
-                        "#entityType"
-                    )?.value,
-                requiredMessage:
-                    cfg.parentsRequiredMessage
-            }
-        );
+    ? setupParentsEditor(
+        root,
+        context.objects,
+        entity,
+        parents,
+        {
+            address: cfg.parentsType === "objectsWithAddress",
+            types: context.types,
+            typeSelector: true,
+            children: context.children,
+            getTypeId: () =>
+                root.querySelector(
+                    "#entityType"
+                )?.value,
+            requiredMessage:
+                cfg.parentsRequiredMessage
+        }
+    )
+    : null;
+if(parentsEditor && !parentsEditor.validate()) {
+return null;
+}
 
     const fieldsEditor = setupFieldsEditor(root, cfg, entity);
     const typeEditor = setupTypesEditor(root, entity);
