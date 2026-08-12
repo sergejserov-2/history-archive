@@ -34,6 +34,17 @@ const HELP_TEXT = `
 вер., нач. 0000-х
 вер., сер. 0000-х
 вер., кон. 0000-х
+
+Для периода можно использовать «с» и «до».
+
+Например:
+
+с 1920-е
+до 1950-е
+с 1920-е до 1950-е
+
+вер., с 1920-е
+вер., до 1950-е
 `;
 
 // ======================================
@@ -46,97 +57,159 @@ export function setupHistoricalDateInput(input, options = {}) {
         return null;
     }
 
-    input.setAttribute("autocomplete", "off");
+    input.setAttribute(
+        "autocomplete",
+        "off"
+    );
 
-    const wrapper = ensureInputWrapper(input);
-    const dropdown = createDropdown();
+    const wrapper =
+        ensureInputWrapper(
+            input,
+            options
+        );
 
-    wrapper.appendChild(dropdown);
+    const dropdown =
+        createDropdown();
 
-    let currentTemplate = findTemplate(input.value);
+    wrapper.appendChild(
+        dropdown
+    );
 
-    // ----------------------------------
+    let currentTemplate =
+        findTemplate(
+            input.value
+        );
+
+
+    // ==================================
     // Input
-    // ----------------------------------
+    // ==================================
 
-    input.addEventListener("input", () => {
+    input.addEventListener(
+        "input",
+        () => {
 
-        const value = input.value;
+            const value =
+                input.value;
 
-        /*
-         * Разрешаем только те символы,
-         * которые являются продолжением
-         * хотя бы одного шаблона.
-         */
-        const validValue = getValidPrefix(value);
+            /*
+             * Разрешаем только те символы,
+             * которые являются продолжением
+             * хотя бы одного допустимого
+             * шаблона.
+             */
+            const validValue =
+                getValidPrefix(
+                    value
+                );
 
-        if (validValue !== value) {
-            input.value = validValue;
+            if (
+                validValue !== value
+            ) {
+                input.value =
+                    validValue;
+            }
+
+            currentTemplate =
+                findTemplate(
+                    input.value
+                );
+
+            renderDropdown(
+                dropdown,
+                input.value
+            );
+
+            if (
+                options.onInput
+            ) {
+                options.onInput(
+                    input.value
+                );
+            }
         }
+    );
 
-        currentTemplate = findTemplate(input.value);
 
-        renderDropdown(
-            dropdown,
-            input.value
-        );
-
-        if (options.onInput) {
-            options.onInput(input.value);
-        }
-    });
-
-    // ----------------------------------
+    // ==================================
     // Focus
-    // ----------------------------------
+    // ==================================
 
-    input.addEventListener("focus", () => {
+    input.addEventListener(
+        "focus",
+        () => {
 
-        /*
-         * Пустое поле — никаких подсказок.
-         */
-        if (!input.value) {
-            closeDropdown(dropdown);
-            return;
+            /*
+             * Пустое поле —
+             * никаких подсказок.
+             */
+            if (!input.value) {
+                closeDropdown(
+                    dropdown
+                );
+
+                return;
+            }
+
+            renderDropdown(
+                dropdown,
+                input.value
+            );
         }
+    );
 
-        renderDropdown(
-            dropdown,
+
+    // ==================================
+    // Blur
+    // ==================================
+
+    input.addEventListener(
+        "blur",
+        () => {
+
+            /*
+             * Даём успеть обработать
+             * клик по элементу dropdown.
+             */
+            setTimeout(
+                () => {
+                    closeDropdown(
+                        dropdown
+                    );
+                },
+                150
+            );
+        }
+    );
+
+
+    // ==================================
+    // Keyboard
+    // ==================================
+
+    input.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Escape"
+            ) {
+                closeDropdown(
+                    dropdown
+                );
+            }
+        }
+    );
+
+
+    // ==================================
+    // Initial value
+    // ==================================
+
+    currentTemplate =
+        findTemplate(
             input.value
         );
-    });
-
-    // ----------------------------------
-    // Blur
-    // ----------------------------------
-
-    input.addEventListener("blur", () => {
-
-        /*
-         * Небольшая задержка позволяет
-         * обработать клик по элементу dropdown.
-         */
-        setTimeout(() => {
-            closeDropdown(dropdown);
-        }, 150);
-    });
-
-    // ----------------------------------
-    // Keyboard
-    // ----------------------------------
-
-    input.addEventListener("keydown", event => {
-
-        if (event.key === "Escape") {
-            closeDropdown(dropdown);
-        }
-    });
-
-    // ----------------------------------
-    // Initial value
-    // ----------------------------------
-
-    currentTemplate = findTemplate(input.value);
 
     if (input.value) {
         renderDropdown(
@@ -145,36 +218,54 @@ export function setupHistoricalDateInput(input, options = {}) {
         );
     }
 
+
+    // ==================================
+    // Public API
+    // ==================================
+
     return {
 
         getValue() {
+
             return input.value.trim();
         },
 
+
         setValue(value) {
 
-            input.value = value ?? "";
+            input.value =
+                value ?? "";
 
-            currentTemplate = findTemplate(
-                input.value
-            );
+            currentTemplate =
+                findTemplate(
+                    input.value
+                );
 
             if (input.value) {
+
                 renderDropdown(
                     dropdown,
                     input.value
                 );
+
             }
             else {
-                closeDropdown(dropdown);
+
+                closeDropdown(
+                    dropdown
+                );
             }
         },
 
+
         getTemplate() {
+
             return currentTemplate;
         },
 
+
         validate() {
+
             return isValidHistoricalDate(
                 input.value
             );
@@ -182,81 +273,158 @@ export function setupHistoricalDateInput(input, options = {}) {
     };
 }
 
+
 // ======================================
 // Input wrapper
 // ======================================
 
-function ensureInputWrapper(input) {
+function ensureInputWrapper(
+    input,
+    options = {}
+) {
 
-    let wrapper = input.parentElement;
+    let wrapper =
+        input.parentElement;
+
 
     /*
      * Если input уже находится
-     * в нашем wrapper — используем его.
+     * внутри нашего wrapper —
+     * используем его.
      */
     if (
         wrapper &&
         wrapper.classList.contains(
-            "historical-date__input"
+            "historical-date"
         )
     ) {
+
+        /*
+         * Если help нужен, но его ещё нет —
+         * добавляем.
+         */
+        if (
+            options.showHelp !== false &&
+            !wrapper.querySelector(
+                ".historical-date__help"
+            )
+        ) {
+
+            appendHelpButton(
+                wrapper
+            );
+        }
+
         return wrapper;
     }
 
-    wrapper = document.createElement("div");
+
+    /*
+     * Создаём новый wrapper.
+     */
+    wrapper =
+        document.createElement(
+            "div"
+        );
 
     wrapper.className =
-        "historical-date__input";
+        "historical-date";
+
 
     input.parentNode.insertBefore(
         wrapper,
         input
     );
 
-    wrapper.appendChild(input);
+    wrapper.appendChild(
+        input
+    );
+
 
     /*
-     * Help button
+     * Help добавляем только если
+     * явно разрешено.
+     *
+     * По умолчанию true.
      */
-if(options.showHelp !== false) {
-    const helpButton = createHelpButton();
+    if (
+        options.showHelp !== false
+    ) {
 
-    helpButton.addEventListener("click", () => {
-        alert(HELP_TEXT.trim());
-    });
-
-    const wrapper = input.parentElement;
-
-    if(wrapper) {
-        wrapper.classList.add("historical-date");
-        wrapper.appendChild(helpButton);
+        appendHelpButton(
+            wrapper
+        );
     }
+
+
+    return wrapper;
 }
-}
+
 
 // ======================================
 // Help button
 // ======================================
 
+function appendHelpButton(
+    wrapper
+) {
+
+    const button =
+        createHelpButton();
+
+
+    button.addEventListener(
+        "click",
+        event => {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            alert(
+                HELP_TEXT.trim()
+            );
+        }
+    );
+
+
+    wrapper.appendChild(
+        button
+    );
+}
+
+
 function createHelpButton() {
 
     const button =
-        document.createElement("button");
+        document.createElement(
+            "button"
+        );
 
-    button.type = "button";
+    button.type =
+        "button";
 
     button.className =
         "historical-date__help";
 
-    button.textContent = "?";
+    /*
+     * Unicode-вопросик в кружке.
+     */
+    button.textContent =
+        "ⓘ";
 
     button.setAttribute(
         "aria-label",
         "Допустимые форматы даты"
     );
 
+    button.setAttribute(
+        "title",
+        "Допустимые форматы даты"
+    );
+
     return button;
 }
+
 
 // ======================================
 // Dropdown
@@ -265,13 +433,16 @@ function createHelpButton() {
 function createDropdown() {
 
     const container =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     container.className =
         "historical-date__suggestions";
 
     return container;
 }
+
 
 // ======================================
 // Render dropdown
@@ -283,138 +454,318 @@ function renderDropdown(
 ) {
 
     const normalized =
-        value.toLowerCase();
+        String(
+            value ?? ""
+        ).toLowerCase();
+
 
     /*
      * Пока ничего не введено —
-     * dropdown отсутствует.
+     * dropdown закрыт.
      */
     if (!normalized) {
-        closeDropdown(container);
+
+        closeDropdown(
+            container
+        );
+
         return;
     }
+
 
     const matches =
-        TEMPLATES.filter(template => {
+        TEMPLATES.filter(
+            template => {
 
-            return template
-                .toLowerCase()
-                .startsWith(normalized);
-        });
+                return template
+                    .toLowerCase()
+                    .startsWith(
+                        normalized
+                    );
+            }
+        );
 
-    container.innerHTML = "";
+
+    container.innerHTML =
+        "";
+
 
     if (!matches.length) {
-        closeDropdown(container);
+
+        closeDropdown(
+            container
+        );
+
         return;
     }
 
-    matches.forEach(template => {
 
-        const item =
-            document.createElement("button");
+    matches.forEach(
+        template => {
 
-        item.type = "button";
+            const item =
+                document.createElement(
+                    "button"
+                );
 
-        item.className =
-            "historical-date__suggestion";
 
-        item.textContent =
-            buildPreview(
-                template,
-                value
+            item.type =
+                "button";
+
+
+            item.className =
+                "historical-date__suggestion";
+
+
+            item.textContent =
+                buildPreview(
+                    template,
+                    value
+                );
+
+
+            /*
+             * Не даём input потерять focus
+             * до click.
+             */
+            item.addEventListener(
+                "mousedown",
+                event => {
+
+                    event.preventDefault();
+                }
             );
 
-        /*
-         * Не даём input потерять focus
-         * раньше клика.
-         */
-        item.addEventListener(
-            "mousedown",
-            event => {
-                event.preventDefault();
-            }
-        );
 
-        item.addEventListener(
-            "click",
-            () => {
+            item.addEventListener(
+                "click",
+                () => {
 
-                const input =
-                    container
-                        .closest(
-                            ".historical-date__input"
-                        )
-                        ?.querySelector(
-                            "input"
+                    const input =
+                        container
+                            .closest(
+                                ".historical-date"
+                            )
+                            ?.querySelector(
+                                "input"
+                            );
+
+
+                    if (!input) {
+                        return;
+                    }
+
+
+                    input.value =
+                        createInitialValue(
+                            template,
+                            value
                         );
 
-                if (!input) {
-                    return;
-                }
 
-                input.value =
-                    createInitialValue(
-                        template,
-                        value
+                    input.focus();
+
+
+                    closeDropdown(
+                        container
                     );
 
-                input.focus();
 
-                closeDropdown(
-                    container
-                );
+                    input.dispatchEvent(
+                        new Event(
+                            "input",
+                            {
+                                bubbles: true
+                            }
+                        )
+                    );
+                }
+            );
 
-                input.dispatchEvent(
-                    new Event(
-                        "input",
-                        {
-                            bubbles: true
-                        }
-                    )
-                );
-            }
-        );
 
-        container.appendChild(item);
-    });
+            container.appendChild(
+                item
+            );
+        }
+    );
+
 
     container.classList.add(
         "is-open"
     );
 }
 
+
 // ======================================
 // Close dropdown
 // ======================================
 
-function closeDropdown(container) {
+function closeDropdown(
+    container
+) {
 
     container.classList.remove(
         "is-open"
     );
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 }
+
 
 // ======================================
 // Template matching
 // ======================================
 
-function findTemplate(value) {
+function findTemplate(
+    value
+) {
 
     if (!value) {
         return null;
     }
 
-    return TEMPLATES.find(
-        template =>
-            matchesTemplate(
-                value,
-                template
-            )
-    ) ?? null;
+
+    /*
+     * Сначала обычные шаблоны.
+     */
+    const template =
+        TEMPLATES.find(
+            item =>
+                matchesTemplate(
+                    value,
+                    item
+                )
+        );
+
+
+    if (template) {
+        return template;
+    }
+
+
+    /*
+     * Затем варианты с «с» / «до».
+     */
+    return findBoundaryTemplate(
+        value
+    );
 }
+
+
+// ======================================
+// Boundary template matching
+// ======================================
+
+function findBoundaryTemplate(
+    value
+) {
+
+    const normalized =
+        value.trim();
+
+
+    /*
+     * с ...
+     */
+    if (
+        normalized.startsWith(
+            "с "
+        )
+    ) {
+
+        const rest =
+            normalized
+                .slice(2)
+                .trim();
+
+        return findTemplate(
+            rest
+        );
+    }
+
+
+    /*
+     * до ...
+     */
+    if (
+        normalized.startsWith(
+            "до "
+        )
+    ) {
+
+        const rest =
+            normalized
+                .slice(3)
+                .trim();
+
+        return findTemplate(
+            rest
+        );
+    }
+
+
+    /*
+     * вер., с ...
+     */
+    if (
+        normalized.startsWith(
+            "вер., с "
+        )
+    ) {
+
+        const rest =
+            normalized
+                .slice(
+                    "вер., с ".length
+                )
+                .trim();
+
+        const template =
+            findTemplate(
+                rest
+            );
+
+        return template
+            ? `вер., ${template}`
+            : null;
+    }
+
+
+    /*
+     * вер., до ...
+     */
+    if (
+        normalized.startsWith(
+            "вер., до "
+        )
+    ) {
+
+        const rest =
+            normalized
+                .slice(
+                    "вер., до ".length
+                )
+                .trim();
+
+        const template =
+            findTemplate(
+                rest
+            );
+
+        return template
+            ? `вер., ${template}`
+            : null;
+    }
+
+
+    return null;
+}
+
+
+// ======================================
+// Match raw template
+// ======================================
 
 function matchesTemplate(
     value,
@@ -428,6 +779,7 @@ function matchesTemplate(
         return false;
     }
 
+
     for (
         let i = 0;
         i < value.length;
@@ -440,43 +792,55 @@ function matchesTemplate(
         const valueChar =
             value[i];
 
+
         /*
          * 0 в шаблоне означает
          * любую цифру.
          */
-        if (templateChar === "0") {
+        if (
+            templateChar === "0"
+        ) {
 
             if (
                 !/[0-9]/.test(
                     valueChar
                 )
             ) {
+
                 return false;
             }
 
         }
         else if (
-            templateChar !== valueChar
+            templateChar !==
+            valueChar
         ) {
 
             return false;
         }
     }
 
+
     return true;
 }
+
 
 // ======================================
 // Valid prefix
 // ======================================
 
-function getValidPrefix(value) {
+function getValidPrefix(
+    value
+) {
 
     if (!value) {
         return "";
     }
 
-    let result = "";
+
+    let result =
+        "";
+
 
     for (
         let i = 0;
@@ -485,26 +849,132 @@ function getValidPrefix(value) {
     ) {
 
         const next =
-            result + value[i];
+            result +
+            value[i];
+
 
         const matches =
-            TEMPLATES.some(
-                template =>
-                    matchesTemplate(
-                        next,
-                        template
-                    )
+            isValidPrefix(
+                next
             );
+
 
         if (!matches) {
             break;
         }
 
-        result = next;
+
+        result =
+            next;
     }
+
 
     return result;
 }
+
+
+// ======================================
+// Prefix validation
+// ======================================
+
+function isValidPrefix(
+    value
+) {
+
+    if (!value) {
+        return true;
+    }
+
+
+    /*
+     * Обычные шаблоны.
+     */
+    const normalMatch =
+        TEMPLATES.some(
+            template =>
+                matchesTemplate(
+                    value,
+                    template
+                )
+        );
+
+
+    if (normalMatch) {
+        return true;
+    }
+
+
+    /*
+     * Границы периода.
+     */
+    return isBoundaryPrefix(
+        value
+    );
+}
+
+
+// ======================================
+// Boundary prefix validation
+// ======================================
+
+function isBoundaryPrefix(
+    value
+) {
+
+    const prefixes = [
+        "с ",
+        "до ",
+        "вер., с ",
+        "вер., до "
+    ];
+
+
+    /*
+     * Сам префикс уже допустим.
+     */
+    for (
+        const prefix of prefixes
+    ) {
+
+        if (
+            prefix.startsWith(
+                value
+            )
+        ) {
+            return true;
+        }
+
+        if (
+            value.startsWith(
+                prefix
+            )
+        ) {
+
+            const rest =
+                value
+                    .slice(
+                        prefix.length
+                    );
+
+
+            /*
+             * После префикса
+             * проверяем обычный шаблон.
+             */
+            return TEMPLATES.some(
+                template =>
+                    matchesTemplate(
+                        rest,
+                        template
+                    )
+            );
+        }
+    }
+
+
+    return false;
+}
+
 
 // ======================================
 // Preview
@@ -515,7 +985,9 @@ function buildPreview(
     value
 ) {
 
-    let result = "";
+    let result =
+        "";
+
 
     for (
         let i = 0;
@@ -526,10 +998,14 @@ function buildPreview(
         const templateChar =
             template[i];
 
-        if (templateChar === "0") {
+
+        if (
+            templateChar === "0"
+        ) {
 
             result +=
-                value[i] ?? "0";
+                value[i] ??
+                "0";
 
         }
         else {
@@ -539,8 +1015,10 @@ function buildPreview(
         }
     }
 
+
     return result;
 }
+
 
 // ======================================
 // Create initial value
@@ -551,36 +1029,169 @@ function createInitialValue(
     value
 ) {
 
-    let result = "";
+    /*
+     * Если выбрали обычный шаблон —
+     * просто подставляем уже введённые
+     * цифры.
+     */
+    if (
+        TEMPLATES.includes(
+            template
+        )
+    ) {
 
-    let valueIndex = 0;
+        let result =
+            "";
+
+        let valueIndex =
+            0;
+
+
+        for (
+            let i = 0;
+            i < template.length;
+            i++
+        ) {
+
+            const templateChar =
+                template[i];
+
+
+            if (
+                templateChar === "0"
+            ) {
+
+                result +=
+                    value[valueIndex] ??
+                    "";
+
+                valueIndex++;
+
+            }
+            else {
+
+                result +=
+                    templateChar;
+            }
+        }
+
+
+        return result;
+    }
+
+
+    /*
+     * Если это граница:
+     *
+     * с 0000
+     * до 0000
+     * вер., с 0000
+     * вер., до 0000
+     */
+    const boundaryPrefixes = [
+        "с ",
+        "до ",
+        "вер., с ",
+        "вер., до "
+    ];
+
+
+    const prefix =
+        boundaryPrefixes.find(
+            item =>
+                template.startsWith(
+                    item
+                )
+        );
+
+
+    if (!prefix) {
+        return value;
+    }
+
+
+    const rawTemplate =
+        template.slice(
+            prefix.length
+        );
+
+
+    /*
+     * Для «вер., с» / «вер., до»
+     * rawTemplate уже будет:
+     *
+     * 0000
+     * ок. 0000
+     * и т.д.
+     */
+    let digits =
+        extractDigits(
+            value
+        );
+
+
+    /*
+     * Если введён только префикс,
+     * digits будет пустым.
+     */
+    let result =
+        prefix;
+
+
+    let digitIndex =
+        0;
+
 
     for (
         let i = 0;
-        i < template.length;
+        i < rawTemplate.length;
         i++
     ) {
 
-        const templateChar =
-            template[i];
+        const char =
+            rawTemplate[i];
 
-        if (templateChar === "0") {
+
+        if (
+            char === "0"
+        ) {
 
             result +=
-                value[valueIndex] ?? "";
+                digits[digitIndex] ??
+                "";
 
-            valueIndex++;
+            digitIndex++;
 
         }
         else {
 
             result +=
-                templateChar;
+                char;
         }
     }
 
+
     return result;
 }
+
+
+// ======================================
+// Extract digits
+// ======================================
+
+function extractDigits(
+    value
+) {
+
+    return String(
+        value ?? ""
+    ).match(
+        /\d/g
+    )?.join(
+        ""
+    ) ?? "";
+}
+
 
 // ======================================
 // Validation
@@ -594,23 +1205,90 @@ export function isValidHistoricalDate(
         return false;
     }
 
-    return TEMPLATES.some(
-        template => {
 
-            if (
-                value.length !==
-                template.length
-            ) {
-                return false;
+    const normalized =
+        value.trim();
+
+
+    /*
+     * Обычные шаблоны.
+     */
+    const normalValid =
+        TEMPLATES.some(
+            template => {
+
+                if (
+                    normalized.length !==
+                    template.length
+                ) {
+                    return false;
+                }
+
+                return matchesTemplate(
+                    normalized,
+                    template
+                );
             }
+        );
 
-            return matchesTemplate(
-                value,
-                template
-            );
+
+    if (normalValid) {
+        return true;
+    }
+
+
+    /*
+     * Границы периода.
+     */
+    const boundaryPrefixes = [
+        "с ",
+        "до ",
+        "вер., с ",
+        "вер., до "
+    ];
+
+
+    for (
+        const prefix of boundaryPrefixes
+    ) {
+
+        if (
+            !normalized.startsWith(
+                prefix
+            )
+        ) {
+            continue;
         }
-    );
+
+
+        const rest =
+            normalized
+                .slice(
+                    prefix.length
+                )
+                .trim();
+
+
+        if (
+            TEMPLATES.some(
+                template =>
+                    rest.length ===
+                        template.length &&
+                    matchesTemplate(
+                        rest,
+                        template
+                    )
+            )
+        ) {
+
+            return true;
+        }
+    }
+
+
+    return false;
 }
+
 
 // ======================================
 // Format historical period
@@ -626,23 +1304,33 @@ export function formatHistoricalPeriod(
             dateStart ?? ""
         ).trim();
 
+
     const end =
         String(
             dateEnd ?? ""
         ).trim();
 
+
     // ----------------------------------
     // Обе даты
     // ----------------------------------
 
-    if (start && end) {
+    if (
+        start &&
+        end
+    ) {
 
         return `${
-            formatPeriodDate(start)
+            formatPeriodDate(
+                start
+            )
         } — ${
-            formatPeriodDate(end)
+            formatPeriodDate(
+                end
+            )
         }`;
     }
+
 
     // ----------------------------------
     // Только начало
@@ -656,6 +1344,7 @@ export function formatHistoricalPeriod(
         );
     }
 
+
     // ----------------------------------
     // Только конец
     // ----------------------------------
@@ -668,8 +1357,10 @@ export function formatHistoricalPeriod(
         );
     }
 
+
     return "";
 }
+
 
 // ======================================
 // Boundary
@@ -683,6 +1374,12 @@ function formatPeriodBoundary(
     const normalized =
         value.trim();
 
+
+    /*
+     * Уже сохранённый вариант:
+     *
+     * вер., 0000
+     */
     if (
         normalized.startsWith(
             "вер.,"
@@ -696,11 +1393,18 @@ function formatPeriodBoundary(
                 )
                 .trim();
 
+
         return `вер., ${prefix} ${
-            formatBoundaryDate(rest)
+            formatBoundaryDate(
+                rest
+            )
         }`;
     }
 
+
+    /*
+     * Обычная граница.
+     */
     return `${
         prefix
     } ${
@@ -710,14 +1414,18 @@ function formatPeriodBoundary(
     }`;
 }
 
+
 // ======================================
 // Boundary date
 // ======================================
 
-function formatBoundaryDate(value) {
+function formatBoundaryDate(
+    value
+) {
 
     const date =
         value.trim();
+
 
     /*
      * 0000-е → 0000-х
@@ -726,7 +1434,9 @@ function formatBoundaryDate(value) {
      * границы периода.
      */
     if (
-        /^\d{4}-е$/.test(date)
+        /^\d{4}-е$/.test(
+            date
+        )
     ) {
 
         return date.replace(
@@ -735,17 +1445,41 @@ function formatBoundaryDate(value) {
         );
     }
 
+
+    /*
+     * вер., 0000-е → вер., 0000-х
+     *
+     * На случай, если значение
+     * придёт сюда уже с вер.
+     */
+    if (
+        /^вер\.,\s*\d{4}-е$/.test(
+            date
+        )
+    ) {
+
+        return date.replace(
+            /-е$/,
+            "-х"
+        );
+    }
+
+
     return date;
 }
+
 
 // ======================================
 // Normal period date
 // ======================================
 
-function formatPeriodDate(value) {
+function formatPeriodDate(
+    value
+) {
 
     return value.trim();
 }
+
 
 // ======================================
 // Templates
