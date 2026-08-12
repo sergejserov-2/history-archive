@@ -115,14 +115,6 @@
 }
 .entity-date-editor__period-input:first-child  {
     border-radius:
-        var(--radius-lg)
-        0
-        0
-        var(--radius-lg);
-}
-
-.entity-date-editor__period-input:last-child  {
-    border-radius:
         0
         var(--radius-lg)
         var(--radius-lg)
@@ -131,7 +123,15 @@
     border-left: none;
 }
 
-.entity-date-editor__period input:focus {
+.entity-date-editor__period-input:last-child  {
+    border-radius:
+        var(--radius-lg)
+        0
+        0
+        var(--radius-lg);
+}
+
+.entity-date-editor__period-input:focus {
     z-index: 20;
 }
 
