@@ -67,7 +67,13 @@ export function setupEditorComponents(root, cfg, context = {}, entity = {}) {
         children: options.children ?? context.children ?? [],
         parentId: options.parentId ?? context.parentId
     }) : null;
-    const parents = entity.parents ? [...entity.parents] : context.parentId ? [context.parentId] : [];
+const parents = entity.parents
+    ? [...entity.parents]
+    : context.parentId
+        ? cfg.parentsType === "objectsWithAddress"
+            ? [{objectId: context.parentId, address: ""}]
+            : [context.parentId]
+        : [];
     const parentsEditor = cfg.parentsType ? setupParentsEditor(root, context.objects ?? [], entity, parents, {
         address: cfg.parentsType === "objectsWithAddress",
         types: options.types ?? context.types ?? [],
