@@ -313,21 +313,21 @@ export async function updateObject(id, data) {
 // Create object
 // ======================================
 
-export async function createObject(data){
+export async function createObject(data) {
 
-    const ref = await addDoc(
+    const ref =
+        await addDoc(
+            collection(
+                db,
+                "objects"
+            ),
+            data
+        );
 
-        collection(
-            db,
-            "objects"
-        ),
-
-        data
-
-    );
-
-    return ref.id;
-
+    return {
+        id: ref.id,
+        ...data
+    };
 }
 
 // ======================================
