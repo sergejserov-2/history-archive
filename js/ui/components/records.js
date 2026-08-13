@@ -184,84 +184,23 @@ else{
 
 }
 
-        return `
-
-        <div class="record">
-
-            <div class="record__title">
-            
-               <span class="record__title-text">
-                   ${record.title ?? ""}
-               </span>
-
-                ${
-                ADMIN_MODE
-
-                ?
-
-                `
-
-                <button
-
-                    class="admin-button"
-
-                    data-action="edit-record"
-
-                    data-id="${record.id}"
-
-                >
-
-                    <img
-                        src="icons/edit.svg"
-                        class="admin-icon"
-                    >
-
-                </button>
-
-                <button
-
-                    class="admin-button"
-
-                    data-action="delete-record"
-
-                    data-id="${record.id}"
-
-                >
-
-                    <img
-                        src="icons/delete.svg"
-                        class="admin-icon"
-                    >
-
-                </button>
-
-                `
-
-                :
-
-                ""
-
-                }
-
-            </div>
-                    ${
-                        record.description?.trim()
-                        ?
-                        `
-                        <div class="object__description">${record.description.trim()}</div>
-                        `
-                        :
-                        ""
-                    }
-            <div class="record__date">
-
-                ${period}
-
-            </div>
-
-        </div>
-
-        `;
+return `
+<div class="record">
+    <div class="record__title">
+        <span class="record__title-text">${record.title ?? ""}</span>
+        ${ADMIN_MODE ? `
+        <button class="admin-button" data-action="edit-record" data-id="${record.id}">
+            <img src="icons/edit.svg" class="admin-icon">
+        </button>
+        <button class="admin-button" data-action="delete-record" data-id="${record.id}">
+            <img src="icons/delete.svg" class="admin-icon">
+        </button>
+        ` : ""}
+    </div>
+    ${record.description?.trim() ? `<div class="record__description">${record.description.trim()}</div>` : ""}
+    <div class="record__date">${period}</div>
+</div>
+`;
 
     }
 
