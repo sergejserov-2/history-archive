@@ -555,7 +555,9 @@
 
     background: #292d33;
 
-    border-radius: var(--radius-lg);
+   border: var(--border-thin);
+   border-top: none !important;
+   border-radius: var(--radius-lg);
 
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
 
@@ -586,7 +588,7 @@
     border: none !important;
     border-radius: 0 !important;
 
-    color: #d8dadd !important;
+    color: var(--color-text-light) !important;
 
     font-family: inherit;
     font-size: 11px !important;
