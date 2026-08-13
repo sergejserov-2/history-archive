@@ -73,7 +73,6 @@
     flex: 1;
 }
 
-
 /* ==========================================
    DATE / PERIOD EDITOR
 ========================================== */
@@ -87,6 +86,10 @@
     min-width: 0;
 }
 
+/* ==========================================
+   LABEL
+========================================== */
+
 .entity-date-editor__label {
     display: block;
 
@@ -94,18 +97,184 @@
     font-size: var(--font-size-sm);
     line-height: 1.2;
 }
+
+/* ==========================================
+   SINGLE DATE
+========================================== */
+
 .entity-date-editor__single {
     width: 100%;
+    min-width: 0;
 }
+
+/*
+ * Обычная дата — полноценный input
+ * со всеми четырьмя скруглёнными углами.
+ */
+
+.entity-date-editor__single .historical-date__input {
+    width: 100%;
+}
+
+/* ==========================================
+   PERIOD
+========================================== */
 
 .entity-date-editor__period {
     display: flex;
+
     width: 100%;
+    min-width: 0;
+
     gap: 0;
 }
 
+/*
+ * Каждый input периода занимает половину
+ * доступного пространства.
+ */
+
+.entity-date-editor__period
 .historical-date__input {
+    position: relative;
+
     flex: 1 1 0;
+
+    width: 0;
+    min-width: 0;
+
+    z-index: 1;
+}
+
+/* ==========================================
+   PERIOD — FIRST INPUT
+========================================== */
+
+/*
+ * Левое поле:
+ *
+ * ┌──────────────┐
+ * │              │
+ * └──────────────┘
+ *
+ * Слева скругление есть.
+ * Справа скругления нет.
+ */
+
+.entity-date-editor__period
+.historical-date__input:first-child input {
+
+    border-radius:
+        var(--radius-lg)
+        0
+        0
+        var(--radius-lg);
+
+    margin-right: 0;
+}
+
+/* ==========================================
+   PERIOD — SECOND INPUT
+========================================== */
+
+/*
+ * Правое поле:
+ *
+ * ┌──────────────┐
+ * │              │
+ * └──────────────┘
+ *
+ * Слева скругления нет.
+ * Справа скругление есть.
+ */
+
+.entity-date-editor__period
+.historical-date__input:last-child input {
+
+    border-radius:
+        0
+        var(--radius-lg)
+        var(--radius-lg)
+        0;
+
+    margin-left: 0;
+}
+
+/* ==========================================
+   PERIOD — CONNECTING BORDERS
+========================================== */
+
+/*
+ * Внутренние стороны соприкасаются.
+ *
+ * Убираем только правую стенку первого
+ * И только левую стенку второго.
+ *
+ * Поэтому внешняя рамка остаётся полностью
+ * видимой, а между полями нет двойной линии.
+ */
+
+.entity-date-editor__period
+.historical-date__input:first-child input {
+
+    border-right: none;
+}
+
+.entity-date-editor__period
+.historical-date__input:last-child input {
+
+    border-left: none;
+}
+
+/* ==========================================
+   FOCUS
+========================================== */
+
+/*
+ * Важный момент:
+ * поднимаем wrapper целиком, а не только input.
+ *
+ * Поэтому dropdown первого поля и само поле
+ * не оказываются под соседним input.
+ */
+
+.entity-date-editor__period
+.historical-date__input:focus-within {
+
+    z-index: 30;
+}
+
+/*
+ * Сам input тоже должен быть позиционирован,
+ * чтобы его z-index работал внутри wrapper.
+ */
+
+.entity-date-editor__period
+.historical-date__input input {
+
+    position: relative;
+
+    z-index: 1;
+}
+
+/*
+ * При фокусе поле визуально оказывается
+ * поверх соседнего.
+ */
+
+.entity-date-editor__period
+.historical-date__input:focus-within input {
+
+    z-index: 31;
+}
+
+/* ==========================================
+   HISTORICAL DATE INPUT
+========================================== */
+
+.historical-date__input {
+    position: relative;
+
     min-width: 0;
 }
 
@@ -113,34 +282,16 @@
     width: 100%;
     min-width: 0;
 }
-.historical-date__input input:first-child  {
-    border-radius:
-        0
-        var(--radius-lg)
-        var(--radius-lg)
-        0;
 
-    border-left: none;
-}
-
-.historical-date__input input:last-child  {
-    border-radius:
-        var(--radius-lg)
-        0
-        0
-        var(--radius-lg);
-}
-
-.historical-date__input input:focus{
-    z-index: 30;
-}
+/* ==========================================
+   SWITCH
+========================================== */
 
 .entity-date-editor__switch {
     align-self: flex-end;
 
     width: fit-content;
-
-    margin-top: var(--space-2);
+   margin-top: var(--space-2);
     padding: 0 !important;
 
     background: none !important;
@@ -159,8 +310,6 @@
 .entity-date-editor__switch:hover {
     color: var(--color-accent) !important;
 }
-
-
 /* ==========================================
    EDITOR LABELS
 ========================================== */
