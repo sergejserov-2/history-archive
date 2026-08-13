@@ -644,36 +644,12 @@
     cursor: not-allowed;
 }
 
-.entity-type__input-wrapper {
-    position: relative;
-}
-
-.entity-type__input-wrapper::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    width: 7px;
-    height: 7px;
-    border-right: 1.5px solid currentColor;
-    border-bottom: 1.5px solid currentColor;
-    transform: translateY(-65%) rotate(45deg);
-    pointer-events: none;
-    transition: transform 0.15s ease;
-}
-
-.entity-type__input-wrapper:has(.entity-type__input:focus)::after {
-    transform: translateY(-35%) rotate(225deg);
-}
-
-.entity-type__input {
-    cursor: default;
-}
-
+.entity-type__input-wrapper
 .entity-cover__input-wrapper {
     position: relative;
 }
 
+.entity-type__input-wrapper::after 
 .entity-cover__input-wrapper::after {
     content: "";
     position: absolute;
@@ -688,10 +664,12 @@
     transition: transform 0.15s ease;
 }
 
+.entity-type__input-wrapper:has(.entity-type__input:focus)::after
 .entity-cover__input-wrapper:has(.entity-cover__input:focus)::after {
     transform: translateY(-35%) rotate(225deg);
 }
 
+.entity-type__input
 .entity-cover__input {
-    cursor: pointer;
+    cursor: default;
 }
