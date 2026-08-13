@@ -557,7 +557,7 @@
 
    border: var(--border-thin);
    border-top: none !important;
-   border-radius: var(--radius-lg);
+   border-radius: 0 0 6px 6px;
 
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
 
