@@ -351,12 +351,86 @@ export function setupHistoricalDateInput(
         // Validate
         // --------------------------------
 
-        validate() {
+validate() {
 
-            return isValidHistoricalDate(
-                input.value
-            );
+    // ----------------------------------
+    // Period
+    // ----------------------------------
+
+    if(mode === "period") {
+
+        const start =
+            dateStartEditor
+                ? dateStartEditor.getValue()
+                : (
+                    dateStartInput
+                        ?.value
+                        .trim() || ""
+                );
+
+        const end =
+            dateEndEditor
+                ? dateEndEditor.getValue()
+                : (
+                    dateEndInput
+                        ?.value
+                        .trim() || ""
+                );
+
+        /*
+         * В периоде обе границы могут быть
+         * пустыми.
+         *
+         * Но если граница заполнена,
+         * она ОБЯЗАНА полностью совпадать
+         * с одним из исторических шаблонов.
+         */
+
+        if(start) {
+
+            if(!isValidHistoricalDate(start)) {
+                return false;
+            }
         }
+
+        if(end) {
+
+            if(!isValidHistoricalDate(end)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // ----------------------------------
+    // Single date
+    // ----------------------------------
+
+    if(!dateInput) {
+        return true;
+    }
+
+    const value =
+        dateEditor
+            ? dateEditor.getValue()
+            : dateInput.value.trim();
+
+    /*
+     * Обычная дата обязательна.
+     */
+
+    if(!value) {
+        return false;
+    }
+
+    /*
+     * Здесь тоже требуется полное
+     * совпадение с одним шаблоном.
+     */
+
+    return isValidHistoricalDate(value);
+}
     };
 }
 
