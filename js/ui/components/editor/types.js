@@ -46,17 +46,15 @@ export function setupTypesEditor(root, entity, options = {}) {
     const dropdown = createDropdown();
     let selectedType = getType(selectedTypeId, types);
 
-const parentTypes = getParentTypes(options);
-
-const warningTypeIds = parentTypes.length
-    ? sortedTypes
-        .filter(type =>
-            parentTypes.some(parentType =>
+    const parentType = getParentType(options);
+    
+    const warningTypeIds = parentType
+        ? sortedTypes
+            .filter(type =>
                 Number(type.level) >= Number(parentType.level)
             )
-        )
-        .map(type => type.id)
-    : [];
+            .map(type => type.id)
+        : [];
 
     dropdown.setItems(
         sortedTypes.map(type => ({
@@ -190,40 +188,24 @@ function getDisabledTypeIds(entity, types, options) {
 // ======================================
 
 function getParentType(options) {
-    if(!options.parentId) return null;
+    const parentId =
+        options.parents?.length
+            ? typeof options.parents[0] === "object"
+                ? options.parents[0].objectId
+                : options.parents[0]
+            : options.parentId;
+
+    if(!parentId) return null;
 
     const parent =
         (options.objects ?? []).find(
-            object =>
-                object.id === options.parentId
+            object => object.id === parentId
         );
 
     return getType(
         parent?.typeId,
         options.types ?? []
     );
-}
-
-function getParentTypes(options) {
-    const ids = options.parents?.length
-        ? options.parents
-    : options.parentId
-        ? [options.parentId]
-        : [];
-
-    return ids
-        .map(id => {
-            const parent =
-                (options.objects ?? []).find(
-                    object => object.id === id
-                );
-
-            return getType(
-                parent?.typeId,
-                options.types ?? []
-            );
-        })
-        .filter(Boolean);
 }
 
 // ======================================
