@@ -1,41 +1,92 @@
+import { createDropdown } from "../dropdown.js";
+
 // ======================================
 // Cover editor
 // ======================================
 
-export function setupCoverEditor(root, photos, entity){
-    const select =
-        root.querySelector("#entityCover");
-    
-    if(!select){return null;}
-    
+export function setupCoverEditor(root, photos, entity) {
+    const input = root.querySelector("#entityCover");
+
+    if(!input) {
+        return null;
+    }
+
     let coverPhotoId = entity?.coverPhotoId ?? null;
-    
-    select.onchange = e=>{
-        coverPhotoId = e.target.value || null;
+
+    const photoList = [
+        {
+            id: "",
+            title: "Без фотографии"
+        },
+        ...(photos ?? []).map(photo => ({
+            id: photo.id,
+            title: photo.title ?? photo.id
+        }))
+    ];
+
+    const selectedPhoto =
+        photoList.find(photo => photo.id === coverPhotoId) ??
+        photoList[0];
+
+    const dropdown = createDropdown();
+
+    dropdown.setItems(photoList, {
+        onSelect(photo) {
+            coverPhotoId = photo.id || null;
+            input.value = photo.title;
+
+            dropdown.close();
+            input.blur();
+
+            input.dispatchEvent(
+                new CustomEvent("coverchange", {
+                    bubbles: true,
+                    detail: photo
+                })
+            );
+        }
+    });
+
+    input.value = selectedPhoto.title;
+
+    input.addEventListener("click", () => {
+        if(dropdown.isOpen()) {
+            dropdown.close();
+            input.blur();
+        }
+        else {
+            dropdown.open(input);
+            input.focus();
+        }
+    });
+
+    return {
+        getData() {
+            return {
+                coverPhotoId
+            };
+        }
     };
-    
-    return {getData(){return {coverPhotoId};}};
 }
 
-export function renderCoverEditorHTML(cfg, entity) {
+// ======================================
+// Render
+// ======================================
+
+export function renderCoverEditorHTML() {
     return `
-        <label>
+        <label class="entity-cover">
             Обложка
-            <select id="entityCover">
-                <option value="">
-                    Без фотографии
-                </option>
-                ${(cfg.cover.photos ?? [])
-                    .map(photo => `
-                        <option
-                            value="${photo.id}"
-                            ${photo.id === entity.coverPhotoId ? "selected" : ""}
-                        >
-                            ${photo.title ?? photo.id}
-                        </option>
-                    `)
-                    .join("")}
-            </select>
+            <div class="entity-cover__input-wrapper">
+                <input
+                    id="entityCover"
+                    class="entity-cover__input"
+                    type="text"
+                    readonly
+                    autocomplete="off"
+                    placeholder="Выберите фотографию"
+                >
+            </div>
         </label>
     `;
 }
