@@ -16,7 +16,7 @@ const TEMPLATES = [
     "вер., кон. 0000-х"
 ];
 const HELP_TEXT = `
-Допустимые форматы:
+<b>Допустимые форматы:</b>
 0000
 ок. 0000
 0000-е
@@ -148,8 +148,6 @@ function createHelpButton() {
     button.type = "button";
     button.className = "historical-date__help";
     button.textContent = "?";
-    button.setAttribute("aria-label", "Допустимые форматы даты");
-    button.setAttribute("title", "Допустимые форматы даты");
 
     const tooltip = document.createElement("div");
     tooltip.className = "historical-date__tooltip";
