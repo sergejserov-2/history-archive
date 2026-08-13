@@ -220,12 +220,6 @@
     border-right: none;
 }
 
-.entity-date-editor__period
-.historical-date__input:last-child input {
-
-    border-left: none;
-}
-
 /* ==========================================
    FOCUS
 ========================================== */
