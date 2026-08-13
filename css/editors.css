@@ -553,7 +553,7 @@
 
     padding: 0;
 
-    background: #292d33;
+    background: var(--color-input);
 
    border: var(--border-thin);
    border-top: none !important;
