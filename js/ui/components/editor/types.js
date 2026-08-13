@@ -204,6 +204,28 @@ function getParentType(options) {
     );
 }
 
+function getParentTypes(options) {
+    const ids = options.parents?.length
+        ? options.parents
+    : options.parentId
+        ? [options.parentId]
+        : [];
+
+    return ids
+        .map(id => {
+            const parent =
+                (options.objects ?? []).find(
+                    object => object.id === id
+                );
+
+            return getType(
+                parent?.typeId,
+                options.types ?? []
+            );
+        })
+        .filter(Boolean);
+}
+
 // ======================================
 // Type helpers
 // ======================================
