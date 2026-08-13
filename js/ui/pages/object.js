@@ -549,17 +549,17 @@ function renderObjectBlock() {
                     ${status}
                 </h1>
 
-                ${
-                    pageObject.description?.trim()
-                    ?
-                    `
-                    <div class="object__description">
-                        ${pageObject.description}
-                    </div>
-                    `
-                    :
-                    ""
-                }
+                    ${
+                        pageObject.description?.trim()
+                        ?
+                        `
+                        <div class="object__description">
+                            ${pageObject.description.trim()}
+                        </div>
+                        `
+                        :
+                        ""
+                    }
 
                 ${
                     (
