@@ -15,7 +15,6 @@ export function renderTypesEditorHTML() {
                     type="text"
                     readonly
                     autocomplete="off"
-                    placeholder="Выберите тип"
                 >
             </div>
         </label>
