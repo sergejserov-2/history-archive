@@ -651,3 +651,35 @@
 
     color: var(--color-text-primary) !important;
 }
+
+.historical-date__help-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.historical-date__tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 260px;
+    padding: 10px 12px;
+    background: #292d33;
+    color: #d8dadd;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-line;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .15s ease;
+    z-index: 1000;
+}
+
+.historical-date__help-wrapper:hover .historical-date__tooltip {
+    opacity: 1;
+    visibility: visible;
+}
