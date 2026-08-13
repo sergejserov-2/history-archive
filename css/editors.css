@@ -644,12 +644,12 @@
     cursor: not-allowed;
 }
 
-.entity-type__input-wrapper
+.entity-type__input-wrapper,
 .entity-cover__input-wrapper {
     position: relative;
 }
 
-.entity-type__input-wrapper::after 
+.entity-type__input-wrapper::after,
 .entity-cover__input-wrapper::after {
     content: "";
     position: absolute;
@@ -664,12 +664,12 @@
     transition: transform 0.15s ease;
 }
 
-.entity-type__input-wrapper:has(.entity-type__input:focus)::after
+.entity-type__input-wrapper:has(.entity-type__input:focus)::after,
 .entity-cover__input-wrapper:has(.entity-cover__input:focus)::after {
     transform: translateY(-35%) rotate(225deg);
 }
 
-.entity-type__input
+.entity-type__input,
 .entity-cover__input {
     cursor: default;
 }
