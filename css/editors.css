@@ -639,8 +639,8 @@
 
 .dropdown__item:disabled,
 .dropdown__item--disabled {
-    color: #666a70;
-    background: transparent;
+    color: #666a70 !important;
+    background: transparent !important;
     cursor: not-allowed;
 }
 
@@ -667,5 +667,5 @@
 }
 
 .entity-type__input {
-    cursor: pointer;
+    cursor: none;
 }
