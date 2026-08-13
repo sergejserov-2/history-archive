@@ -1,4 +1,4 @@
-import {createDropdown} from "../dropdown.js";
+import { createDropdown } from "../dropdown.js";
 
 // ======================================
 // Types editor
@@ -19,45 +19,66 @@ export function renderTypesEditorHTML(types, entity, options = {}) {
 
 export function setupTypesEditor(root, entity, options = {}) {
     const container = root.querySelector("#entityType");
-    if(!container) return {getTypeId() {return null;}};
+
+    if(!container) {
+        return {
+            getTypeId() {
+                return null;
+            }
+        };
+    }
 
     const types = options.types ?? [];
     const disabledTypeIds = getDisabledTypeIds(entity, types, options);
     const sortedTypes = sortTypes(types);
-    const selectedTypeId = entity?.typeId ?? getDefaultTypeId(entity, types, options);
-    let selectedType = getType(selectedTypeId, types);
+    const selectedTypeId =
+        entity?.typeId ??
+        getDefaultTypeId(entity, types, options);
 
     const dropdown = createDropdown();
 
-    function renderItems() {
-        dropdown.setItems(
-            sortedTypes.map(type => ({
-                id: type.id,
-                title: type.title,
-                disabled: disabledTypeIds.includes(type.id)
-            })),
-            {
-                onSelect(type) {
-                    selectedType = getType(type.id, types);
-                    container.textContent = selectedType?.title ?? "";
-                    dropdown.close();
-                    container.dispatchEvent(
-                        new CustomEvent("typechange", {
+    let selectedType =
+        getType(selectedTypeId, types);
+
+    dropdown.setItems(
+        sortedTypes.map(type => ({
+            id: type.id,
+            title: type.title,
+            disabled: disabledTypeIds.includes(type.id)
+        })),
+        {
+            onSelect(type) {
+                selectedType =
+                    getType(type.id, types);
+
+                container.textContent =
+                    selectedType?.title ?? "Выберите тип";
+
+                dropdown.close();
+
+                container.dispatchEvent(
+                    new CustomEvent(
+                        "typechange",
+                        {
                             bubbles: true,
                             detail: selectedType
-                        })
-                    );
-                }
+                        }
+                    )
+                );
             }
-        );
-    }
+        }
+    );
 
-    container.textContent = selectedType?.title ?? "Выберите тип";
-    renderItems();
+    container.textContent =
+        selectedType?.title ??
+        "Выберите тип";
 
-    container.addEventListener("click", () => {
-        dropdown.toggle(container);
-    });
+    container.addEventListener(
+        "click",
+        () => {
+            dropdown.toggle(container);
+        }
+    );
 
     return {
         getTypeId() {
@@ -71,17 +92,30 @@ export function setupTypesEditor(root, entity, options = {}) {
 // ======================================
 
 function getDefaultTypeId(entity, types, options) {
-    if(entity?.typeId) return entity.typeId;
+    if(entity?.typeId) {
+        return entity.typeId;
+    }
 
-    const parentType = getParentType(options);
-    if(!parentType) return "";
+    const parentType =
+        getParentType(options);
 
-    const parentLevel = Number(parentType.level);
-    const available = types.filter(
-        type => Number(type.level) === parentLevel - 1
-    );
+    if(!parentType) {
+        return "";
+    }
 
-    if(!available.length) return "";
+    const parentLevel =
+        Number(parentType.level);
+
+    const available =
+        types.filter(
+            type =>
+                Number(type.level) ===
+                parentLevel - 1
+        );
+
+    if(!available.length) {
+        return "";
+    }
 
     const counts = {};
 
@@ -93,10 +127,15 @@ function getDefaultTypeId(entity, types, options) {
     });
 
     available.sort((a, b) => {
-        const countA = counts[a.id] ?? 0;
-        const countB = counts[b.id] ?? 0;
+        const countA =
+            counts[a.id] ?? 0;
 
-        if(countA !== countB) return countB - countA;
+        const countB =
+            counts[b.id] ?? 0;
+
+        if(countA !== countB) {
+            return countB - countA;
+        }
 
         return (a.title ?? "").localeCompare(
             b.title ?? "",
@@ -112,21 +151,41 @@ function getDefaultTypeId(entity, types, options) {
 // ======================================
 
 function getDisabledTypeIds(entity, types, options) {
-    if(!entity?.id) return [];
+    if(!entity?.id) {
+        return [];
+    }
 
-    const children = options.children ?? [];
-    if(!children.length) return [];
+    const children =
+        options.children ?? [];
 
-    const maxLevel = Math.max(
-        ...children.map(child => {
-            const type = getType(child.typeId, types);
-            return type ? Number(type.level) : -Infinity;
-        })
-    );
+    if(!children.length) {
+        return [];
+    }
+
+    const maxLevel =
+        Math.max(
+            ...children.map(child => {
+                const type =
+                    getType(
+                        child.typeId,
+                        types
+                    );
+
+                return type
+                    ? Number(type.level)
+                    : -Infinity;
+            })
+        );
 
     return types
-        .filter(type => Number(type.level) <= maxLevel)
-        .map(type => type.id);
+        .filter(
+            type =>
+                Number(type.level) <=
+                maxLevel
+        )
+        .map(
+            type => type.id
+        );
 }
 
 // ======================================
@@ -134,11 +193,16 @@ function getDisabledTypeIds(entity, types, options) {
 // ======================================
 
 function getParentType(options) {
-    if(!options.parentId) return null;
+    if(!options.parentId) {
+        return null;
+    }
 
-    const parent = (options.objects ?? []).find(
-        object => object.id === options.parentId
-    );
+    const parent =
+        (options.objects ?? []).find(
+            object =>
+                object.id ===
+                options.parentId
+        );
 
     return getType(
         parent?.typeId,
@@ -151,15 +215,22 @@ function getParentType(options) {
 // ======================================
 
 function getType(id, types) {
-    return types.find(type => type.id === id) ?? null;
+    return types.find(
+        type => type.id === id
+    ) ?? null;
 }
 
 function sortTypes(types) {
     return [...types].sort((a, b) => {
-        const levelA = Number(a.level ?? Infinity);
-        const levelB = Number(b.level ?? Infinity);
+        const levelA =
+            Number(a.level ?? Infinity);
 
-        if(levelA !== levelB) return levelB - levelA;
+        const levelB =
+            Number(b.level ?? Infinity);
+
+        if(levelA !== levelB) {
+            return levelB - levelA;
+        }
 
         return (a.title ?? "").localeCompare(
             b.title ?? "",
