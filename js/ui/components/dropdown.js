@@ -189,32 +189,48 @@ export function createDropdown(options = {}) {
         "mousedown",
         handleOutsideClick
     );
-
+    
+    // ==========================================
+    // Window blur
+    // ==========================================
+    const handleWindowBlur = () => {
+        close();
+    };
+    
+    window.addEventListener(
+        "blur",
+        handleWindowBlur
+    );
     // ==========================================
     // Destroy
     // ==========================================
 
-    function destroy() {
-        close();
+function destroy() {
+    close();
 
-        window.removeEventListener(
-            "scroll",
-            reposition,
-            true
-        );
+    window.removeEventListener(
+        "scroll",
+        reposition,
+        true
+    );
 
-        window.removeEventListener(
-            "resize",
-            reposition
-        );
+    window.removeEventListener(
+        "resize",
+        reposition
+    );
 
-        document.removeEventListener(
-            "mousedown",
-            handleOutsideClick
-        );
+    document.removeEventListener(
+        "mousedown",
+        handleOutsideClick
+    );
 
-        container.remove();
-    }
+    window.removeEventListener(
+        "blur",
+        handleWindowBlur
+    );
+
+    container.remove();
+}
 
     // ==========================================
     // Public API
