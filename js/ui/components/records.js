@@ -106,10 +106,6 @@ export function renderRecords(
     // Render one record
     // ======================================
 
-    function renderRecord(record){
-        const description =
-    (record.description ?? "").trim();
-
 function formatBoundary(value, prefix){
 
     if(!value) return "";
@@ -249,7 +245,7 @@ else{
 
             </div>
 
-            <div class="record__description">${description ?? ""}</div>
+            <div class="record__description">${record.description ?? "").trim()}</div>
 
             <div class="record__date">
 
