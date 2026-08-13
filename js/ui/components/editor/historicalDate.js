@@ -158,7 +158,7 @@ function createHelpButton() {
     const showTooltip = () => {
         const rect = button.getBoundingClientRect();
         tooltip.style.left = `${rect.left}px`;
-        tooltip.style.top = `${rect.bottom + 6}px`;
+        tooltip.style.top = `${rect.top - tooltip.offsetHeight - 6}px`;
         tooltip.hidden = false;
     };
 
