@@ -606,7 +606,7 @@
 
     background: var(--color-surface-hover) !important;
 
-    color: var(--color-text) !important;
+    color: var(--color-text-faded) !important;
 }
 
 
