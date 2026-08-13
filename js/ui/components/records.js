@@ -107,6 +107,8 @@ export function renderRecords(
     // ======================================
 
     function renderRecord(record){
+        const description =
+    (record.description ?? "").trim();
 
 function formatBoundary(value, prefix){
 
@@ -249,7 +251,7 @@ else{
 
             <div class="record__description">
 
-                ${record.description ?? ""}
+                ${description ?? ""}
 
             </div>
 
