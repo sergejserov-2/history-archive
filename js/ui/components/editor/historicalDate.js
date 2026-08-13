@@ -81,16 +81,6 @@ export function setupHistoricalDateInput(input, options = {}) {
     });
 
     // ==================================
-    // Help
-    // ==================================
-    const helpButton = wrapper.querySelector(".historical-date__help");
-    if(helpButton) {
-        helpButton.addEventListener("mouseenter", () => {
-            helpButton.dataset.tooltip = HELP_TEXT.trim();
-        });
-    }
-
-    // ==================================
     // Keyboard
     // ==================================
     input.addEventListener("keydown", event => {
@@ -151,13 +141,23 @@ function ensureInputWrapper(input, options = {}) {
 // Help button
 // ==========================================
 function createHelpButton() {
+    const wrapper = document.createElement("div");
+    wrapper.className = "historical-date__help-wrapper";
+
     const button = document.createElement("button");
     button.type = "button";
     button.className = "historical-date__help";
     button.textContent = "?";
     button.setAttribute("aria-label", "Допустимые форматы даты");
-    button.setAttribute("title", "Допустимые форматы даты");
-    return button;
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "historical-date__tooltip";
+    tooltip.textContent = HELP_TEXT.trim();
+
+    wrapper.appendChild(button);
+    wrapper.appendChild(tooltip);
+
+    return wrapper;
 }
 
 // ==========================================
