@@ -3,7 +3,8 @@
 // ==========================================
 
 import {
-    setupHistoricalDateInput
+    setupHistoricalDateInput,
+    isValidHistoricalDate
 } from "./historicalDate.js";
 
 
