@@ -588,7 +588,7 @@
     border: none !important;
     border-radius: 0 !important;
 
-    color: var(--color-text) !important;
+    color: var(--color-text-disabled) !important
 
     font-family: inherit;
     font-size: 11px !important;
@@ -606,7 +606,7 @@
 
     background: var(--color-surface-hover) !important;
 
-    color: var(--color-text-primary) !important;
+    color: var(--color-accent) !important;
 }
 
 
