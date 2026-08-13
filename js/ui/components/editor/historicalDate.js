@@ -162,13 +162,13 @@ function createHelpButton() {
     let overTooltip = false;
     let hideTimer = null;
 
-    const showTooltip = () => {
-        clearTimeout(hideTimer);
-        const rect = button.getBoundingClientRect();
-        tooltip.style.left = `${rect.left + rect.width / 2}px`;
-        tooltip.style.bottom = `${window.innerHeight - rect.top + 6}px`;
-        tooltip.hidden = false;
-    };
+const showTooltip = () => {
+    clearTimeout(hideTimer);
+    const rect = button.getBoundingClientRect();
+    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+    tooltip.style.bottom = `${window.innerHeight - rect.top + 6}px`;
+    tooltip.hidden = false;
+};
 
     const scheduleHide = () => {
         clearTimeout(hideTimer);
