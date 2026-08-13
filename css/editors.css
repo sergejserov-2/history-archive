@@ -20,27 +20,20 @@
     min-width: 0;
 }
 
-/* Тип + название */
+/* Тип + название: 1 : 2 */
 
 .entity-row--title-type > .entity-type {
-    flex: 1 1 33.333%;
-    min-width: max-content;
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
 }
 
 .entity-row--title-type > .entity-title {
     flex: 2 1 0;
+    width: 0;
     min-width: 0;
 }
 
-.entity-row--title-type .entity-type__input-wrapper {
-    width: 100%;
-    min-width: max-content;
-}
-
-.entity-row--title-type .entity-type__input {
-    width: 100%;
-    min-width: max-content;
-}
 /* Автор + дата: 2 : 1 */
 
 .entity-row--author-date .entity-author {
