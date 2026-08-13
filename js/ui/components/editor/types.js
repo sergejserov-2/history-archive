@@ -4,11 +4,18 @@ import { createDropdown } from "../dropdown.js";
 // Types editor
 // ======================================
 
-export function renderTypesEditorHTML(types, entity, options = {}) {
+export function renderTypesEditorHTML() {
     return `
         <label class="entity-type">
             Тип
-            <div id="entityType" class="entity-type__dropdown"></div>
+            <input
+                id="entityType"
+                class="entity-type__input"
+                type="text"
+                readonly
+                autocomplete="off"
+                placeholder="Выберите тип"
+            >
         </label>
     `;
 }
