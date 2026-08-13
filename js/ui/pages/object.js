@@ -720,9 +720,14 @@ loadPage()
 
                 }
 
+                // ==================================
+                // Restore modal from URL
+                // ==================================
+
+                await restoreModalFromUrl();
+
             }
         );
-
     })
     .catch(error => {
 
