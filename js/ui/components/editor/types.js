@@ -39,19 +39,45 @@ export function setupTypesEditor(root, entity, options = {}) {
     const types = options.types ?? [];
     const disabledTypeIds = getDisabledTypeIds(entity, types, options);
     const sortedTypes = sortTypes(types);
-    const selectedTypeId = entity?.typeId ?? getDefaultTypeId(entity, types, options);
-    const dropdown = createDropdown();
+    const selectedTypeId =
+        entity?.typeId ??
+        getDefaultTypeId(entity, types, options);
 
+    const dropdown = createDropdown();
     let selectedType = getType(selectedTypeId, types);
+
+    const parentType = getParentType(options);
+
+    const warningTypeIds = parentType
+        ? sortedTypes
+            .filter(type =>
+                Number(type.level) >= Number(parentType.level)
+            )
+            .map(type => type.id)
+        : [];
 
     dropdown.setItems(
         sortedTypes.map(type => ({
             id: type.id,
             title: type.title,
-            disabled: disabledTypeIds.includes(type.id)
+            disabled: disabledTypeIds.includes(type.id),
+            warning: warningTypeIds.includes(type.id)
         })),
         {
             onSelect(type) {
+                if(type.warning) {
+                    alert(
+                        "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
+                    );
+
+                    container.dispatchEvent(
+                        new CustomEvent("typewarning", {
+                            bubbles: true,
+                            detail: type
+                        })
+                    );
+                }
+
                 selectedType = getType(type.id, types);
                 container.value = selectedType?.title ?? "";
                 dropdown.close();
@@ -98,6 +124,7 @@ function getDefaultTypeId(entity, types, options) {
     if(!parentType) return "";
 
     const parentLevel = Number(parentType.level);
+
     const available = types.filter(
         type => Number(type.level) === parentLevel - 1
     );
@@ -143,12 +170,16 @@ function getDisabledTypeIds(entity, types, options) {
     const maxLevel = Math.max(
         ...children.map(child => {
             const type = getType(child.typeId, types);
-            return type ? Number(type.level) : -Infinity;
+            return type
+                ? Number(type.level)
+                : -Infinity;
         })
     );
 
     return types
-        .filter(type => Number(type.level) <= maxLevel)
+        .filter(type =>
+            Number(type.level) <= maxLevel
+        )
         .map(type => type.id);
 }
 
@@ -159,9 +190,11 @@ function getDisabledTypeIds(entity, types, options) {
 function getParentType(options) {
     if(!options.parentId) return null;
 
-    const parent = (options.objects ?? []).find(
-        object => object.id === options.parentId
-    );
+    const parent =
+        (options.objects ?? []).find(
+            object =>
+                object.id === options.parentId
+        );
 
     return getType(
         parent?.typeId,
@@ -174,7 +207,9 @@ function getParentType(options) {
 // ======================================
 
 function getType(id, types) {
-    return types.find(type => type.id === id) ?? null;
+    return types.find(
+        type => type.id === id
+    ) ?? null;
 }
 
 function sortTypes(types) {
