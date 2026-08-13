@@ -191,7 +191,11 @@ function renderDropdown(container, input) {
         closeDropdown(container);
         return;
     }
-    const matches = TEMPLATES.filter(template => template.toLowerCase().startsWith(normalized));
+    const matches = TEMPLATES.filter(
+        template =>
+            template.toLowerCase().startsWith(normalized) &&
+            template.toLowerCase() !== normalized
+    );
     container.innerHTML = "";
     if(!matches.length) {
         closeDropdown(container);
