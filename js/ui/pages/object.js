@@ -553,9 +553,7 @@ function renderObjectBlock() {
                         pageObject.description?.trim()
                         ?
                         `
-                        <div class="object__description">
-                            ${pageObject.description.trim()}
-                        </div>
+                        <div class="object__description">${pageObject.description()}</div>
                         `
                         :
                         ""
