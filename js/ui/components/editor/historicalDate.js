@@ -163,7 +163,7 @@ function createHelpButton() {
 const showTooltip = () => {
     clearTimeout(hideTimer);
     const rect = button.getBoundingClientRect();
-    tooltip.style.right = `${rect.right + rect.width / 2}px`;
+    tooltip.style.left = `${rect.left + rect.width / 2}px`;
     tooltip.style.bottom = `${window.innerHeight - rect.top + 6}px`;
     tooltip.hidden = false;
 };
