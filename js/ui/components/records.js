@@ -244,9 +244,15 @@ else{
                 }
 
             </div>
-
-            <div class="record__description">${record.description ?? "").trim()}</div>
-
+                    ${
+                        record.description?.trim()
+                        ?
+                        `
+                        <div class="object__description">${record.description.trim()}</div>
+                        `
+                        :
+                        ""
+                    }
             <div class="record__date">
 
                 ${period}
