@@ -108,7 +108,36 @@ export function renderRecords(
 
     function renderRecord(record){
 
-let period = "";
+function formatBoundary(value, prefix){
+
+    if(!value) return "";
+
+    let result = value;
+
+    if(result.endsWith("-е")){
+
+        result =
+            result.slice(0, -2) +
+            "-х";
+
+    }
+
+    if(result.startsWith("вер., ")){
+
+        return (
+            "вер., " +
+            prefix +
+            " " +
+            result.slice(6)
+        );
+
+    }
+
+    return prefix + " " + result;
+
+}
+
+        let period = "";
 
 if(record.dateMode === "date"){
 
@@ -117,7 +146,6 @@ if(record.dateMode === "date"){
         "—";
 
 }
-
 else{
 
     if(
@@ -133,14 +161,20 @@ else{
     else if(record.dateStart){
 
         period =
-            `с ${record.dateStart}`;
+            formatBoundary(
+                record.dateStart,
+                "с"
+            );
 
     }
 
     else if(record.dateEnd){
 
         period =
-            `до ${record.dateEnd}`;
+            formatBoundary(
+                record.dateEnd,
+                "до"
+            );
 
     }
 
