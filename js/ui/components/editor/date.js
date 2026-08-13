@@ -156,10 +156,12 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
                     : dateEndInput?.value.trim() || "";
 
                 if(start && (!dateStartEditor || !dateStartEditor.validate())) {
+                    alert("Дата начала заполнена некорректно или не полностью.");
                     return false;
                 }
-
+                
                 if(end && (!dateEndEditor || !dateEndEditor.validate())) {
+                    alert("Дата окончания заполнена некорректно или не полностью.");
                     return false;
                 }
 
@@ -170,6 +172,11 @@ export function setupDateModeEditor(root, cfg = {}, entity = {}) {
                 ? dateEditor.getValue()
                 : dateInput?.value.trim() || "";
 
+            if(value && (!dateEditor || !dateEditor.validate())) {
+                alert("Введите дату полностью.");
+                return false;
+            }
+            
             if(!value) return true;
 
             if(!dateEditor) return true;
