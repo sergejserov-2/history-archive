@@ -56,6 +56,7 @@ export function setupTypesEditor(root, entity, options = {}) {
                 selectedType = getType(type.id, types);
                 container.value = selectedType?.title ?? "";
                 dropdown.close();
+                container.blur();
 
                 container.dispatchEvent(
                     new CustomEvent("typechange", {
@@ -70,7 +71,14 @@ export function setupTypesEditor(root, entity, options = {}) {
     container.value = selectedType?.title ?? "";
 
     container.addEventListener("click", () => {
-        dropdown.toggle(container);
+        if(dropdown.isOpen()) {
+            dropdown.close();
+            container.blur();
+        }
+        else {
+            dropdown.open(container);
+            container.focus();
+        }
     });
 
     return {
