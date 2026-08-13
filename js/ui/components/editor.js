@@ -103,6 +103,7 @@ const parents = entity.parents
 async getData() {
     if(fileEditor && !fileEditor.validate()) {return null;}
     if(parentsEditor && !parentsEditor.validate()) {return null;}
+    if(dateModeEditor && !dateModeEditor.validate()) {return null;}
     const data = {};
     Object.assign(data, fieldsEditor.getData());
     if(typeEditor?.getTypeId()) {data.typeId = typeEditor.getTypeId();}
