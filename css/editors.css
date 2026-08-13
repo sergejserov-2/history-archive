@@ -619,7 +619,7 @@
     display: block;
     width: 100%;
     margin: 0;
-    padding: 2px 10px;
+    padding: 3px 10px;
     background: transparent !important;
     border: none !important;
     border-radius: 0 !important;
@@ -630,6 +630,10 @@
     text-align: left;
     cursor: pointer;
     white-space: nowrap;
+}
+
+dropdown__item-warning {
+   color: var(--color-accent)
 }
 
 .dropdown__item:hover {
