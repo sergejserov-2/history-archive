@@ -141,6 +141,9 @@ function ensureInputWrapper(input, options = {}) {
 // Help button
 // ==========================================
 function createHelpButton() {
+    const wrapper = document.createElement("span");
+    wrapper.className = "historical-date__help-wrapper";
+
     const button = document.createElement("button");
     button.type = "button";
     button.className = "historical-date__help";
@@ -155,21 +158,48 @@ function createHelpButton() {
 
     document.body.appendChild(tooltip);
 
+    let overButton = false;
+    let overTooltip = false;
+    let hideTimer = null;
+
     const showTooltip = () => {
+        clearTimeout(hideTimer);
         const rect = button.getBoundingClientRect();
-        tooltip.style.left = `${rect.left}px`;
-        tooltip.style.bottom = `${rect.top + 6}px`;
+        tooltip.style.left = `${rect.left + rect.width / 2}px`;
+        tooltip.style.bottom = `${window.innerHeight - rect.top + 6}px`;
         tooltip.hidden = false;
     };
 
-    const hideTooltip = () => {
-        tooltip.hidden = true;
+    const scheduleHide = () => {
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+            if(!overButton && !overTooltip) tooltip.hidden = true;
+        }, 50);
     };
 
-    button.addEventListener("mouseenter", showTooltip);
-    button.addEventListener("mouseleave", hideTooltip);
+    button.addEventListener("mouseenter", () => {
+        overButton = true;
+        showTooltip();
+    });
 
-    return button;
+    button.addEventListener("mouseleave", () => {
+        overButton = false;
+        scheduleHide();
+    });
+
+    tooltip.addEventListener("mouseenter", () => {
+        overTooltip = true;
+        clearTimeout(hideTimer);
+    });
+
+    tooltip.addEventListener("mouseleave", () => {
+        overTooltip = false;
+        scheduleHide();
+    });
+
+    wrapper.appendChild(button);
+
+    return wrapper;
 }
 
 // ==========================================
