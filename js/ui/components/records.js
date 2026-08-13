@@ -249,11 +249,7 @@ else{
 
             </div>
 
-            <div class="record__description">
-
-                ${description ?? ""}
-
-            </div>
+            <div class="record__description">${description ?? ""}</div>
 
             <div class="record__date">
 
