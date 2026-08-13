@@ -27,9 +27,7 @@ export function setupTypesEditor(root, entity, options = {}) {
     const selectedTypeId = entity?.typeId ?? getDefaultTypeId(entity, types, options);
     let selectedType = getType(selectedTypeId, types);
 
-    const dropdown = createDropdown({
-        className: "entity-type__suggestions"
-    });
+    const dropdown = createDropdown();
 
     function renderItems() {
         dropdown.setItems(
