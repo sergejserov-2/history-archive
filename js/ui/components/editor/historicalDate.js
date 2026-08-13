@@ -141,23 +141,35 @@ function ensureInputWrapper(input, options = {}) {
 // Help button
 // ==========================================
 function createHelpButton() {
-    const wrapper = document.createElement("div");
-    wrapper.className = "historical-date__help-wrapper";
-
     const button = document.createElement("button");
     button.type = "button";
     button.className = "historical-date__help";
     button.textContent = "?";
     button.setAttribute("aria-label", "Допустимые форматы даты");
+    button.setAttribute("title", "Допустимые форматы даты");
 
     const tooltip = document.createElement("div");
     tooltip.className = "historical-date__tooltip";
     tooltip.textContent = HELP_TEXT.trim();
+    tooltip.hidden = true;
 
-    wrapper.appendChild(button);
-    wrapper.appendChild(tooltip);
+    document.body.appendChild(tooltip);
 
-    return wrapper;
+    const showTooltip = () => {
+        const rect = button.getBoundingClientRect();
+        tooltip.style.left = `${rect.left}px`;
+        tooltip.style.top = `${rect.bottom + 6}px`;
+        tooltip.hidden = false;
+    };
+
+    const hideTooltip = () => {
+        tooltip.hidden = true;
+    };
+
+    button.addEventListener("mouseenter", showTooltip);
+    button.addEventListener("mouseleave", hideTooltip);
+
+    return button;
 }
 
 // ==========================================
