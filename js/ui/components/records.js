@@ -106,103 +106,49 @@ export function renderRecords(
     // Render one record
     // ======================================
 
-function formatBoundary(value, prefix){
-
+function formatBoundary(value, prefix) {
     if(!value) return "";
-
     let result = value;
-
-    if(result.endsWith("-е")){
-
-        result =
-            result.slice(0, -2) +
-            "-х";
-
+    if(result.endsWith("-е")) result = result.slice(0, -2) + "-х";
+    if(result.startsWith("вер., ")) {
+        return "вер., " + prefix + " " + result.slice(6);
     }
-
-    if(result.startsWith("вер., ")){
-
-        return (
-            "вер., " +
-            prefix +
-            " " +
-            result.slice(6)
-        );
-
-    }
-
     return prefix + " " + result;
-
 }
 
-        let period = "";
+function renderRecord(record) {
+    let period = "";
 
-if(record.dateMode === "date"){
-
-    period =
-        record.date ||
-        "—";
-
-}
-else{
-
-    if(
-        record.dateStart &&
-        record.dateEnd
-    ){
-
-        period =
-            `${record.dateStart} – ${record.dateEnd}`;
-
-    }
-
-    else if(record.dateStart){
-
-        period =
-            formatBoundary(
-                record.dateStart,
-                "с"
-            );
-
-    }
-
-    else if(record.dateEnd){
-
-        period =
-            formatBoundary(
-                record.dateEnd,
-                "до"
-            );
-
-    }
-
-    else{
-
+    if(record.dateMode === "date") {
+        period = record.date || "—";
+    } else if(record.dateStart && record.dateEnd) {
+        period = `${record.dateStart} – ${record.dateEnd}`;
+    } else if(record.dateStart) {
+        period = formatBoundary(record.dateStart, "с");
+    } else if(record.dateEnd) {
+        period = formatBoundary(record.dateEnd, "до");
+    } else {
         period = "—";
-
     }
 
-}
-
-return `
-<div class="record">
-    <div class="record__title">
-        <span class="record__title-text">${record.title ?? ""}</span>
-        ${ADMIN_MODE ? `
-        <button class="admin-button" data-action="edit-record" data-id="${record.id}">
-            <img src="icons/edit.svg" class="admin-icon">
-        </button>
-        <button class="admin-button" data-action="delete-record" data-id="${record.id}">
-            <img src="icons/delete.svg" class="admin-icon">
-        </button>
-        ` : ""}
+    return `
+    <div class="record">
+        <div class="record__title">
+            <span class="record__title-text">${record.title ?? ""}</span>
+            ${ADMIN_MODE ? `
+            <button class="admin-button" data-action="edit-record" data-id="${record.id}">
+                <img src="icons/edit.svg" class="admin-icon">
+            </button>
+            <button class="admin-button" data-action="delete-record" data-id="${record.id}">
+                <img src="icons/delete.svg" class="admin-icon">
+            </button>
+            ` : ""}
+        </div>
+        ${record.description?.trim() ? `<div class="record__description">${record.description.trim()}</div>` : ""}
+        <div class="record__date">${period}</div>
     </div>
-    ${record.description?.trim() ? `<div class="record__description">${record.description.trim()}</div>` : ""}
-    <div class="record__date">${period}</div>
-</div>
-`;
-
-    }
+    `;
+}
 
     // ======================================
     // Group records by type
