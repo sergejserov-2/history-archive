@@ -611,11 +611,20 @@
 
 
 
-.historical-date__help {
+.historical-date__help-wrapper {
     position: absolute;
-    top: calc(50% + 1px);
+    top: 50%;
     right: 10px;
     transform: translateY(-50%);
+    display: inline-flex;
+    z-index: 100;
+}
+
+.historical-date__help {
+    position: relative;
+    top: 1px;
+    right: auto;
+    transform: none;
     width: 22px;
     height: 22px;
     margin: 0;
