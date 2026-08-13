@@ -632,7 +632,7 @@
     font-weight: 600;
     line-height: 1;
     cursor: pointer;
-    z-index: 5;
+    z-index: 100;
     transition:
         background .15s ease,
         color .15s ease;
