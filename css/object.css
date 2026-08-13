@@ -347,7 +347,7 @@
 .record {
     display: grid;
 
-    grid-template-columns: 200px minmax(0, 1fr) 80px;
+    grid-template-columns: 200px minmax(0, 1fr) msx-content;
 
     align-items: center;
 
