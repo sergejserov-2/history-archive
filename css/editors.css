@@ -652,7 +652,7 @@
     position: fixed;
     width: max-content;
     max-width: 260px;
-    padding: 10px 12px;
+    padding: 6px 10px;
     background: #292d33;
     color: #d8dadd;
     border-radius: 6px;
@@ -660,6 +660,6 @@
     line-height: 1.4;
     white-space: pre-line;
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
-    transform: translateX(-16px);
+    transform: translateX(-8px);
     z-index: 99999;
 }
