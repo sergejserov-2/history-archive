@@ -659,4 +659,13 @@
     border-bottom: 1.5px solid currentColor;
     transform: translateY(-65%) rotate(45deg);
     pointer-events: none;
+    transition: transform 0.15s ease;
+}
+
+.entity-type__input-wrapper:has(.entity-type__input:focus)::after {
+    transform: translateY(-35%) rotate(225deg);
+}
+
+.entity-type__input {
+    cursor: pointer;
 }
