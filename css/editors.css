@@ -671,5 +671,11 @@
 
 .entity-type__input,
 .entity-cover__input {
+    width: 100%;
+    min-width: 0;
+    padding-right: 38px !important;
     cursor: default;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
