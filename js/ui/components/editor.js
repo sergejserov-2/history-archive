@@ -61,12 +61,13 @@ export function setupEditorComponents(root, cfg, context = {}, entity = {}) {
         requiredMessage: cfg.fileRequiredMessage
     });
     const fieldsEditor = setupFieldsEditor(root, cfg, entity);
-    const typeEditor = options.typeSelector ? setupTypesEditor(root, entity, {
-        types: options.types ?? [],
-        objects: options.objects ?? context.objects ?? [],
-        children: options.children ?? context.children ?? [],
-        parentId: options.parentId ?? context.parentId
-    }) : null;
+const typeEditor = options.typeSelector ? setupTypesEditor(root, entity, {
+    types: options.types ?? [],
+    objects: options.objects ?? context.objects ?? [],
+    children: options.children ?? context.children ?? [],
+    parentId: options.parentId ?? context.parentId,
+    parents: entity.parents ?? []
+}) : null;
 const parents = entity.parents
     ? [...entity.parents]
     : context.parentId
