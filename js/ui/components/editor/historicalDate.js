@@ -1,6 +1,9 @@
+import { createDropdown } from "../dropdown.js";
+
 // ==========================================
 // Historical date input
 // ==========================================
+
 const TEMPLATES = [
     "0000",
     "ок. 0000",
@@ -15,6 +18,7 @@ const TEMPLATES = [
     "вер., сер. 0000-х",
     "вер., кон. 0000-х"
 ];
+
 const HELP_TEXT = `
 Допустимые форматы:
 0000
@@ -34,320 +38,805 @@ const HELP_TEXT = `
 // ==========================================
 // Public
 // ==========================================
+
 export function setupHistoricalDateInput(input, options = {}) {
+
     if(!input) return null;
-    input.setAttribute("autocomplete", "off");
-    const wrapper = ensureInputWrapper(input, options);
-    const dropdown = createDropdown();
-    document.body.appendChild(dropdown);
-    let currentTemplate = findTemplate(input.value);
-    const repositionDropdown = () => {
-        if(dropdown.classList.contains("is-open")) {
-            positionDropdown(dropdown, input);
-        }
-    };
-    window.addEventListener("scroll", repositionDropdown, true);
-    window.addEventListener("resize", repositionDropdown);
+
+    input.setAttribute(
+        "autocomplete",
+        "off"
+    );
+
+    const wrapper =
+        ensureInputWrapper(
+            input,
+            options
+        );
+
+    const dropdown =
+        createDropdown({
+            className:
+                "historical-date__suggestions"
+        });
+
+    let currentTemplate =
+        findTemplate(input.value);
 
     // ==================================
     // Input
     // ==================================
-    input.addEventListener("input", () => {
-        const value = input.value;
-        const validValue = getValidPrefix(value);
-        if(validValue !== value) input.value = validValue;
-        currentTemplate = findTemplate(input.value);
-        if(!input.value) closeDropdown(dropdown);
-        else renderDropdown(dropdown, input);
-        options.onInput?.(input.value);
-    });
+
+    input.addEventListener(
+        "input",
+        () => {
+
+            const value =
+                input.value;
+
+            const validValue =
+                getValidPrefix(value);
+
+            if(validValue !== value) {
+                input.value = validValue;
+            }
+
+            currentTemplate =
+                findTemplate(
+                    input.value
+                );
+
+            if(!input.value) {
+
+                dropdown.close();
+
+            }
+            else {
+
+                renderDropdown(
+                    dropdown,
+                    input
+                );
+
+            }
+
+            options.onInput?.(
+                input.value
+            );
+
+        }
+    );
 
     // ==================================
     // Focus
     // ==================================
-    input.addEventListener("focus", () => {
-        if(!input.value) {
-            closeDropdown(dropdown);
-            return;
+
+    input.addEventListener(
+        "focus",
+        () => {
+
+            if(!input.value) {
+
+                dropdown.close();
+
+                return;
+
+            }
+
+            renderDropdown(
+                dropdown,
+                input
+            );
+
         }
-        renderDropdown(dropdown, input);
-    });
+    );
 
     // ==================================
     // Blur
     // ==================================
-    input.addEventListener("blur", () => {
-        setTimeout(() => closeDropdown(dropdown), 150);
-    });
+
+    input.addEventListener(
+        "blur",
+        () => {
+
+            setTimeout(
+                () => dropdown.close(),
+                150
+            );
+
+        }
+    );
 
     // ==================================
     // Keyboard
     // ==================================
-    input.addEventListener("keydown", event => {
-        if(event.key === "Escape") closeDropdown(dropdown);
-    });
+
+    input.addEventListener(
+        "keydown",
+        event => {
+
+            if(event.key === "Escape") {
+
+                dropdown.close();
+
+            }
+
+        }
+    );
 
     // ==================================
     // Initial value
     // ==================================
-    currentTemplate = findTemplate(input.value);
-    if(input.value) renderDropdown(dropdown, input);
+
+    currentTemplate =
+        findTemplate(
+            input.value
+        );
+
+    if(input.value) {
+
+        renderDropdown(
+            dropdown,
+            input
+        );
+
+    }
 
     // ==================================
     // Public API
     // ==================================
+
     return {
+
         getValue() {
+
             return input.value.trim();
+
         },
+
         setValue(value) {
-            input.value = value ?? "";
-            currentTemplate = findTemplate(input.value);
-            if(input.value) renderDropdown(dropdown, input);
-            else closeDropdown(dropdown);
+
+            input.value =
+                value ?? "";
+
+            currentTemplate =
+                findTemplate(
+                    input.value
+                );
+
+            if(input.value) {
+
+                renderDropdown(
+                    dropdown,
+                    input
+                );
+
+            }
+            else {
+
+                dropdown.close();
+
+            }
+
         },
+
         getTemplate() {
+
             return currentTemplate;
+
         },
+
         validate() {
-            const value = input.value.trim();
+
+            const value =
+                input.value.trim();
             if(!value) return true;
-            return isValidHistoricalDate(value);
+
+            return isValidHistoricalDate(
+                value
+            );
+
         }
+
     };
+
 }
 
 // ==========================================
 // Input wrapper
 // ==========================================
-function ensureInputWrapper(input, options = {}) {
-    let wrapper = input.parentElement;
-    if(wrapper && wrapper.classList.contains("historical-date__input")) {
-        wrapper.classList.add("historical-date");
-        if(options.showHelp !== false && !wrapper.querySelector(".historical-date__help")) {
-            wrapper.appendChild(createHelpButton());
+
+function ensureInputWrapper(
+    input,
+    options = {}
+) {
+
+    let wrapper =
+        input.parentElement;
+
+    if(
+        wrapper &&
+        wrapper.classList.contains(
+            "historical-date__input"
+        )
+    ) {
+
+        wrapper.classList.add(
+            "historical-date"
+        );
+
+        if(
+            options.showHelp !== false &&
+            !wrapper.querySelector(
+                ".historical-date__help"
+            )
+        ) {
+
+            wrapper.appendChild(
+                createHelpButton()
+            );
+
         }
+
         return wrapper;
+
     }
-    wrapper = document.createElement("div");
-    wrapper.className = "historical-date__input historical-date";
-    input.parentNode.insertBefore(wrapper, input);
-    wrapper.appendChild(input);
-    if(options.showHelp !== false) wrapper.appendChild(createHelpButton());
+
+    wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.className =
+        "historical-date__input historical-date";
+
+    input.parentNode.insertBefore(
+        wrapper,
+        input
+    );
+
+    wrapper.appendChild(
+        input
+    );
+
+    if(options.showHelp !== false) {
+
+        wrapper.appendChild(
+            createHelpButton()
+        );
+
+    }
+
     return wrapper;
+
 }
 
 // ==========================================
 // Help button
 // ==========================================
+
 function createHelpButton() {
-    const wrapper = document.createElement("span");
-    wrapper.className = "historical-date__help-wrapper";
 
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "historical-date__help";
-    button.textContent = "?";
+    const wrapper =
+        document.createElement(
+            "span"
+        );
 
-    const tooltip = document.createElement("div");
-    tooltip.className = "historical-date__tooltip";
-    tooltip.textContent = HELP_TEXT.trim();
-    tooltip.hidden = true;
+    wrapper.className =
+        "historical-date__help-wrapper";
 
-    document.body.appendChild(tooltip);
+    const button =
+        document.createElement(
+            "button"
+        );
 
-    let overButton = false;
-    let overTooltip = false;
-    let hideTimer = null;
+    button.type =
+        "button";
 
-const showTooltip = () => {
-    clearTimeout(hideTimer);
-    const rect = button.getBoundingClientRect();
-    tooltip.style.left = `${rect.left + rect.width / 2}px`;
-    tooltip.style.bottom = `${window.innerHeight - rect.top + 6}px`;
-    tooltip.hidden = false;
-};
+    button.className =
+        "historical-date__help";
 
-    const scheduleHide = () => {
-        clearTimeout(hideTimer);
-        hideTimer = setTimeout(() => {
-            if(!overButton && !overTooltip) tooltip.hidden = true;
-        }, 50);
-    };
+    button.textContent =
+        "?";
 
-    button.addEventListener("mouseenter", () => {
-        overButton = true;
-        showTooltip();
-    });
+    const tooltip =
+        document.createElement(
+            "div"
+        );
 
-    button.addEventListener("mouseleave", () => {
-        overButton = false;
-        scheduleHide();
-    });
+    tooltip.className =
+        "historical-date__tooltip";
 
-    tooltip.addEventListener("mouseenter", () => {
-        overTooltip = true;
-        clearTimeout(hideTimer);
-    });
+    tooltip.textContent =
+        HELP_TEXT.trim();
 
-    tooltip.addEventListener("mouseleave", () => {
-        overTooltip = false;
-        scheduleHide();
-    });
+    tooltip.hidden =
+        true;
 
-    wrapper.appendChild(button);
+    document.body.appendChild(
+        tooltip
+    );
+
+    let overButton =
+        false;
+
+    let overTooltip =
+        false;
+
+    let hideTimer =
+        null;
+
+    // ==================================
+    // Show tooltip
+    // ==================================
+
+    const showTooltip =
+        () => {
+
+            clearTimeout(
+                hideTimer
+            );
+
+            const rect =
+                button.getBoundingClientRect();
+
+            tooltip.style.left =
+                `${rect.left + rect.width / 2}px`;
+
+            tooltip.style.bottom =
+                `${window.innerHeight - rect.top + 6}px`;
+
+            tooltip.hidden =
+                false;
+
+        };
+
+    // ==================================
+    // Hide tooltip
+    // ==================================
+
+    const scheduleHide =
+        () => {
+
+            clearTimeout(
+                hideTimer
+            );
+
+            hideTimer =
+                setTimeout(
+                    () => {
+
+                        if(
+                            !overButton &&
+                            !overTooltip
+                        ) {
+
+                            tooltip.hidden =
+                                true;
+
+                        }
+
+                    },
+                    50
+                );
+
+        };
+
+    // ==================================
+    // Button events
+    // ==================================
+
+    button.addEventListener(
+        "mouseenter",
+        () => {
+
+            overButton =
+                true;
+
+            showTooltip();
+
+        }
+    );
+
+    button.addEventListener(
+        "mouseleave",
+        () => {
+
+            overButton =
+                false;
+
+            scheduleHide();
+
+        }
+    );
+
+    // ==================================
+    // Tooltip events
+    // ==================================
+
+    tooltip.addEventListener(
+        "mouseenter",
+        () => {
+
+            overTooltip =
+                true;
+
+            clearTimeout(
+                hideTimer
+            );
+
+        }
+    );
+
+    tooltip.addEventListener(
+        "mouseleave",
+        () => {
+
+            overTooltip =
+                false;
+
+            scheduleHide();
+
+        }
+    );
+
+    wrapper.appendChild(
+        button
+    );
 
     return wrapper;
-}
 
-// ==========================================
-// Dropdown
-// ==========================================
-function createDropdown() {
-    const container = document.createElement("div");
-    container.className = "historical-date__suggestions";
-    return container;
-}
-
-// ==========================================
-// Position dropdown
-// ==========================================
-function positionDropdown(container, input) {
-    if(!container || !input) return;
-    const rect = input.getBoundingClientRect();
-    container.style.left = `${rect.left}px`;
-    container.style.top = `${rect.bottom + 4}px`;
-    container.style.width = `${rect.width}px`;
 }
 
 // ==========================================
 // Render dropdown
 // ==========================================
-function renderDropdown(container, input) {
-    if(!container || !input) return;
-    const value = input.value;
-    const normalized = value.toLowerCase();
-    if(!normalized) {
-        closeDropdown(container);
-        return;
-    }
-    const matches = TEMPLATES.filter(
-        template =>
-            template.toLowerCase().startsWith(normalized) &&
-            template.toLowerCase() !== normalized
-    );
-    container.innerHTML = "";
-    if(!matches.length) {
-        closeDropdown(container);
-        return;
-    }
-    matches.forEach(template => {
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "historical-date__suggestion";
-        item.textContent = buildPreview(template, value);
-        item.addEventListener("mousedown", event => event.preventDefault());
-        item.addEventListener("click", () => {
-            input.value = createInitialValue(template, value);
-            input.focus();
-            closeDropdown(container);
-            input.dispatchEvent(new Event("input", {bubbles: true}));
-        });
-        container.appendChild(item);
-    });
-    positionDropdown(container, input);
-    container.classList.add("is-open");
-}
 
-// ==========================================
-// Close dropdown
-// ==========================================
-function closeDropdown(container) {
-    if(!container) return;
-    container.classList.remove("is-open");
-    container.innerHTML = "";
-    container.style.left = "";
-    container.style.top = "";
-    container.style.width = "";
+function renderDropdown(
+    dropdown,
+    input
+) {
+
+    if(!dropdown || !input) {
+        return;
+    }
+
+    const value =
+        input.value;
+
+    const normalized =
+        value.toLowerCase();
+
+    if(!normalized) {
+
+        dropdown.close();
+
+        return;
+
+    }
+
+    const matches =
+        TEMPLATES.filter(
+            template =>
+                template
+                    .toLowerCase()
+                    .startsWith(
+                        normalized
+                    ) &&
+                template
+                    .toLowerCase() !==
+                    normalized
+        );
+
+    if(!matches.length) {
+
+        dropdown.close();
+
+        return;
+
+    }
+
+    dropdown.setContent("");
+
+    matches.forEach(
+        template => {
+
+            const item =
+                document.createElement(
+                    "button"
+                );
+
+            item.type =
+                "button";
+
+            item.className =
+                "historical-date__suggestion";
+
+            item.textContent =
+                buildPreview(
+                    template,
+                    value
+                );
+
+            item.addEventListener(
+                "mousedown",
+                event => {
+
+                    event.preventDefault();
+
+                }
+            );
+
+            item.addEventListener(
+                "click",
+                () => {
+
+                    input.value =
+                        createInitialValue(
+                            template,
+                            value
+                        );
+
+                    input.focus();
+
+                    dropdown.close();
+
+                    input.dispatchEvent(
+                        new Event(
+                            "input",
+                            {
+                                bubbles: true
+                            }
+                        )
+                    );
+
+                }
+            );
+
+            dropdown.append(
+                item
+            );
+
+        }
+    );
+
+    dropdown.open(
+        input
+    );
+
 }
 
 // ==========================================
 // Template matching
 // ==========================================
+
 function findTemplate(value) {
-    if(!value) return null;
-    return TEMPLATES.find(template => matchesTemplate(value, template)) ?? null;
+
+    if(!value) {
+        return null;
+    }
+
+    return (
+        TEMPLATES.find(
+            template =>
+                matchesTemplate(
+                    value,
+                    template
+                )
+        ) ?? null
+    );
+
 }
 
-function matchesTemplate(value, template) {
-    if(value.length > template.length) return false;
-    for(let i = 0; i < value.length; i++) {
-        const templateChar = template[i];
-        const valueChar = value[i];
-        if(templateChar === "0") {
-            if(!/[0-9]/.test(valueChar)) return false;
-        }
-        else if(templateChar !== valueChar) {
-            return false;
-        }
+function matchesTemplate(
+    value,
+    template
+) {
+
+    if(
+        value.length >
+        template.length
+    ) {
+
+        return false;
+
     }
+
+    for(
+        let i = 0;
+        i < value.length;
+        i++
+    ) {
+
+        const templateChar =
+            template[i];
+
+        const valueChar =
+            value[i];
+
+        if(
+            templateChar === "0"
+        ) {
+
+            if(
+                !/[0-9]/.test(
+                    valueChar
+                )
+            ) {
+
+                return false;
+
+            }
+
+        }
+        else if(
+            templateChar !==
+            valueChar
+        ) {
+
+            return false;
+
+        }
+
+    }
+
     return true;
+
 }
 
 // ==========================================
 // Valid prefix
 // ==========================================
+
 function getValidPrefix(value) {
-    if(!value)
+
+    if(!value) {
         return "";
-    let result = "";
-    for(let i = 0; i < value.length; i++) {
-        const next = result + value[i];
-        if(!TEMPLATES.some(template => matchesTemplate(next, template))) break;
-        result = next;
     }
+
+    let result =
+        "";
+
+    for(
+        let i = 0;
+        i < value.length;
+        i++
+    ) {
+
+        const next =
+            result +
+            value[i];
+
+        if(
+            !TEMPLATES.some(
+                template =>
+                    matchesTemplate(
+                        next,
+                        template
+                    )
+            )
+        ) {
+
+            break;
+
+        }
+
+        result =
+            next;
+
+    }
+
     return result;
+
 }
 
 // ==========================================
 // Preview
 // ==========================================
-function buildPreview(template, value) {
-    let result = "";
-    for(let i = 0; i < template.length; i++) {
-        const templateChar = template[i];
-        result += templateChar === "0" ? value[i] ?? "0" : templateChar;
+
+function buildPreview(
+    template,
+    value
+) {
+
+    let result =
+        "";
+
+    for(
+        let i = 0;
+        i < template.length;
+        i++
+    ) {
+
+        const templateChar =
+            template[i];
+
+        result +=
+            templateChar === "0"
+                ? value[i] ?? "0"
+                : templateChar;
+
     }
+
     return result;
+
 }
 
 // ==========================================
 // Create initial value
 // ==========================================
-function createInitialValue(template, value) {
-    let result = "";
-    let valueIndex = 0;
-    for(let i = 0; i < template.length; i++) {
-        const templateChar = template[i];
-        if(templateChar === "0") {
-            result += value[valueIndex] ?? "";
+
+function createInitialValue(
+    template,
+    value
+) {
+
+    let result =
+        "";
+
+    let valueIndex =
+        0;
+
+    for(
+        let i = 0;
+        i < template.length;
+        i++
+    ) {
+
+        const templateChar =
+            template[i];
+
+        if(
+            templateChar === "0"
+        ) {
+
+            result +=
+                value[valueIndex] ?? "";
+
             valueIndex++;
+
         }
         else {
-            result += templateChar;
+
+            result +=
+                templateChar;
+
         }
+
     }
+
     return result;
+
 }
 
 // ==========================================
 // Validation
 // ==========================================
-export function isValidHistoricalDate(value) {
-    const normalized = String(value ?? "").trim();
-    if(!normalized) return true;
-    return TEMPLATES.some(template => normalized === template || (
-        normalized.length === template.length &&
-        matchesTemplate(normalized, template)
-    ));
+
+export function isValidHistoricalDate(
+    value
+) {
+
+    const normalized =
+        String(
+            value ?? ""
+        ).trim();
+
+    if(!normalized) {
+        return true;
+    }
+
+    return TEMPLATES.some(
+        template =>
+            normalized === template ||
+            (
+                normalized.length ===
+                template.length &&
+                matchesTemplate(
+                    normalized,
+                    template
+                )
+            )
+    );
+
 }
