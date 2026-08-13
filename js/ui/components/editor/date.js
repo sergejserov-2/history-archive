@@ -1,220 +1,73 @@
 // ==========================================
 // Date mode editor
 // ==========================================
-
-import {
-    setupHistoricalDateInput
-} from "./historicalDate.js";
-
+import {setupHistoricalDateInput} from "./historicalDate.js";
 
 // ==========================================
 // Setup
 // ==========================================
+export function setupDateModeEditor(root, cfg = {}, entity = {}) {
+    const container = root.querySelector("#entityDateEditor");
+    if(!container) return null;
 
-export function setupDateModeEditor(
-    root,
-    cfg = {},
-    entity = {}
-) {
-
-    const container =
-        root.querySelector("#entityDateEditor");
-
-    if(!container) {
-        return null;
-    }
-
-
-    const row =
-        container.closest(".entity-row");
-
-
-    const dateInput =
-        root.querySelector("#entity_date");
-
-
-    const dateStartInput =
-        root.querySelector("#entity_dateStart");
-
-
-    const dateEndInput =
-        root.querySelector("#entity_dateEnd");
-
-
-    const switchButton =
-        root.querySelector("#entityDateModeSwitch");
-
-
-    const dateLabel =
-        root.querySelector("#entityDateLabel");
-
-
-    const periodFields =
-        root.querySelector("#entityDatePeriod");
-
-
-    const singleField =
-        root.querySelector("#entityDateSingle");
-
+    const row = container.closest(".entity-row");
+    const dateInput = root.querySelector("#entity_date");
+    const dateStartInput = root.querySelector("#entity_dateStart");
+    const dateEndInput = root.querySelector("#entity_dateEnd");
+    const switchButton = root.querySelector("#entityDateModeSwitch");
+    const dateLabel = root.querySelector("#entityDateLabel");
+    const periodFields = root.querySelector("#entityDatePeriod");
+    const singleField = root.querySelector("#entityDateSingle");
 
     if(!switchButton || !dateLabel) {
-
-        console.error(
-            "Date mode editor: switch or label not found"
-        );
-
+        console.error("Date mode editor: switch or label not found");
         return null;
     }
-
 
     // ==========================================
     // Historical date inputs
     // ==========================================
+    const dateEditor = dateInput
+        ? setupHistoricalDateInput(dateInput, {showHelp: true})
+        : null;
 
-    /*
-     * Обычная дата:
-     * исторический формат + ?
-     */
+    const dateStartEditor = dateStartInput
+        ? setupHistoricalDateInput(dateStartInput, {showHelp: false})
+        : null;
 
-    const dateEditor =
-        dateInput
-            ? setupHistoricalDateInput(
-                dateInput,
-                {
-                    showHelp: true
-                }
-            )
-            : null;
-
-
-    /*
-     * Начало периода:
-     * только historical dropdown,
-     * без вопросика.
-     */
-
-    const dateStartEditor =
-        dateStartInput
-            ? setupHistoricalDateInput(
-                dateStartInput,
-                {
-                    showHelp: false
-                }
-            )
-            : null;
-
-
-    /*
-     * Конец периода:
-     * historical dropdown + ?
-     */
-
-    const dateEndEditor =
-        dateEndInput
-            ? setupHistoricalDateInput(
-                dateEndInput,
-                {
-                    showHelp: true
-                }
-            )
-            : null;
-
+    const dateEndEditor = dateEndInput
+        ? setupHistoricalDateInput(dateEndInput, {showHelp: true})
+        : null;
 
     // ==========================================
     // Mode
     // ==========================================
-
-let mode;
-
-if(entity?.dateMode) {
-
-    mode = entity.dateMode;
-
-}
-else if(
-    entity?.dateStart ||
-    entity?.dateEnd
-) {
-
-    // Обратная совместимость:
-    // если dateMode ещё не сохранён,
-    // но есть границы периода — это период.
-    mode = "period";
-
-}
-else {
-
-    mode =
-        cfg.dateMode ??
-        "date";
-}
-
-mode =
-    mode === "period"
-        ? "period"
-        : "date";
-
+    let mode;
+    if(entity?.dateMode) {
+        mode = entity.dateMode;
+    }
+    else if(entity?.dateStart || entity?.dateEnd) {
+        mode = "period";
+    }
+    else {
+        mode = cfg.dateMode ?? "date";
+    }
+    mode = mode === "period" ? "period" : "date";
 
     // ==========================================
     // Render
     // ==========================================
-
     function render() {
+        const isPeriod = mode === "period";
 
-        const isPeriod =
-            mode === "period";
+        dateLabel.textContent = isPeriod ? "Период" : "Дата";
+        switchButton.textContent = isPeriod ? "Сменить на дату" : "Сменить на период";
 
-
-        // --------------------------------------
-        // Label
-        // --------------------------------------
-
-        dateLabel.textContent =
-            isPeriod
-                ? "Период"
-                : "Дата";
-
-
-        // --------------------------------------
-        // Switch button
-        // --------------------------------------
-
-        switchButton.textContent =
-            isPeriod
-                ? "Сменить на дату"
-                : "Сменить на период";
-
-
-        // --------------------------------------
-        // Fields visibility
-        // --------------------------------------
-
-        if(singleField) {
-
-            singleField.hidden =
-                isPeriod;
-        }
-
-
-        if(periodFields) {
-
-            periodFields.hidden =
-                !isPeriod;
-        }
-
-
-        // --------------------------------------
-        // Row proportions
-        // --------------------------------------
+        if(singleField) singleField.hidden = isPeriod;
+        if(periodFields) periodFields.hidden = !isPeriod;
 
         if(row) {
-
-            row.classList.remove(
-                "entity-row--author-date",
-                "entity-row--author-date-period"
-            );
-
-
+            row.classList.remove("entity-row--author-date", "entity-row--author-date-period");
             row.classList.add(
                 isPeriod
                     ? "entity-row--author-date-period"
@@ -223,450 +76,142 @@ mode =
         }
     }
 
-
     // ==========================================
     // Switch date / period
     // ==========================================
+    switchButton.addEventListener("click", () => {
+        if(mode === "date") {
+            const date = dateInput?.value.trim() || "";
 
-    switchButton.addEventListener(
-        "click",
-        () => {
+            if(dateStartEditor) dateStartEditor.setValue(date);
+            else if(dateStartInput) dateStartInput.value = date;
 
-            // ----------------------------------
-            // Date → Period
-            // ----------------------------------
+            if(dateEndEditor) dateEndEditor.setValue("");
+            else if(dateEndInput) dateEndInput.value = "";
 
-            if(mode === "date") {
-
-                const date =
-                    dateInput?.value.trim() || "";
-
-
-                /*
-                 * Переносим дату
-                 * в начало периода.
-                 */
-
-                if(dateStartEditor) {
-
-                    dateStartEditor.setValue(
-                        date
-                    );
-
-                }
-                else if(dateStartInput) {
-
-                    dateStartInput.value =
-                        date;
-                }
-
-
-                /*
-                 * Конец периода
-                 * при переключении пустой.
-                 */
-
-                if(dateEndEditor) {
-
-                    dateEndEditor.setValue(
-                        ""
-                    );
-
-                }
-                else if(dateEndInput) {
-
-                    dateEndInput.value =
-                        "";
-                }
-
-
-                mode = "period";
-            }
-
-
-            // ----------------------------------
-            // Period → Date
-            // ----------------------------------
-
-            else {
-
-                let date = "";
-
-
-                /*
-                 * При возврате к дате
-                 * сначала берём начало периода.
-                 */
-
-                if(dateStartEditor) {
-
-                    date =
-                        dateStartEditor
-                            .getValue();
-
-                }
-                else if(dateStartInput) {
-
-                    date =
-                        dateStartInput
-                            .value
-                            .trim();
-                }
-
-
-                /*
-                 * Если начало пустое,
-                 * используем конец.
-                 */
-
-                if(!date) {
-
-                    if(dateEndEditor) {
-
-                        date =
-                            dateEndEditor
-                                .getValue();
-
-                    }
-                    else if(dateEndInput) {
-
-                        date =
-                            dateEndInput
-                                .value
-                                .trim();
-                    }
-                }
-
-
-                /*
-                 * Передаём значение
-                 * в обычный historical input.
-                 */
-
-                if(dateEditor) {
-
-                    dateEditor.setValue(
-                        date
-                    );
-
-                }
-                else if(dateInput) {
-
-                    dateInput.value =
-                        date;
-                }
-
-
-                mode = "date";
-            }
-
-
-            render();
+            mode = "period";
         }
-    );
+        else {
+            let date = "";
 
+            if(dateStartEditor) date = dateStartEditor.getValue();
+            else if(dateStartInput) date = dateStartInput.value.trim();
+
+            if(!date) {
+                if(dateEndEditor) date = dateEndEditor.getValue();
+                else if(dateEndInput) date = dateEndInput.value.trim();
+            }
+
+            if(dateEditor) dateEditor.setValue(date);
+            else if(dateInput) dateInput.value = date;
+
+            mode = "date";
+        }
+
+        render();
+    });
 
     // ==========================================
     // Initial render
     // ==========================================
-
     render();
-
 
     // ==========================================
     // Public API
     // ==========================================
-
     return {
-
-        // --------------------------------------
-        // Mode
-        // --------------------------------------
-
         getMode() {
-
             return mode;
         },
 
-
-        // --------------------------------------
-        // Data
-        // --------------------------------------
-
         getData() {
-
-            // ----------------------------------
-            // Period
-            // ----------------------------------
-
             if(mode === "period") {
-
                 return {
-
-                    dateStart:
-                        dateStartEditor
-                            ? dateStartEditor.getValue()
-                            : (
-                                dateStartInput
-                                    ?.value
-                                    .trim() || ""
-                            ),
-
-
-                    dateEnd:
-                        dateEndEditor
-                            ? dateEndEditor.getValue()
-                            : (
-                                dateEndInput
-                                    ?.value
-                                    .trim() || ""
-                            ),
-
-
-                    dateMode:
-                        "period"
+                    dateStart: dateStartEditor
+                        ? dateStartEditor.getValue()
+                        : dateStartInput?.value.trim() || "",
+                    dateEnd: dateEndEditor
+                        ? dateEndEditor.getValue()
+                        : dateEndInput?.value.trim() || "",
+                    dateMode: "period"
                 };
             }
 
-
-            // ----------------------------------
-            // Single date
-            // ----------------------------------
-
             return {
-
-                date:
-                    dateEditor
-                        ? dateEditor.getValue()
-                        : (
-                            dateInput
-                                ?.value
-                                .trim() || ""
-                        ),
-
-
-                dateMode:
-                    "date"
+                date: dateEditor
+                    ? dateEditor.getValue()
+                    : dateInput?.value.trim() || "",
+                dateMode: "date"
             };
         },
 
-
-        // --------------------------------------
-        // Validation
-        // --------------------------------------
-
         validate() {
-
-            // ----------------------------------
-            // Period
-            // ----------------------------------
-
             if(mode === "period") {
+                const start = dateStartEditor
+                    ? dateStartEditor.getValue()
+                    : dateStartInput?.value.trim() || "";
 
-                const start =
-                    dateStartEditor
-                        ? dateStartEditor.getValue()
-                        : (
-                            dateStartInput
-                                ?.value
-                                .trim() || ""
-                        );
+                const end = dateEndEditor
+                    ? dateEndEditor.getValue()
+                    : dateEndInput?.value.trim() || "";
 
-
-                const end =
-                    dateEndEditor
-                        ? dateEndEditor.getValue()
-                        : (
-                            dateEndInput
-                                ?.value
-                                .trim() || ""
-                        );
-
-
-                /*
-                 * Обе границы могут быть пустыми.
-                 *
-                 * Если значение есть —
-                 * оно обязано соответствовать
-                 * историческому шаблону.
-                 */
-
-                if(start) {
-
-                    if(
-                        !dateStartEditor ||
-                        !dateStartEditor.validate()
-                    ) {
-                        return false;
-                    }
+                if(start && (!dateStartEditor || !dateStartEditor.validate())) {
+                    return false;
                 }
 
-
-                if(end) {
-
-                    if(
-                        !dateEndEditor ||
-                        !dateEndEditor.validate()
-                    ) {
-                        return false;
-                    }
+                if(end && (!dateEndEditor || !dateEndEditor.validate())) {
+                    return false;
                 }
 
-
                 return true;
             }
 
+            const value = dateEditor
+                ? dateEditor.getValue()
+                : dateInput?.value.trim() || "";
 
-            // ----------------------------------
-            // Single date
-            // ----------------------------------
+            if(!value) return true;
 
-            if(!dateInput) {
-
-                return true;
-            }
-
-
-            const value =
-                dateEditor
-                    ? dateEditor.getValue()
-                    : dateInput.value.trim();
-
-
-            if(!value) {
-
-                return false;
-            }
-
-
-            if(!dateEditor) {
-
-                return true;
-            }
-
+            if(!dateEditor) return true;
 
             return dateEditor.validate();
         }
     };
 }
 
-
 // ==========================================
 // Render HTML
 // ==========================================
+export function renderDateModeEditorHTML(cfg = {}, entity = {}) {
+    let mode;
 
-export function renderDateModeEditorHTML(
-    cfg = {},
-    entity = {}
-) {
+    if(entity?.dateMode) {
+        mode = entity.dateMode;
+    }
+    else if(entity?.dateStart || entity?.dateEnd) {
+        mode = "period";
+    }
+    else {
+        mode = cfg.dateMode ?? "date";
+    }
 
-let mode;
-
-if(entity?.dateMode) {
-
-    mode = entity.dateMode;
-
-}
-else if(
-    entity?.dateStart ||
-    entity?.dateEnd
-) {
-
-    // Обратная совместимость со старыми данными.
-    mode = "period";
-
-}
-else {
-
-    mode =
-        cfg.dateMode ??
-        "date";
-}
-
-const isPeriod =
-    mode === "period";
+    const isPeriod = mode === "period";
 
     return `
-        <div
-            id="entityDateEditor"
-            class="entity-date-editor"
-        >
-
-            <span
-                id="entityDateLabel"
-                class="entity-date-editor__label"
-            >
-                ${
-                    isPeriod
-                        ? "Период"
-                        : "Дата"
-                }
+        <div id="entityDateEditor" class="entity-date-editor">
+            <span id="entityDateLabel" class="entity-date-editor__label">
+                ${isPeriod ? "Период" : "Дата"}
             </span>
-
-
-            <!-- ==============================
-                 SINGLE DATE
-            =============================== -->
-
-            <div
-                id="entityDateSingle"
-                class="entity-date-editor__single"
-                ${isPeriod ? "hidden" : ""}
-            >
-
-                <input
-                    id="entity_date"
-                    value="${entity.date ?? ""}"
-                    autocomplete="off"
-                >
-
+            <div id="entityDateSingle" class="entity-date-editor__single" ${isPeriod ? "hidden" : ""}>
+                <input id="entity_date" value="${entity.date ?? ""}" autocomplete="off">
             </div>
-
-
-            <!-- ==============================
-                 PERIOD
-            =============================== -->
-
-            <div
-                id="entityDatePeriod"
-                class="entity-date-editor__period"
-                ${isPeriod ? "" : "hidden"}
-            >
-
-                <input
-                    id="entity_dateStart"
-                    class="entity-date-editor__period-input"
-                    value="${entity.dateStart ?? ""}"
-                    autocomplete="off"
-                >
-
-
-                <input
-                    id="entity_dateEnd"
-                    class="entity-date-editor__period-input"
-                    value="${entity.dateEnd ?? ""}"
-                    autocomplete="off"
-                >
-
+            <div id="entityDatePeriod" class="entity-date-editor__period" ${isPeriod ? "" : "hidden"}>
+                <input id="entity_dateStart" class="entity-date-editor__period-input" value="${entity.dateStart ?? ""}" autocomplete="off">
+                <input id="entity_dateEnd" class="entity-date-editor__period-input" value="${entity.dateEnd ?? ""}" autocomplete="off">
             </div>
-
-
-            <!-- ==============================
-                 SWITCH
-            =============================== -->
-
-            <button
-                type="button"
-                id="entityDateModeSwitch"
-                class="entity-date-editor__switch"
-            >
-                ${
-                    isPeriod
-                        ? "Сменить на дату"
-                        : "Сменить на период"
-                }
+            <button type="button" id="entityDateModeSwitch" class="entity-date-editor__switch">
+                ${isPeriod ? "Сменить на дату" : "Сменить на период"}
             </button>
-
         </div>
     `;
 }
