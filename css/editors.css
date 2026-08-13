@@ -622,34 +622,30 @@
 
 .historical-date__help {
     position: relative;
-    top: 1px;
     right: auto;
     transform: none;
-    width: 22px;
-    height: 22px;
+    width: 16px;
+    height: 16px;
     margin: 0;
     padding: 0 !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: none !important;
+    border: 1px solid !important;
     border-radius: 50% !important;
-    background: var(--color-surface-alt) !important;
-    color: var(--color-text-dim) !important;
+    background: var(--color-input) !important;
+    color: var(--color-text-disabled) !important;
     font-family: inherit;
     font-size: var(--font-size-sm) !important;
     font-weight: 600;
     line-height: 1;
-    cursor: pointer;
     z-index: 100;
-    transition:
-        background .15s ease,
+    transition: background .15s ease,
         color .15s ease;
 }
 
 .historical-date__help:hover {
-    background: var(--color-media-dark) !important;
-    color: var(--color-text) !important;
+    color: var(--color-accent) !important;
 }
 
 .historical-date__tooltip {
