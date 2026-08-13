@@ -35,8 +35,7 @@ export function setupParentsEditor(root, objects, entity, parents, options = {})
         if(options.getTypeId) {
             return getType(options.getTypeId());
         }
-        const typeId = root.querySelector("#entityType")?.value;
-        return getType(typeId);
+        return null;
     }
 
     function getMaxChildLevel() {
@@ -176,32 +175,29 @@ export function setupParentsEditor(root, objects, entity, parents, options = {})
         clearSearch();
     };
 
-    if(
-        withAddress && options.typeSelector
-    ) {
-        const typeSelect = root.querySelector("#entityType");
-        if(typeSelect) {
-            typeSelect.onchange = () => {
-                const newType = getObjectType();
-                if(!newType) {return;}
-                const firstParent = parents[0];
-                if(!firstParent) {return;}
-                const parentType = getParentType(firstParent);
-                if(
-                    parentType && Number(newType.level) >= Number(parentType.level)
-                ) {
-                    alert(
-                        "Выбранный тип выше или равен уровню родителя. Родители будут сброшены."
-                    );
+if(withAddress && options.typeSelector) {
+    const typeSelect = root.querySelector("#entityType");
 
-                    parents.splice(0);
+    if(typeSelect) {
+        typeSelect.addEventListener("typechange", event => {
+            const newType = event.detail;
+            if(!newType) return;
 
-                    renderParents();
-                    clearSearch();
-                }
-            };
-        }
+            const firstParent = parents[0];
+            if(!firstParent) return;
+
+            const parentType = getParentType(firstParent);
+            if(!parentType) return;
+
+            if(Number(newType.level) >= Number(parentType.level)) {
+                alert("Выбранный тип выше или равен уровню родителя. Родители будут сброшены.");
+                parents.splice(0);
+                renderParents();
+                clearSearch();
+            }
+        });
     }
+}
 
     renderParents();
 
