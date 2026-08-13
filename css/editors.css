@@ -667,5 +667,5 @@
 }
 
 .entity-type__input {
-    cursor: none;
+    cursor: default;
 }
