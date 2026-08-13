@@ -179,22 +179,10 @@ if(withAddress && options.typeSelector) {
     const typeSelect = root.querySelector("#entityType");
 
     if(typeSelect) {
-        typeSelect.addEventListener("typechange", event => {
-            const newType = event.detail;
-            if(!newType) return;
-
-            const firstParent = parents[0];
-            if(!firstParent) return;
-
-            const parentType = getParentType(firstParent);
-            if(!parentType) return;
-
-            if(Number(newType.level) >= Number(parentType.level)) {
-                alert("Выбранный тип выше или равен уровню родителя. Родители будут сброшены.");
-                parents.splice(0);
-                renderParents();
-                clearSearch();
-            }
+        typeSelect.addEventListener("typewarning", () => {
+            parents.splice(0);
+            renderParents();
+            clearSearch();
         });
     }
 }
