@@ -249,9 +249,7 @@ ${
     source.description?.trim()
     ?
     `
-    <div class="source__description">
-        ${source.description}
-    </div>
+    <div class="source__description">${source.description}</div>
     `
     :
     ""
