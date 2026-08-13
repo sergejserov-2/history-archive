@@ -643,3 +643,20 @@
     background: transparent;
     cursor: not-allowed;
 }
+
+.entity-type__input-wrapper {
+    position: relative;
+}
+
+.entity-type__input-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+}
