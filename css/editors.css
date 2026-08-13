@@ -656,10 +656,10 @@
     background: #292d33;
     color: #d8dadd;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 11px;
     line-height: 1.4;
     white-space: pre-line;
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
-    transform: translateX(-50%);
+    transform: translateX(-16px);
     z-index: 99999;
 }
