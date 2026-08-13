@@ -537,49 +537,6 @@
     padding-right: 40px;
 }
 
-.historical-date__help {
-    position: absolute;
-
-    top: 50%;
-    right: 10px;
-
-    transform: translateY(-50%);
-
-    width: 22px;
-    height: 22px;
-
-    margin: 0;
-    padding: 0 !important;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border: none !important;
-    border-radius: 50% !important;
-
-    background: var(--color-surface-alt) !important;
-
-    color: var(--color-text-dim) !important;
-
-    font-family: inherit;
-    font-size: var(--font-size-sm) !important;
-    font-weight: 600;
-    line-height: 1;
-
-    cursor: pointer;
-
-    z-index: 5;
-
-    transition:
-        background .15s ease,
-        color .15s ease;
-}
-
-.historical-date__help:hover {
-    background: var(--color-media-dark) !important;
-    color: var(--color-text) !important;
-}
 /* ==========================================
    DROPDOWN
 ========================================== */
@@ -652,16 +609,42 @@
     color: var(--color-text-primary) !important;
 }
 
-.historical-date__help-wrapper {
-    position: relative;
-    display: inline-flex;
+
+
+.historical-date__help {
+    position: absolute;
+    top: calc(50% + 1px);
+    right: 10px;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none !important;
+    border-radius: 50% !important;
+    background: var(--color-surface-alt) !important;
+    color: var(--color-text-dim) !important;
+    font-family: inherit;
+    font-size: var(--font-size-sm) !important;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 5;
+    transition:
+        background .15s ease,
+        color .15s ease;
+}
+
+.historical-date__help:hover {
+    background: var(--color-media-dark) !important;
+    color: var(--color-text) !important;
 }
 
 .historical-date__tooltip {
-    position: absolute;
-    left: 50%;
-    bottom: calc(100% + 6px);
-    transform: translateX(-50%);
+    position: fixed;
     width: max-content;
     max-width: 260px;
     padding: 10px 12px;
@@ -672,14 +655,5 @@
     line-height: 1.4;
     white-space: pre-line;
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity .15s ease;
-    z-index: 1000;
-}
-
-.historical-date__help-wrapper:hover .historical-date__tooltip {
-    opacity: 1;
-    visibility: visible;
+    z-index: 99999;
 }
