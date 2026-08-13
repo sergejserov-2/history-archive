@@ -46,15 +46,17 @@ export function setupTypesEditor(root, entity, options = {}) {
     const dropdown = createDropdown();
     let selectedType = getType(selectedTypeId, types);
 
-    const parentType = getParentType(options);
+const parentTypes = getParentTypes(options);
 
-    const warningTypeIds = parentType
-        ? sortedTypes
-            .filter(type =>
+const warningTypeIds = parentTypes.length
+    ? sortedTypes
+        .filter(type =>
+            parentTypes.some(parentType =>
                 Number(type.level) >= Number(parentType.level)
             )
-            .map(type => type.id)
-        : [];
+        )
+        .map(type => type.id)
+    : [];
 
     dropdown.setItems(
         sortedTypes.map(type => ({
