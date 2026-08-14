@@ -43,7 +43,7 @@ export function setupParentsEditor(
 
     const parentDropdown =
         createDropdown({
-            maxHeight: 360
+            maxHeight: 128
         });
 
     // ======================================
