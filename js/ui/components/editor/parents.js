@@ -312,69 +312,40 @@ export function setupParentsEditor(
         }
 
         const candidates =
-            objects
-                .filter(object => {
+    objects
+        .filter(object => {
 
-                    // Сам объект нельзя выбрать
-                    // своим родителем.
+            if(object.id === entity?.id){
+                return false;
+            }
 
-                    if(
-                        object.id ===
-                        entity?.id
-                    ){
+            if(
+                parents.some(
+                    parent =>
+                        getParentId(parent) === object.id
+                )
+            ){
+                return false;
+            }
 
-                        return false;
+            if(!isParentAllowed(object)){
+                return false;
+            }
 
-                    }
+            if(
+                options.filter &&
+                !options.filter(object, parents)
+            ){
+                return false;
+            }
 
-                    // Уже выбранных родителей
-                    // повторно добавлять нельзя.
+            return (
+                object.title ?? ""
+            )
+                .toLowerCase()
+                .includes(text);
 
-                    if(
-                        parents.some(
-                            parent =>
-                                getParentId(parent) ===
-                                object.id
-                        )
-                    ){
-
-                        return false;
-
-                    }
-
-                    // Проверяем уровень родителя.
-
-                    if(
-                        !isParentAllowed(object)
-                    ){
-
-                        return false;
-
-                    }
-
-                    // Дополнительный фильтр,
-                    // если он передан редактором.
-
-                    if(
-                        options.filter &&
-                        !options.filter(
-                            object,
-                            parents
-                        )
-                    ){
-
-                        return false;
-
-                    }
-
-                    return (
-                        object.title ?? ""
-                    )
-                        .toLowerCase()
-                        .includes(text);
-
-                })
-                .slice(0, 15);
+        });
 
         // Нет результатов.
 
