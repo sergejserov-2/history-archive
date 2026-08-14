@@ -212,8 +212,6 @@
     max-height: 90dvh;
 
     margin: 0;
-    border-radius: 0;
-
     display: flex;
     flex-direction: column;
 }
