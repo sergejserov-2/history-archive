@@ -42,68 +42,63 @@
    MOBILE
 ========================================== */
 
-@media (max-width: 900px){
+@media(max-width: 900px) {
 
-    :root{
+    :root {
         --page-width: 100%;
         --header-width: 100%;
 
         --header-logo-width: auto;
         --header-buttons-width: auto;
-
-        --viewer-width: 100vw;
-        --viewer-info-width: 100%;
-        --viewer-gap: 16px;
-        --viewer-height: 50vh;
-        --viewer-min-height: 260px;
     }
 
-    .header{
+    .header {
         margin: 0;
         border-radius: 0;
     }
 
-    .page{
+    .page {
         margin: var(--space-8);
     }
 
-    section{
+    section {
         padding: var(--space-7);
     }
 
     /* ==========================================
        OBJECT
-    ========================================= */
+    ========================================== */
 
-    .object{
+    .object {
         flex-direction: column;
         gap: var(--space-8);
 
         padding: var(--space-7);
     }
 
-    .object__cover{
+    .object__cover {
         width: 100%;
-        height: 200px;
+        min-height: auto;
+
+        aspect-ratio: 16 / 9;
     }
 
-    .object__cover-image{
-        width: 200px;
-        height: 200px;
+    .object__cover-image {
+        width: 100%;
+        height: 100%;
 
         object-fit: cover;
 
         border-radius: var(--radius-lg);
     }
 
-    .object__cover-placeholder{
+    .object__cover-placeholder {
         width: 100%;
         height: 100%;
-
         aspect-ratio: auto;
     }
 
-    .object__title{
+    .object__title {
         flex-wrap: wrap;
 
         white-space: normal;
@@ -111,50 +106,49 @@
         font-size: var(--font-size-3xl);
     }
 
-    .object__title-text{
+    .object__title-text {
         white-space: normal;
 
         overflow: visible;
         text-overflow: unset;
     }
 
-    .object__description{
+    .object__description {
         max-width: none;
     }
 
     /* ==========================================
        CHILDREN
-    ========================================= */
+    ========================================== */
 
-    .children-list{
+    .children-list {
         display: flex;
         flex-direction: column;
 
         gap: var(--space-6);
     }
 
-    .child-card{
+    .child-card {
         width: 100%;
     }
 
     /* ==========================================
        RECORDS
-    ========================================= */
+    ========================================== */
 
-    .record{
+    .record {
         grid-template-columns: 1fr;
 
         gap: var(--space-2);
-
         padding: var(--space-5);
     }
 
-    .record__date{
+    .record__date {
         text-align: left;
     }
 
     .record__title,
-    .record__description{
+    .record__description {
         white-space: normal;
 
         overflow: visible;
@@ -163,23 +157,23 @@
 
     /* ==========================================
        SOURCES
-    ========================================= */
+    ========================================== */
 
-    .source__header{
+    .source__header {
         grid-template-columns: 1fr;
 
         gap: var(--space-2);
     }
 
-    .source__date{
+    .source__date {
         text-align: left;
     }
 
-    .source__title{
+    .source__title {
         white-space: normal;
     }
 
-    .source__title-text{
+    .source__title-text {
         white-space: normal;
 
         overflow: visible;
@@ -188,80 +182,139 @@
 
     /* ==========================================
        PHOTOS
-    ========================================= */
+    ========================================== */
 
-    .photos-list{
+    .photos-list {
         gap: var(--space-5);
     }
 
-    .photo-card{
+    .photo-card {
         flex: 0 0 130px;
     }
 
-    .photo-card__media{
+    .photo-card__media {
         width: 130px;
     }
 
-/* ==========================================
-   MOBILE PHOTO VIEWER — FULL HEIGHT
-========================================== */
+    /* ==========================================
+       PHOTO VIEWER
+    ========================================== */
 
-.modal--photo-viewer {
-    height: calc(100dvh - 96px);
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-   margin:24px;
-}
+    .modal--photo-viewer {
+        width: 420px;
+        max-width: calc(100vw - 32px);
 
-.modal--photo-viewer .modal__content {
-    flex: 1 1 auto;
-    min-height: 0;
+        height: calc(100dvh - 144px);
+        max-height: calc(100dvh - 144px);
 
-    height: auto;
-    padding: var(--space-5);
+        margin: 72px 16px;
 
-    display: flex;
-    flex-direction: column;
-}
+        display: flex;
+        flex-direction: column;
 
-.modal--photo-viewer .photo-viewer {
-    flex: 1 1 auto;
-    min-height: 0;
+        border-radius: var(--radius-2xl);
+    }
 
-    height: 100%;
+    .modal--photo-viewer .modal__header {
+        flex: 0 0 auto;
+    }
 
-    display: flex;
-    flex-direction: column;
-}
+    .modal--photo-viewer .modal__content {
+        flex: 1 1 auto;
+        min-height: 0;
 
-.modal--photo-viewer .photo-viewer__image-area {
-    flex: 1 1 auto;
-    min-height: 0;
+        padding: var(--space-5);
 
-    height: auto;
-    width: 100%;
-}
+        display: flex;
+        flex-direction: column;
+    }
 
-.modal--photo-viewer .photo-viewer__info {
-    flex: 0 0 auto;
-}
+    .modal--photo-viewer .photo-viewer {
+        flex: 1 1 auto;
+        min-height: 0;
 
-.viewer-controls__previous {
-    left: 32px;
-}
-.viewer-controls__next {
-    right: 32px;
-}
-.viewer-controls__position {
-    margin-top: 18px;
-}
-   
+        display: flex;
+        flex-direction: column;
+
+        gap: var(--space-6);
+    }
+
+    /* ---------- Image ---------- */
+
+    .modal--photo-viewer .photo-viewer__image-area {
+        position: relative;
+
+        flex: 1 1 auto;
+        min-height: 0;
+
+        width: 100%;
+        height: auto;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        overflow: hidden;
+    }
+
+    /* ---------- Info ---------- */
+
+    .modal--photo-viewer .photo-viewer__info {
+        flex: 0 0 auto;
+
+        min-height: 0;
+    }
+
+    .modal--photo-viewer .photo-viewer__download {
+        margin-left: 0;
+    }
+
+    /* ---------- Viewer counter ---------- */
+
+    .modal--photo-viewer .viewer-controls__position {
+        position: absolute;
+        top: var(--space-5);
+        left: 50%;
+
+        z-index: 30;
+
+        width: auto;
+        margin: 0;
+
+        transform: translateX(-50%);
+
+        font-size: var(--font-size-lg);
+
+        white-space: nowrap;
+    }
+
+    /* ---------- Viewer arrows ---------- */
+
+    .modal--photo-viewer .viewer-controls__previous,
+    .modal--photo-viewer .viewer-controls__next {
+        top: 50%;
+
+        width: 36px;
+        height: 56px;
+
+        transform: translateY(-50%);
+
+        font-size: 42px;
+    }
+
+    .modal--photo-viewer .viewer-controls__previous {
+        left: var(--space-5);
+    }
+
+    .modal--photo-viewer .viewer-controls__next {
+        right: var(--space-5);
+    }
+
     /* ==========================================
        EDITORS
-    ========================================= */
+    ========================================== */
 
-    .entity-row{
+    .entity-row {
         flex-direction: column;
 
         gap: var(--space-5);
@@ -272,20 +325,20 @@
     .entity-row--author-date .entity-author,
     .entity-row--author-date .entity-date-editor,
     .entity-row--author-date-period .entity-author,
-    .entity-row--author-date-period .entity-date-editor{
+    .entity-row--author-date-period .entity-date-editor {
         width: 100%;
         flex: none;
     }
 
-    .entity-editor__buttons{
+    .entity-editor__buttons {
         flex-direction: column;
     }
 
     /* ==========================================
        BREADCRUMBS
-    ========================================= */
+    ========================================== */
 
-    .breadcrumbs{
+    .breadcrumbs {
         margin:
             0
             var(--space-3)
@@ -293,3 +346,42 @@
     }
 }
 
+/* ==========================================
+   SMALL PHONES
+========================================== */
+
+@media(max-width: 480px) {
+
+    .page {
+        margin: var(--space-5);
+    }
+
+    .object,
+    section {
+        padding: var(--space-6);
+    }
+
+    .child-card {
+        flex-direction: column;
+    }
+
+    .child-card__media {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+    }
+
+    .record__title,
+    .record__description,
+    .source__description,
+    .object__description {
+        font-size: var(--font-size-md);
+    }
+
+    .photo-card {
+        flex: 0 0 110px;
+    }
+
+    .photo-card__media {
+        width: 110px;
+    }
+}
