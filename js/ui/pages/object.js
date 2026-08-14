@@ -152,19 +152,7 @@ loadPage().then(()=>{
     onAdminStateChanged(async admin=>{
         pageAdminMode=admin;
         await renderPage();
-        if(admin){
-            initAdmin(
-                pageObject,
-                pageTypes,
-                pageObjects,
-                pagePhotos,
-                pageSources,
-                pageRecords,
-                pageChildren,
-                pageRecordTypes,
-                updates
-            );
-        }
+        if(admin)initAdmin(page,updates);
         await restoreModalFromUrl();
     });
 }).catch(error=>console.error("Ошибка загрузки страницы:",error));
