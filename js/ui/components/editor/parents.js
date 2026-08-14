@@ -1,21 +1,23 @@
 // ======================================
 // Parents editor
 // ======================================
-
+import {createDropdown} from "./dropdown.js";
 export function setupParentsEditor(root, objects, entity, parents, options = {}){
     const withAddress = options.address === true;
     const types = options.types ?? [];
-    const parentsBox = root.querySelector("#entityParents");
-    const searchInput = root.querySelector("#entityParentSearch");
-    const resultsBox = root.querySelector("#entityParentResults");
+const parentsBox = root.querySelector("#entityParents");
+const searchInput = root.querySelector("#entityParentSearch");
+const parentDropdown = createDropdown({
+    maxHeight: 360
+});
 
-    if(!parentsBox || !searchInput || !resultsBox) {
-        return {
-            getParents() {return parents;},
-            clearParents() {parents.splice(0);},
-            validate() {return true;}
-        };
-    }
+if(!parentsBox || !searchInput) {
+    return {
+        getParents() {return parents;},
+        clearParents() {parents.splice(0);},
+        validate() {return true;}
+    };
+}
 
     function getParentId(parent) {
         return withAddress ? parent.objectId : parent;
@@ -106,15 +108,82 @@ export function setupParentsEditor(root, objects, entity, parents, options = {})
     }
 
     function clearSearch() {
-        searchInput.value = "";
-        resultsBox.innerHTML = "";
+    searchInput.value = "";
+    parentDropdown.close();
+}
+
+function renderResults(text) {
+
+    if(!text) {
+        parentDropdown.close();
+        return;
     }
 
-    function renderResults(text) {
-        if(!text) {
-            resultsBox.innerHTML = "";
-            return;
+    const candidates = objects
+        .filter(object => {
+            if(object.id === entity?.id) {
+                return false;
+            }
+
+            if(
+                parents.some(
+                    parent => getParentId(parent) === object.id
+                )
+            ) {
+                return false;
+            }
+
+            if(!isParentAllowed(object)) {
+                return false;
+            }
+
+            if(
+                options.filter &&
+                !options.filter(object, parents)
+            ) {
+                return false;
+            }
+
+            return (object.title ?? "")
+                .toLowerCase()
+                .includes(text);
+        })
+        .slice(0, 15);
+
+    parentDropdown.setItems(
+        candidates.map(object => ({
+            id: object.id,
+            title: object.title ?? ""
+        })),
+        {
+            onSelect(item) {
+
+                const id = item.id;
+
+                if(withAddress) {
+                    parents.push({
+                        objectId: id,
+                        address: ""
+                    });
+                }
+                else {
+                    parents.push(id);
+                }
+
+                renderParents();
+                clearSearch();
+            }
         }
+    );
+
+    if(candidates.length > 0) {
+        parentDropdown.open(searchInput);
+    }
+    else {
+        parentDropdown.close();
+    }
+}
+    
 
         resultsBox.innerHTML =
             objects
@@ -160,9 +229,13 @@ export function setupParentsEditor(root, objects, entity, parents, options = {})
         };
     }
 
-    searchInput.oninput = () => {
-        renderResults(searchInput.value.toLowerCase().trim());
-    };
+searchInput.oninput = () => {
+    renderResults(
+        searchInput.value
+            .toLowerCase()
+            .trim()
+    );
+};
 
     resultsBox.onclick = event => {
         const item = event.target.closest(".parent-result");
@@ -215,7 +288,6 @@ export function renderParentsEditorHTML() {
                 id="entityParentSearch"
                 placeholder="Начните вводить имя"
             >
-            <div id="entityParentResults"></div>
         </div>
     `;
 }
