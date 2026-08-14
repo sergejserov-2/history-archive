@@ -299,7 +299,10 @@ export async function moveFileToDeleted(
         "storagePath",
         storagePath
     );
-
+console.log("MOVE TO DELETED:", {
+    storagePath,
+    type: typeof storagePath
+});
     const response =
         await fetch(
 
@@ -317,19 +320,11 @@ export async function moveFileToDeleted(
 
         );
 
-    if(!response.ok){
-
-        throw new Error(
-
-            "Ошибка переноса файла: "
-
-            +
-
-            response.status
-
-        );
-
-    }
+if(!response.ok){
+    const text=await response.text();
+    console.error("MOVE ERROR:",response.status,text);
+    throw new Error("Ошибка переноса файла: "+response.status);
+}
 
     const result =
         await response.json();
