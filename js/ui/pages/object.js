@@ -88,6 +88,7 @@ import {
     restoreModalFromUrl
 }
 from "../components/modal.js";
+import {updateEntity} from "../../admin/update.js";
 
 // ======================================
 // Get object id
@@ -271,7 +272,9 @@ pageType =
 // Update records block
 // ======================================
 
-export async function updateRecordsBlock() {
+export async function updateRecordsBlock(
+    savedRecord = null
+) {
     if(!pageObject) {
         return;
     }
@@ -281,12 +284,25 @@ export async function updateRecordsBlock() {
             pageObject.id
         );
 
+    if(
+        savedRecord?.id &&
+        !pageRecords.some(
+            record =>
+                record.id === savedRecord.id
+        )
+    ) {
+        pageRecords.push(
+            savedRecord
+        );
+    }
+
     const recordsBlock =
         document.querySelector(
             ".records"
         );
 
     if(recordsBlock) {
+
         recordsBlock.outerHTML =
             renderRecords(
                 pageRecords,
@@ -301,12 +317,14 @@ export async function updateRecordsBlock() {
         pageAdminMode ||
         pageRecords.length > 0
     ) {
+
         const objectInfo =
             document.querySelector(
                 ".object__info"
             );
 
         if(objectInfo) {
+
             objectInfo.insertAdjacentHTML(
                 "beforeend",
                 renderRecords(
@@ -320,80 +338,12 @@ export async function updateRecordsBlock() {
 }
 
 // ======================================
-// Update photos block
-// ======================================
-
-export async function updatePhotosBlock() {
-    if(!pageObject) {
-        return;
-    }
-
-    pagePhotos =
-        await getPhotos(
-            pageObject.id
-        );
-
-    const gallery =
-        document.querySelector(
-            "#gallery"
-        );
-
-    if(!gallery) {
-        if(
-            pageAdminMode ||
-            pagePhotos.length > 0
-        ) {
-            const sources =
-                document.querySelector(
-                    "#sources"
-                );
-
-            const html = `
-                <section id="gallery">
-                    <h2>
-                        Фотографии
-                    </h2>
-                    ${renderPhotos(
-                        pagePhotos,
-                        pageAdminMode
-                    )}
-                </section>
-            `;
-
-            if(sources) {
-                sources.insertAdjacentHTML(
-                    "beforebegin",
-                    html
-                );
-            } else {
-                document
-                    .querySelector(".page")
-                    ?.insertAdjacentHTML(
-                        "beforeend",
-                        html
-                    );
-            }
-        }
-
-        return;
-    }
-
-    gallery.innerHTML = `
-        <h2>
-            Фотографии
-        </h2>
-        ${renderPhotos(
-            pagePhotos,
-            pageAdminMode
-        )}
-    `;
-}
-
-// ======================================
 // Update sources block
 // ======================================
 
-export async function updateSourcesBlock() {
+export async function updateSourcesBlock(
+    savedSource = null
+) {
     if(!pageObject) {
         return;
     }
@@ -403,16 +353,30 @@ export async function updateSourcesBlock() {
             pageObject.id
         );
 
+    if(
+        savedSource?.id &&
+        !pageSources.some(
+            source =>
+                source.id === savedSource.id
+        )
+    ) {
+        pageSources.push(
+            savedSource
+        );
+    }
+
     const sourcesBlock =
         document.querySelector(
             "#sources"
         );
 
     if(!sourcesBlock) {
+
         if(
             pageAdminMode ||
             pageSources.length > 0
         ) {
+
             const children =
                 document.querySelector(
                     "#children"
@@ -423,6 +387,7 @@ export async function updateSourcesBlock() {
                     <h2>
                         Источники
                     </h2>
+
                     ${renderSources(
                         pageSources,
                         pageAdminMode
@@ -431,11 +396,14 @@ export async function updateSourcesBlock() {
             `;
 
             if(children) {
+
                 children.insertAdjacentHTML(
                     "beforebegin",
                     html
                 );
+
             } else {
+
                 document
                     .querySelector(".page")
                     ?.insertAdjacentHTML(
@@ -452,6 +420,7 @@ export async function updateSourcesBlock() {
         <h2>
             Источники
         </h2>
+
         ${renderSources(
             pageSources,
             pageAdminMode
