@@ -42,103 +42,262 @@
    MOBILE
 ========================================== */
 
-@media (max-width: 800px) {
+max-width: 900px{
 
-    /* ---------- Header ---------- */
+    :root{
+        --page-width: 100%;
+        --header-width: 100%;
 
-    .header {
+        --header-logo-width: auto;
+        --header-buttons-width: auto;
+
+        --viewer-width: 100vw;
+        --viewer-info-width: 100%;
+        --viewer-gap: 16px;
+        --viewer-height: 50vh;
+        --viewer-min-height: 260px;
+    }
+
+    .header{
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .page{
+        margin: var(--space-8);
+    }
+
+    section{
+        padding: var(--space-7);
+    }
+
+    /* ==========================================
+       OBJECT
+    ========================================= */
+
+    .object{
         flex-direction: column;
-        align-items: stretch;
+        gap: var(--space-8);
+
+        padding: var(--space-7);
     }
 
-    .header__logo,
-    .header__buttons {
-        width: auto;
-        text-align: left;
-    }
-
-
-    /* ---------- Object ---------- */
-
-    .object {
-        flex-direction: column;
-    }
-
-    .object__cover {
+    .object__cover{
         width: 100%;
+        min-height: auto;
     }
 
     .object__cover-image,
-    .object__cover-placeholder {
+    .object__cover-placeholder{
         width: 100%;
+        max-width: 260px;
     }
 
+    .object__title{
+        flex-wrap: wrap;
 
-    /* ---------- Children ---------- */
+        white-space: normal;
 
-    .children-list {
+        font-size: var(--font-size-3xl);
+    }
+
+    .object__title-text{
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+    }
+
+    .object__description{
+        max-width: none;
+    }
+
+    /* ==========================================
+       CHILDREN
+    ========================================= */
+
+    .children-list{
         grid-template-columns: 1fr;
     }
 
-
-    /* ---------- Records ---------- */
-
-    .record {
-        grid-template-columns: 1fr;
-        gap: var(--space-4);
+    .child-card{
+        padding: var(--space-5);
     }
 
-    .record__date {
-        margin-top: var(--space-2);
+    .child-card__media{
+        width: 80px;
+    }
+
+    .child-card__name{
+        white-space: normal;
+    }
+
+    .child-card__name > span:first-child{
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+    }
+
+    /* ==========================================
+       RECORDS
+    ========================================= */
+
+    .record{
+        grid-template-columns: 1fr;
+        gap: var(--space-2);
+
+        padding: var(--space-5);
+    }
+
+    .record__date{
         text-align: left;
     }
 
+    .record__title,
+    .record__description{
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+    }
 
-    /* ---------- Sources ---------- */
+    /* ==========================================
+       SOURCES
+    ========================================= */
 
-    .source__header {
+    .source__header{
         grid-template-columns: 1fr;
         gap: var(--space-2);
     }
 
-    .source__date {
+    .source__date{
         text-align: left;
     }
 
-
-    /* ---------- Editors ---------- */
-
-    .entity-row {
-        flex-direction: column;
+    .source__title{
+        white-space: normal;
     }
 
-    .entity-row--title-type .entity-type,
-    .entity-row--title-type .entity-title,
-    .entity-row--author-date > label:first-child,
-    .entity-row--author-date > .entity-date-editor,
-    .entity-row--author-date-period > label:first-child,
-    .entity-row--author-date-period > .entity-date-editor {
-        flex: none;
-        width: 100%;
+    .source__title-text{
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
     }
 
+    /* ==========================================
+       PHOTOS
+    ========================================= */
 
-    /* ---------- Photo viewer ---------- */
+    .photos-list{
+        gap: var(--space-5);
+    }
 
-    .photo-viewer {
+    .photo-card{
+        flex: 0 0 130px;
+    }
+
+    .photo-card__media{
+        width: 130px;
+    }
+
+    /* ==========================================
+       PHOTO VIEWER
+    ========================================= */
+
+    .modal--photo-viewer{
+        width: 100vw;
+        max-width: 100vw;
+
+        height: 100vh;
+
+        border-radius: 0;
+    }
+
+    .photo-viewer{
         grid-template-columns: 1fr;
     }
 
-    .photo-viewer__image-area {
-        height: 55vh;
-        min-height: 280px;
+    .photo-viewer__info{
+        min-width: 0;
     }
 
-    .photo-viewer__download {
-        margin-top: var(--space-6);
+    .photo-viewer__download{
+        margin-left: 0;
     }
 
-    .modal--photo-viewer {
-        width: 90vw;
+    /* ==========================================
+       EDITORS
+    ========================================= */
+
+    .entity-row{
+        flex-direction: column;
+        gap: var(--space-5);
+    }
+
+    .entity-row--title-type > .entity-type,
+    .entity-row--title-type > .entity-title,
+    .entity-row--author-date .entity-author,
+    .entity-row--author-date .entity-date-editor,
+    .entity-row--author-date-period .entity-author,
+    .entity-row--author-date-period .entity-date-editor{
+        width: 100%;
+        flex: none;
+    }
+
+    .entity-editor__buttons{
+        flex-direction: column;
+    }
+
+    /* ==========================================
+       BREADCRUMBS
+    ========================================= */
+
+    .breadcrumbs{
+        margin:
+            0
+            var(--space-3)
+            var(--space-7);
+    }
+
+    .breadcrumbs__chain{
+        gap: var(--space-2);
+    }
+
+    .breadcrumbs__separator{
+        margin: 0 var(--space-2);
+    }
+}
+
+max-width: 480px{
+
+    .page{
+        margin: var(--space-5);
+    }
+
+    .object,
+    section{
+        padding: var(--space-6);
+    }
+
+    .child-card{
+        flex-direction: column;
+    }
+
+    .child-card__media{
+        width: 100%;
+        aspect-ratio: 16 / 9;
+    }
+
+    .record__title,
+    .record__description,
+    .source__description,
+    .object__description{
+        font-size: var(--font-size-md);
+    }
+
+    .photo-card{
+        flex: 0 0 110px;
+    }
+
+    .photo-card__media{
+        width: 110px;
     }
 }
