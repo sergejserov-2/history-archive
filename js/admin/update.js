@@ -85,7 +85,7 @@ const API = {
 // Get entity
 // ======================================
 
-export async function getEntity(type, id) {
+export async function getEntity(type,id) {
 
     if(type === "object")
         return await getObject(id);
@@ -105,7 +105,7 @@ export async function getEntity(type, id) {
 }
 
 // ======================================
-// Create / update entity
+// Create / update
 // ======================================
 
 export async function updateEntity(
@@ -118,12 +118,10 @@ export async function updateEntity(
 
     const api = API[type];
 
-    if(!api) {
-
+    if(!api)
         throw new Error(
             `Unknown entity type: ${type}`
         );
-    }
 
     let savedData;
 
@@ -153,24 +151,19 @@ export async function updateEntity(
 
         savedData =
             await api.create(data);
-    }
 
-    // ==================================
-    // Temporary upload state
-    //
-    // Только для фотографии.
-    // В Firestore НЕ записывается.
-    // ==================================
+        // New photo immediately enters
+        // temporary upload state.
+        if(
+            type === "photo" &&
+            savedData?.id &&
+            context.uploadingPhotoIds
+        ) {
 
-    if(
-        type === "photo" &&
-        context.uploadingPhotoIds &&
-        savedData?.id
-    ) {
-
-        context.uploadingPhotoIds.add(
-            savedData.id
-        );
+            context.uploadingPhotoIds.add(
+                savedData.id
+            );
+        }
     }
 
     // ==================================
@@ -182,19 +175,15 @@ export async function updateEntity(
         const callback =
             context.updates?.[update];
 
-        if(typeof callback === "function") {
-
-            await callback(
-                savedData
-            );
-        }
+        if(typeof callback === "function")
+            await callback(savedData);
     }
 
     return savedData;
 }
 
 // ======================================
-// Delete entity
+// Delete
 // ======================================
 
 export async function deleteEntity(
@@ -202,10 +191,6 @@ export async function deleteEntity(
     id,
     context = {}
 ) {
-
-    // ==================================
-    // Object
-    // ==================================
 
     if(type === "object") {
 
@@ -226,14 +211,8 @@ export async function deleteEntity(
         await context.updates
             ?.onObjectDeleted?.(id);
 
-        return {
-            parentId
-        };
+        return {parentId};
     }
-
-    // ==================================
-    // Photo
-    // ==================================
 
     if(type === "photo") {
 
@@ -251,6 +230,9 @@ export async function deleteEntity(
             );
         }
 
+        context.uploadingPhotoIds
+            ?.delete(id);
+
         await deletePhoto(id);
 
         await context.updates
@@ -258,10 +240,6 @@ export async function deleteEntity(
 
         return;
     }
-
-    // ==================================
-    // Source
-    // ==================================
 
     if(type === "source") {
 
@@ -287,10 +265,6 @@ export async function deleteEntity(
         return;
     }
 
-    // ==================================
-    // Record
-    // ==================================
-
     if(type === "record") {
 
         await deleteRecord(id);
@@ -312,21 +286,8 @@ export async function deleteEntity(
 
 export function createPageUpdates(state) {
 
-    // ==================================
-    // Temporary upload state
-    // ==================================
-
-    state.uploadingPhotoIds ??=
-        new Set();
-
-    // ==================================
-    // Expose state through context
-    // ==================================
-
-    state.updatesContext ??= {};
-
-    state.updatesContext.uploadingPhotoIds =
-        state.uploadingPhotoIds;
+    // Temporary client-only state.
+    state.uploadingPhotoIds ??= new Set();
 
     return {
 
@@ -447,19 +408,14 @@ export function createPageUpdates(state) {
             if(!state.object)
                 return;
 
-            // ==================================
-            // Actual Firestore photos
-            // ==================================
-
+            // Always get the actual gallery.
             state.photos =
                 await getPhotos(
                     state.object.id
                 );
 
-            // ==================================
-            // New photo may not be returned yet
-            // ==================================
-
+            // The newly created photo can appear
+            // before Firestore query catches it.
             if(
                 savedPhoto?.id &&
                 !state.photos.some(
@@ -474,26 +430,18 @@ export function createPageUpdates(state) {
                 );
             }
 
-            // ==================================
-            // Add temporary loading state
-            // ==================================
-
+            // Add temporary upload state
+            // ONLY in the render copy.
             const photosForRender =
-                state.photos.map(
-                    photo => ({
+                state.photos.map(photo => ({
 
-                        ...photo,
+                    ...photo,
 
-                        isUploading:
-                            state.uploadingPhotoIds
-                                .has(photo.id)
+                    isUploading:
+                        state.uploadingPhotoIds
+                            .has(photo.id)
 
-                    })
-                );
-
-            // ==================================
-            // Gallery
-            // ==================================
+                }));
 
             const gallery =
                 document.querySelector(
@@ -518,14 +466,11 @@ export function createPageUpdates(state) {
 
                     const html = `
                         <section id="gallery">
-
                             <h2>Фотографии</h2>
-
                             ${renderPhotos(
                                 photosForRender,
                                 state.admin
                             )}
-
                         </section>
                     `;
 
@@ -536,14 +481,10 @@ export function createPageUpdates(state) {
                             html
                         );
 
-                    }
-
-                    else {
+                    } else {
 
                         document
-                            .querySelector(
-                                ".page"
-                            )
+                            .querySelector(".page")
                             ?.insertAdjacentHTML(
                                 "beforeend",
                                 html
@@ -554,20 +495,17 @@ export function createPageUpdates(state) {
             }
 
             // ==================================
-            // Update gallery
+            // Refresh gallery
             // ==================================
 
             else {
 
                 gallery.innerHTML = `
-
                     <h2>Фотографии</h2>
-
                     ${renderPhotos(
                         photosForRender,
                         state.admin
                     )}
-
                 `;
             }
 
@@ -620,18 +558,15 @@ export function createPageUpdates(state) {
                     const children =
                         document.querySelector(
                             "#children"
-                        );
+                            );
 
                     const html = `
                         <section id="sources">
-
                             <h2>Источники</h2>
-
                             ${renderSources(
                                 state.sources,
                                 state.admin
                             )}
-
                         </section>
                     `;
 
@@ -642,14 +577,10 @@ export function createPageUpdates(state) {
                             html
                         );
 
-                    }
-
-                    else {
+                    } else {
 
                         document
-                            .querySelector(
-                                ".page"
-                            )
+                            .querySelector(".page")
                             ?.insertAdjacentHTML(
                                 "beforeend",
                                 html
@@ -661,14 +592,11 @@ export function createPageUpdates(state) {
             }
 
             block.innerHTML = `
-
                 <h2>Источники</h2>
-
                 ${renderSources(
                     state.sources,
                     state.admin
                 )}
-
             `;
         },
 
@@ -690,9 +618,7 @@ export function createPageUpdates(state) {
                 );
 
             const html = `
-
                 <h2>Дочерние объекты</h2>
-
                 ${await renderChildren(
                     state.children,
                     state.admin,
@@ -700,32 +626,24 @@ export function createPageUpdates(state) {
                     state.objects,
                     state.types
                 )}
-
             `;
 
             if(block) {
 
-                block.innerHTML =
-                    html;
+                block.innerHTML = html;
 
-            }
-
-            else if(
+            } else if(
                 state.admin ||
                 state.children.length
             ) {
 
                 document
-                    .querySelector(
-                        ".page"
-                    )
+                    .querySelector(".page")
                     ?.insertAdjacentHTML(
                         "beforeend",
-                        `
-                            <section id="children">
-                                ${html}
-                            </section>
-                        `
+                        `<section id="children">
+                            ${html}
+                        </section>`
                     );
             }
         },
@@ -744,12 +662,11 @@ export function createPageUpdates(state) {
                     ? `object.html?id=${parent.id}`
                     : "index.html";
         }
-
     };
 }
 
 // ======================================
-// Exports
+// Upload exports
 // ======================================
 
 export {
