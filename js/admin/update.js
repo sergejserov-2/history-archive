@@ -35,33 +35,59 @@ const API = {
 // ======================================
 // Save entity
 // ======================================
-export async function updateEntity(type, entity, data, context = {}, updates = []) {
+// ======================================
+// Save entity
+// ======================================
+
+export async function updateEntity(
+    type,
+    entity,
+    data,
+    context = {},
+    updates = []
+) {
     const api = API[type];
-    if(!api) throw new Error(`Unknown entity type: ${type}`);
+
+    if(!api) {
+        throw new Error(
+            `Unknown entity type: ${type}`
+        );
+    }
+
     let savedData;
+
     if(entity?.id) {
-        await api.update(entity.id, data);
+
+        await api.update(
+            entity.id,
+            data
+        );
+
         savedData = {
             id: entity.id,
             ...data
         };
+
     } else {
-        savedData = await api.create(data);
-    }
-for(const update of updates) {
-    const callback =
-        context.updates?.[update];
 
-    console.log(
-        "EDITOR UPDATE:",
-        update,
-        typeof callback
-    );
+        savedData =
+            await api.create(data);
 
-    if(typeof callback === "function") {
-        await callback(savedData);
     }
-}
+
+    for(const update of updates) {
+
+        const callback =
+            context.updates?.[update];
+
+        if(typeof callback === "function") {
+
+            await callback(
+                savedData
+            );
+        }
+    }
+
     return savedData;
 }
 // ======================================
