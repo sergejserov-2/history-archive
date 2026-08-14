@@ -48,14 +48,25 @@ export async function deleteEntity(type,id,context={}){
         await context.updates?.onObjectDeleted?.(id);
         return {parentId};
     }
-    if(type==="photo"){
-        const photo=(context.photos??[]).find(photo=>photo.id===id);
-        if(photo?.storagePath)await moveFileToDeleted(photo.storagePath);
-        if(photo?.previewPath)await moveFileToDeleted(photo.previewPath);
-        await deletePhoto(id);
-        await context.updates?.updatePhotosBlock?.();
-        return;
+if(type==="photo"){
+    const photo=(context.photos??[]).find(photo=>photo.id===id);
+
+    if(photo?.storagePath){
+        await moveFileToDeleted(photo.storagePath);
     }
+
+    if(photo?.previewPath){
+        try{
+            await moveFileToDeleted(photo.previewPath);
+        }catch(error){
+            console.error("Ошибка удаления превью:",error);
+        }
+    }
+
+    await deletePhoto(id);
+    await context.updates?.updatePhotosBlock?.();
+    return;
+}
     if(type==="source"){
         const source=(context.sources??[]).find(source=>source.id===id);
         if(source?.storagePath)await moveFileToDeleted(source.storagePath);
