@@ -561,135 +561,198 @@ export function createPageUpdates(state) {
 
                 gallery.innerHTML = `
 
-                    <h2>Фотографии</h2}
-                                </span>
-                            `
+                    <h2>Фотографии</h2>
 
-                            :
+                    ${renderPhotos(
+                        photosForRender,
+                        state.admin
+                    )}
 
-                            ""
+                `;
+            }
 
-                            :
+            await state
+                .renderCoverState?.();
+        },
 
-                            photo.date
+        // ==================================
+        // Sources
+        // ==================================
 
-                            ?
+        async updateSourcesBlock(
+            savedSource = null
+        ) {
 
-                            `
-                                , <span
-                                    class="photo-card__date"
-                                >
-                                    ${photo.date}
-                                </span>
-                            `
-
-                            :
-
-                            ""
-                        }
-
-                    </div>
-
-                </div>
-
-            `);
-        }
-    );
-
-    // ======================================
-    // HTML
-    // ======================================
-
-    const html = `
-
-        <div class="photos-list">
-
-            ${cards.join("")}
-
-        </div>
-
-    `;
-
-    // ======================================
-    // Viewer
-    // ======================================
-
-    setTimeout(
-        () => {
-
-            const photosList =
-                document.querySelector(
-                    ".photos-list"
-                );
-
-            if(!photosList)
+            if(!state.object)
                 return;
 
-            photosList.onclick =
-                event => {
+            state.sources =
+                await getSources(
+                    state.object.id
+                );
 
-                    const media =
-                        event.target.closest(
-                            ".photo-card__media"
+            if(
+                savedSource?.id &&
+                !state.sources.some(
+                    source =>
+                        source.id ===
+                        savedSource.id
+                )
+            ) {
+
+                state.sources.push(
+                    savedSource
+                );
+            }
+
+            const block =
+                document.querySelector(
+                    "#sources"
+                );
+
+            if(!block) {
+
+                if(
+                    state.admin ||
+                    state.sources.length
+                ) {
+
+                    const children =
+                        document.querySelector(
+                            "#children"
                         );
 
-                    if(!media)
-                        return;
+                    const html = `
+                        <section id="sources">
 
-                    // ==================================
-                    // Loading → no Viewer
-                    // ==================================
+                            <h2>Источники</h2>
 
-                    if(
-                        media.dataset.loading ===
-                        "true"
-                    ) {
+                            ${renderSources(
+                                state.sources,
+                                state.admin
+                            )}
 
-                        return;
+                        </section>
+                    `;
+
+                    if(children) {
+
+                        children.insertAdjacentHTML(
+                            "beforebegin",
+                            html
+                        );
+
                     }
 
-                    const photoId =
-                        media.dataset.photoId;
+                    else {
 
-                    const photo =
-                        sortedPhotos.find(
-                            item =>
-                                item.id ===
-                                photoId
-                        );
-
-                    if(!photo)
-                        return;
-
-                    if(!photo.storagePath)
-                        return;
-
-                    const image =
-                        media.querySelector(
-                            ".photo-card__image"
-                        );
-
-                    if(
-                        !image ||
-                        !image.complete ||
-                        image.naturalWidth === 0
-                    ) {
-
-                        return;
+                        document
+                            .querySelector(
+                                ".page"
+                            )
+                            ?.insertAdjacentHTML(
+                                "beforeend",
+                                html
+                            );
                     }
+                }
 
-                    openPhotoViewer(
-                        photo,
-                        {
-                            photos:
-                                sortedPhotos
-                        }
-                    );
-                };
+                return;
+            }
 
+            block.innerHTML = `
+
+                <h2>Источники</h2>
+
+                ${renderSources(
+                    state.sources,
+                    state.admin
+                )}
+
+            `;
         },
-        0
-    );
 
-    return html;
+        // ==================================
+        // Children
+        // ==================================
+
+        async updateChildrenBlock() {
+
+            if(!state.object)
+                return;
+
+            state.children =
+                await state.getChildren();
+
+            const block =
+                document.querySelector(
+                    "#children"
+                );
+
+            const html = `
+
+                <h2>Дочерние объекты</h2>
+
+                ${await renderChildren(
+                    state.children,
+                    state.admin,
+                    state.object,
+                    state.objects,
+                    state.types
+                )}
+
+            `;
+
+            if(block) {
+
+                block.innerHTML =
+                    html;
+
+            }
+
+            else if(
+                state.admin ||
+                state.children.length
+            ) {
+
+                document
+                    .querySelector(
+                        ".page"
+                    )
+                    ?.insertAdjacentHTML(
+                        "beforeend",
+                        `
+                            <section id="children">
+                                ${html}
+                            </section>
+                        `
+                    );
+            }
+        },
+
+        // ==================================
+        // Object deleted
+        // ==================================
+
+        async onObjectDeleted() {
+
+            const parent =
+                state.parents?.[0];
+
+            window.location.href =
+                parent?.id
+                    ? `object.html?id=${parent.id}`
+                    : "index.html";
+        }
+
+    };
 }
+
+// ======================================
+// Exports
+// ======================================
+
+export {
+    uploadPhoto,
+    uploadSourceDocument
+};
