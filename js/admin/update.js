@@ -1,190 +1,656 @@
-import {getObject,deleteObject,createObject,updateObject} from "../api/objects.js";
-import {getPhoto,deletePhoto,createPhoto,updatePhoto,getPhotos} from "../api/photos.js";
-import {getSource,deleteSource,createSource,updateSource,getSources} from "../api/sources.js";
-import {getRecord,deleteRecord,createRecord,updateRecord,getRecords} from "../api/records.js";
-import {moveFileToDeleted,uploadPhoto,uploadSourceDocument} from "../api/storage.js";
+// ======================================
+// Page updates
+// ======================================
+
+import {
+    getObject,
+    deleteObject,
+    createObject,
+    updateObject
+} from "../api/objects.js";
+
+import {
+    getPhoto,
+    deletePhoto,
+    createPhoto,
+    updatePhoto,
+    getPhotos
+} from "../api/photos.js";
+
+import {
+    getSource,
+    deleteSource,
+    createSource,
+    updateSource,
+    getSources
+} from "../api/sources.js";
+
+import {
+    getRecord,
+    deleteRecord,
+    createRecord,
+    updateRecord,
+    getRecords
+} from "../api/records.js";
+
+import {
+    moveFileToDeleted,
+    uploadPhoto,
+    uploadSourceDocument
+} from "../api/storage.js";
+
 import {getType} from "../api/types.js";
+
 import {renderRecords} from "../ui/components/records.js";
 import {renderPhotos} from "../ui/components/photos.js";
 import {renderSources} from "../ui/components/sources.js";
 import {renderChildren} from "../ui/components/children.js";
 
-const API={object:{create:createObject,update:updateObject},photo:{create:createPhoto,update:updatePhoto},source:{create:createSource,update:updateSource},record:{create:createRecord,update:updateRecord}};
 
-function storageKey(path){
-    if(!path)return null;
-    try{
-        const url=new URL(path);
-        return decodeURIComponent(url.pathname.replace(/^\/+/,""));
-    }catch{
-        return path;
+// ======================================
+// API
+// ======================================
+
+const API = {
+    object: {
+        create: createObject,
+        update: updateObject
+    },
+
+    photo: {
+        create: createPhoto,
+        update: updatePhoto
+    },
+
+    source: {
+        create: createSource,
+        update: updateSource
+    },
+
+    record: {
+        create: createRecord,
+        update: updateRecord
     }
-}
+};
+
+
+// ======================================
+// Get entity
+// ======================================
 
 export async function getEntity(type,id){
-    if(type==="object")return await getObject(id);
-    if(type==="photo")return await getPhoto(id);
-    if(type==="source")return await getSource(id);
-    if(type==="record")return await getRecord(id);
-    throw new Error(`Unknown entity type: ${type}`);
+
+    if(type==="object")
+        return await getObject(id);
+
+    if(type==="photo")
+        return await getPhoto(id);
+
+    if(type==="source")
+        return await getSource(id);
+
+    if(type==="record")
+        return await getRecord(id);
+
+    throw new Error(
+        `Unknown entity type: ${type}`
+    );
 }
 
-export async function updateEntity(type,entity,data,context={},updates=[]){
+
+// ======================================
+// Update entity
+// ======================================
+
+export async function updateEntity(
+    type,
+    entity,
+    data,
+    context={},
+    updates=[]
+){
+
     const api=API[type];
-    if(!api)throw new Error(`Unknown entity type: ${type}`);
+
+    if(!api)
+        throw new Error(
+            `Unknown entity type: ${type}`
+        );
+
     let savedData;
+
     if(entity?.id){
-        await api.update(entity.id,data);
-        savedData={id:entity.id,...data};
+
+        await api.update(
+            entity.id,
+            data
+        );
+
+        savedData={
+            id:entity.id,
+            ...data
+        };
+
     }else{
-        savedData=await api.create(data);
+
+        savedData=
+            await api.create(data);
+
     }
+
     for(const update of updates){
-        const callback=context.updates?.[update];
-        if(typeof callback==="function")await callback(savedData);
+
+        const callback=
+            context.updates?.[update];
+
+        if(typeof callback==="function")
+            await callback(savedData);
+
     }
+
     return savedData;
 }
 
-export async function deleteEntity(type,id,context={}){
+
+// ======================================
+// Delete entity
+// ======================================
+
+export async function deleteEntity(
+    type,
+    id,
+    context={}
+){
+
+    // ==================================
+    // Object
+    // ==================================
+
     if(type==="object"){
-        const object=(context.objects??[]).find(object=>object.id===id);
-        const parentId=object?.parents?.[0]?.objectId??object?.parents?.[0]??null;
+
+        const object=
+            (context.objects??[]).find(
+                object=>object.id===id
+            );
+
+        const parentId=
+            object?.parents?.[0]?.objectId ??
+            object?.parents?.[0] ??
+            null;
+
         await deleteObject(id);
-        await context.updates?.onObjectDeleted?.(id);
-        return {parentId};
+
+        await context.updates
+            ?.onObjectDeleted?.(id);
+
+        return {
+            parentId
+        };
     }
+
+
+    // ==================================
+    // Photo
+    // ==================================
 
     if(type==="photo"){
-        const photo=(context.photos??[]).find(photo=>photo.id===id);
-        console.log("DELETE PHOTO:",photo);
 
-        if(photo?.storagePath)await moveFileToDeleted(storageKey(photo.storagePath));
-        if(photo?.previewPath)await moveFileToDeleted(storageKey(photo.previewPath));
+        const photo=
+            (context.photos??[]).find(
+                photo=>photo.id===id
+            );
+
+        console.log(
+            "DELETE PHOTO:",
+            photo
+        );
+
+        if(photo?.storagePath){
+
+            await moveFileToDeleted(
+                photo.storagePath
+            );
+
+        }
+
+        if(photo?.previewPath){
+
+            await moveFileToDeleted(
+                photo.previewPath
+            );
+
+        }
 
         await deletePhoto(id);
-        await context.updates?.updatePhotosBlock?.();
+
+        await context.updates
+            ?.updatePhotosBlock?.();
+
         return;
     }
+
+
+    // ==================================
+    // Source
+    // ==================================
 
     if(type==="source"){
-        const source=(context.sources??[]).find(source=>source.id===id);
 
-        if(source?.storagePath)await moveFileToDeleted(storageKey(source.storagePath));
+        const source=
+            (context.sources??[]).find(
+                source=>source.id===id
+            );
+
+        if(source?.storagePath){
+
+            await moveFileToDeleted(
+                source.storagePath
+            );
+
+        }
 
         await deleteSource(id);
-        await context.updates?.updateSourcesBlock?.();
+
+        await context.updates
+            ?.updateSourcesBlock?.();
+
         return;
     }
+
+
+    // ==================================
+    // Record
+    // ==================================
 
     if(type==="record"){
+
         await deleteRecord(id);
-        await context.updates?.updateRecordsBlock?.();
+
+        await context.updates
+            ?.updateRecordsBlock?.();
+
         return;
     }
 
-    throw new Error(`Unknown entity type: ${type}`);
+
+    throw new Error(
+        `Unknown entity type: ${type}`
+    );
 }
 
+
+// ======================================
+// Create page updates
+// ======================================
+
 export function createPageUpdates(state){
+
     return {
+
+        // ==================================
+        // Object
+        // ==================================
+
         async updateObjectBlock(data){
-            if(data)state.object={...state.object,...data};
-            state.object=await getObject(state.object.id);
-            if(!state.object)return;
-            state.type=await getType(state.object.typeId);
-            const block=document.querySelector(".object");
-            if(block)block.outerHTML=state.renderObjectBlock();
+
+            if(data)
+                state.object={
+                    ...state.object,
+                    ...data
+                };
+
+            state.object=
+                await getObject(
+                    state.object.id
+                );
+
+            if(!state.object)
+                return;
+
+            state.type=
+                await getType(
+                    state.object.typeId
+                );
+
+            const block=
+                document.querySelector(".object");
+
+            if(block)
+                block.outerHTML=
+                    state.renderObjectBlock();
         },
 
-        async updateRecordsBlock(savedRecord=null){
-            if(!state.object)return;
-            state.records=await getRecords(state.object.id);
-            if(savedRecord?.id&&!state.records.some(record=>record.id===savedRecord.id))state.records.push(savedRecord);
 
-            const block=document.querySelector(".records");
+        // ==================================
+        // Records
+        // ==================================
+
+        async updateRecordsBlock(
+            savedRecord=null
+        ){
+
+            if(!state.object)
+                return;
+
+            state.records=
+                await getRecords(
+                    state.object.id
+                );
+
+            if(
+                savedRecord?.id &&
+                !state.records.some(
+                    record=>record.id===savedRecord.id
+                )
+            ){
+
+                state.records.push(
+                    savedRecord
+                );
+
+            }
+
+            const block=
+                document.querySelector(
+                    ".records"
+                );
 
             if(block){
-                block.outerHTML=renderRecords(state.records,state.recordTypes,state.admin);
+
+                block.outerHTML=
+                    renderRecords(
+                        state.records,
+                        state.recordTypes,
+                        state.admin
+                    );
+
                 return;
             }
 
-            if(state.admin||state.records.length){
-                document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.admin));
+            if(
+                state.admin ||
+                state.records.length
+            ){
+
+                document
+                    .querySelector(".object__info")
+                    ?.insertAdjacentHTML(
+                        "beforeend",
+                        renderRecords(
+                            state.records,
+                            state.recordTypes,
+                            state.admin
+                        )
+                    );
+
             }
         },
 
-        async updatePhotosBlock(savedPhoto=null,uploading=false){
-            if(!state.object)return;
 
-            state.photos=await getPhotos(state.object.id);
+        // ==================================
+        // Photos
+        // ==================================
 
-            if(savedPhoto?.id&&!state.photos.some(photo=>photo.id===savedPhoto.id)){
-                state.photos.push(savedPhoto);
+        async updatePhotosBlock(
+            savedPhoto=null,
+            uploading=false
+        ){
+
+            if(!state.object)
+                return;
+
+            state.photos=
+                await getPhotos(
+                    state.object.id
+                );
+
+            if(
+                savedPhoto?.id &&
+                !state.photos.some(
+                    photo=>photo.id===savedPhoto.id
+                )
+            ){
+
+                state.photos.push(
+                    savedPhoto
+                );
+
             }
 
-            const photosForRender=state.photos.map(photo=>({...photo,isUploading:uploading&&photo.id===savedPhoto?.id}));
-            const gallery=document.querySelector("#gallery");
+            const photosForRender=
+                state.photos.map(
+                    photo=>({
+
+                        ...photo,
+
+                        isUploading:
+                            uploading &&
+                            photo.id===savedPhoto?.id
+
+                    })
+                );
+
+            const gallery=
+                document.querySelector(
+                    "#gallery"
+                );
 
             if(!gallery){
-                if(state.admin||photosForRender.length){
-                    const sources=document.querySelector("#sources");
-                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
 
-                    if(sources)sources.insertAdjacentHTML("beforebegin",html);
-                    else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
+                if(
+                    state.admin ||
+                    photosForRender.length
+                ){
+
+                    const sources=
+                        document.querySelector(
+                            "#sources"
+                        );
+
+                    const html=
+                        `<section id="gallery">
+                            <h2>Фотографии</h2>
+                            ${renderPhotos(
+                                photosForRender,
+                                state.admin
+                            )}
+                        </section>`;
+
+                    if(sources){
+
+                        sources.insertAdjacentHTML(
+                            "beforebegin",
+                            html
+                        );
+
+                    }else{
+
+                        document
+                            .querySelector(".page")
+                            ?.insertAdjacentHTML(
+                                "beforeend",
+                                html
+                            );
+
+                    }
+
                 }
+
             }else{
-                gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}`;
+
+                gallery.innerHTML=
+                    `<h2>Фотографии</h2>
+                    ${renderPhotos(
+                        photosForRender,
+                        state.admin
+                    )}`;
+
             }
 
             await state.renderCoverState?.();
         },
 
-        async updateSourcesBlock(savedSource=null){
-            if(!state.object)return;
 
-            state.sources=await getSources(state.object.id);
+        // ==================================
+        // Sources
+        // ==================================
 
-            if(savedSource?.id&&!state.sources.some(source=>source.id===savedSource.id)){
-                state.sources.push(savedSource);
+        async updateSourcesBlock(
+            savedSource=null
+        ){
+
+            if(!state.object)
+                return;
+
+            state.sources=
+                await getSources(
+                    state.object.id
+                );
+
+            if(
+                savedSource?.id &&
+                !state.sources.some(
+                    source=>source.id===savedSource.id
+                )
+            ){
+
+                state.sources.push(
+                    savedSource
+                );
+
             }
 
-            const block=document.querySelector("#sources");
+            const block=
+                document.querySelector(
+                    "#sources"
+                );
 
             if(!block){
-                if(state.admin||state.sources.length){
-                    const children=document.querySelector("#children");
-                    const html=`<section id="sources"><h2>Источники</h2>${renderSources(state.sources,state.admin)}</section>`;
 
-                    if(children)children.insertAdjacentHTML("beforebegin",html);
-                    else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
+                if(
+                    state.admin ||
+                    state.sources.length
+                ){
+
+                    const children=
+                        document.querySelector(
+                            "#children"
+                        );
+
+                    const html=
+                        `<section id="sources">
+                            <h2>Источники</h2>
+                            ${renderSources(
+                                state.sources,
+                                state.admin
+                            )}
+                        </section>`;
+
+                    if(children){
+
+                        children.insertAdjacentHTML(
+                            "beforebegin",
+                            html
+                        );
+
+                    }else{
+
+                        document
+                            .querySelector(".page")
+                            ?.insertAdjacentHTML(
+                                "beforeend",
+                                html
+                            );
+
+                    }
+
                 }
+
                 return;
             }
 
-            block.innerHTML=`<h2>Источники</h2>${renderSources(state.sources,state.admin)}`;
+            block.innerHTML=
+                `<h2>Источники</h2>
+                ${renderSources(
+                    state.sources,
+                    state.admin
+                )}`;
         },
 
+
+        // ==================================
+        // Children
+        // ==================================
+
         async updateChildrenBlock(){
-            if(!state.object)return;
 
-            state.children=await state.getChildren();
+            if(!state.object)
+                return;
 
-            const block=document.querySelector("#children");
-            const html=`<h2>Дочерние объекты</h2>${await renderChildren(state.children,state.admin,state.object,state.objects,state.types)}`;
+            state.children=
+                await state.getChildren();
 
-            if(block)block.innerHTML=html;
-            else if(state.admin||state.children.length){
-                document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
+            const block=
+                document.querySelector(
+                    "#children"
+                );
+
+            const html=
+                `<h2>Дочерние объекты</h2>
+                ${await renderChildren(
+                    state.children,
+                    state.admin,
+                    state.object,
+                    state.objects,
+                    state.types
+                )}`;
+
+            if(block){
+
+                block.innerHTML=html;
+
+            }else if(
+                state.admin ||
+                state.children.length
+            ){
+
+                document
+                    .querySelector(".page")
+                    ?.insertAdjacentHTML(
+                        "beforeend",
+                        `<section id="children">
+                            ${html}
+                        </section>`
+                    );
+
             }
         },
 
+
+        // ==================================
+        // Object deleted
+        // ==================================
+
         async onObjectDeleted(){
-            const parent=state.parents?.[0];
-            window.location.href=parent?.id?`object.html?id=${parent.id}`:"index.html";
+
+            const parent=
+                state.parents?.[0];
+
+            window.location.href=
+                parent?.id
+                    ? `object.html?id=${parent.id}`
+                    : "index.html";
         }
+
     };
 }
 
-export {uploadPhoto,uploadSourceDocument};
+
+// ======================================
+// Upload exports
+// ======================================
+
+export {
+    uploadPhoto,
+    uploadSourceDocument
+};
