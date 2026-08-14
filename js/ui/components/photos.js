@@ -2,9 +2,7 @@
 // Photos component
 // ======================================
 
-import {
-    openPhotoViewer
-} from "./photoViewer.js";
+import {openPhotoViewer} from "./photoViewer.js";
 
 // ======================================
 // Render photos
@@ -18,20 +16,18 @@ export function renderPhotos(
     const cards = [];
 
     // ======================================
-    // Add button
+    // Add
     // ======================================
 
     if(ADMIN_MODE) {
 
         cards.push(`
-
             <div
                 class="photo-card photo-card--add admin-button"
                 data-action="add-photo"
             >
                 + Добавить фото
             </div>
-
         `);
     }
 
@@ -40,395 +36,280 @@ export function renderPhotos(
     // ======================================
 
     const sortedPhotos =
-        [...(photos ?? [])].sort(
-            (a, b) => {
+        [...(photos ?? [])].sort((a,b) => {
 
-                const dateA =
-                    a.date || "";
+            const dateA = a.date || "";
+            const dateB = b.date || "";
 
-                const dateB =
-                    b.date || "";
+            if(!dateA && !dateB) {
 
-                if(!dateA && !dateB) {
-
-                    const authorCompare =
-                        (a.author ?? "")
-                            .localeCompare(
-                                b.author ?? "",
-                                "ru"
-                            );
-
-                    if(authorCompare !== 0)
-                        return authorCompare;
-
-                    return (
-                        a.title ?? ""
-                    ).localeCompare(
-                        b.title ?? "",
+                const author =
+                    (a.author ?? "").localeCompare(
+                        b.author ?? "",
                         "ru"
                     );
-                }
 
-                if(!dateA)
-                    return 1;
+                if(author !== 0)
+                    return author;
 
-                if(!dateB)
-                    return -1;
-
-                const dateCompare =
-                    String(dateB)
-                        .localeCompare(
-                            String(dateA)
-                        );
-
-                if(dateCompare !== 0)
-                    return dateCompare;
-
-                const authorCompare =
-                    (a.author ?? "")
-                        .localeCompare(
-                            b.author ?? "",
-                            "ru"
-                        );
-
-                if(authorCompare !== 0)
-                    return authorCompare;
-
-                return (
-                    a.title ?? ""
-                ).localeCompare(
+                return (a.title ?? "").localeCompare(
                     b.title ?? "",
                     "ru"
                 );
             }
-        );
+
+            if(!dateA) return 1;
+            if(!dateB) return -1;
+
+            const date =
+                String(dateB).localeCompare(
+                    String(dateA)
+                );
+
+            if(date !== 0)
+                return date;
+
+            const author =
+                (a.author ?? "").localeCompare(
+                    b.author ?? "",
+                    "ru"
+                );
+
+            if(author !== 0)
+                return author;
+
+            return (a.title ?? "").localeCompare(
+                b.title ?? "",
+                "ru"
+            );
+        });
 
     // ======================================
     // Cards
     // ======================================
 
-    sortedPhotos.forEach(
-        photo => {
+    sortedPhotos.forEach(photo => {
 
-            const isUploading =
-                photo.isUploading === true;
+        const uploading =
+            photo.isUploading === true;
 
-            const hasPreview =
-                Boolean(
-                    photo.previewPath
-                );
+        let mediaHTML;
 
-            let mediaHTML;
+        // ==================================
+        // Uploading
+        // ==================================
 
-            // ==================================
-            // Uploading
-            // ==================================
+        if(uploading) {
 
-            if(
-                isUploading &&
-                !hasPreview
-            ) {
+            mediaHTML = `
+                <div class="photo-card__loading">
+                    <div class="photo-card__loading-bg"></div>
+                    <div class="photo-card__loading-spinner"></div>
+                </div>
+            `;
+        }
 
-                mediaHTML = `
+        // ==================================
+        // Ready
+        // ==================================
 
-                    <div
-                        class="photo-card__loading"
-                    >
+        else if(photo.previewPath) {
 
-                        <div
-                            class="photo-card__loading-bg"
-                        ></div>
+            mediaHTML = `
+                <img
+                    class="photo-card__image"
+                    src="${photo.previewPath}"
+                    alt="${photo.title ?? ""}"
+                >
+            `;
+        }
 
-                        <div
-                            class="photo-card__loading-spinner"
-                        ></div>
+        // ==================================
+        // No preview
+        // ==================================
 
-                    </div>
+        else {
 
-                `;
-            }
+            mediaHTML = `
+                <div class="photo-card__placeholder">
+                    Фото отсутствует
+                </div>
+            `;
+        }
 
-            // ==================================
-            // Preview
-            // ==================================
-
-            else if(hasPreview) {
-
-                mediaHTML = `
-
-                    <div
-                        class="
-                            photo-card__loading
-                            photo-card__loading--preview
-                        "
-                    >
-
-                        <div
-                        class="photo-card__loading-bg"
-                        ></div>
-
-                        <div
-                            class="photo-card__loading-spinner"
-                        ></div>
-
-                    </div>
-
-                    <img
-                        class="
-                            photo-card__image
-                            photo-card__image--loading
-                        "
-                        src="${photo.previewPath}"
-                        alt="${photo.title ?? ""}"
-                    >
-
-                `;
-            }
-
-            // ==================================
-            // No photo
-            // ==================================
-
-            else {
-
-                mediaHTML = `
-
-                    <div
-                        class="photo-card__placeholder"
-                    >
-                        Фото отсутствует
-                    </div>
-
-                `;
-            }
-
-            cards.push(`
+        cards.push(`
+            <div
+                class="photo-card"
+                data-photo-id="${photo.id}"
+            >
 
                 <div
-                    class="photo-card"
+                    class="photo-card__media"
                     data-photo-id="${photo.id}"
+                    data-loading="${uploading}"
                 >
+                    ${mediaHTML}
+                </div>
 
-                    <div
-                        class="photo-card__media"
-                        data-photo-id="${photo.id}"
-                        data-loading="${isUploading}"
-                    >
+                <div class="photo-card__title">
 
-                        ${mediaHTML}
+                    ${photo.title ?? ""}
 
-                    </div>
-
-                    <div
-                        class="photo-card__title"
-                    >
-
-                        ${photo.title ?? ""}
-
-                        ${
-                            ADMIN_MODE
-                            ?
-                            `
-
-                                <button
-                                    class="admin-button"
-                                    data-action="edit-photo"
-                                    data-id="${photo.id}"
+                    ${
+                        ADMIN_MODE
+                        ?
+                        `
+                            <button
+                                class="admin-button"
+                                data-action="edit-photo"
+                                data-id="${photo.id}"
+                            >
+                                <img
+                                    src="icons/edit.svg"
+                                    class="admin-icon"
                                 >
-                                    <img
-                                        src="icons/edit.svg"
-                                        class="admin-icon"
-                                    >
-                                </button>
+                            </button>
 
-                                <button
-                                    class="admin-button"
-                                    data-action="delete-photo"
-                                    data-id="${photo.id}"
+                            <button
+                                class="admin-button"
+                                data-action="delete-photo"
+                                data-id="${photo.id}"
+                            >
+                                <img
+                                    src="icons/delete.svg"
+                                    class="admin-icon"
                                 >
-                                    <img
-                                        src="icons/delete.svg"
-                                        class="admin-icon"
-                                    >
-                                </button>
-
-                            `
-                            :
-                            ""
-                        }
-
-                    </div>
-
-                    <div
-                        class="photo-card__author"
-                    >
-
-                        ${photo.author ?? ""}
-
-                        ${
-                            photo.dateMode === "period"
-
-                            ?
-
-                            (
-                                photo.dateStart ||
-                                photo.dateEnd
-                            )
-
-                            ?
-
-                            `
-                                , <span
-                                    class="photo-card__date"
-                                >
-                                    ${
-                                        photo.dateStart &&
-                                        photo.dateEnd
-
-                                        ?
-
-                                        `${photo.dateStart} – ${photo.dateEnd}`
-
-                                        :
-
-                                        photo.dateStart
-
-                                        ?
-
-                                        `с ${photo.dateStart}`
-
-                                        :
-
-                                        `до ${photo.dateEnd}`
-}
-                                </span>
-                            `
-
-                            :
-
-                            ""
-
-                            :
-
-                            photo.date
-
-                            ?
-
-                            `
-                                , <span
-                                    class="photo-card__date"
-                                >
-                                    ${photo.date}
-                                </span>
-                            `
-
-                            :
-
-                            ""
-                        }
-
-                    </div>
+                            </button>
+                        `
+                        :
+                        ""
+                    }
 
                 </div>
 
-            `);
-        }
-    );
+                <div class="photo-card__author">
+
+                    ${photo.author ?? ""}
+
+                    ${
+                        photo.dateMode === "period"
+                        ?
+                        (
+                            photo.dateStart ||
+                            photo.dateEnd
+                        )
+                        ?
+                        `
+                            , <span class="photo-card__date">
+                                ${
+                                    photo.dateStart &&
+                                    photo.dateEnd
+                                    ?
+                                    `${photo.dateStart} – ${photo.dateEnd}`
+                                    :
+                                    photo.dateStart
+                                    ?
+                                    `с ${photo.dateStart}`
+                                    :
+                                    `до ${photo.dateEnd}`
+                                }
+                            </span>
+                        `
+                        :
+                        ""
+                        :
+                        photo.date
+                        ?
+                        `
+                            , <span class="photo-card__date">
+                                ${photo.date}
+                            </span>
+                        `
+                        :
+                        ""
+                    }
+
+                </div>
+
+            </div>
+        `);
+    });
 
     // ======================================
     // HTML
     // ======================================
 
     const html = `
-
         <div class="photos-list">
-
             ${cards.join("")}
-
         </div>
-
     `;
 
     // ======================================
     // Viewer
     // ======================================
 
-    setTimeout(
-        () => {
+    setTimeout(() => {
 
-            const photosList =
-                document.querySelector(
-                    ".photos-list"
+        const photosList =
+            document.querySelector(".photos-list");
+
+        if(!photosList)
+            return;
+
+        photosList.onclick = event => {
+
+            const media =
+                event.target.closest(
+                    ".photo-card__media"
                 );
 
-            if(!photosList)
+            if(!media)
                 return;
 
-            photosList.onclick =
-                event => {
+            // Uploading photo cannot open Viewer.
+            if(
+                media.dataset.loading === "true"
+            ) {
+                return;
+            }
 
-                    const media =
-                        event.target.closest(
-                            ".photo-card__media"
-                        );
+            const photoId =
+                media.dataset.photoId;
 
-                    if(!media)
-                        return;
+            const photo =
+                sortedPhotos.find(
+                    item =>
+                        item.id === photoId
+                );
 
-                    // ==================================
-                    // Loading → no Viewer
-                    // ==================================
+            if(!photo)
+                return;
 
-                    if(
-                        media.dataset.loading ===
-                        "true"
-                    ) {
+            if(!photo.storagePath)
+                return;
 
-                        return;
-                    }
+            const image =
+                media.querySelector(
+                    ".photo-card__image"
+                );
 
-                    const photoId =
-                        media.dataset.photoId;
+            if(
+                !image ||
+                !image.complete ||
+                image.naturalWidth === 0
+            ) {
+                return;
+            }
 
-                    const photo =
-                        sortedPhotos.find(
-                            item =>
-                                item.id ===
-                                photoId
-                        );
+            openPhotoViewer(
+                photo,
+                {photos: sortedPhotos
+                }
+            );
+        };
 
-                    if(!photo)
-                        return;
-
-                    if(!photo.storagePath)
-                        return;
-
-                    const image =
-                        media.querySelector(
-                            ".photo-card__image"
-                        );
-
-                    if(
-                        !image ||
-                        !image.complete ||
-                        image.naturalWidth === 0
-                    ) {
-
-                        return;
-                    }
-
-                    openPhotoViewer(
-                        photo,
-                        {
-                            photos:
-                                sortedPhotos
-                        }
-                    );
-                };
-
-        },
-        0
-    );
+    }, 0);
 
     return html;
 }
