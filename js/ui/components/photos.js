@@ -187,36 +187,28 @@ export function renderPhotos(
     sortedPhotos.forEach(
         photo => {
 
-            const image =
-                photo.previewPath
-
-                ?
-
-                `
-
+        const image =
+            photo.previewPath
+            ?
+            `
+            <div class="photo-card__loading">
+        
                 <img
-
                     class="photo-card__image"
-
                     src="${photo.previewPath}"
-
                     alt="${photo.title ?? ""}"
-
                 >
-
-                `
-
-                :
-
-                `
-
-                <div
-                    class="photo-card__placeholder"
-                >Фото отсутствует
-
-                </div>
-
-                `;
+        
+                <div class="photo-card__loading-spinner"></div>
+        
+            </div>
+            `
+            :
+            `
+            <div class="photo-card__placeholder">
+                Фото отсутствует
+            </div>
+            `;
 
             cards.push(`
 
@@ -355,7 +347,63 @@ ${
             document.querySelector(
                 ".photos-list"
             );
+const loadingImages =
+    photosList.querySelectorAll(
+        ".photo-card__image"
+    );
 
+loadingImages.forEach(image => {
+
+    const loading =
+        image.closest(
+            ".photo-card__loading"
+        );
+
+    if(!loading){
+        return;
+    }
+
+    const finishLoading = () => {
+
+        loading.classList.add(
+            "is-loaded"
+        );
+
+    };
+
+    const failLoading = () => {
+
+        loading.classList.add(
+            "is-error"
+        );
+
+    };
+
+    image.addEventListener(
+        "load",
+        finishLoading,
+        { once: true }
+    );
+
+    image.addEventListener(
+        "error",
+        failLoading,
+        { once: true }
+    );
+
+    // Если браузер успел загрузить
+    // изображение до установки listener
+    if(image.complete){
+
+        if(image.naturalWidth > 0){
+            finishLoading();
+        }else{
+            failLoading();
+        }
+
+    }
+
+});
         if(!photosList){
 
             return;
@@ -394,13 +442,40 @@ ${
 
                 }
 
-                if(
-                    !photo.storagePath
-                ){
+if(
+    !photo.storagePath
+){
 
-                    return;
+    return;
 
-                }
+}
+
+const loading =
+    media.querySelector(
+        ".photo-card__loading"
+    );
+
+if(
+    loading &&
+    !loading.classList.contains(
+        "is-loaded"
+    )
+){
+
+    return;
+
+}
+
+openPhotoViewer(
+
+    photo,
+
+    {
+        photos:
+            sortedPhotos
+    }
+
+);
 
                 // ==================================
                 // Передаём Viewer весь набор
