@@ -26,35 +26,25 @@ import {
 const CONFIG = {
 
     object: {
-
         title: "Объект",
-
         fields: [],
-
         status: true,
-
-        parentsType:
-            "objectsWithAddress",
-
+        parentsType: "objectsWithAddress",
         parentsRequiredMessage:
             "Нужен хотя бы один родитель",
-
         limits: {
             title: 60,
             description: 350
         },
-
         cover: {
             photos: []
         },
-
         options: {
             typeSelector: true,
             types: [],
             defaultTypeId: "",
             disabledTypeIds: []
         },
-
         updates: [
             "updateObjectBlock",
             "updateRecordsBlock"
@@ -62,105 +52,69 @@ const CONFIG = {
     },
 
     photo: {
-
         title: "Фото",
-
-        upload:
-            uploadPhoto,
-
+        upload: uploadPhoto,
         file: true,
-
         fileRequired: true,
-
         fileRequiredMessage:
             "Для фотографии необходимо выбрать файл",
-
-        parentsType:
-            "objects",
-
-        dateMode:
-            "date",
-
+        parentsType: "objects",
+        dateMode: "date",
         limits: {
             title: 45,
             description: 350,
             author: 45
         },
-
         fields: [
             "author",
             "date"
         ],
-
         updates: [
             "updatePhotosBlock"
         ]
     },
 
     source: {
-
         title: "Источник",
-
-        upload:
-            uploadSourceDocument,
-
+        upload: uploadSourceDocument,
         file: true,
-
         fileRequired: true,
-
-        parentsType:
-            "objects",
-
-        dateMode:
-            "date",
-
+        parentsType: "objects",
+        dateMode: "date",
         limits: {
             title: 45,
             description: 2000,
             author: 45
         },
-
         fields: [
             "author",
             "date"
         ],
-
         updates: [
             "updateSourcesBlock"
         ]
     },
 
     record: {
-
         title: "Запись",
-
         file: false,
-
-        parentsType:
-            "objects",
-
-        dateMode:
-            "period",
-
+        parentsType: "objects",
+        dateMode: "period",
         limits: {
             title: 45,
             description: 75
         },
-
         fields: [
             "dateStart",
             "dateEnd"
         ],
-
         options: {
             typeSelector: true
         },
-
         updates: [
             "updateRecordsBlock"
         ]
     }
-
 };
 
 // ======================================
@@ -216,13 +170,10 @@ function getConfig(
     }
 
     const cfg = {
-
         ...base,
-
         options: {
             ...(base.options ?? {})
         }
-
     };
 
     if(cfg.options.typeSelector) {
@@ -250,23 +201,18 @@ function getConfig(
             context.types ?? [];
 
         cfg.options.objects =
-            context.objects ??
-            [];
+            context.objects ?? [];
 
         cfg.options.children =
-            context.children ??
-            [];
+            context.children ?? [];
 
         cfg.options.parentId =
             context.parentId;
 
         cfg.cover = {
-
             ...cfg.cover,
-
             photos:
-                context.photos ??
-                []
+                context.photos ?? []
         };
     }
 
@@ -284,7 +230,7 @@ export async function openEditor(
 ) {
 
     // ==================================
-    // Load existing entity
+    // Existing entity
     // ==================================
 
     if(entity?.id) {
@@ -298,9 +244,6 @@ export async function openEditor(
         if(!entity)
             return;
     }
-
-    const isNew =
-        !entity;
 
     entity =
         entity ??
@@ -317,7 +260,7 @@ export async function openEditor(
         return;
 
     // ==================================
-    // Form
+    // Modal
     // ==================================
 
     const form =
@@ -336,8 +279,7 @@ export async function openEditor(
                 :
                 `Добавить ${cfg.title.toLowerCase()}`,
 
-            content:
-                form
+            content: form
         });
 
     const root =
@@ -375,18 +317,14 @@ export async function openEditor(
                 } = result;
 
                 // ==================================
-                // Photo upload:
-                //
-                // НЕ вызываем updatePhotosBlock
-                // до запуска upload state.
+                // Photo:
+                // do not refresh before upload state
                 // ==================================
 
                 const updates =
                     type === "photo"
-                    ?
-                    []
-                    :
-                    (
+                    ? []
+                    : (
                         cfg.updates ??
                         []
                     );
@@ -401,7 +339,8 @@ export async function openEditor(
                     );
 
                 // ==================================
-                // New photo
+                // New photo:
+                // first visible render
                 // ==================================
 
                 if(
@@ -409,20 +348,15 @@ export async function openEditor(
                     savedEntity?.id
                 ) {
 
-                    // Важно:
-                    // updateEntity уже добавил ID
-                    // в uploadingPhotoIds.
-                    //
-                    // Теперь впервые рисуем
-                    // новую карточку.
-                    await context.updates
+                    await context
+                        .updates
                         ?.updatePhotosBlock?.(
                             savedEntity
                         );
                 }
 
                 // ==================================
-                // Close editor
+                // Close immediately
                 // ==================================
 
                 modal.close();
@@ -442,22 +376,14 @@ export async function openEditor(
                             updateData
                         ) => {
 
-                            // ==================================
-                            // Save upload result
-                            // ==================================
-
+                            // Save previewPath /
+                            // storagePath etc.
                             await updateEntity(
-
                                 type,
-
                                 savedEntity,
-
                                 updateData,
-
                                 context,
-
-                                []
-                            );
+                                []);
 
                             // ==================================
                             // Photo is ready
@@ -522,10 +448,8 @@ export async function openEditor(
                     "Ошибка сохранения"
                 );
             }
-
         },
 
         () => modal.close()
-
     );
 }
