@@ -368,16 +368,11 @@
     gap: var(--space-4);
 }
 
-#entityParents,
-#entityParentResults {
+#entityParents{
     display: flex;
     flex-wrap: wrap;
 
     gap: var(--space-4);
-}
-
-#entityParentResults {
-    margin-bottom: var(--space-2);
 }
 
 .parent-item {
@@ -439,37 +434,6 @@
 #entityParentSearch {
     margin: 0;
 }
-
-.parent-result {
-    display: inline-flex;
-    align-items: center;
-
-    width: auto;
-
-    padding: var(--space-2) var(--space-5);
-
-    background: var(--color-surface-alt);
-    border: var(--border-light);
-    border-radius: var(--radius-lg);
-
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
-    line-height: 1.3;
-
-    cursor: pointer;
-
-    transition:
-        background .15s ease,
-        border-color .15s ease,
-        color .15s ease;
-}
-
-.parent-result:hover {
-    background: var(--color-media-dark);
-    border-color: var(--color-border-hover);
-    color: var(--color-text);
-}
-
 
 /* ==========================================
    STATUS EDITOR
@@ -598,21 +562,27 @@
 
 .dropdown {
     position: fixed;
+
     display: none;
     flex-direction: column;
-    max-height: 240px;
+
+    max-height: 360px;
     overflow-y: auto;
+
     padding: 0;
+
     background: var(--color-input);
     border: var(--border-thin);
     border-top: none !important;
     border-radius: 0 0 6px 6px;
+
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
+
     z-index: 99999;
 }
 
 .dropdown.is-open {
-    display: block;
+    display: flex;
 }
 
 .dropdown__item {
@@ -632,7 +602,7 @@
     white-space: nowrap;
 }
 
-dropdown__item-warning {
+.dropdown__item-warning {
    color: var(--color-accent)
 }
 
