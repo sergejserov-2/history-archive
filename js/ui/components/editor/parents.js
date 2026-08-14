@@ -2,7 +2,7 @@
 // Parents editor
 // ======================================
 
-import {createDropdown} from "./dropdown.js";
+import {createDropdown} from "../dropdown.js";
 
 export function setupParentsEditor(
     root,
