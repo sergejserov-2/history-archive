@@ -418,3 +418,33 @@ button.admin-button {
 .modal__content {
     padding: var(--space-9);
 }
+
+
+/* ==========================================
+   UNIVERSAL SCROLLBAR
+========================================== */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color:
+        #3a3e44
+        transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #3a3e44;
+    border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #50555d;
+}
