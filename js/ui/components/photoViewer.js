@@ -47,7 +47,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
 
     const modal=createModal({
         title:"Фотография",
-        content:form
+        content:form,
+        width:840
     });
 
     const root=modal.root;
