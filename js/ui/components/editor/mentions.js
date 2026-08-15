@@ -101,12 +101,11 @@ export function setupMentionEditor(root,subjects=[]){
             return;
         }
 
-        if(!dropdown){
-            dropdown=createDropdown({
-                className:"entity-mention-dropdown",
-                maxHeight:240
-            });
-        }
+const dropdown=createDropdown({
+    className:"entity-mention-dropdown",
+    maxHeight:240,
+    matchAnchorWidth:false
+});
 
         dropdown.setItems(
             filtered.map(subject=>({
