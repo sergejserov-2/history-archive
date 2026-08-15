@@ -29,8 +29,8 @@ export function renderMentionList(subject,objects=[],photos=[],sources=[],record
     if(!mentionedObjects.length)return"";
     return`
         <div class="subject-mmentions">
-            <div class="subject-mentions-title">Упоминается на страницах</div>
-            <div class="subject-mentions-list">
+            <div class="subject-mentions__title">Упоминается на страницах</div>
+            <div class="subject-mentions__list">
                 ${mentionedObjects.map(object=>`
                     <a class="subject-mention__row" href="object.html?id=${encodeURIComponent(object.id)}">
                         ${escapeHTML(object.title??"Без названия")}
