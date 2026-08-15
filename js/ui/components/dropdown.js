@@ -2,11 +2,12 @@
 // DROPDOWN
 // ==========================================
 
-export function createDropdown(options = {}) {
-    const {
-        className = "dropdown",
-        maxHeight = 240
-    } = options;
+export function createDropdown(options={}){
+    const{
+        className="dropdown",
+        maxHeight=240,
+        matchAnchorWidth=true
+    }=options;
 
     const container = document.createElement("div");
     container.className = className;
@@ -23,7 +24,8 @@ export function createDropdown(options = {}) {
         const rect = anchor.getBoundingClientRect();
         container.style.left = `${rect.left}px`;
         container.style.top = `${rect.bottom + 4}px`;
-        container.style.width = `${rect.width}px`;
+        if(matchAnchorWidth)container.style.width=`${rect.width}px`;
+        else container.style.width="";
     }
 
     function renderItems() {
