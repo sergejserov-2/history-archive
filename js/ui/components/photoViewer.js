@@ -5,10 +5,6 @@
 import {createModal} from "./modal.js";
 import {createViewerControls} from "./viewerControls.js";
 
-// ======================================
-// Open photo viewer
-// ======================================
-
 export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
 
     if(!photo)return;
@@ -73,12 +69,13 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
 
     if(!imageArea||!image)return modal;
 
-    // ==================================
-    // Transform
-    // ==================================
+    // ======================================
+    // Image state
+    // ======================================
 
-    let scale=1;
     let fitScale=1;
+    let zoom=1;
+    let scale=1;
     let translateX=0;
     let translateY=0;
 
@@ -88,46 +85,69 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
     let startTranslateX=0;
     let startTranslateY=0;
 
+    let touchStartX=0;
+    let touchStartY=0;
+    let touchStartTranslateX=0;
+    let touchStartTranslateY=0;
     let pinchStartDistance=null;
-    let pinchStartScale=1;
-
-    function resetTransform(){
-        scale=1;
-        fitScale=1;
-        translateX=0;
-        translateY=0;
-        dragging=false;
-        pinchStartDistance=null;
-        pinchStartScale=1;
-        imageArea.classList.remove("is-dragging");
-        updateTransform();
-    }
+    let pinchStartZoom=1;
 
     function updateTransform(){
+        scale=fitScale*zoom;
         image.style.transform=
             `translate(${translateX}px,${translateY}px) scale(${scale})`;
     }
 
-    function fitImage(){
+    function calculateFitScale(){
         const areaWidth=imageArea.clientWidth;
         const areaHeight=imageArea.clientHeight;
         const imageWidth=image.naturalWidth;
         const imageHeight=image.naturalHeight;
 
-        if(!imageWidth||!imageHeight)return;
+        if(!areaWidth||!areaHeight||!imageWidth||!imageHeight){
+            return;
+        }
 
         fitScale=Math.min(
             areaWidth/imageWidth,
-            areaHeight/imageHeight,
-            1
+            areaHeight/imageHeight
         );
 
         updateTransform();
     }
 
-    // ==================================
-    // Photo
-    // ==================================
+    function resetView(){
+        fitScale=1;
+        zoom=1;
+        scale=1;
+        translateX=0;
+        translateY=0;
+        dragging=false;
+        pinchStartDistance=null;
+        imageArea.classList.remove("is-dragging");
+        image.style.transform="";
+    }
+
+    function setInitialImage(photo){
+        resetView();
+
+        if(photo.previewPath){
+            imageBackground.style.backgroundImage=
+                `url('${photo.previewPath}')`;
+        }else{
+            imageBackground.style.backgroundImage="";
+        }
+
+        image.src=photo.storagePath??"";
+
+        image.onload=()=>{
+            calculateFitScale();
+        };
+    }
+
+    // ======================================
+    // Show photo
+    // ======================================
 
     function showPhoto(nextPhoto,nextIndex,{updateUrl=true}={}){
 
@@ -135,14 +155,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
 
         currentIndex=nextIndex;
 
-        resetTransform();
+        resetView();
 
-        image.onload=null;
-
-        image.src="";
-        image.alt=nextPhoto.title??"";
-
-        if(nextPhoto.previewPath){
+    if(nextPhoto.previewPath){
             imageBackground.style.backgroundImage=
                 `url('${nextPhoto.previewPath}')`;
         }else{
@@ -157,7 +172,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
             ".photo-viewer__description"
         );
 
-    const author=root.querySelector(
+        const author=root.querySelector(
             ".photo-viewer__author"
         );
 
@@ -187,17 +202,26 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         }
 
         if(author){
-            authorValue.textContent=nextPhoto.author??"";
-            author.hidden=!nextPhoto.author;
+            if(nextPhoto.author){
+                authorValue.textContent=nextPhoto.author;
+                author.hidden=false;
+            }else{
+                authorValue.textContent="";
+                author.hidden=true;
+            }
         }
 
         if(date){
-            dateValue.textContent=nextPhoto.date??"";
-            date.hidden=!nextPhoto.date;
+            if(nextPhoto.date){
+                dateValue.textContent=nextPhoto.date;
+                date.hidden=false;
+            }else{
+                dateValue.textContent="";
+                date.hidden=true;
+            }
         }
 
         if(download){
-
             if(nextPhoto.storagePath){
                 download.href=nextPhoto.storagePath;
                 download.hidden=false;
@@ -205,147 +229,89 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
                 download.removeAttribute("href");
                 download.hidden=true;
             }
-
         }
-
-        controls.update(currentIndex);
 
         if(updateUrl&&nextPhoto.id){
             updatePhotoUrl(nextPhoto.id);
         }
 
         // ==================================
-        // Preview
+        // Preview → original
         // ==================================
 
         if(nextPhoto.previewPath){
-
             image.src=nextPhoto.previewPath;
 
             image.onload=()=>{
+                calculateFitScale();
 
-                fitImage();
+                if(
+                    nextPhoto.storagePath&&
+                    nextPhoto.storagePath!==nextPhoto.previewPath
+                ){
+                    const original=new Image();
 
-                loadOriginal(
-                    nextPhoto,
-                    image.src
-                );
+                    original.onload=()=>{
+                        image.src=nextPhoto.storagePath;
+                    };
 
+                    original.src=nextPhoto.storagePath;
+                }
             };
-
         }else{
-
-            loadOriginal(
-                nextPhoto,
-                ""
-            );
-
-        }
-
-    }
-
-    // ==================================
-    // Original
-    // ==================================
-
-    function loadOriginal(nextPhoto,previewSrc){
-
-        if(
-            !nextPhoto.storagePath ||
-            nextPhoto.storagePath===previewSrc
-        ){
-            return;
-        }
-
-        const original=new Image();
-
-        original.onload=()=>{
-
-            const oldNaturalWidth=
-                image.naturalWidth;
-
-            const oldNaturalHeight=
-                image.naturalHeight;
-
-            const oldFitScale=
-                fitScale;
-
-            const oldScale=
-                scale;
-
-            const relativeZoom=
-                oldFitScale
-                    ? oldScale/oldFitScale
-                    : 1;
-
-            image.src=nextPhoto.storagePath;
+            image.src=nextPhoto.storagePath??"";
 
             image.onload=()=>{
-
-                const newWidth=
-                    image.naturalWidth;
-
-                const newHeight=
-                    image.naturalHeight;
-
-                fitScale=Math.min(
-                    imageArea.clientWidth/newWidth,
-                    imageArea.clientHeight/newHeight,
-                    1
-                );
-
-                scale=
-                    fitScale*
-                    relativeZoom;
-
-                updateTransform();
-
+                calculateFitScale();
             };
-
-        };
-
-        original.src=nextPhoto.storagePath;
-
+        }
     }
 
-    // ==================================
+    // ======================================
     // Previous
-    // ==================================
+    // ======================================
 
     function showPrevious(){
-
         if(currentIndex<=0)return;
 
-        showPhoto(
-            gallery[currentIndex-1],
-            currentIndex-1
-        );
+        const nextIndex=currentIndex-1;
 
+        showPhoto(
+            gallery[nextIndex],
+            nextIndex
+        );
     }
 
-    // ==================================
+    // ======================================
     // Next
-    // ==================================
+    // ======================================
 
     function showNext(){
-
         if(currentIndex>=gallery.length-1)return;
 
-        showPhoto(
-            gallery[currentIndex+1],
-            currentIndex+1
-        );
+        const nextIndex=currentIndex+1;
 
+        showPhoto(
+            gallery[nextIndex],
+            nextIndex
+        );
     }
 
-    // ==================================
-    // Mouse
-    // ==================================
+    // ======================================
+    // Image load
+    // ======================================
+
+    image.onload=()=>{
+        calculateFitScale();
+    };
+
+    // ======================================
+    // Mouse drag
+    // ======================================
 
     imageArea.addEventListener(
         "mousedown",
         event=>{
-
             event.preventDefault();
 
             dragging=true;
@@ -359,36 +325,29 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
             imageArea.classList.add(
                 "is-dragging"
             );
-
         }
     );
 
     function handleMouseMove(event){
-
         if(!dragging)return;
 
         translateX=
             startTranslateX+
-            event.clientX-
-            startX;
+            (event.clientX-startX);
 
         translateY=
             startTranslateY+
-            event.clientY-
-            startY;
+            (event.clientY-startY);
 
         updateTransform();
-
     }
 
     function handleMouseUp(){
-
         dragging=false;
 
         imageArea.classList.remove(
             "is-dragging"
         );
-
     }
 
     window.addEventListener(
@@ -401,36 +360,27 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         handleMouseUp
     );
 
-    // ==================================
+    // ======================================
     // Zoom
-    // ==================================
+    // ======================================
 
     imageArea.addEventListener(
         "wheel",
         event=>{
-
             event.preventDefault();
 
-            const oldScale=scale;
+            const oldZoom=zoom;
 
             const direction=
                 event.deltaY<0
-                    ?1
-                    :-1;
+                ?1
+                :-1;
 
-            const zoomStep=
-                fitScale*0.15;
+            zoom+=direction*0.15;
 
-            scale+=
-                direction*
-                zoomStep;
-
-            scale=Math.max(
-                fitScale*0.1,
-                Math.min(
-                    scale,
-                    fitScale*5
-                )
+            zoom=Math.max(
+                1,
+                Math.min(zoom,5)
             );
 
             const rect=
@@ -446,62 +396,50 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
                 rect.top-
                 rect.height/2;
 
-            translateX-=
-                mouseX*
-                (
-                    scale-
-                    oldScale
-                );
+            const oldScale=
+                fitScale*oldZoom;
 
-            translateY-=
-                mouseY*
-                (
-                    scale-
-                    oldScale
-                );
+            const newScale=
+                fitScale*zoom;
+
+            const ratio=
+                newScale/oldScale;
+
+            translateX=
+                mouseX-
+                (mouseX-translateX)*ratio;
+
+            translateY=
+                mouseY-
+                (mouseY-translateY)*ratio;
 
             updateTransform();
-
         },
-        {passive:false}
+        {
+            passive:false
+        }
     );
 
-    // ==================================
+    // ======================================
     // Touch
-    // ==================================
-
-    let touchStartX=0;
-    let touchStartY=0;
-    let touchStartTranslateX=0;
-    let touchStartTranslateY=0;
+    // ======================================
 
     imageArea.addEventListener(
         "touchstart",
         event=>{
-
             if(event.touches.length===1){
-
-                const touch=
-                    event.touches[0];
+                const touch=event.touches[0];
 
                 dragging=true;
 
-                touchStartX=
-                    touch.clientX;
+                touchStartX=touch.clientX;
+                touchStartY=touch.clientY;
 
-                touchStartY=
-                    touch.clientY;
-
-                touchStartTranslateX=
-                    translateX;
-
-                touchStartTranslateY=
-                    translateY;
-
+                touchStartTranslateX=translateX;
+                touchStartTranslateY=translateY;
             }
 
             if(event.touches.length===2){
-
                 dragging=false;
 
                 pinchStartDistance=
@@ -510,44 +448,43 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
                         event.touches[1]
                     );
 
-                pinchStartScale=scale;
-
+                pinchStartZoom=zoom;
             }
-
         },
-        {passive:true}
+        {
+            passive:true
+        }
     );
 
     imageArea.addEventListener(
         "touchmove",
         event=>{
-
             event.preventDefault();
 
             if(
-                event.touches.length===1 &&
+                event.touches.length===1&&
                 dragging
             ){
-
-                const touch=
-                    event.touches[0];
+                const touch=event.touches[0];
 
                 translateX=
                     touchStartTranslateX+
-                    touch.clientX-
-                    touchStartX;
+                    (
+                        touch.clientX-
+                        touchStartX
+                    );
 
                 translateY=
                     touchStartTranslateY+
-                    touch.clientY-
-                    touchStartY;
+                    (
+                        touch.clientY-
+                        touchStartY
+                    );
 
                 updateTransform();
-
             }
 
             if(event.touches.length===2){
-
                 const distance=
                     getTouchDistance(
                         event.touches[0],
@@ -556,27 +493,25 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
 
                 if(!pinchStartDistance)return;
 
-                scale=
-                    pinchStartScale*
+                zoom=
+                    pinchStartZoom*
                     (
                         distance/
                         pinchStartDistance
                     );
 
-                scale=Math.max(
-                    fitScale*0.1,
-                    Math.min(
-                        scale,
-                        fitScale*5
-                    )
+                zoom=Math.max(
+                    1,
+
+                    Math.min(zoom,5)
                 );
 
                 updateTransform();
-
             }
-
         },
-        {passive:false}
+        {
+            passive:false
+        }
     );
 
     imageArea.addEventListener(
@@ -587,8 +522,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         }
     );
 
-    function getTouchDistance(first,second){
+    // ======================================
+    // Touch distance
+    // ======================================
 
+    function getTouchDistance(first,second){
         const dx=
             first.clientX-
             second.clientX;
@@ -598,46 +536,44 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
             second.clientY;
 
         return Math.sqrt(
-            dx*dx+
-            dy*dy
+            dx*dx+dy*dy
         );
-
     }
 
-    // ==================================
-    // Controls
-    // ==================================
+    // ======================================
+    // Viewer controls
+    // ======================================
 
-    const controls=
-        createViewerControls({
-            currentIndex,
-            total:gallery.length,
-            onPrevious:showPrevious,
-            onNext:showNext
-        });
+    const controls=createViewerControls({
+        currentIndex,
+        total:gallery.length,
+        onPrevious:showPrevious,
+        onNext:showNext
+    });
 
     root.appendChild(
         controls.element
     );
 
-    // ==================================
-    // Initial
-    // ==================================
+    // ======================================
+    // Initial photo
+    // ======================================
 
     showPhoto(
         gallery[currentIndex],
         currentIndex,
-        {updateUrl:false}
+        {
+            updateUrl:false
+        }
     );
 
-    // ==================================
+    // ======================================
     // Cleanup
-    // ==================================
+    // ======================================
 
     const originalClose=modal.close;
 
     modal.close=()=>{
-
         controls.destroy();
 
         window.removeEventListener(
@@ -651,19 +587,16 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         );
 
         originalClose();
-
     };
 
     return modal;
-
 }
 
 // ======================================
-// URL
+// Update URL
 // ======================================
 
 function updatePhotoUrl(photoId){
-
     if(!photoId)return;
 
     const url=
@@ -686,5 +619,4 @@ function updatePhotoUrl(photoId){
         "",
         url
     );
-
 }
