@@ -54,46 +54,33 @@ export function renderEntityEditor(cfg, entity) {
 // Components
 // ======================================
 
-export function setupEditorComponents(root, cfg, context = {}, entity = {}) {
-    const options = cfg.options ?? {};
-    const fileEditor = setupFileEditor(root, entity, cfg.upload, {
-        required: cfg.fileRequired === true,
-        requiredMessage: cfg.fileRequiredMessage
+export function setupEditorComponents(root,cfg,context={},entity={}){
+    const options=cfg.options??{};
+    const fileEditor=setupFileEditor(root,entity,cfg.upload,{
+        required:cfg.fileRequired===true,
+        requiredMessage:cfg.fileRequiredMessage
     });
-    const fieldsEditor = setupFieldsEditor(root, cfg, entity);
-const typeEditor = options.typeSelector ? setupTypesEditor(root, entity, {
-    types: options.types ?? [],
-    objects: options.objects ?? context.objects ?? [],
-    children: options.children ?? context.children ?? [],
-    parentId: options.parentId ?? context.parentId,
-    parents: entity.parents ?? []
-}) : null;
-const parents = entity.parents
-    ? [...entity.parents]
-    : context.parentId
-        ? cfg.parentsType === "objectsWithAddress"
-            ? [{objectId: context.parentId, address: ""}]
-            : [context.parentId]
-        : [];
-    const parentsEditor = cfg.parentsType ? setupParentsEditor(root, context.objects ?? [], entity, parents, {
-        address: cfg.parentsType === "objectsWithAddress",
-        types: options.types ?? context.types ?? [],
-        typeSelector: options.typeSelector === true,
-        children: options.children ?? context.children ?? [],
-        getTypeId: () => typeEditor?.getTypeId(),
-        requiredMessage: cfg.parentsRequiredMessage
-    }) : null;
-    const statusEditor = setupStatusEditor(root, entity, cfg.status === true);
-    const dateModeEditor =
-        cfg.dateMode
-            ? setupDateModeEditor(
-                root,
-                cfg,
-                entity
-            )
-            : null;
-    const coverEditor = cfg.cover ? setupCoverEditor(root, cfg.cover.photos ?? [], entity) : null;
-    return {
+    const fieldsEditor=setupFieldsEditor(root,cfg,entity);
+    const typeEditor=options.typeSelector?setupTypesEditor(root,entity,{
+        types:options.types??[],
+        objects:options.objects??context.objects??[],
+        children:options.children??context.children??[],
+        parentId:options.parentId??context.parentId,
+        parents:entity.parents??[]
+    }):null;
+    const parents=entity.parents?[...entity.parents]:context.parentId?(cfg.parentsType==="objectsWithAddress"?[{objectId:context.parentId,address:""}]:[context.parentId]):[];
+    const parentsEditor=cfg.parentsType?setupParentsEditor(root,context.objects??[],entity,parents,{
+        address:cfg.parentsType==="objectsWithAddress",
+        types:options.types??context.types??[],
+        typeSelector:options.typeSelector===true,
+        children:options.children??context.children??[],
+        getTypeId:()=>typeEditor?.getTypeId(),
+        requiredMessage:cfg.parentsRequiredMessage
+    }):null;
+    const statusEditor=setupStatusEditor(root,entity,cfg.status===true);
+    const dateModeEditor=cfg.dateMode?setupDateModeEditor(root,cfg,entity):null;
+    const coverEditor=cfg.cover?setupCoverEditor(root,cfg.cover.photos??[],entity):null;
+    return{
         fileEditor,
         parentsEditor,
         fieldsEditor,
@@ -101,28 +88,28 @@ const parents = entity.parents
         statusEditor,
         dateModeEditor,
         coverEditor,
-async getData() {
-    if(fileEditor && !fileEditor.validate()) {return null;}
-    if(parentsEditor && !parentsEditor.validate()) {return null;}
-    if(dateModeEditor && !dateModeEditor.validate()) {return null;}
-    const data = {};
-    Object.assign(data, fieldsEditor.getData());
-    if(typeEditor?.getTypeId()) {data.typeId = typeEditor.getTypeId();}
-    if(cfg.status) {data.status = statusEditor.getStatus();}
-    if(dateModeEditor) {Object.assign(data, dateModeEditor.getData());}
-    if(parentsEditor) {data.parents = parentsEditor.getParents();}
-    if(coverEditor) {Object.assign(data, coverEditor.getData());}
-    let backgroundTask = null;
-    if(fileEditor) {const fileData = fileEditor.getData();
-        if(fileData) {
-            if(fileData.backgroundTask) {backgroundTask = fileData.backgroundTask;}
-            delete fileData.backgroundTask;
-            Object.assign(data, fileData);
+        async getData(){
+            if(fileEditor&&!fileEditor.validate())return null;
+            if(parentsEditor&&!parentsEditor.validate())return null;
+            if(dateModeEditor&&!dateModeEditor.validate())return null;
+            const data={};
+            Object.assign(data,fieldsEditor.getData());
+            if(typeEditor?.getTypeId())data.typeId=typeEditor.getTypeId();
+            if(cfg.status)data.status=statusEditor.getStatus();
+            if(dateModeEditor)Object.assign(data,dateModeEditor.getData());
+            if(parentsEditor)data.parents=parentsEditor.getParents();
+            if(coverEditor)Object.assign(data,coverEditor.getData());
+            let backgroundTask=null;
+            if(fileEditor){
+                const fileData=fileEditor.getData();
+                if(fileData?.backgroundTask)backgroundTask=fileData.backgroundTask;
+                if(fileData){
+                    delete fileData.backgroundTask;
+                    Object.assign(data,fileData);
+                }
+            }
+            return{data,backgroundTask};
         }
-    }
-    return {data, backgroundTask};
-}
-
     };
 }
 // ======================================
