@@ -133,7 +133,6 @@
 
     /* ---------- PHOTO VIEWER ---------- */
 
-    --viewer-width: 840px;
     --viewer-info-width: 180px;
     --viewer-gap: 20px;
     --viewer-height: 70vh;
@@ -385,7 +384,7 @@ button.admin-button {
 }
 
 .modal {
-    width: 420px;
+    width: var(--modal-width,420px);
     max-width: 90vw;
 
     overflow: hidden;
