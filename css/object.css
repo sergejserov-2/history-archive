@@ -548,3 +548,18 @@
 .subject-mentions__row:hover {
     background: var(--color-surface-hover);
 }
+
+.subject-mention {
+    color: #d8c9a8;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.subject-mention:hover {
+    color: #eadbbd;
+    text-decoration: none;
+}
+
+.subject-mention:visited {
+    color: #d8c9a8;
+}
