@@ -48,18 +48,24 @@ const CONFIG={
         options:{typeSelector:true},
         updates:["updateRecordsBlock"]
     },
-        subject:{
-            title:"Субъект",
-            file:true,
-            upload:uploadPhoto,
-            fileRequired:true,
-            fileRequiredMessage:"Для обложки необходимо выбрать файл",
-            limits:{
-                title:60,
-                description:350
-            },
-            updates:["updateSubjectBlock"]
-        }
+subject:{
+    title:"Субъект",
+    file:true,
+    upload:uploadPhoto,
+    fileRequired:false,
+    parentsType:"subjects",
+    dateMode:"period",
+    limits:{
+        title:60,
+        description:350
+    },
+    fields:["dateStart","dateEnd"],
+    options:{
+        typeSelector:true,
+        types:[]
+    },
+    updates:["updateSubjectBlock"]
+}
 };
 
 function getDefaultEntity(type){
@@ -84,10 +90,10 @@ function getConfig(type,entity,context={}){
             cfg.options.types=context.subjectTypes??[];
         }else{
             cfg.options.types=context.recordTypes??context.types??[];
+            cfg.options.objects=context.objects??[];
+            cfg.options.children=context.children??[];
+            cfg.options.parentId=context.parentId;
         }
-        cfg.options.objects=context.objects??[];
-        cfg.options.children=context.children??[];
-        cfg.options.parentId=context.parentId;
     }
     if(type==="object"){
         cfg.options.types=context.types??[];
