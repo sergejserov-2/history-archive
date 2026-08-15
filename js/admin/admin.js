@@ -48,11 +48,15 @@ export function initAdmin(page,updates={}){
             updates
         };
 
+        // ==================================
+        // OBJECT
+        // ==================================
+
         if(action==="edit-object"){
-            setModalUrl(
-                "object-editor",
-                {entityId:object.id}
-            );
+            setModalUrl("editor",{
+                entityId:object.id,
+                entityType:"object"
+            });
 
             await openEditor(
                 "object",
@@ -64,7 +68,9 @@ export function initAdmin(page,updates={}){
         }
 
         if(action==="delete-object"){
-            if(!confirm("Удалить объект и все дочерние сущности?"))return;
+            if(!confirm(
+                "Удалить объект и все дочерние сущности?"
+            ))return;
 
             try{
                 const result=
@@ -93,10 +99,10 @@ export function initAdmin(page,updates={}){
         }
 
         if(action==="add-object"){
-            setModalUrl(
-                "object-editor",
-                {entityId:null}
-            );
+            setModalUrl("editor",{
+                entityId:null,
+                entityType:"object"
+            });
 
             await openEditor(
                 "object",
@@ -110,14 +116,15 @@ export function initAdmin(page,updates={}){
             return;
         }
 
+        // ==================================
+        // PHOTO
+        // ==================================
+
         if(action==="add-photo"){
-            setModalUrl(
-                "entity-editor",
-                {
-                    entityId:null,
-                    entityType:"photo"
-                }
-            );
+            setModalUrl("editor",{
+                entityId:null,
+                entityType:"photo"
+            });
 
             await openEditor(
                 "photo",
@@ -130,26 +137,23 @@ export function initAdmin(page,updates={}){
 
         if(action==="edit-photo"){
             const photo=
-                page.photos.find(
+                photos.find(
                     photo=>photo.id===id
                 );
 
             if(!photo)return;
 
-            setModalUrl(
-                "entity-editor",
-                {
-                    entityId:photo.id,
-                    entityType:"photo"
-                }
-            );
+            setModalUrl("editor",{
+                entityId:photo.id,
+                entityType:"photo"
+            });
 
             await openEditor(
                 "photo",
                 photo,
                 {
                     ...context,
-                    photos:page.photos
+                    photos
                 }
             );
 
@@ -157,7 +161,9 @@ export function initAdmin(page,updates={}){
         }
 
         if(action==="delete-photo"){
-            if(!confirm("Удалить фотографию?"))return;
+            if(!confirm(
+                "Удалить фотографию?"
+            ))return;
 
             try{
                 await deleteEntity(
@@ -165,7 +171,7 @@ export function initAdmin(page,updates={}){
                     id,
                     {
                         ...context,
-                        photos:page.photos
+                        photos
                     }
                 );
             }catch(error){
@@ -182,14 +188,15 @@ export function initAdmin(page,updates={}){
             return;
         }
 
+        // ==================================
+        // SOURCE
+        // ==================================
+
         if(action==="add-source"){
-            setModalUrl(
-                "entity-editor",
-                {
-                    entityId:null,
-                    entityType:"source"
-                }
-            );
+            setModalUrl("editor",{
+                entityId:null,
+                entityType:"source"
+            });
 
             await openEditor(
                 "source",
@@ -202,26 +209,23 @@ export function initAdmin(page,updates={}){
 
         if(action==="edit-source"){
             const source=
-                page.sources.find(
+                sources.find(
                     source=>source.id===id
                 );
 
             if(!source)return;
 
-            setModalUrl(
-                "entity-editor",
-                {
-                    entityId:source.id,
-                    entityType:"source"
-                }
-            );
+            setModalUrl("editor",{
+                entityId:source.id,
+                entityType:"source"
+            });
 
             await openEditor(
                 "source",
                 source,
                 {
                     ...context,
-                    sources:page.sources
+                    sources
                 }
             );
 
@@ -229,7 +233,9 @@ export function initAdmin(page,updates={}){
         }
 
         if(action==="delete-source"){
-            if(!confirm("Удалить источник?"))return;
+            if(!confirm(
+                "Удалить источник?"
+            ))return;
 
             try{
                 await deleteEntity(
@@ -237,7 +243,7 @@ export function initAdmin(page,updates={}){
                     id,
                     {
                         ...context,
-                        sources:page.sources
+                        sources
                     }
                 );
             }catch(error){
@@ -254,14 +260,15 @@ export function initAdmin(page,updates={}){
             return;
         }
 
+        // ==================================
+        // RECORD
+        // ==================================
+
         if(action==="add-record"){
-            setModalUrl(
-                "entity-editor",
-                {
-                    entityId:null,
-                    entityType:"record"
-                }
-            );
+            setModalUrl("editor",{
+                entityId:null,
+                entityType:"record"
+            });
 
             await openEditor(
                 "record",
@@ -274,26 +281,23 @@ export function initAdmin(page,updates={}){
 
         if(action==="edit-record"){
             const record=
-                page.records.find(
+                records.find(
                     record=>record.id===id
                 );
 
             if(!record)return;
 
-            setModalUrl(
-                "entity-editor",
-                {
-                    entityId:record.id,
-                    entityType:"record"
-                }
-            );
+            setModalUrl("editor",{
+                entityId:record.id,
+                entityType:"record"
+            });
 
             await openEditor(
                 "record",
                 record,
                 {
                     ...context,
-                    records:page.records
+                    records
                 }
             );
 
@@ -301,7 +305,9 @@ export function initAdmin(page,updates={}){
         }
 
         if(action==="delete-record"){
-            if(!confirm("Удалить запись?"))return;
+            if(!confirm(
+                "Удалить запись?"
+            ))return;
 
             try{
                 await deleteEntity(
@@ -309,7 +315,7 @@ export function initAdmin(page,updates={}){
                     id,
                     {
                         ...context,
-                        records:page.records
+                        records
                     }
                 );
             }catch(error){
@@ -326,6 +332,10 @@ export function initAdmin(page,updates={}){
             return;
         }
 
+        // ==================================
+        // SUBJECT
+        // ==================================
+
         if(action==="edit-subject"){
             const subject=
                 subjects.find(
@@ -334,12 +344,10 @@ export function initAdmin(page,updates={}){
 
             if(!subject)return;
 
-            setModalUrl(
-                "subject",
-                {
-                    entityId:subject.id
-                }
-            );
+            setModalUrl("editor",{
+                entityId:subject.id,
+                entityType:"subject"
+            });
 
             await openEditor(
                 "subject",
@@ -354,7 +362,9 @@ export function initAdmin(page,updates={}){
         }
 
         if(action==="delete-subject"){
-            if(!confirm("Удалить субъект?"))return;
+            if(!confirm(
+                "Удалить субъект?"
+            ))return;
 
             try{
                 await deleteEntity(
