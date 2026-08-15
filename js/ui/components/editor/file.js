@@ -1,5 +1,4 @@
 import{moveFileToDeleted}from"../../../api/storage.js";
-
 export function setupFileEditor(root,entity,upload,options={}){
     const fileInput=root.querySelector("#entityFile");
     if(!fileInput)return null;
@@ -61,6 +60,7 @@ export function setupFileEditor(root,entity,upload,options={}){
                 return{
                     storagePath:null,
                     previewPath:null,
+                    hasNewFile:false,
                     backgroundTask:async()=>{
                         if(oldStoragePath)await moveFileToDeleted(oldStoragePath);
                         if(oldPreviewPath)await moveFileToDeleted(oldPreviewPath);
@@ -69,12 +69,11 @@ export function setupFileEditor(root,entity,upload,options={}){
             }
             if(!file)return null;
             const selectedFile=file;
-            if(typeof upload!=="function"){
-                throw new Error("Для загрузки файла не задан upload");
-            }
+            if(typeof upload!=="function")throw new Error("Для загрузки файла не задан upload");
             return{
                 storagePath:null,
                 previewPath:null,
+                hasNewFile:true,
                 backgroundTask:async(savedEntity,update)=>{
                     const result=await upload(selectedFile);
                     if(!result)return;
@@ -87,7 +86,6 @@ export function setupFileEditor(root,entity,upload,options={}){
         }
     };
 }
-
 export function renderFileEditorHTML(){
     return`<label>
         Файл
