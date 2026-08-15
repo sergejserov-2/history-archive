@@ -426,7 +426,7 @@
 .subject-modal__cover {
     position: relative;
     width: 150px;
-    min-height: 250px;
+    min-height: 200px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
