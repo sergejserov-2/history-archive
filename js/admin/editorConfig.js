@@ -51,7 +51,7 @@ const CONFIG={
         subject:{
             title:"Субъект",
             file:true,
-            upload:uploadSubjectCover,
+            upload:uploadPhoto,
             fileRequired:true,
             fileRequiredMessage:"Для обложки необходимо выбрать файл",
             limits:{
