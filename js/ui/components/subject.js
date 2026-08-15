@@ -1,8 +1,9 @@
 import{isAdmin}from"../../admin/adminMode.js";
 import{renderMentions,getSubjectHref}from"./mentionLink.js";
+import{renderMentionList}from"./mentionList.js";
 import{createModal}from"./modal.js";
 
-export function renderSubject(subject,subjects=[],subjectTypes=[],ADMIN_MODE=false){
+export function renderSubject(subject,subjects=[],objects=[],subjectTypes=[],ADMIN_MODE=false){
     if(!subject)return"";
     const type=subjectTypes.find(item=>item.id===subject.typeId);
     const years=subject.dateStart&&subject.dateEnd
@@ -24,11 +25,6 @@ export function renderSubject(subject,subjects=[],subjectTypes=[],ADMIN_MODE=fal
             <div class="subject-modal__cover-placeholder">Фото отсутствует</div>
         </div>
         `;
-    const description=subject.description?.trim()
-        ?`
-        <div class="object__description">${renderMentions(subject.description.trim(),subjects,getSubjectHref)}</div>
-        `
-        :"";
     return`
         <div class="subject-modal">
             <div class="subject-modal__card">
@@ -51,24 +47,28 @@ export function renderSubject(subject,subjects=[],subjectTypes=[],ADMIN_MODE=fal
                         }
                     </h1>
                     ${years?`<div class="subject-modal__years">${escapeHTML(years)}</div>`:""}
-                    ${description}
-                    <div class="subject-modal__mentions">
-                        <div class="subject-modal__mentions-title">Упоминания</div>
-                        <div class="subject-modal__mentions-list">
+                    ${
+                        subject.description?.trim()
+                        ?`
+                        <div class="object__description">
+                            ${renderMentions(subject.description.trim(),subjects,getSubjectHref)}
                         </div>
-                    </div>
+                        `
+                        :""
+                    }
                 </div>
             </div>
+            ${renderMentionList(subject,objects)}
         </div>
     `;
 }
 
-export function openSubjectModal(subject,{subjects=[],subjectTypes=[],fromUrl=false}={}){
+export function openSubjectModal(subject,{subjects=[],objects=[],subjectTypes=[],fromUrl=false}={}){
     if(!subject)return null;
     const ADMIN_MODE=isAdmin();
     const modal=createModal({
         title:"",
-        content:renderSubject(subject,subjects,subjectTypes,ADMIN_MODE)
+        content:renderSubject(subject,subjects,objects,subjectTypes,ADMIN_MODE)
     });
     if(ADMIN_MODE){
         modal.root.addEventListener("click",event=>{
