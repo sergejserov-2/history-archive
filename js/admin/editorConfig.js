@@ -119,16 +119,16 @@ export async function openEditor(type,entity,context={}){
             if(!result)return;
             const{data,backgroundTask}=result;
             const isBackgroundUpload=Boolean(backgroundTask);
-            if(type==="subject"&&isBackgroundUpload&&entity?.id){
-                await context.updates?.updateSubjectBlock?.({...entity,isUploading:true});
-            }
             const updates=type==="photo"||type==="subject"?[]:(cfg.updates??[]);
             const savedEntity=await updateEntity(type,entity,data,context,updates);
             if(type==="photo"&&savedEntity?.id){
                 await context.updates?.updatePhotosBlock?.(savedEntity,isBackgroundUpload);
             }
-            if(type==="subject"&&savedEntity?.id){
-                await context.updates?.updateSubjectBlock?.({...savedEntity,isUploading:isBackgroundUpload});
+            if(type==="subject"&&savedEntity?.id&&isBackgroundUpload){
+                await context.updates?.updateSubjectBlock?.(savedEntity,true);
+            }
+            if(type==="subject"&&savedEntity?.id&&!isBackgroundUpload){
+                await context.updates?.updateSubjectBlock?.(savedEntity,false);
             }
             modal.close();
             if(backgroundTask){
@@ -138,7 +138,7 @@ export async function openEditor(type,entity,context={}){
                         await context.updates?.updatePhotosBlock?.(null,false);
                     }
                     if(type==="subject"&&savedEntity?.id){
-                        await context.updates?.updateSubjectBlock?.({id:savedEntity.id,isUploading:false});
+                        await context.updates?.updateSubjectBlock?.(savedEntity,false);
                     }
                 }).catch(async error=>{
                     console.error("Ошибка фоновой загрузки файла:",error);
@@ -146,7 +146,7 @@ export async function openEditor(type,entity,context={}){
                         await context.updates?.updatePhotosBlock?.(null,false);
                     }
                     if(type==="subject"&&savedEntity?.id){
-                        await context.updates?.updateSubjectBlock?.({id:savedEntity.id,isUploading:false});
+                        await context.updates?.updateSubjectBlock?.(savedEntity,false);
                     }
                 });
             }
