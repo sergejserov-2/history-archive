@@ -49,3 +49,13 @@ export async function createPhoto(data) {
 export async function deletePhoto(id) {
     await deleteDoc(doc(db, "photos", id));
 }
+
+
+
+export async function getAllPhotos(){
+    const snapshot=await getDocs(collection(db,"photos"));
+    return snapshot.docs.map(doc=>({
+        id:doc.id,
+        ...doc.data()
+    }));
+}
