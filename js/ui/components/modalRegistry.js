@@ -7,7 +7,7 @@ import {getSources} from "../../api/sources.js";
 import {getRecords} from "../../api/records.js";
 import {getObject, getType, getChildren, getAllObjects} from "../../api/objects.js";
 import {getTypes} from "../../api/types.js";
-import {getSubject} from "../../api/subjects.js";
+import {getSubject, getSubjects} from "../../api/subjects.js";
 import {openPhotoViewer} from "./photoViewer.js";
 import {openEditor} from "../../admin/editorConfig.js";
 
