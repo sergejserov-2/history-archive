@@ -187,13 +187,14 @@ export const subjectModal={
     },
     open:async data=>{
         if(!data)return;
-        openSubjectModal(
-            data.subject,
-            {
-                subjects:data.subjects,
-                fromUrl:true
-            }
-        );
+openSubjectModal(
+    data.subject,
+    {
+        subjects:data.subjects,
+        fromUrl: true,
+        ADMIN_MODE:data.ADMIN_MODE
+    }
+);
     }
 };
 
