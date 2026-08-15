@@ -49,3 +49,13 @@ export async function createRecord(data) {
 export async function deleteRecord(id) {
     await deleteDoc(doc(db, "records", id));
 }
+
+
+
+export async function getAllRecords(){
+    const snapshot=await getDocs(collection(db,"records"));
+    return snapshot.docs.map(doc=>({
+        id:doc.id,
+        ...doc.data()
+    }));
+}
