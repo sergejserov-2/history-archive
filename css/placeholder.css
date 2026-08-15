@@ -90,3 +90,5 @@
 
     z-index:2;
 }
+
+.subject-modal__cover{ position:relative; overflow:hidden; } .subject-modal__cover-image--loading{ opacity:0; }
