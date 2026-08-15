@@ -122,7 +122,7 @@ export function onSourceDeleted(){return updates.updateSourcesBlock();}
 export function onRecordDeleted(){return updates.updateRecordsBlock();}
 export function onObjectDeleted(){return updates.onObjectDeleted();}
 
-function renderObjectBlock(state.subjects){
+function renderObjectBlock(){
     const coverPhoto=pagePhotos.find(photo=>photo.id===pageObject.coverPhotoId);
     const status=renderStatusBadgeHTML(pageObject.status);
     return`
