@@ -1,22 +1,25 @@
-import {isAdmin,onAdminStateChanged} from "../../admin/adminMode.js";
-import {initAdmin} from "../../admin/admin.js";
-import {getObject,getType,getParents,getChildren,getAllObjects} from "../../api/objects.js";
-import {getTypes} from "../../api/types.js";
-import {renderHeader} from "../components/header.js";
-import {renderBreadcrumbs} from "../components/breadcrumbs.js";
-import {renderChildren} from "../components/children.js";
-import {getRecords} from "../../api/records.js";
-import {renderRecords} from "../components/records.js";
-import {getRecordTypes} from "../../api/recordTypes.js";
-import {getPhotos} from "../../api/photos.js";
-import {renderPhotos} from "../components/photos.js";
-import {getSources} from "../../api/sources.js";
-import {renderSources} from "../components/sources.js";
-import {renderStatusBadgeHTML} from "../components/editor/status.js";
-import {restoreModalFromUrl} from "../components/modal.js";
-import {createPageUpdates} from "../../admin/update.js";
+import{isAdmin,onAdminStateChanged}from"../../admin/adminMode.js";
+import{initAdmin}from"../../admin/admin.js";
+import{getObject,getType,getParents,getChildren,getAllObjects}from"../../api/objects.js";
+import{getTypes}from"../../api/types.js";
+import{renderHeader}from"../components/header.js";
+import{renderBreadcrumbs}from"../components/breadcrumbs.js";
+import{renderChildren}from"../components/children.js";
+import{getRecords}from"../../api/records.js";
+import{renderRecords}from"../components/records.js";
+import{getRecordTypes}from"../../api/recordTypes.js";
+import{getPhotos}from"../../api/photos.js";
+import{renderPhotos}from"../components/photos.js";
+import{getSources}from"../../api/sources.js";
+import{renderSources}from"../components/sources.js";
+import{getSubjects}from"../../api/subjects.js";
+import{renderStatusBadgeHTML}from"../components/editor/status.js";
+import{restoreModalFromUrl}from"../components/modal.js";
+import{createPageUpdates}from"../../admin/update.js";
+
 const params=new URLSearchParams(window.location.search);
 const objectId=params.get("id");
+
 let pageObject=null;
 let pageType=null;
 let pageParents=[];
@@ -24,10 +27,12 @@ let pageChildren=[];
 let pageRecords=[];
 let pagePhotos=[];
 let pageSources=[];
+let pageSubjects=[];
 let pageRecordTypes=[];
 let pageAdminMode=false;
 let pageTypes=[];
 let pageObjects=[];
+
 const page={
     get object(){return pageObject;},
     set object(value){pageObject=value;},
@@ -42,6 +47,7 @@ const page={
     set photos(value){pagePhotos=value;},
     get sources(){return pageSources;},
     set sources(value){pageSources=value;},
+    get subjects(){return pageSubjects;},
     get recordTypes(){return pageRecordTypes;},
     get admin(){return pageAdminMode;},
     get objects(){return pageObjects;},
@@ -53,106 +59,322 @@ const page={
         if(block)block.outerHTML=renderObjectBlock();
     }
 };
+
 const updates=createPageUpdates(page);
+
 async function loadPage(){
     console.time("LOAD DATA");
     console.time("getAllObjects");
-    const [objects,types]=await Promise.all([getAllObjects(),getTypes()]);
+
+    const[objects,types]=await Promise.all([
+        getAllObjects(),
+        getTypes()
+    ]);
+
     console.timeEnd("getAllObjects");
-    const object=objects.find(item=>item.id===objectId);
+
+    const object=objects.find(
+        item=>item.id===objectId
+    );
+
     if(!object){
         document.body.innerHTML="<h1>Объект не найден</h1>";
         return;
     }
-    document.title=object.title||"Исторический архив";
+
+    document.title=
+        object.title||
+        "Исторический архив";
+
     pageObject=object;
     pageObjects=objects;
     pageTypes=types;
-    pageType=types.find(type=>type.id===object.typeId)??null;
-    const timed=(name,promise)=>promise.then(result=>{
-        console.timeEnd(name);
-        return result;
-    });
+
+    pageType=
+        types.find(
+            type=>type.id===object.typeId
+        )??null;
+
+    const timed=(name,promise)=>
+        promise.then(result=>{
+            console.timeEnd(name);
+            return result;
+        });
+
     console.time("getRecordTypes");
     console.time("getParents");
     console.time("getChildren");
     console.time("getRecords");
     console.time("getPhotos");
     console.time("getSources");
-    [pageRecordTypes,pageParents,pageChildren,pageRecords,pagePhotos,pageSources]=await Promise.all([
-        timed("getRecordTypes",getRecordTypes()),
-        timed("getParents",getParents(object,objects,types)),
-        getChildren(object.id,objects),
-        timed("getRecords",getRecords(object.id)),
-        timed("getPhotos",getPhotos(object.id)),
-        timed("getSources",getSources(object.id))
+    console.time("getSubjects");
+
+    [
+        pageRecordTypes,
+        pageParents,
+        pageChildren,
+        pageRecords,
+        pagePhotos,
+        pageSources,
+        pageSubjects
+    ]=await Promise.all([
+        timed(
+            "getRecordTypes",
+            getRecordTypes()
+        ),
+        timed(
+            "getParents",
+            getParents(
+                object,
+                objects,
+                types
+            )
+        ),
+        getChildren(
+            object.id,
+            objects
+        ),
+        timed(
+            "getRecords",
+            getRecords(object.id)
+        ),
+        timed(
+            "getPhotos",
+            getPhotos(object.id)
+        ),
+        timed(
+            "getSources",
+            getSources(object.id)
+        ),
+        timed(
+            "getSubjects",
+            getSubjects()
+        )
     ]);
+
     console.timeEnd("LOAD DATA");
     console.time("RENDER PAGE");
+
     await renderPage();
+
     console.timeEnd("RENDER PAGE");
 }
-export function onPhotoDeleted(){return updates.updatePhotosBlock();}
-export function onSourceDeleted(){return updates.updateSourcesBlock();}
-export function onRecordDeleted(){return updates.updateRecordsBlock();}
-export function onObjectDeleted(){return updates.onObjectDeleted();}
-function renderObjectBlock(){const coverPhoto=pagePhotos.find(photo=>photo.id===pageObject.coverPhotoId);
-    const status=renderStatusBadgeHTML(pageObject.status);
-    return `<section class="object">
-        <div class="object__cover">
-            ${coverPhoto?.previewPath?
-                `<div class="object__cover-bg" style="background-image:url('${coverPhoto.previewPath}')"></div>
-                 <img class="object__cover-image" src="${coverPhoto.previewPath}" alt="${coverPhoto.title??""}">`
-                :
-                `<div class="object__cover-placeholder">Фото отсутствует</div>`
-            }
-        </div>
-        <div class="object__info">
-            <div class="object__type">${pageType?.title??""}</div>
-            <h1 class="object__title">
-                <span class="object__title-text">${pageObject.title??""}</span>
-                ${pageAdminMode?`
-                    <button class="admin-button" data-action="edit-object"><img src="icons/edit.svg" class="admin-icon"></button>
-                    <button class="admin-button" data-action="delete-object" data-id="${pageObject.id}"><img src="icons/delete.svg" class="admin-icon"></button>
-                `:""}
-                ${status}
-            </h1>
-            ${pageObject.description?.trim()?`<div class="object__description">${pageObject.description.trim()}</div>`:""}
-            ${pageAdminMode||pageRecords.length?renderRecords(pageRecords,pageRecordTypes,pageAdminMode):""}
-        </div>
-    </section>`;
+
+export function onPhotoDeleted(){
+    return updates.updatePhotosBlock();
 }
+
+export function onSourceDeleted(){
+    return updates.updateSourcesBlock();
+}
+
+export function onRecordDeleted(){
+    return updates.updateRecordsBlock();
+}
+
+export function onObjectDeleted(){
+    return updates.onObjectDeleted();
+}
+
+function renderObjectBlock(){
+    const coverPhoto=
+        pagePhotos.find(
+            photo=>photo.id===pageObject.coverPhotoId
+        );
+
+    const status=
+        renderStatusBadgeHTML(
+            pageObject.status
+        );
+
+    return `
+        <section class="object">
+            <div class="object__cover">
+                ${
+                    coverPhoto?.previewPath
+                    ?
+                    `<div
+                        class="object__cover-bg"
+                        style="background-image:url('${coverPhoto.previewPath}')"
+                    ></div>
+                    <img
+                        class="object__cover-image"
+                        src="${coverPhoto.previewPath}"
+                        alt="${coverPhoto.title??""}"
+                    >`
+                    :
+                    `<div class="object__cover-placeholder">
+                        Фото отсутствует
+                    </div>`
+                }
+            </div>
+
+            <div class="object__info">
+                <div class="object__type">
+                    ${pageType?.title??""}
+                </div>
+
+                <h1 class="object__title">
+                    <span class="object__title-text">
+                        ${pageObject.title??""}
+                    </span>
+
+                    ${
+                        pageAdminMode
+                        ?
+                        `
+                            <button
+                                class="admin-button"
+                                data-action="edit-object"
+                            >
+                                <img
+                                    src="icons/edit.svg"
+                                    class="admin-icon"
+                                >
+                            </button>
+
+                            <button
+                                class="admin-button"
+                                data-action="delete-object"
+                                data-id="${pageObject.id}"
+                            >
+                                <img
+                                    src="icons/delete.svg"
+                                    class="admin-icon"
+                                >
+                            </button>
+                        `
+                        :
+                        ""
+                    }
+
+                    ${status}
+                </h1>
+
+                ${
+                    pageObject.description?.trim()
+                    ?
+                    `<div class="object__description">
+                        ${pageObject.description.trim()}
+                    </div>`
+                    :
+                    ""
+                }
+
+                ${
+                    pageAdminMode||
+                    pageRecords.length
+                    ?
+                    renderRecords(
+                        pageRecords,
+                        pageRecordTypes,
+                        pageAdminMode
+                    )
+                    :
+                    ""
+                }
+            </div>
+        </section>
+    `;
+}
+
 async function renderPage(){
-    const childrenHTML=await renderChildren(pageChildren,pageAdminMode,pageObject,pageObjects,pageTypes);
-    const breadcrumbsHTML=renderBreadcrumbs(pageObject,pageParents);
+    const childrenHTML=
+        await renderChildren(
+            pageChildren,
+            pageAdminMode,
+            pageObject,
+            pageObjects,
+            pageTypes
+            );
+
+    const breadcrumbsHTML=
+        renderBreadcrumbs(
+            pageObject,
+            pageParents
+        );
+
     document.body.innerHTML=`
         ${renderHeader()}
+
         <main class="page">
             ${breadcrumbsHTML}
+
             ${renderObjectBlock()}
-            ${pageAdminMode||pagePhotos.length?`
-                <section id="gallery">
-                    <h2>Фотографии</h2>
-                    ${renderPhotos(pagePhotos,pageAdminMode)}
-                </section>`:""}
-            ${pageAdminMode||pageSources.length?`
-                <section id="sources">
-                    <h2>Источники</h2>
-                    ${renderSources(pageSources,pageAdminMode)}
-                </section>`:""}
-            ${pageAdminMode||pageChildren.length?`
-                <section id="children">
-                    <h2>Дочерние объекты</h2>
-                    ${childrenHTML}
-                </section>`:""}
+
+            ${
+                pageAdminMode||
+                pagePhotos.length
+                ?
+                `
+                    <section id="gallery">
+                        <h2>Фотографии</h2>
+                        ${renderPhotos(
+                            pagePhotos,
+                            pageAdminMode
+                        )}
+                    </section>
+                `
+                :
+                ""
+            }
+
+            ${
+                pageAdminMode||
+                pageSources.length
+                ?
+                `
+                    <section id="sources">
+                        <h2>Источники</h2>
+                        ${renderSources(
+                            pageSources,
+                            pageAdminMode
+                        )}
+                    </section>
+                `
+                :
+                ""
+            }
+
+            ${
+                pageAdminMode||
+                pageChildren.length
+                ?
+                `
+                    <section id="children">
+                        <h2>Дочерние объекты</h2>
+                        ${childrenHTML}
+                    </section>
+                `
+                :
+                ""
+            }
         </main>
     `;
 }
-loadPage().then(()=>{
-    onAdminStateChanged(async admin=>{
-        pageAdminMode=admin;
-        await renderPage();
-        if(admin)initAdmin(page,updates);
-        await restoreModalFromUrl();
-    });
-}).catch(error=>console.error("Ошибка загрузки страницы:",error));
+
+loadPage()
+    .then(()=>{
+        onAdminStateChanged(
+            async admin=>{
+                pageAdminMode=admin;
+
+                await renderPage();
+
+                if(admin)
+                    initAdmin(
+                        page,
+                        updates
+                    );
+
+                await restoreModalFromUrl();
+            }
+        );
+    })
+    .catch(
+        error=>
+            console.error(
+                "Ошибка загрузки страницы:",
+                error
+            )
+    );
