@@ -1,12 +1,4 @@
-// ======================================
-// File picker editor
-// ======================================
-
-import {moveFileToDeleted} from "../../../api/storage.js";
-
-// ======================================
-// Setup
-// ======================================
+import{moveFileToDeleted}from"../../../api/storage.js";
 
 export function setupFileEditor(root,entity,upload,options={}){
     const fileInput=root.querySelector("#entityFile");
@@ -57,10 +49,7 @@ export function setupFileEditor(root,entity,upload,options={}){
     renderFileState();
     return{
         hasFile(){
-            return Boolean(file)||Boolean(oldStoragePath&&!removeOldFile);
-        },
-        hasNewFile(){
-            return Boolean(file);
+            return!!file||(!!oldStoragePath&&!removeOldFile);
         },
         validate(){
             if(!options.required||this.hasFile())return true;
@@ -68,7 +57,7 @@ export function setupFileEditor(root,entity,upload,options={}){
             return false;
         },
         getData(){
-            if(removeOldFile&&!file){
+            if(removeOldFile){
                 return{
                     storagePath:null,
                     previewPath:null,
@@ -80,6 +69,9 @@ export function setupFileEditor(root,entity,upload,options={}){
             }
             if(!file)return null;
             const selectedFile=file;
+            if(typeof upload!=="function"){
+                throw new Error("Для загрузки файла не задан upload");
+            }
             return{
                 storagePath:null,
                 previewPath:null,
@@ -96,42 +88,16 @@ export function setupFileEditor(root,entity,upload,options={}){
     };
 }
 
-// ======================================
-// Render
-// ======================================
-
 export function renderFileEditorHTML(){
-
-    return `
-        <label>
-            Файл
-            <div class="entity-file">
-                <div
-                    id="entityFileSelect"
-                    class="entity-file__select admin-button"
-                >
-                    Выбрать файл
-                </div>
-                <div
-                    id="entityFileCurrent"
-                    class="entity-file__current"
-                    hidden
-                >
-                    <span id="entityFileName"></span>
-                    <span
-                        id="entityFileRemove"
-                        class="entity-file__remove"
-                    >
-                        ×
-                    </span>
-                </div>
+    return`<label>
+        Файл
+        <div class="entity-file">
+            <div id="entityFileSelect" class="entity-file__select admin-button">Выбрать файл</div>
+            <div id="entityFileCurrent" class="entity-file__current" hidden>
+                <span id="entityFileName"></span>
+                <span id="entityFileRemove" class="entity-file__remove">×</span>
             </div>
-        </label>
-        <input
-            id="entityFile"
-            type="file"
-            hidden
-        >
-    `;
-
+        </div>
+    </label>
+    <input id="entityFile" type="file" hidden>`;
 }
