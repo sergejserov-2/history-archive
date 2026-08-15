@@ -10,32 +10,42 @@ export function initAdmin(page,updates={}){
         const action=button.dataset.action;
         const id=button.dataset.id;
 
-        const object=page.object;
-        const types=page.types;
-        const objects=page.objects;
-        const photos=page.photos;
-        const sources=page.sources;
-        const records=page.records;
-        const children=page.children;
-        const recordTypes=page.recordTypes;
+const object=page.object;
+const types=page.types;
+const objects=page.objects;
+const photos=page.photos;
+const sources=page.sources;
+const records=page.records;
+const children=page.children;
+const subjects=page.subjects??[];
+const recordTypes=page.recordTypes;
 
-        const objectType=types.find(type=>type.id===object?.typeId);
-        const objectLevel=Number(objectType?.level);
+const objectType=types.find(
+    type=>type.id===object?.typeId
+);
 
-        const availableRecordTypes=(recordTypes??[]).filter(
-            recordType=>recordType.levels?.map(Number).includes(objectLevel)
-        );
+const objectLevel=
+    Number(objectType?.level);
 
-        const context={
-            objects,
-            parentId:object.id,
-            recordTypes:availableRecordTypes,
-            types,
-            photos,
-            sources,
-            children,
-            updates
-        };
+const availableRecordTypes=
+    (recordTypes??[]).filter(
+        recordType=>
+            recordType.levels
+                ?.map(Number)
+                .includes(objectLevel)
+    );
+
+const context={
+    objects,
+    parentId:object.id,
+    recordTypes:availableRecordTypes,
+    types,
+    photos,
+    sources,
+    children,
+    subjects,
+    updates
+};
 
         if(action==="edit-object"){
             setModalUrl("object-editor",{entityId:object.id});
