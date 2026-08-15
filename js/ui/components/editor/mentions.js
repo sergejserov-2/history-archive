@@ -1,16 +1,4 @@
-// ======================================
-// Subject mentions
-// ======================================
-
-const MENTION_PATTERN=/\[([^|\]]+)\|([^\]]*)\]/g;
-
-export function getMentions(text=""){
-    return [...text.matchAll(MENTION_PATTERN)].map(match=>({
-        subjectId:match[1].trim(),
-        label:match[2].trim()
-    }));
-}
-
+const MENTION_TRIGGER="[";
 export function setupMentionEditor(root,subjects=[]){
     const textarea=root.querySelector("#entityDescription");
     if(!textarea)return null;
@@ -23,7 +11,6 @@ export function setupMentionEditor(root,subjects=[]){
 
     function showSelect(position){
         removeSelect();
-
         select=document.createElement("select");
         select.className="entity-mention-select";
 
@@ -52,11 +39,13 @@ export function setupMentionEditor(root,subjects=[]){
                 `[${select.value}|`+
                 value.slice(position);
 
-            const cursor=position+select.value.length+2;
+            const cursor=
+                position+
+                select.value.length+
+                2;
 
             textarea.focus();
             textarea.setSelectionRange(cursor,cursor);
-
             removeSelect();
         };
 
@@ -66,11 +55,14 @@ export function setupMentionEditor(root,subjects=[]){
     }
 
     textarea.addEventListener("keydown",event=>{
-        if(event.key!=="[")return;
+        if(event.key!==MENTION_TRIGGER)return;
 
         const position=textarea.selectionStart;
 
-        if(textarea.selectionStart!==textarea.selectionEnd)return;
+        if(
+            textarea.selectionStart!==
+            textarea.selectionEnd
+        )return;
 
         event.preventDefault();
         showSelect(position);
@@ -81,53 +73,4 @@ export function setupMentionEditor(root,subjects=[]){
             removeSelect();
         }
     };
-}
-
-// ======================================
-// Render mentions
-// ======================================
-
-export function renderMentions(
-    text="",
-    subjects=[],
-    getHref=null
-){
-    if(!text)return"";
-
-    const subjectMap=new Map(
-        subjects.map(subject=>[
-            subject.id,
-            subject
-        ])
-    );
-
-    return escapeHTML(text).replace(
-        MENTION_PATTERN,
-        (match,id,label)=>{
-            const subject=subjectMap.get(id.trim());
-
-            if(!subject)
-                return label||match;
-
-            const href=
-                typeof getHref==="function"
-                    ?getHref(subject)
-                    :"#";
-
-            return `<a href="${escapeHTML(href)}" class="subject-mention">${escapeHTML(label.trim())}</a>`;
-        }
-    );
-}
-
-// ======================================
-// Escape
-// ======================================
-
-function escapeHTML(value=""){
-    return value
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","'");
 }
