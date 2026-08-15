@@ -110,7 +110,7 @@ async updateSubjectBlock(data=null){
         subjectTypes:state.subjectTypes
     });
     await state.renderSubjectBlock?.();
-}
+},
         async updateRecordsBlock(savedRecord=null){
             if(!state.object)return;
             state.records=await getRecords(state.object.id);
