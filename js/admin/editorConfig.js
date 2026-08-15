@@ -78,9 +78,9 @@ export async function openEditor(type,entity,context={}){
             const savedEntity=await updateEntity(type,entity,data,context,updates);
 
             // Карточка появляется сразу и получает анимацию.
-            if(type==="photo"&&savedEntity?.id){
-                await context.updates?.updatePhotosBlock?.(savedEntity,true);
-            }
+if(type==="photo"&&savedEntity?.id&&backgroundTask){
+    await context.updates?.updatePhotosBlock?.(savedEntity,true);
+}
 
             modal.close();
 
