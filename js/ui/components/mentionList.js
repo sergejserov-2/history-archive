@@ -28,7 +28,7 @@ export function renderMentionList(subject,objects=[],photos=[],sources=[],record
     const mentionedObjects=getMentionedObjects(subject?.id,objects,photos,sources,records);
     if(!mentionedObjects.length)return"";
     return`
-        <div class="subject-mmentions">
+        <div class="subject-mentions">
             <div class="subject-mentions__title">Упоминается на страницах</div>
             <div class="subject-mentions__list">
                 ${mentionedObjects.map(object=>`
