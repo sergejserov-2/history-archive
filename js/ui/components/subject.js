@@ -2,6 +2,8 @@ import{isAdmin}from"../../admin/adminMode.js";
 import{renderMentions,getSubjectHref}from"./mentionLink.js";
 import{renderMentionList}from"./mentionList.js";
 import{createModal}from"./modal.js";
+import {renderLoadingPlaceholder}
+    from "./loadingPlaceholder.js";
 
 export function renderSubject(subject,subjects=[],objects=[],photos=[],sources=[],records=[],subjectTypes=[],ADMIN_MODE=false){
     if(!subject)return"";
@@ -13,18 +15,58 @@ export function renderSubject(subject,subjects=[],objects=[],photos=[],sources=[
             :subject.dateEnd
                 ?`до ${subject.dateEnd}`
                 :"";
-    const cover=subject.previewPath
-        ?`
-        <div class="subject-modal__cover">
-            <div class="subject-modal__cover-bg" style="background-image:url('${subject.previewPath}')"></div>
-            <img class="subject-modal__cover-image" src="${subject.previewPath}" alt="${escapeHTML(subject.title??"")}">
-        </div>
-        `
-        :`
-        <div class="subject-modal__cover">
-            <div class="subject-modal__cover-placeholder">Фото отсутствует</div>
-        </div>
-        `;
+
+        const uploading =
+            subject.isUploading === true;
+        
+        const hasPreview =
+            Boolean(subject.previewPath);
+        
+        const cover =
+        
+            uploading && !hasPreview
+        
+            ? `
+                <div class="subject-modal__cover">
+                    ${renderLoadingPlaceholder()}
+                </div>
+              `
+        
+            : hasPreview
+        
+            ? `
+                <div class="subject-modal__cover">
+        
+                    ${
+                        uploading
+                        ? renderLoadingPlaceholder()
+                        : ""
+                    }
+        
+                    <div
+                        class="subject-modal__cover-bg"
+                        style="background-image:url('${subject.previewPath}')">
+                    </div>
+        
+                    <img
+                        class="subject-modal__cover-image${
+                            uploading
+                                ? " subject-modal__cover-image--loading"
+                                : ""
+                        }"
+                        src="${subject.previewPath}"
+                        alt="${escapeHTML(subject.title ?? "")}">
+                </div>
+              `
+        
+            : `
+                <div class="subject-modal__cover">
+                    <div class="subject-modal__cover-placeholder">
+                        Фото отсутствует
+                    </div>
+                </div>
+              `;
+
 return`
     <div class="subject-modal">
         <div class="subject-modal__card">
