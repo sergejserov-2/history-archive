@@ -1,39 +1,23 @@
 // ======================================
-// Modal component
+// MODAL COMPONENT
 // ======================================
 
 import{modalRegistry}from"./modalRegistry.js";
 import{isAdmin}from"../../admin/adminMode.js";
 
-// ======================================
-// Open modals
-// ======================================
-
-const openModals=new Map();
+let currentModal=null;
 
 // ======================================
 // Create modal
 // ======================================
 
-export function createModal({
-    type="",
-    title="",
-    content=""
-}){
-    // ==================================
-    // Same modal type already opened
-    // ==================================
-
-    if(type&&openModals.has(type)){
-        return openModals.get(type);
-    }
+export function createModal({title="",content=""}){
+    closeCurrentModal();
 
     const overlay=document.createElement("div");
-
     overlay.className="modal-overlay";
 
     const modal=document.createElement("div");
-
     modal.className="modal";
 
     modal.innerHTML=`
@@ -41,117 +25,55 @@ export function createModal({
             <h2>${title}</h2>
             <span class="modal__close">×</span>
         </div>
-
-        <div class="modal__content">
-            ${content}
-        </div>
+        <div class="modal__content">${content}</div>
     `;
 
     overlay.appendChild(modal);
-
     document.body.appendChild(overlay);
 
-    const closeButton=
-        modal.querySelector(".modal__close");
+    const closeButton=modal.querySelector(".modal__close");
 
     function close(){
-        const current=
-            openModals.get(type);
+        if(currentModal?.overlay!==overlay)return;
 
-        if(current?.overlay!==overlay)return;
-
-        openModals.delete(type);
-
+        currentModal=null;
         overlay.remove();
-
-        // ==================================
-        // Clear URL only if this modal
-        // is the modal currently stored there
-        // ==================================
-
-        const url=
-            new URL(window.location.href);
-
-        if(
-            url.searchParams.get("modal")===type
-        ){
-            clearModalUrl();
-        }
+        clearModalUrl();
     }
 
     closeButton.onclick=close;
 
-    const instance={
-        type,
+    currentModal={
         overlay,
-        content:modal.querySelector(
-            ".modal__content"
-        ),
         close
     };
 
-    if(type){
-        openModals.set(
-            type,
-            instance
-        );
-    }
-
-    return instance;
-}
-
-// ======================================
-// Get opened modal
-// ======================================
-
-export function getOpenModal(type){
-    return openModals.get(type)??null;
+    return{
+        root:overlay,
+        content:modal.querySelector(".modal__content"),
+        close
+    };
 }
 
 // ======================================
 // Set modal URL
 // ======================================
 
-export function setModalUrl(
-    type,
-    params={}
-){
-    const url=
-        new URL(
-            window.location.href
-        );
+export function setModalUrl(type,params={}){
+    const url=new URL(window.location.href);
 
-    url.searchParams.set(
-        "modal",
-        type
-    );
+    url.searchParams.set("modal",type);
 
-    Object.entries(params).forEach(
-        ([key,value])=>{
-            if(
-                value===null||
-                value===undefined||
-                value===""
-            ){
-                url.searchParams.delete(
-                    key
-                );
-
-                return;
-            }
-
-            url.searchParams.set(
-                key,
-                String(value)
-            );
+    Object.entries(params).forEach(([key,value])=>{
+        if(value===null||value===undefined||value===""){
+            url.searchParams.delete(key);
+            return;
         }
-    );
 
-    window.history.pushState(
-        {},
-        "",
-        url
-    );
+        url.searchParams.set(key,String(value));
+    });
+
+    window.history.pushState({}, "", url);
 }
 
 // ======================================
@@ -159,15 +81,9 @@ export function setModalUrl(
 // ======================================
 
 export function clearModalUrl(){
-    const url=
-        new URL(
-            window.location.href
-        );
+    const url=new URL(window.location.href);
 
-    const type=
-        url.searchParams.get(
-            "modal"
-        );
+    const type=url.searchParams.get("modal");
 
     if(!type)return;
 
@@ -176,26 +92,14 @@ export function clearModalUrl(){
             modal=>modal.type===type
         );
 
-    url.searchParams.delete(
-        "modal"
-    );
+    url.searchParams.delete("modal");
 
-    for(
-        const key of
-        registration?.params??[]
-    ){
+    for(const key of registration?.params??[]){
         if(key==="id")continue;
-
-        url.searchParams.delete(
-            key
-        );
+        url.searchParams.delete(key);
     }
 
-    window.history.pushState(
-        {},
-        "",
-        url
-    );
+    window.history.pushState({}, "", url);
 }
 
 // ======================================
@@ -203,17 +107,14 @@ export function clearModalUrl(){
 // ======================================
 
 export async function restoreModalFromUrl(){
-    const url=
-        new URL(
-            window.location.href
-        );
+    const url=new URL(window.location.href);
 
-    const type=
-        url.searchParams.get(
-            "modal"
-        );
+    const type=url.searchParams.get("modal");
 
-    if(!type)return;
+    if(!type){
+        closeCurrentModal();
+        return;
+    }
 
     const registration=
         modalRegistry.find(
@@ -221,72 +122,31 @@ export async function restoreModalFromUrl(){
         );
 
     if(!registration){
-        console.error(
-            "Unknown modal:",
-            type
-        );
-
-        return;
-    }
-
-    // ==================================
-    // Admin-only modal
-    // ==================================
-
-    if(
-        registration.admin&&
-        !isAdmin()
-    ){
+        console.error("Unknown modal:",type);
         clearModalUrl();
-
+        closeCurrentModal();
         return;
     }
 
-    // ==================================
-    // Same modal type already opened
-    // ==================================
-
-    if(openModals.has(type)){
+    if(registration.admin&&!isAdmin()){
+        clearModalUrl();
+        closeCurrentModal();
         return;
     }
-
-    // ==================================
-    // Parameters
-    // ==================================
 
     const params={};
 
-    for(
-        const key of
-        registration.params??[]
-    ){
-        params[key]=
-            url.searchParams.get(
-                key
-            );
+    for(const key of registration.params??[]){
+        params[key]=url.searchParams.get(key);
     }
-
-    // ==================================
-    // Load data
-    // ==================================
 
     let data=null;
 
     if(registration.load){
-        data=
-            await registration.load(
-                params
-            );
+        data=await registration.load(params);
     }
 
-    // ==================================
-    // Data not found
-    // ==================================
-
-    if(
-        registration.load&&
-        !data
-    ){
+    if(registration.load&&!data){
         console.error(
             "Modal data not found:",
             type,
@@ -294,47 +154,29 @@ export async function restoreModalFromUrl(){
         );
 
         clearModalUrl();
-
+        closeCurrentModal();
         return;
     }
 
-    // ==================================
-    // Open
-    // ==================================
+    closeCurrentModal();
 
     if(registration.open){
-        await registration.open(
-            data
-        );
+        await registration.open(data);
     }
 }
 
 // ======================================
-// Close modal by type
+// Close current modal
 // ======================================
 
-export function closeModal(type){
-    const modal=
-        openModals.get(type);
+export function closeCurrentModal(){
+    if(!currentModal)return;
 
-    if(!modal)return;
+    const modal=currentModal;
 
-    modal.close();
-}
+    currentModal=null;
 
-// ======================================
-// Close all modals
-// ======================================
-
-export function closeAllModals(){
-    for(
-        const modal of
-        openModals.values()
-    ){
-        modal.overlay.remove();
-    }
-
-    openModals.clear();
+    modal.overlay.remove();
 }
 
 // ======================================
@@ -344,20 +186,6 @@ export function closeAllModals(){
 window.addEventListener(
     "popstate",
     ()=>{
-        const url=
-            new URL(
-                window.location.href
-            );
-
-        const type=
-            url.searchParams.get(
-                "modal"
-            );
-
-        if(!type){
-            return;
-        }
-
         restoreModalFromUrl();
     }
 );
@@ -379,9 +207,7 @@ document.addEventListener(
         event.preventDefault();
 
         const href=
-            link.getAttribute(
-                "href"
-            );
+            link.getAttribute("href");
 
         if(!href)return;
 
@@ -392,16 +218,12 @@ document.addEventListener(
             );
 
         const type=
-            url.searchParams.get(
-                "modal"
-            );
+            url.searchParams.get("modal");
 
         if(type!=="subject")return;
 
         const entityId=
-            url.searchParams.get(
-                "entityId"
-            );
+            url.searchParams.get("entityId");
 
         if(!entityId)return;
 
