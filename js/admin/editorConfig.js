@@ -78,6 +78,7 @@ function getConfig(type,entity,context={}){
         return null;
     }
     const cfg={...base,options:{...(base.options??{})}};
+    cfg.subjects=context.subjects??[];
     if(cfg.options.typeSelector){
         if(type==="subject"){
             cfg.options.types=context.subjectTypes??[];
