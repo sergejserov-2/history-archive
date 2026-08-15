@@ -113,43 +113,35 @@ export async function openEditor(type,entity,context={}){
     });
     const root=modal.root;
     const editor=setupEditorComponents(root,cfg,context,entity);
-    setupEditorButtons(root,async()=>{
-        try{
-            const result=await editor.getData();
-            if(!result)return;
-            const{data,backgroundTask}=result;
-            const hasBackgroundTask=typeof backgroundTask==="function";
-            const updates=type==="photo"||type==="subject"?[]:(cfg.updates??[]);
-            const savedEntity=await updateEntity(type,entity,data,context,updates);
-            if(type==="photo"&&savedEntity?.id){
-                await context.updates?.updatePhotosBlock?.(savedEntity,hasBackgroundTask);
-            }
-            if(type==="subject"&&savedEntity?.id){
-                await context.updates?.updateSubjectBlock?.(savedEntity,hasBackgroundTask);
-            }
-            modal.close();
-            if(hasBackgroundTask){
-                void backgroundTask(savedEntity,async(id,updateData)=>{
-                    await updateEntity(type,savedEntity,updateData,context,[]);
-                    if(type==="photo"&&savedEntity?.id){
-                        await context.updates?.updatePhotosBlock?.(null,false);
-                    }
-                    if(type==="subject"&&savedEntity?.id){
-                        await context.updates?.updateSubjectBlock?.(null,false);
-                    }
-                }).catch(async error=>{
-                    console.error("Ошибка фоновой загрузки файла:",error);
-                    if(type==="photo"&&savedEntity?.id){
-                        await context.updates?.updatePhotosBlock?.(null,false);
-                    }
-                    if(type==="subject"&&savedEntity?.id){
-                        await context.updates?.updateSubjectBlock?.(null,false);
-                    }
-                });
-            }
-        }catch(error){
-            console.error("Ошибка сохранения:",error);
-            alert("Ошибка сохранения");
+setupEditorButtons(root,async()=>{
+    try{
+        const result=await editor.getData();
+        if(!result)return;
+        const{data,backgroundTask}=result;
+        const hasBackgroundTask=typeof backgroundTask==="function"&&data.hasNewFile===true;
+        delete data.hasNewFile;
+        const updates=type==="photo"||type==="subject"?[]:(cfg.updates??[]);
+        const savedEntity=await updateEntity(type,entity,data,context,updates);
+        if(type==="photo"&&savedEntity?.id){
+            await context.updates?.updatePhotosBlock?.(savedEntity,hasBackgroundTask);
         }
-    },()=>modal.close());
-}
+        if(type==="subject"&&savedEntity?.id){
+            await context.updates?.updateSubjectBlock?.(savedEntity,hasBackgroundTask);
+        }
+        modal.close();
+        if(hasBackgroundTask){
+            void backgroundTask(savedEntity,async(id,updateData)=>{
+                await updateEntity(type,savedEntity,updateData,context,[]);
+                if(type==="photo"&&savedEntity?.id)await context.updates?.updatePhotosBlock?.(null,false);
+                if(type==="subject"&&savedEntity?.id)await context.updates?.updateSubjectBlock?.(null,false);
+            }).catch(async error=>{
+                console.error("Ошибка фоновой загрузки файла:",error);
+                if(type==="photo"&&savedEntity?.id)await context.updates?.updatePhotosBlock?.(null,false);
+                if(type==="subject"&&savedEntity?.id)await context.updates?.updateSubjectBlock?.(null,false);
+            });
+        }
+    }catch(error){
+        console.error("Ошибка сохранения:",error);
+        alert("Ошибка сохранения");
+    }
+},()=>modal.close());
