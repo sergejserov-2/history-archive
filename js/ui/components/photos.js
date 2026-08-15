@@ -30,17 +30,30 @@ export function renderPhotos(photos, ADMIN_MODE=false){
         const hasPreview=Boolean(photo.previewPath);
         let mediaHTML;
 
-        if(uploading&&!hasPreview){
-            mediaHTML=
-            renderLoadingPlaceholder();
-        }else if(hasPreview){
-            mediaHTML=
-            `${renderLoadingPlaceholder("photo-card__loading photo-card__loading--preview")}
-            <img class="photo-card__image${
+if(uploading && !hasPreview){
+
+    mediaHTML =
+        renderLoadingPlaceholder();
+
+}
+else if(hasPreview){
+
+    mediaHTML = `
+        ${uploading
+            ? renderLoadingPlaceholder()
+            : ""
+        }
+
+        <img
+            class="photo-card__image${
                 uploading
                     ? " photo-card__image--loading"
                     : ""
-            }" src="${photo.previewPath}" alt="${photo.title??""}">`;
+            }"
+            src="${photo.previewPath}"
+            alt="${photo.title ?? ""}">
+    `;
+}
         }else{
             mediaHTML=`<div class="photo-card__placeholder">Фото отсутствует</div>`;
         }
