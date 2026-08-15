@@ -90,7 +90,11 @@ export function renderSources(sources,ADMIN_MODE=false,subjects=[]){
                 ${
                     source.description?.trim()
                     ?
-                    `<div class="source__description">${renderMentions(source.description.trim(),subjects,subject=>`subject.html?id=${subject.id}`)}</div>`
+                    `<div class="source__description">${renderMentions(
+    record.description.trim(),
+    subjects,
+    getSubjectHref
+)}</div>`
                     :
                     ""
                 }
