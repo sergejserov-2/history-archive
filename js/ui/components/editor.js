@@ -1,65 +1,40 @@
-// ======================================
-// Editor UI
-// ======================================
+import{setupTypesEditor,renderTypesEditorHTML}from"./editor/types.js";
+import{setupStatusEditor,renderStatusEditorHTML}from"./editor/status.js";
+import{setupParentsEditor,renderParentsEditorHTML}from"./editor/parents.js";
+import{setupFileEditor,renderFileEditorHTML}from"./editor/file.js";
+import{setupCoverEditor,renderCoverEditorHTML}from"./editor/cover.js";
+import{setupDateModeEditor,renderDateModeEditorHTML}from"./editor/date.js";
+import{setupFieldsEditor,renderFieldsEditorHTML}from"./editor/fields.js";
 
-import {setupTypesEditor, renderTypesEditorHTML} from "./editor/types.js";
-import {setupStatusEditor, renderStatusEditorHTML} from "./editor/status.js";
-import {setupParentsEditor, renderParentsEditorHTML} from "./editor/parents.js";
-import {setupFileEditor, renderFileEditorHTML} from "./editor/file.js";
-import {setupCoverEditor, renderCoverEditorHTML} from "./editor/cover.js";
-import {setupDateModeEditor, renderDateModeEditorHTML} from "./editor/date.js";
-import {setupFieldsEditor, renderFieldsEditorHTML} from "./editor/fields.js";
-
-// ======================================
-// Render
-// ======================================
-
-export function renderEntityEditor(cfg, entity) {
-    entity = entity ?? {};
-    const options = cfg.options ?? {};
-    const limits = cfg.limits ?? {};
-    const dateEditor = cfg.dateMode ? renderDateModeEditorHTML(cfg, entity) : "";
-    const typeEditor = options.typeSelector ? renderTypesEditorHTML(options.types ?? [], entity, options) : "";
-    const fields = renderFieldsEditorHTML(cfg, entity, limits);
-    const parents = cfg.parentsType ? renderParentsEditorHTML() : "";
-    const file = cfg.file ? renderFileEditorHTML() : "";
-    const cover = cfg.cover && entity?.id ? renderCoverEditorHTML(cfg, entity) : "";
-    const status = cfg.status ? renderStatusEditorHTML() : "";
-    return `<div class="entity-editor">
-        ${options.typeSelector ? `
-            <div class="entity-row entity-row--title-type">
-                ${typeEditor}
-                ${fields.titleField}
-            </div>
-        ` : fields.titleField}
+export function renderEntityEditor(cfg,entity){
+    entity=entity??{};
+    const options=cfg.options??{};
+    const limits=cfg.limits??{};
+    const dateEditor=cfg.dateMode?renderDateModeEditorHTML(cfg,entity):"";
+    const typeEditor=options.typeSelector?renderTypesEditorHTML(options.types??[],entity,options):"";
+    const fields=renderFieldsEditorHTML(cfg,entity,limits);
+    const parents=cfg.parentsType?renderParentsEditorHTML():"";
+    const file=cfg.file?renderFileEditorHTML():"";
+    const cover=cfg.cover&&entity?.id?renderCoverEditorHTML(cfg,entity):"";
+    const status=cfg.status?renderStatusEditorHTML():"";
+    return`<div class="entity-editor">
+        ${options.typeSelector?`<div class="entity-row entity-row--title-type">${typeEditor}${fields.titleField}</div>`:fields.titleField}
         ${fields.descriptionField}
-        ${cfg.parentsType ? `<label>Родители${parents}</label>` : ""}
-        ${fields.authorField ? `
-            <div class="entity-row entity-row--author-date">
-                ${fields.authorField}
-                ${dateEditor}
-            </div>
-        ` : dateEditor}
+        ${cfg.parentsType?`<label>Родители${parents}</label>`:""}
+        ${fields.authorField?`<div class="entity-row entity-row--author-date">${fields.authorField}${dateEditor}</div>`:dateEditor}
         ${file}
         ${cover}
         ${status}
-        <div class="entity-editor__buttons">
-            <button id="entitySave">Сохранить</button>
-            <button id="entityCancel">Отмена</button>
-        </div>
+        <div class="entity-editor__buttons"><button id="entitySave">Сохранить</button><button id="entityCancel">Отмена</button></div>
     </div>`;
 }
 
-// ======================================
-// Components
-// ======================================
-
 export function setupEditorComponents(root,cfg,context={},entity={}){
     const options=cfg.options??{};
-    const fileEditor=setupFileEditor(root,entity,cfg.upload,{
+    const fileEditor=cfg.file?setupFileEditor(root,entity,cfg.upload,{
         required:cfg.fileRequired===true,
         requiredMessage:cfg.fileRequiredMessage
-    });
+    }):null;
     const fieldsEditor=setupFieldsEditor(root,cfg,entity);
     const typeEditor=options.typeSelector?setupTypesEditor(root,entity,{
         types:options.types??[],
@@ -68,7 +43,7 @@ export function setupEditorComponents(root,cfg,context={},entity={}){
         parentId:options.parentId??context.parentId,
         parents:entity.parents??[]
     }):null;
-    const parents=entity.parents?[...entity.parents]:context.parentId?(cfg.parentsType==="objectsWithAddress"?[{objectId:context.parentId,address:""}]:[context.parentId]):[];
+    const parents=entity.parents?[...entity.parents]:context.parentId?cfg.parentsType==="objectsWithAddress"?[{objectId:context.parentId,address:""}]:[context.parentId]:[];
     const parentsEditor=cfg.parentsType?setupParentsEditor(root,context.objects??[],entity,parents,{
         address:cfg.parentsType==="objectsWithAddress",
         types:options.types??context.types??[],
@@ -102,8 +77,8 @@ export function setupEditorComponents(root,cfg,context={},entity={}){
             let backgroundTask=null;
             if(fileEditor){
                 const fileData=fileEditor.getData();
-                if(fileData?.backgroundTask)backgroundTask=fileData.backgroundTask;
                 if(fileData){
+                    if(fileData.backgroundTask)backgroundTask=fileData.backgroundTask;
                     delete fileData.backgroundTask;
                     Object.assign(data,fileData);
                 }
@@ -112,31 +87,20 @@ export function setupEditorComponents(root,cfg,context={},entity={}){
         }
     };
 }
-// ======================================
-// Buttons
-// ======================================
 
-export function setupEditorButtons(root, onSave, onCancel) {
-    const saveButton = root.querySelector("#entitySave");
-    const cancelButton = root.querySelector("#entityCancel");
-    if(saveButton) saveButton.onclick = onSave;
-    if(cancelButton) cancelButton.onclick = onCancel;
+export function setupEditorButtons(root,onSave,onCancel){
+    const saveButton=root.querySelector("#entitySave");
+    const cancelButton=root.querySelector("#entityCancel");
+    if(saveButton)saveButton.onclick=onSave;
+    if(cancelButton)cancelButton.onclick=onCancel;
 }
 
-// ======================================
-// Configured editor
-// ======================================
-
-export function renderConfiguredEntityEditor(cfg, entity, context) {
-    const options = {
-        ...(cfg.options ?? {}),
-        types: cfg.options?.typeSelector ? (context?.recordTypes ?? []) : []
+export function renderConfiguredEntityEditor(cfg,entity,context){
+    const options={
+        ...(cfg.options??{}),
+        types:cfg.options?.typeSelector?(context?.recordTypes??[]):[]
     };
-    return renderEntityEditor({...cfg, options}, entity);
+    return renderEntityEditor({...cfg,options},entity);
 }
 
-// ======================================
-// Compatibility
-// ======================================
-
-export {setupParentsEditor, setupFileEditor, setupCoverEditor};
+export{setupParentsEditor,setupFileEditor,setupCoverEditor};
