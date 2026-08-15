@@ -8,181 +8,177 @@ import {moveFileToDeleted} from "../../../api/storage.js";
 // Setup
 // ======================================
 
-export function setupFileEditor(
-    root,
-    entity,
-    upload,
-    options = {}
-) {
-    const fileInput =
-        root.querySelector("#entityFile");
+export function setupFileEditor(root,entity,upload,options={}){
 
-    if(!fileInput) {
-        return null;
-    }
+    const fileInput=root.querySelector("#entityFile");
 
-    let file = null;
-    let removeOldFile = false;
+    if(!fileInput)return null;
 
-    const oldStoragePath =
-        entity?.storagePath ?? null;
+    let file=null;
+    let removeOldFile=false;
 
-    const oldPreviewPath =
-        entity?.previewPath ?? null;
+    const oldStoragePath=entity?.storagePath??null;
+    const oldPreviewPath=entity?.previewPath??null;
 
-    const fileSelect =
-        root.querySelector("#entityFileSelect");
+    const fileSelect=root.querySelector("#entityFileSelect");
+    const fileCurrent=root.querySelector("#entityFileCurrent");
+    const fileName=root.querySelector("#entityFileName");
+    const fileRemove=root.querySelector("#entityFileRemove");
 
-    const fileCurrent =
-        root.querySelector("#entityFileCurrent");
+    function renderFileState(){
 
-    const fileName =
-        root.querySelector("#entityFileName");
+        if(file){
 
-    const fileRemove =
-        root.querySelector("#entityFileRemove");
+            fileSelect.hidden=true;
+            fileCurrent.hidden=false;
+            fileInput.disabled=true;
+            fileName.textContent=file.name;
 
-    function renderFileState() {
-        if(file) {
-            fileSelect.hidden = true;
-            fileCurrent.hidden = false;
-            fileInput.disabled = true;
-            fileName.textContent = file.name;
             return;
         }
 
-        if(oldStoragePath && !removeOldFile) {
-            fileSelect.hidden = true;
-            fileCurrent.hidden = false;
-            fileInput.disabled = true;
-            fileName.textContent =
+        if(oldStoragePath&&!removeOldFile){
+
+            fileSelect.hidden=true;
+            fileCurrent.hidden=false;
+            fileInput.disabled=true;
+            fileName.textContent=
                 oldStoragePath.split("/").pop();
+
             return;
         }
 
-        fileSelect.hidden = false;
-        fileCurrent.hidden = true;
-        fileInput.disabled = false;
-        fileName.textContent = "";
+        fileSelect.hidden=false;
+        fileCurrent.hidden=true;
+        fileInput.disabled=false;
+        fileName.textContent="";
     }
 
-    fileSelect.onclick = () => {
-        if(!fileInput.disabled) {
+    fileSelect.onclick=()=>{
+
+        if(!fileInput.disabled)
             fileInput.click();
-        }
+
     };
 
-    fileInput.onchange = event => {
-        file =
-            event.target.files[0] ||
-            null;
+    fileInput.onchange=event=>{
 
-        removeOldFile = false;
+        file=event.target.files[0]??null;
+        removeOldFile=false;
 
         renderFileState();
+
     };
 
-    fileRemove.onclick = event => {
+    fileRemove.onclick=event=>{
+
         event.stopPropagation();
 
-        file = null;
-        fileInput.value = "";
-        removeOldFile = true;
+        file=null;
+        fileInput.value="";
+        removeOldFile=true;
 
         renderFileState();
+
     };
 
     renderFileState();
 
     return {
-        hasFile() {
-            return !!file ||
-                (!!oldStoragePath &&
-                !removeOldFile);
+
+        hasFile(){
+
+            return !!file||
+                (!!oldStoragePath&&!removeOldFile);
+
         },
 
-        validate() {
-            if(
-                !options.required ||
-                this.hasFile()
-            ) {
+        validate(){
+
+            if(!options.required||this.hasFile())
                 return true;
-            }
 
             alert(
-                options.requiredMessage ??
+                options.requiredMessage||
                 "Необходимо выбрать файл"
             );
 
             return false;
+
         },
 
-        getData() {
-            if(removeOldFile) {
+        getData(){
+
+            if(removeOldFile){
+
                 return {
-                    storagePath: null,
-                    previewPath: null,
-                    backgroundTask: async() => {
-                        if(oldStoragePath) {
+
+                    storagePath:null,
+                    previewPath:null,
+
+                    backgroundTask:async()=>{
+
+                        if(oldStoragePath)
                             await moveFileToDeleted(
                                 oldStoragePath
                             );
-                        }
 
-                        if(oldPreviewPath) {
+                        if(oldPreviewPath)
                             await moveFileToDeleted(
                                 oldPreviewPath
                             );
-                        }
+
                     }
+
                 };
+
             }
 
-            if(!file) {
-                return null;
-            }
+            if(!file)return null;
 
-            const selectedFile = file;
+            const selectedFile=file;
 
             return {
-                storagePath: null,
-                previewPath: null,
-                backgroundTask: async(
+
+                storagePath:null,
+                previewPath:null,
+
+                backgroundTask:async(
                     savedEntity,
                     update
-                ) => {
-                    const result =
-                        await upload(
-                            selectedFile
-                        );
+                )=>{
 
-                    if(!result) {
-                        return;
-                    }
+                    const result=
+                        await upload(selectedFile);
+
+                    if(!result)return;
 
                     await update(
                         savedEntity.id,
                         {
                             storagePath:
-                                result.storagePath ??
-                                null,
-
+                                result.storagePath??null,
                             previewPath:
-                                result.previewPath ??
-                                null
+                                result.previewPath??null
                         }
                     );
+
                 }
+
             };
+
         }
+
     };
+
 }
 
 // ======================================
 // Render
 // ======================================
 
-export function renderFileEditorHTML() {
+export function renderFileEditorHTML(){
+
     return `
         <label>
             Файл
@@ -193,14 +189,12 @@ export function renderFileEditorHTML() {
                 >
                     Выбрать файл
                 </div>
-
                 <div
                     id="entityFileCurrent"
                     class="entity-file__current"
                     hidden
                 >
                     <span id="entityFileName"></span>
-
                     <span
                         id="entityFileRemove"
                         class="entity-file__remove"
@@ -210,11 +204,11 @@ export function renderFileEditorHTML() {
                 </div>
             </div>
         </label>
-
         <input
             id="entityFile"
             type="file"
             hidden
         >
     `;
+
 }
