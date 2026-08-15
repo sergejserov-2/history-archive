@@ -49,3 +49,12 @@ export async function createSource(data) {
 export async function deleteSource(id) {
     await deleteDoc(doc(db, "sources", id));
 }
+
+
+export async function getAllSources(){
+    const snapshot=await getDocs(collection(db,"sources"));
+    return snapshot.docs.map(doc=>({
+        id:doc.id,
+        ...doc.data()
+    }));
+}
