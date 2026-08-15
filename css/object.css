@@ -556,10 +556,10 @@
 }
 
 .subject-mention:hover {
-    color: #70aeff;
+    color: ##1caff;
     text-decoration: none;
 }
 
 .subject-mention:visited {
-    color: #d8c9a8;
+    color: #70aeff;
 }
