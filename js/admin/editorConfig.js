@@ -118,24 +118,24 @@ export async function openEditor(type,entity,context={}){
             const result=await editor.getData();
             if(!result)return;
             const{data,backgroundTask}=result;
-            const isBackgroundUpload=Boolean(backgroundTask);
+            const hasBackgroundTask=typeof backgroundTask==="function";
             const updates=type==="photo"||type==="subject"?[]:(cfg.updates??[]);
             const savedEntity=await updateEntity(type,entity,data,context,updates);
             if(type==="photo"&&savedEntity?.id){
-                await context.updates?.updatePhotosBlock?.(savedEntity,isBackgroundUpload);
+                await context.updates?.updatePhotosBlock?.(savedEntity,hasBackgroundTask);
             }
             if(type==="subject"&&savedEntity?.id){
-                await context.updates?.updateSubjectBlock?.(savedEntity,isBackgroundUpload);
+                await context.updates?.updateSubjectBlock?.(savedEntity,hasBackgroundTask);
             }
             modal.close();
-            if(backgroundTask){
+            if(hasBackgroundTask){
                 void backgroundTask(savedEntity,async(id,updateData)=>{
                     await updateEntity(type,savedEntity,updateData,context,[]);
                     if(type==="photo"&&savedEntity?.id){
                         await context.updates?.updatePhotosBlock?.(null,false);
                     }
                     if(type==="subject"&&savedEntity?.id){
-                        await context.updates?.updateSubjectBlock?.(savedEntity,false);
+                        await context.updates?.updateSubjectBlock?.(null,false);
                     }
                 }).catch(async error=>{
                     console.error("Ошибка фоновой загрузки файла:",error);
@@ -143,7 +143,7 @@ export async function openEditor(type,entity,context={}){
                         await context.updates?.updatePhotosBlock?.(null,false);
                     }
                     if(type==="subject"&&savedEntity?.id){
-                        await context.updates?.updateSubjectBlock?.(savedEntity,false);
+                        await context.updates?.updateSubjectBlock?.(null,false);
                     }
                 });
             }
