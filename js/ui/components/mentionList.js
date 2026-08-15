@@ -28,11 +28,11 @@ export function renderMentionList(subject,objects=[],photos=[],sources=[],record
     const mentionedObjects=getMentionedObjects(subject?.id,objects,photos,sources,records);
     if(!mentionedObjects.length)return"";
     return`
-        <div class="subject-modal__mentions">
-            <div class="subject-modal__mentions-title">Упоминается на страницах</div>
-            <div class="subject-modal__mentions-list">
+        <div class="subject-mmentions">
+            <div class="subject-mentions-title">Упоминается на страницах</div>
+            <div class="subject-mentions-list">
                 ${mentionedObjects.map(object=>`
-                    <a class="subject-modal__mention" href="object.html?id=${encodeURIComponent(object.id)}">
+                    <a class="subject-mention__row" href="object.html?id=${encodeURIComponent(object.id)}">
                         ${escapeHTML(object.title??"Без названия")}
                     </a>
                 `).join("")}
