@@ -1,9 +1,14 @@
-import{renderMentions, getSubjectHref}from"./mentionLink.js";
+// ======================================
+// Subject modal
+// ======================================
+import{createModal}from"./modal.js";
+import{renderMentions,getSubjectHref}from"./mentionLink.js";
 import{setupMentionEditor}from"./editor/mentions.js";
-
+// ======================================
+// Render subject
+// ======================================
 export function renderSubject(subject,subjects=[]){
     if(!subject)return"";
-
     const years=
         subject.dateStart&&subject.dateEnd
             ?`${subject.dateStart} – ${subject.dateEnd}`
@@ -12,7 +17,6 @@ export function renderSubject(subject,subjects=[]){
                 :subject.dateEnd
                     ?`до ${subject.dateEnd}`
                     :"";
-
     const cover=
         subject.previewPath
         ?
@@ -37,7 +41,6 @@ export function renderSubject(subject,subjects=[]){
             </div>
         </div>
         `;
-
     return`
         <div class="subject-modal">
             <div class="subject-modal__card">
@@ -62,10 +65,10 @@ export function renderSubject(subject,subjects=[]){
                         `
                         <div class="subject-modal__description">
                             ${renderMentions(
-    subject.description.trim(),
-    subjects,
-    getSubjectHref
-)}
+                                subject.description.trim(),
+                                subjects,
+                                getSubjectHref
+                            )}
                         </div>
                         `
                         :""
@@ -86,10 +89,37 @@ export function renderSubject(subject,subjects=[]){
         </div>
     `;
 }
-
+// ======================================
+// Subject mentions
+// ======================================
 export function setupSubjectMentions(root,subjects=[]){
     return setupMentionEditor(
         root,
         subjects
     );
+}
+// ======================================
+// Open subject modal
+// ======================================
+export function openSubjectModal(
+    subject,
+    {
+        subjects=[],
+        fromUrl=false
+    }={}
+){
+    if(!subject)return null;
+    const modal=createModal({
+        title:"Субъект",
+        content:renderSubject(
+            subject,
+            subjects
+        )
+    });
+    const root=modal.root;
+    setupSubjectMentions(
+        root,
+        subjects
+    );
+    return modal;
 }
