@@ -274,15 +274,17 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
 
     async function showPhoto(nextPhoto,nextIndex,{updateUrl=true}={}){
         if(!nextPhoto)return;
-
+    
         currentIndex=nextIndex;
-
+    
+        controls.update(currentIndex);
+    
         updateInfo(nextPhoto);
-
+    
         if(updateUrl&&nextPhoto.id){
             updatePhotoUrl(nextPhoto.id);
         }
-
+    
         await loadPhotoImage(nextPhoto);
     }
 
