@@ -1,23 +1,10 @@
-// ======================================
-// Modal component
-// ======================================
-
 import{modalRegistry}from"./modalRegistry.js";
 import{isAdmin}from"../../admin/adminMode.js";
-
-// ======================================
-// Current modal
-// ======================================
 
 let currentModal=null;
 let previousModalUrl=null;
 
-// ======================================
-// Create modal
-// ======================================
-
 export function createModal({title="",content=""}){
-
     const oldModal=currentModal;
 
     const overlay=document.createElement("div");
@@ -39,35 +26,22 @@ export function createModal({title="",content=""}){
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    const closeButton=
-        modal.querySelector(".modal__close");
+    const closeButton=modal.querySelector(".modal__close");
 
     async function close(){
+        if(currentModal?.overlay!==overlay)return;
 
-        if(currentModal?.overlay!==overlay){
+        if(previousModalUrl){
+            const url=previousModalUrl;
+            previousModalUrl=null;
+
+            window.history.pushState({}, "", url);
+            await restoreModalFromUrl();
             return;
         }
 
         currentModal=null;
         overlay.remove();
-
-        if(previousModalUrl){
-
-            const url=previousModalUrl;
-
-            previousModalUrl=null;
-
-            window.history.pushState(
-                {},
-                "",
-                url
-            );
-
-            await restoreModalFromUrl();
-
-            return;
-        }
-
         clearModalUrl();
     }
 
@@ -84,82 +58,39 @@ export function createModal({title="",content=""}){
 
     return{
         root:overlay,
-        content:modal.querySelector(
-            ".modal__content"
-        ),
+        content:modal.querySelector(".modal__content"),
         close
     };
 }
 
-// ======================================
-// Set modal URL
-// ======================================
-
 export function setModalUrl(type,params={}){
+    const currentUrl=new URL(window.location.href);
 
-    const currentUrl=
-        new URL(window.location.href);
-
-    // ==================================
-    // Запоминаем текущую модалку
-    // ==================================
-
-    if(
-        currentUrl.searchParams.get("modal")
-    ){
-        previousModalUrl=
-            currentUrl.toString();
+    if(currentUrl.searchParams.get("modal")){
+        previousModalUrl=currentUrl.toString();
     }
 
-    const url=
-        new URL(window.location.href);
+    const url=new URL(window.location.href);
 
-    url.searchParams.set(
-        "modal",
-        type
-    );
+    url.searchParams.set("modal",type);
 
-    Object.entries(params).forEach(
-        ([key,value])=>{
-
-            if(
-                value===null||
-                value===undefined||
-                value===""
-            ){
-                url.searchParams.delete(key);
-                return;
-            }
-
-            url.searchParams.set(
-                key,
-                String(value)
-            );
+    Object.entries(params).forEach(([key,value])=>{
+        if(value===null||value===undefined||value===""){
+            url.searchParams.delete(key);
+            return;
         }
-    );
 
-    window.history.pushState(
-        {},
-        "",
-        url
-    );
+        url.searchParams.set(key,String(value));
+    });
+
+    window.history.pushState({}, "", url);
 }
 
-// ======================================
-// Clear modal URL
-// ======================================
-
 export function clearModalUrl(){
+    const url=new URL(window.location.href);
+    const type=url.searchParams.get("modal");
 
-    const url=
-        new URL(window.location.href);
-
-    const type=
-        url.searchParams.get("modal");
-
-    if(!type){
-        return;
-    }
+    if(!type)return;
 
     const registration=
         modalRegistry.find(
@@ -168,53 +99,23 @@ export function clearModalUrl(){
 
     url.searchParams.delete("modal");
 
-    for(
-        const key of
-        registration?.params??[]
-    ){
-
-        if(key==="id"){
-            continue;
-        }
-
+    for(const key of registration?.params??[]){
+        if(key==="id")continue;
         url.searchParams.delete(key);
     }
 
-    window.history.pushState(
-        {},
-        "",
-        url
-    );
+    window.history.pushState({}, "", url);
 }
 
-// ======================================
-// Restore modal from URL
-// ======================================
-
 export async function restoreModalFromUrl(){
-
-    const url=
-        new URL(window.location.href);
-
-    const type=
-        url.searchParams.get("modal");
-
-    // ==================================
-    // Модалки нет
-    // ==================================
+    const url=new URL(window.location.href);
+    const type=url.searchParams.get("modal");
 
     if(!type){
-
         closeCurrentModal();
-
         previousModalUrl=null;
-
         return;
     }
-
-    // ==================================
-    // Найти регистрацию
-    // ==================================
 
     const registration=
         modalRegistry.find(
@@ -222,70 +123,30 @@ export async function restoreModalFromUrl(){
         );
 
     if(!registration){
-
-        console.error(
-            "Unknown modal:",
-            type
-        );
-
+        console.error("Unknown modal:",type);
         closeCurrentModal();
-
         return;
     }
 
-    // ==================================
-    // Admin-only modal
-    // ==================================
-
-    if(
-        registration.admin&&
-        !isAdmin()
-    ){
-
+    if(registration.admin&&!isAdmin()){
         clearModalUrl();
         closeCurrentModal();
-
         return;
     }
-
-    // ==================================
-    // Получить параметры
-    // ==================================
 
     const params={};
 
-    for(
-        const key of
-        registration.params??[]
-    ){
-
-        params[key]=
-            url.searchParams.get(key);
+    for(const key of registration.params??[]){
+        params[key]=url.searchParams.get(key);
     }
-
-    // ==================================
-    // Загрузить данные
-    // ==================================
 
     let data=null;
 
     if(registration.load){
-
-        data=
-            await registration.load(
-                params
-            );
+        data=await registration.load(params);
     }
 
-    // ==================================
-    // Данные не найдены
-    // ==================================
-
-    if(
-        registration.load&&
-        !data
-    ){
-
+    if(registration.load&&!data){
         console.error(
             "Modal data not found:",
             type,
@@ -294,96 +155,52 @@ export async function restoreModalFromUrl(){
 
         clearModalUrl();
         closeCurrentModal();
-
         return;
     }
 
-    // ==================================
-    // Закрыть предыдущую
-    // ==================================
-
-    closeCurrentModal();
-
-// ======================================
-// Открыть новую
-// ======================================
-
-if(registration.open){
-
-    await registration.open(
-        data
-    );
-}
-}
-// ======================================
-// Close current modal
-// ======================================
-
-function closeCurrentModal(){
-
-    if(!currentModal){
-        return;
+    if(registration.open){
+        await registration.open(data);
     }
+}
+
+export function closeCurrentModal(){
+    if(!currentModal)return;
 
     const modal=currentModal;
 
     currentModal=null;
-
     modal.overlay.remove();
 }
-
-// ======================================
-// Browser Back / Forward
-// ======================================
 
 window.addEventListener(
     "popstate",
     async ()=>{
-
-        const url=
-            new URL(window.location.href);
-
-        if(
-            !url.searchParams.get("modal")
-        ){
-
-            closeCurrentModal();
-            previousModalUrl=null;
-
-            return;
-        }
+        const url=new URL(window.location.href);
 
         previousModalUrl=null;
+
+        if(!url.searchParams.get("modal")){
+            closeCurrentModal();
+            return;
+        }
 
         await restoreModalFromUrl();
     }
 );
 
-// ======================================
-// Subject mention links
-// ======================================
-
 document.addEventListener(
     "click",
     async event=>{
-
         const link=
-            event.target.closest(
-                ".subject-mention"
-            );
+            event.target.closest(".subject-mention");
 
-        if(!link){
-            return;
-        }
+        if(!link)return;
 
         event.preventDefault();
 
-        const href=
-            link.getAttribute("href");
+        const href=link.getAttribute("href");
 
-        if(!href){
-            return;
-        }
+        if(!href)return;
 
         const url=
             new URL(
@@ -391,35 +208,20 @@ document.addEventListener(
                 window.location.href
             );
 
-        const type=
-            url.searchParams.get("modal");
-
-        if(type!=="subject"){
+        if(url.searchParams.get("modal")!=="subject"){
             return;
         }
 
         const entityId=
             url.searchParams.get("entityId");
 
-        if(!entityId){
-            return;
-        }
+        if(!entityId)return;
 
         const currentUrl=
-            new URL(
-                window.location.href
-            );
+            new URL(window.location.href);
 
-        // ==================================
-        // Если уже открыта другая модалка,
-        // она становится предыдущей
-        // ==================================
-
-        if(
-            currentUrl.searchParams.get("modal")
-        ){
-            previousModalUrl=
-                currentUrl.toString();
+        if(currentUrl.searchParams.get("modal")){
+            previousModalUrl=currentUrl.toString();
         }
 
         currentUrl.searchParams.set(
