@@ -90,7 +90,7 @@ export function createPageUpdates(state){
             if(!state.object)return;
             state.type=await getType(state.object.typeId);
             const block=document.querySelector(".object");
-            if(block)block.outerHTML=state.renderObjectBlock(state.subjects);
+            if(block)block.outerHTML=state.renderObjectBlock();
         },
         async updateSubjectBlock(data){
             if(data)state.subject={...state.subject,...data};
