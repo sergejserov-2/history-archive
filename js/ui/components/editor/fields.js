@@ -1,7 +1,10 @@
 // ==========================================
 // Entity fields editor
 // ==========================================
-
+import{
+    setupMentionEditor,
+    renderMentions
+}from"./mentions.js";
 import {setupFieldCounters, renderFieldCounterHTML} from "./counters.js";
 
 export function renderFieldsEditorHTML(cfg = {}, entity = {}, limits = {}) {
@@ -62,21 +65,68 @@ export function renderFieldsEditorHTML(cfg = {}, entity = {}, limits = {}) {
     };
 }
 
-export function setupFieldsEditor(root,cfg={},entity={}){
-    setupFieldCounters(root);
-    return {
+export function setupFieldsEditor(
+    root,
+    cfg={},
+    entity={}
+){
+
+    const mentionEditor=
+        setupMentionEditor(
+            root,
+            cfg.subjects??[]
+        );
+
+    return{
         getData(){
+
             const data={};
-            const titleInput=root.querySelector("#entityTitle");
-            const descriptionInput=root.querySelector("#entityDescription");
-            if(titleInput)data.title=titleInput.value.trim();
-            if(descriptionInput)data.description=descriptionInput.value.trim();
-            (cfg.fields??[]).forEach(field=>{
-                if(field==="date"||field==="dateStart"||field==="dateEnd")return;
-                const input=root.querySelector(`#entity_${field}`);
-                if(input)data[field]=input.value.trim();
-            });
+
+            const titleInput=
+                root.querySelector(
+                    "#entityTitle"
+                );
+
+            const descriptionInput=
+                root.querySelector(
+                    "#entityDescription"
+                );
+
+            if(titleInput){
+                data.title=
+                    titleInput.value.trim();
+            }
+
+            if(descriptionInput){
+                data.description=
+                    descriptionInput.value.trim();
+            }
+
+            (cfg.fields??[]).forEach(
+                field=>{
+
+                    if(
+                        field==="date"||
+                        field==="dateStart"||
+                        field==="dateEnd"
+                    )return;
+
+                    const input=
+                        root.querySelector(
+                            `#entity_${field}`
+                        );
+
+                    if(input)
+                        data[field]=
+                            input.value.trim();
+                }
+            );
+
             return data;
+        },
+
+        destroy(){
+            mentionEditor?.destroy();
         }
     };
 }
