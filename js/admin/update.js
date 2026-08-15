@@ -93,24 +93,25 @@ export function createPageUpdates(state){
             const block=document.querySelector(".object");
             if(block)block.outerHTML=state.renderObjectBlock();
         },
-        async updateSubjectBlock(savedSubject=null,uploading=false){
-            if(savedSubject?.id){
-                state.subject={...state.subject,...savedSubject};
-            }
-            if(!state.subject?.id)return;
-            state.subject=await getSubject(state.subject.id);
-            if(!state.subject)return;
-            state.subject={...state.subject,isUploading:Boolean(uploading)};
-            updateSubjectModal(state.subject,{
-                subjects:state.subjects,
-                objects:state.objects,
-                photos:state.photos,
-                sources:state.sources,
-                records:state.records,
-                subjectTypes:state.subjectTypes
-            });
-            await state.renderSubjectBlock?.();
-        },
+async updateSubjectBlock(savedSubject=null,uploading=false){
+    if(savedSubject?.id){
+        state.subject={...state.subject,...savedSubject};
+    }
+    if(!state.subject?.id)return;
+    const currentUploading=state.subject.isUploading===true;
+    state.subject=await getSubject(state.subject.id);
+    if(!state.subject)return;
+    state.subject={...state.subject,isUploading:currentUploading||Boolean(uploading)};
+    updateSubjectModal(state.subject,{
+        subjects:state.subjects,
+        objects:state.objects,
+        photos:state.photos,
+        sources:state.sources,
+        records:state.records,
+        subjectTypes:state.subjectTypes
+    });
+    await state.renderSubjectBlock?.();
+},
         async updateRecordsBlock(savedRecord=null){
             if(!state.object)return;
             state.records=await getRecords(state.object.id);
