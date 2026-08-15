@@ -120,6 +120,32 @@ export function renderMentions(
 }
 
 // ======================================
+// Subject modal link
+// ======================================
+
+export function getSubjectHref(subject){
+    if(!subject?.id)return"#";
+
+    const url=new URL(
+        window.location.href
+    );
+
+    url.searchParams.set(
+        "modal",
+        "subject"
+    );
+
+    url.searchParams.set(
+        "entityId",
+        subject.id
+    );
+
+    return url.pathname+
+        "?"+
+        url.searchParams.toString();
+}
+
+// ======================================
 // Escape
 // ======================================
 
