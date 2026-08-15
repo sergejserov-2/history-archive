@@ -90,7 +90,7 @@ export function createPageUpdates(state){
             if(!state.object)return;
             state.type=await getType(state.object.typeId);
             const block=document.querySelector(".object");
-            if(block)block.outerHTML=state.renderObjectBlock();
+            if(block)block.outerHTML=state.renderObjectBlock(state.subjects);
         },
         async updateSubjectBlock(data){
             if(data)state.subject={...state.subject,...data};
@@ -104,7 +104,7 @@ export function createPageUpdates(state){
             if(savedRecord?.id&&!state.records.some(record=>record.id===savedRecord.id))state.records.push(savedRecord);
             const block=document.querySelector(".records");
             if(block){
-                block.outerHTML=renderRecords(state.records,state.recordTypes,state.admin);
+                block.outerHTML=renderRecords(state.records,state.recordTypes,state.admin,state.subjects);
                 return;
             }
             if(state.admin||state.records.length){
@@ -120,7 +120,7 @@ export function createPageUpdates(state){
             if(!gallery){
                 if(state.admin||photosForRender.length){
                     const sources=document.querySelector("#sources");
-                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
+                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin,state.subjects)}</section>`;
                     if(sources)sources.insertAdjacentHTML("beforebegin",html);
                     else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
                 }
@@ -137,14 +137,14 @@ export function createPageUpdates(state){
             if(!block){
                 if(state.admin||state.sources.length){
                     const children=document.querySelector("#children");
-                    const html=`<section id="sources"><h2>Источники</h2>${renderSources(state.sources,state.admin)}</section>`;
+                    const html=`<section id="sources"><h2>Источники</h2>${renderSources(state.sources,state.admin,state.subjects)}</section>`;
                     if(children)children.insertAdjacentHTML("beforebegin",html);
                     else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
                 }
                 return;
             }
-            block.innerHTML=`<h2>Источники</h2>${renderSources(state.sources,state.admin)}`;
-        },
+            block.innerHTML=`<h2>Источники</h2>${renderSources(state.sources,state.admin,state.subjects)}`;
+        }
         async updateChildrenBlock(){
             if(!state.object)return;
             state.children=await state.getChildren();
