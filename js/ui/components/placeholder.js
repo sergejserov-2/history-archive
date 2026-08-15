@@ -1,4 +1,4 @@
-```js
+
 // ======================================
 // Loading placeholder
 // ======================================
@@ -13,4 +13,3 @@ export function renderLoadingPlaceholder(extraClass=""){
     `;
 
 }
-```
