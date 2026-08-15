@@ -108,43 +108,35 @@ export async function getAllObjects() {
 // Get parents
 // ======================================
 
-function buildParentChains(object, objectMap, typeMap) {
-    if(!object) return [];
-
-    const validParents = Array.isArray(object.parents)
-        ? object.parents.filter(parent => parent && typeof parent === "object" && parent.objectId)
-        : [];
-
-    const type = typeMap.get(object.typeId);
-
-    if(!validParents.length) {
+function buildParentChains(object,objectMap,typeMap){
+    if(!object)return[];
+    const type=typeMap.get(object.typeId);
+    const parents=Array.isArray(object.parents)?object.parents.filter(Boolean):[];
+    const realParents=parents.filter(parent=>parent.objectId);
+    const rootAddress=parents.find(parent=>!parent.objectId)?.address;
+    if(!realParents.length){
         return [[{
-            id: object.id,
-            address: object.address ?? "",
-            level: type?.level ?? null
+            id:object.id,
+            address:rootAddress??object.address??"",
+            level:type?.level??null
         }]];
     }
-
-    const chains = [];
-
-    for(const parent of validParents) {
-        const parentObject = objectMap.get(parent.objectId);
-        if(!parentObject) continue;
-
-        const parentChains = buildParentChains(parentObject, objectMap, typeMap);
-
-        for(const parentChain of parentChains) {
+    const chains=[];
+    for(const parent of realParents){
+        const parentObject=objectMap.get(parent.objectId);
+        if(!parentObject)continue;
+        const parentChains=buildParentChains(parentObject,objectMap,typeMap);
+        for(const parentChain of parentChains){
             chains.push([
                 ...parentChain,
                 {
-                    id: object.id,
-                    address: parent.address ?? "",
-                    level: type?.level ?? null
+                    id:object.id,
+                    address:parent.address??"",
+                    level:type?.level??null
                 }
             ]);
         }
     }
-
     return chains;
 }
 
