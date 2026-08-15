@@ -161,6 +161,7 @@ export function initAdmin(page,updates={}){
 
             try{
                 await deleteEntity(
+                    "photo",
                     id,
                     {
                         ...context,
@@ -336,7 +337,8 @@ export function initAdmin(page,updates={}){
             setModalUrl(
                 "subject",
                 {
-                    entityId:subject.id}
+                    entityId:subject.id
+                }
             );
 
             await openEditor(
@@ -378,4 +380,3 @@ export function initAdmin(page,updates={}){
         }
     });
 }
-                    "photo",
