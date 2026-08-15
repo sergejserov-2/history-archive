@@ -70,7 +70,6 @@ export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sourc
 
     const modal=createModal({
         title:"Сноска",
-        width:525
         content:renderSubject(
             subject,
             subjects,
@@ -80,7 +79,8 @@ export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sourc
             records,
             subjectTypes,
             ADMIN_MODE
-        )
+        ),
+        width:525
     });
 
     if(ADMIN_MODE){
