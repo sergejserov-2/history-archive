@@ -48,23 +48,17 @@ const CONFIG={
         options:{typeSelector:true},
         updates:["updateRecordsBlock"]
     },
-subject:{
-    title:"Субъект",
-    file:true,
-    upload:uploadPhoto,
-    fileRequired:false,
-    dateMode:"period",
-    limits:{
-        title:60,
-        description:350
-    },
-    fields:["dateStart","dateEnd"],
-    options:{
-        typeSelector:true,
-        types:[]
-    },
-    updates:["updateSubjectBlock"]
-}
+    subject:{
+        title:"Субъект",
+        file:true,
+        upload:uploadPhoto,
+        fileRequired:false,
+        dateMode:"period",
+        limits:{title:60,description:350},
+        fields:["dateStart","dateEnd"],
+        options:{typeSelector:true,types:[]},
+        updates:["updateSubjectBlock"]
+    }
 };
 
 function getDefaultEntity(type){
@@ -124,19 +118,32 @@ export async function openEditor(type,entity,context={}){
             const result=await editor.getData();
             if(!result)return;
             const{data,backgroundTask}=result;
-            const updates=type==="photo"?[]:(cfg.updates??[]);
+            const updates=type==="photo"||type==="subject"?[]:(cfg.updates??[]);
             const savedEntity=await updateEntity(type,entity,data,context,updates);
             if(type==="photo"&&savedEntity?.id){
                 await context.updates?.updatePhotosBlock?.(savedEntity,Boolean(backgroundTask));
+            }
+            if(type==="subject"&&savedEntity?.id){
+                await context.updates?.updateSubjectBlock?.({...savedEntity,isUploading:Boolean(backgroundTask)});
             }
             modal.close();
             if(backgroundTask){
                 void backgroundTask(savedEntity,async(id,updateData)=>{
                     await updateEntity(type,savedEntity,updateData,context,[]);
-                    if(type==="photo"&&savedEntity?.id)await context.updates?.updatePhotosBlock?.(null,false);
+                    if(type==="photo"&&savedEntity?.id){
+                        await context.updates?.updatePhotosBlock?.(null,false);
+                    }
+                    if(type==="subject"&&savedEntity?.id){
+                        await context.updates?.updateSubjectBlock?.({id:savedEntity.id,isUploading:false});
+                    }
                 }).catch(async error=>{
                     console.error("Ошибка фоновой загрузки файла:",error);
-                    if(type==="photo"&&savedEntity?.id)await context.updates?.updatePhotosBlock?.(null,false);
+                    if(type==="photo"&&savedEntity?.id){
+                        await context.updates?.updatePhotosBlock?.(null,false);
+                    }
+                    if(type==="subject"&&savedEntity?.id){
+                        await context.updates?.updateSubjectBlock?.({id:savedEntity.id,isUploading:false});
+                    }
                 });
             }
         }catch(error){
