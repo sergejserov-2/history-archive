@@ -26,9 +26,7 @@ export function renderSubject(subject,subjects=[],subjectTypes=[],ADMIN_MODE=fal
         `;
     const description=subject.description?.trim()
         ?`
-        <div class="object__description">
-            ${renderMentions(subject.description.trim(),subjects,getSubjectHref)}
-        </div>
+        <div class="object__description">${renderMentions(subject.description.trim(),subjects,getSubjectHref)}</div>
         `
         :"";
     return`
@@ -57,7 +55,6 @@ export function renderSubject(subject,subjects=[],subjectTypes=[],ADMIN_MODE=fal
                     <div class="subject-modal__mentions">
                         <div class="subject-modal__mentions-title">Упоминания</div>
                         <div class="subject-modal__mentions-list">
-                            ${renderMentions(subject.description?.trim()??"",subjects,getSubjectHref)}
                         </div>
                     </div>
                 </div>
