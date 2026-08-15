@@ -12,7 +12,7 @@ export function createModal({title="",content="", width=null}){
 
     const modal=document.createElement("div");
     modal.className="modal";
-
+if(width)modal.style.setProperty("--modal-width",`${width}px`);
     modal.innerHTML=`
         <div class="modal__header">
             <h2>${title}</h2>
