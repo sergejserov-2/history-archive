@@ -146,7 +146,11 @@ function renderObjectBlock(){
                 ${
                     pageObject.description?.trim()
                     ?
-                    `<div class="object__description">${renderMentions(pageObject.description.trim(),pageSubjects,subject=>`subject.html?id=${subject.id}`)}</div>`
+                    `<div class="object__description">${renderMentions(
+    record.description.trim(),
+    subjects,
+    getSubjectHref
+)}</div>`
                     :
                     ""
                 }
