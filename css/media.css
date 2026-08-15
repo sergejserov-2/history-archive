@@ -22,7 +22,7 @@
 .photo-card__media {
     width: 150px;
     aspect-ratio: 1 / 1;
-
+    position: relative;
     background: var(--color-media);
     cursor: pointer;
 }
