@@ -56,11 +56,17 @@ if(width)modal.style.setProperty("--modal-width",`${width}px`);
         oldModal.overlay.remove();
     }
 
-    return{
-        root:overlay,
-        content:modal.querySelector(".modal__content"),
-        close
-    };
+return{
+    root:overlay,
+    content:modal.querySelector(".modal__content"),
+    setContent(html){
+        const contentElement=modal.querySelector(".modal__content");
+        if(contentElement){
+            contentElement.innerHTML=html;
+        }
+    },
+    close
+};
 }
 
 export function setModalUrl(type,params={}){
