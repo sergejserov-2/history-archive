@@ -2,6 +2,7 @@ import{createDropdown}from"../dropdown.js";
 
 const MENTION_PATTERN=/\[([^|\]]+)\|([^\]]*)\]/g;
 const MENTION_TRIGGER="[";
+
 export function getMentions(text=""){
     return[...text.matchAll(MENTION_PATTERN)].map(match=>({
         subjectId:match[1].trim(),
@@ -11,7 +12,9 @@ export function getMentions(text=""){
 
 export function setupMentionEditor(root,subjects=[]){
     const textarea=root.querySelector("#entityDescription");
+
     if(!textarea)return null;
+
     let dropdown=null;
     let mentionStart=null;
 
@@ -23,18 +26,29 @@ export function setupMentionEditor(root,subjects=[]){
 
     function getMentionState(){
         const position=textarea.selectionStart;
-        if(position!==textarea.selectionEnd)return null;
+
+        if(position!==textarea.selectionEnd)
+            return null;
 
         const before=textarea.value.slice(0,position);
-        const start=before.lastIndexOf(MENTION_TRIGGER);
 
-        if(start<0)return null;
+        const start=
+            before.lastIndexOf(MENTION_TRIGGER);
 
-        const fragment=before.slice(start+1);
+        if(start<0)
+            return null;
 
-        if(fragment.includes("]"))return null;
-        if(fragment.includes("|"))return null;
-        if(fragment.includes("\n"))return null;
+        const fragment=
+            before.slice(start+1);
+
+        if(fragment.includes("]"))
+            return null;
+
+        if(fragment.includes("|"))
+            return null;
+
+        if(fragment.includes("\n"))
+            return null;
 
         return{
             start,
@@ -44,36 +58,62 @@ export function setupMentionEditor(root,subjects=[]){
 
     function getCursorPosition(){
         const style=getComputedStyle(textarea);
-        const position=textarea.selectionStart;
-        const text=textarea.value.slice(0,position);
-        const lines=text.split("\n");
-        const lineText=lines.at(-1)??"";
 
-        const mirror=document.createElement("div");
+        const position=textarea.selectionStart;
+
+        const text=
+            textarea.value.slice(0,position);
+
+        const lines=text.split("\n");
+
+        const lineText=
+            lines.at(-1)??"";
+
+        const mirror=
+            document.createElement("div");
+
         mirror.style.position="fixed";
         mirror.style.visibility="hidden";
         mirror.style.whiteSpace="pre-wrap";
         mirror.style.wordWrap="break-word";
         mirror.style.boxSizing="border-box";
-        mirror.style.width=`${textarea.clientWidth}px`;
+        mirror.style.width=
+            `${textarea.clientWidth}px`;
         mirror.style.padding=style.padding;
         mirror.style.border=style.border;
         mirror.style.font=style.font;
-        mirror.style.lineHeight=style.lineHeight;
-        mirror.textContent=lineText||" ";
+        mirror.style.lineHeight=
+            style.lineHeight;
 
-        const marker=document.createElement("span");
+        mirror.textContent=
+            lineText||" ";
+
+        const marker=
+            document.createElement("span");
+
         marker.textContent="\u200b";
+
         mirror.appendChild(marker);
 
         document.body.appendChild(mirror);
 
-        const rect=marker.getBoundingClientRect();
-        const textareaRect=textarea.getBoundingClientRect();
+        const rect=
+            marker.getBoundingClientRect();
+
+        const mirrorRect=
+            mirror.getBoundingClientRect();
+
+        const textareaRect=
+            textarea.getBoundingClientRect();
 
         const result={
-            left:textareaRect.left+(rect.left-mirror.getBoundingClientRect().left),
-            top:textareaRect.top+(rect.top-mirror.getBoundingClientRect().top)
+            left:
+                textareaRect.left+
+                (rect.left-mirrorRect.left),
+
+            top:
+                textareaRect.top+
+                (rect.top-mirrorRect.top)
         };
 
         mirror.remove();
@@ -82,43 +122,61 @@ export function setupMentionEditor(root,subjects=[]){
     }
 
     function showDropdown(state){
-        if(!state)return;
-
-        mentionStart=state.start;
-
-        const query=state.query
-            .trim()
-            .toLocaleLowerCase("ru");
-
-        const filtered=subjects.filter(subject=>
-            (subject.title??"")
-                .toLocaleLowerCase("ru")
-                .includes(query)
-        );
-
-        if(!filtered.length){
+        if(!state){
             removeDropdown();
             return;
         }
 
-const dropdown=createDropdown({
-    className:"entity-mention-dropdown",
-    maxHeight:240,
-    matchAnchorWidth:false
-});
+        // Обязательно уничтожаем предыдущий dropdown.
+        removeDropdown();
+
+        mentionStart=state.start;
+
+        const query=
+            state.query
+                .trim()
+                .toLocaleLowerCase("ru");
+
+        const filtered=
+            subjects.filter(subject=>
+                (subject.title??"")
+                    .toLocaleLowerCase("ru")
+                    .includes(query)
+            );
+
+        if(!filtered.length)
+            return;
+
+        dropdown=
+            createDropdown({
+                className:
+                    "entity-mention-dropdown",
+
+                maxHeight:240,
+
+                matchAnchorWidth:false
+            });
 
         dropdown.setItems(
             filtered.map(subject=>({
                 id:subject.id,
-                title:subject.title??"Без названия"
+                title:
+                    subject.title??
+                    "Без названия"
             })),
             {
                 onSelect(subject){
-                    const position=textarea.selectionStart;
-                    const value=textarea.value;
+                    const position=
+                        textarea.selectionStart;
+
+                    const value=
+                        textarea.value;
 
                     textarea.value=
-                        value.slice(0,mentionStart)+
+                        value.slice(
+                            0,
+                            mentionStart
+                        )+
                         `[${subject.id}|`+
                         value.slice(position);
 
@@ -128,56 +186,129 @@ const dropdown=createDropdown({
                         2;
 
                     textarea.focus();
-                    textarea.setSelectionRange(cursor,cursor);
+
+                    textarea.setSelectionRange(
+                        cursor,
+                        cursor
+                    );
 
                     removeDropdown();
                 }
             }
         );
 
-        const cursor=getCursorPosition();
+        const cursor=
+            getCursorPosition();
 
-        dropdown.element.style.left=`${cursor.left}px`;
-        dropdown.element.style.top=`${cursor.top+22}px`;
-        dropdown.element.style.width="280px";
+        // Используем сам dropdown как
+        // визуальный элемент под курсором.
+        dropdown.element.style.left=
+            `${cursor.left}px`;
 
-        dropdown.open();
+        dropdown.element.style.top=
+            `${cursor.top+22}px`;
+
+        // Никаких 280px.
+        // Ширина определяется CSS.
+        dropdown.open(
+            textarea
+        );
+
+        // open() при matchAnchorWidth:false
+        // очищает width, поэтому возвращаем
+        // позицию под курсор после него.
+        dropdown.element.style.left=
+            `${cursor.left}px`;
+
+        dropdown.element.style.top=
+            `${cursor.top+22}px`;
     }
 
-    textarea.addEventListener("keydown",event=>{
-        if(event.key!==MENTION_TRIGGER)return;
-        if(textarea.selectionStart!==textarea.selectionEnd)return;
+    textarea.addEventListener(
+        "keydown",
+        event=>{
+            if(
+                event.key!==MENTION_TRIGGER
+            )
+                return;
 
-        setTimeout(()=>{
-            const state=getMentionState();
-            if(state)showDropdown(state);
-        },0);
-    });
+            if(
+                textarea.selectionStart!==
+                textarea.selectionEnd
+            )
+                return;
 
-    textarea.addEventListener("input",()=>{
-        const state=getMentionState();
+            // Сам символ "[" НЕ блокируем.
+            // Он должен попасть в textarea.
+            setTimeout(()=>{
+                const state=
+                    getMentionState();
 
-        if(!state){
-            removeDropdown();
-            return;
+                if(state)
+                    showDropdown(state);
+            },0);
         }
+    );
 
-        showDropdown(state);
-    });
+    textarea.addEventListener(
+        "input",
+        ()=>{
+            const state=
+                getMentionState();
 
-    textarea.addEventListener("click",()=>{
-        const state=getMentionState();
+            if(!state){
+                removeDropdown();
+                return;
+            }
 
-        if(state)showDropdown(state);
-        else removeDropdown();
-    });
+            showDropdown(state);
+        }
+    );
 
-    textarea.addEventListener("blur",()=>{
-        setTimeout(removeDropdown,150);
-    });
+    textarea.addEventListener(
+        "click",
+        ()=>{
+            const state=
+                getMentionState();
+
+            if(state)
+                showDropdown(state);
+            else
+                removeDropdown();
+        }
+    );
+
+    textarea.addEventListener(
+        "blur",
+        ()=>{
+            setTimeout(
+                removeDropdown,
+                150
+            );
+        }
+    );
+
+    // Если редактор удалён из DOM,
+    // гарантированно уничтожаем dropdown.
+    const observer=
+        new MutationObserver(()=>{
+            if(!root.isConnected){
+                observer.disconnect();
+                removeDropdown();
+            }
+        });
+
+    observer.observe(
+        document.body,
+        {
+            childList:true,
+            subtree:true
+        }
+    );
 
     return{
         destroy(){
+            observer.disconnect();
             removeDropdown();
         }
     };
@@ -190,17 +321,19 @@ export function renderMentions(
 ){
     if(!text)return"";
 
-    const subjectMap=new Map(
-        subjects.map(subject=>[
-            subject.id,
-            subject
-        ])
-    );
+    const subjectMap=
+        new Map(
+            subjects.map(subject=>[
+                subject.id,
+                subject
+            ])
+        );
 
     return escapeHTML(text).replace(
         MENTION_PATTERN,
         (match,id,label)=>{
-            const subject=subjectMap.get(id.trim());
+            const subject=
+                subjectMap.get(id.trim());
 
             if(!subject)
                 return label||match;
@@ -216,16 +349,17 @@ export function renderMentions(
                     class="subject-mention"
                 >${escapeHTML(label.trim())}</a>
             `;
-        }
-    );
+        });
 }
 
 export function getSubjectHref(subject){
-    if(!subject?.id)return"#";
+    if(!subject?.id)
+        return"#";
 
-    const url=new URL(
-        window.location.href
-    );
+    const url=
+        new URL(
+            window.location.href
+        );
 
     url.searchParams.set(
         "modal",
@@ -248,5 +382,5 @@ function escapeHTML(value=""){
         .replaceAll("<","&lt;")
         .replaceAll(">","&gt;")
         .replaceAll('"',"&quot;")
-        .replaceAll("'","'");
+        .replaceAll("'","");
 }
