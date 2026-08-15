@@ -14,7 +14,7 @@ import{getSources}from"../../api/sources.js";
 import{renderSources}from"../components/sources.js";
 import{getSubjects}from"../../api/subjects.js";
 import{renderStatusBadgeHTML}from"../components/editor/status.js";
-import{renderMentions}from"../components/mentionLink.js";
+import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
 import{restoreModalFromUrl}from"../components/modal.js";
 import{createPageUpdates}from"../../admin/update.js";
 
