@@ -62,7 +62,7 @@ export function renderSubject(subject,subjects=[]){
                         `
                         <div class="subject-modal__description">
                             ${renderMentions(
-    record.description.trim(),
+    subject.description.trim(),
     subjects,
     getSubjectHref
 )}
