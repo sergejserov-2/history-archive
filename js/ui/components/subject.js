@@ -1,4 +1,4 @@
-import{renderMentions}from"./mentionLink.js";
+import{renderMentions, getSubjectHref}from"./mentionLink.js";
 import{setupMentionEditor}from"./editor/mentions.js";
 
 export function renderSubject(subject,subjects=[]){
