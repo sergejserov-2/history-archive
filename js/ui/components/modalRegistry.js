@@ -10,7 +10,7 @@ import {getTypes} from "../../api/types.js";
 import {getSubject, getSubjects} from "../../api/subjects.js";
 import {openPhotoViewer} from "./photoViewer.js";
 import {openEditor} from "../../admin/editorConfig.js";
-
+import {openSubjectModal} from"./subject.js";
 // ======================================
 // PHOTO PREVIEW
 // ======================================
@@ -165,33 +165,34 @@ export const loginModal = {
 // SUBJECT
 // ======================================
 
-export const subjectModal = {
+// ======================================
+// SUBJECT
+// ======================================
+export const subjectModal={
     type:"subject",
     params:["id","entityId"],
     load:async params=>{
         if(!params.id||!params.entityId)return null;
-
         const subject=
             await getSubject(
                 params.entityId
             );
-
         if(!subject)return null;
-
+        const subjects=
+            await getSubjects();
         return{
-            subject
+            subject,
+            subjects
         };
     },
     open:async data=>{
         if(!data)return;
-
-        // Пока компонент не создан.
-        // Здесь позже будет:
-        // openSubjectModal(data.subject);
-
-        console.log(
-            "Subject modal:",
-            data.subject
+        openSubjectModal(
+            data.subject,
+            {
+                subjects:data.subjects,
+                fromUrl:true
+            }
         );
     }
 };
