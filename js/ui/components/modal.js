@@ -1,17 +1,23 @@
 // ======================================
-// MODAL COMPONENT
+// Modal component
 // ======================================
 
 import{modalRegistry}from"./modalRegistry.js";
 import{isAdmin}from"../../admin/adminMode.js";
 
+// ======================================
+// Current modal
+// ======================================
+
 let currentModal=null;
+let previousModalUrl=null;
 
 // ======================================
 // Create modal
 // ======================================
 
 export function createModal({title="",content=""}){
+
     closeCurrentModal();
 
     const overlay=document.createElement("div");
@@ -25,19 +31,51 @@ export function createModal({title="",content=""}){
             <h2>${title}</h2>
             <span class="modal__close">×</span>
         </div>
-        <div class="modal__content">${content}</div>
+        <div class="modal__content">
+            ${content}
+        </div>
     `;
 
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    const closeButton=modal.querySelector(".modal__close");
+    const closeButton=
+        modal.querySelector(".modal__close");
 
-    function close(){
-        if(currentModal?.overlay!==overlay)return;
+    async function close(){
+
+        if(currentModal?.overlay!==overlay){
+            return;
+        }
 
         currentModal=null;
         overlay.remove();
+
+        // ==================================
+        // Вернуться к предыдущей модалке
+        // ==================================
+
+        if(previousModalUrl){
+
+            const url=previousModalUrl;
+
+            previousModalUrl=null;
+
+            window.history.pushState(
+                {},
+                "",
+                url
+            );
+
+            await restoreModalFromUrl();
+
+            return;
+        }
+
+        // ==================================
+        // Обычное закрытие
+        // ==================================
+
         clearModalUrl();
     }
 
@@ -50,7 +88,9 @@ export function createModal({title="",content=""}){
 
     return{
         root:overlay,
-        content:modal.querySelector(".modal__content"),
+        content:modal.querySelector(
+            ".modal__content"
+        ),
         close
     };
 }
@@ -60,20 +100,53 @@ export function createModal({title="",content=""}){
 // ======================================
 
 export function setModalUrl(type,params={}){
-    const url=new URL(window.location.href);
 
-    url.searchParams.set("modal",type);
+    const currentUrl=
+        new URL(window.location.href);
 
-    Object.entries(params).forEach(([key,value])=>{
-        if(value===null||value===undefined||value===""){
-            url.searchParams.delete(key);
-            return;
+    // ==================================
+    // Запоминаем текущую модалку
+    // ==================================
+
+    if(
+        currentUrl.searchParams.get("modal")
+    ){
+        previousModalUrl=
+            currentUrl.toString();
+    }
+
+    const url=
+        new URL(window.location.href);
+
+    url.searchParams.set(
+        "modal",
+        type
+    );
+
+    Object.entries(params).forEach(
+        ([key,value])=>{
+
+            if(
+                value===null||
+                value===undefined||
+                value===""
+            ){
+                url.searchParams.delete(key);
+                return;
+            }
+
+            url.searchParams.set(
+                key,
+                String(value)
+            );
         }
+    );
 
-        url.searchParams.set(key,String(value));
-    });
-
-    window.history.pushState({}, "", url);
+    window.history.pushState(
+        {},
+        "",
+        url
+    );
 }
 
 // ======================================
@@ -81,11 +154,16 @@ export function setModalUrl(type,params={}){
 // ======================================
 
 export function clearModalUrl(){
-    const url=new URL(window.location.href);
 
-    const type=url.searchParams.get("modal");
+    const url=
+        new URL(window.location.href);
 
-    if(!type)return;
+    const type=
+        url.searchParams.get("modal");
+
+    if(!type){
+        return;
+    }
 
     const registration=
         modalRegistry.find(
@@ -94,12 +172,23 @@ export function clearModalUrl(){
 
     url.searchParams.delete("modal");
 
-    for(const key of registration?.params??[]){
-        if(key==="id")continue;
+    for(
+        const key of
+        registration?.params??[]
+    ){
+
+        if(key==="id"){
+            continue;
+        }
+
         url.searchParams.delete(key);
     }
 
-    window.history.pushState({}, "", url);
+    window.history.pushState(
+        {},
+        "",
+        url
+    );
 }
 
 // ======================================
@@ -107,14 +196,29 @@ export function clearModalUrl(){
 // ======================================
 
 export async function restoreModalFromUrl(){
-    const url=new URL(window.location.href);
 
-    const type=url.searchParams.get("modal");
+    const url=
+        new URL(window.location.href);
+
+    const type=
+        url.searchParams.get("modal");
+
+    // ==================================
+    // Модалки нет
+    // ==================================
 
     if(!type){
+
         closeCurrentModal();
+
+        previousModalUrl=null;
+
         return;
     }
+
+    // ==================================
+    // Найти регистрацию
+    // ==================================
 
     const registration=
         modalRegistry.find(
@@ -122,31 +226,70 @@ export async function restoreModalFromUrl(){
         );
 
     if(!registration){
-        console.error("Unknown modal:",type);
-        clearModalUrl();
+
+        console.error(
+            "Unknown modal:",
+            type
+        );
+
         closeCurrentModal();
+
         return;
     }
 
-    if(registration.admin&&!isAdmin()){
+    // ==================================
+    // Admin-only modal
+    // ==================================
+
+    if(
+        registration.admin&&
+        !isAdmin()
+    ){
+
         clearModalUrl();
         closeCurrentModal();
+
         return;
     }
+
+    // ==================================
+    // Получить параметры
+    // ==================================
 
     const params={};
 
-    for(const key of registration.params??[]){
-        params[key]=url.searchParams.get(key);
+    for(
+        const key of
+        registration.params??[]
+    ){
+
+        params[key]=
+            url.searchParams.get(key);
     }
+
+    // ==================================
+    // Загрузить данные
+    // ==================================
 
     let data=null;
 
     if(registration.load){
-        data=await registration.load(params);
+
+        data=
+            await registration.load(
+                params
+            );
     }
 
-    if(registration.load&&!data){
+    // ==================================
+    // Данные не найдены
+    // ==================================
+
+    if(
+        registration.load&&
+        !data
+    ){
+
         console.error(
             "Modal data not found:",
             type,
@@ -155,13 +298,25 @@ export async function restoreModalFromUrl(){
 
         clearModalUrl();
         closeCurrentModal();
+
         return;
     }
 
+    // ==================================
+    // Закрыть предыдущую
+    // ==================================
+
     closeCurrentModal();
 
+    // ==================================
+    // Открыть новую
+    // ==================================
+
     if(registration.open){
-        await registration.open(data);
+
+        await registration.open(
+            data
+        );
     }
 }
 
@@ -169,8 +324,11 @@ export async function restoreModalFromUrl(){
 // Close current modal
 // ======================================
 
-export function closeCurrentModal(){
-    if(!currentModal)return;
+function closeCurrentModal(){
+
+    if(!currentModal){
+        return;
+    }
 
     const modal=currentModal;
 
@@ -185,8 +343,24 @@ export function closeCurrentModal(){
 
 window.addEventListener(
     "popstate",
-    ()=>{
-        restoreModalFromUrl();
+    async ()=>{
+
+        const url=
+            new URL(window.location.href);
+
+        if(
+            !url.searchParams.get("modal")
+        ){
+
+            closeCurrentModal();
+            previousModalUrl=null;
+
+            return;
+        }
+
+        previousModalUrl=null;
+
+        await restoreModalFromUrl();
     }
 );
 
@@ -197,19 +371,24 @@ window.addEventListener(
 document.addEventListener(
     "click",
     async event=>{
+
         const link=
             event.target.closest(
                 ".subject-mention"
             );
 
-        if(!link)return;
+        if(!link){
+            return;
+        }
 
         event.preventDefault();
 
         const href=
             link.getAttribute("href");
 
-        if(!href)return;
+        if(!href){
+            return;
+        }
 
         const url=
             new URL(
@@ -220,17 +399,33 @@ document.addEventListener(
         const type=
             url.searchParams.get("modal");
 
-        if(type!=="subject")return;
+        if(type!=="subject"){
+            return;
+        }
 
         const entityId=
             url.searchParams.get("entityId");
 
-        if(!entityId)return;
+        if(!entityId){
+            return;
+        }
 
         const currentUrl=
             new URL(
                 window.location.href
             );
+
+        // ==================================
+        // Если уже открыта другая модалка,
+        // она становится предыдущей
+        // ==================================
+
+        if(
+            currentUrl.searchParams.get("modal")
+        ){
+            previousModalUrl=
+                currentUrl.toString();
+        }
 
         currentUrl.searchParams.set(
             "modal",
