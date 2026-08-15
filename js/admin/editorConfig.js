@@ -145,3 +145,4 @@ setupEditorButtons(root,async()=>{
         alert("Ошибка сохранения");
     }
 },()=>modal.close());
+}
