@@ -1,6 +1,6 @@
-import{getPhotos}from"../../api/photos.js";
-import{getSources}from"../../api/sources.js";
-import{getRecords}from"../../api/records.js";
+import{getPhotos,getAllPhotos}from"../../api/photos.js";
+import{getSources,getAllSources}from"../../api/sources.js";
+import{getRecords,getAllRecords}from"../../api/records.js";
 import{getObject,getType,getChildren,getAllObjects}from"../../api/objects.js";
 import{getTypes}from"../../api/types.js";
 import{getSubject,getSubjects}from"../../api/subjects.js";
@@ -30,12 +30,10 @@ export const editorModal={
     params:["id","entityId","entityType"],
     load:async params=>{
         if(!params.id||!params.entityType)return null;
-
         const objects=await getAllObjects();
 
         if(params.entityType==="object"){
             if(!params.entityId)return null;
-
             const object=await getObject(params.entityId);
             if(!object)return null;
 
@@ -61,10 +59,7 @@ export const editorModal={
                 children,
                 photos,
                 types,
-                context:{
-                    parentId:params.id,
-                    objects
-                }
+                context:{parentId:params.id,objects}
             };
         }
 
@@ -75,27 +70,18 @@ export const editorModal={
 
         let entities=[];
 
-        if(params.entityType==="photo")
-            entities=await getPhotos(params.id);
-
-        if(params.entityType==="source")
-            entities=await getSources(params.id);
-
-        if(params.entityType==="record")
-            entities=await getRecords(params.id);
+        if(params.entityType==="photo")entities=await getPhotos(params.id);
+        if(params.entityType==="source")entities=await getSources(params.id);
+        if(params.entityType==="record")entities=await getRecords(params.id);
 
         const entity=entities.find(item=>item.id===params.entityId);
-
         if(!entity)return null;
 
         return{
             entity,
             type:params.entityType,
             objects,
-            context:{
-                parentId:params.id,
-                objects
-            }
+            context:{parentId:params.id,objects}
         };
     },
     open:async data=>{
@@ -138,21 +124,48 @@ export const subjectModal={
     params:["id","entityId"],
     load:async params=>{
         if(!params.id||!params.entityId)return null;
-        const[subject,subjects,objects]=await Promise.all([
+
+        const[
+            subject,
+            subjects,
+            objects,
+            photos,
+            sources,
+            records
+        ]=await Promise.all([
             getSubject(params.entityId),
             getSubjects(),
-            getAllObjects()
+            getAllObjects(),
+            getAllPhotos(),
+            getAllSources(),
+            getAllRecords()
         ]);
+
         if(!subject)return null;
-        return{subject,subjects,objects};
+
+        return{
+            subject,
+            subjects,
+            objects,
+            photos,
+            sources,
+            records
+        };
     },
     open:async data=>{
         if(!data)return;
-        openSubjectModal(data.subject,{
-            subjects:data.subjects,
-            objects:data.objects,
-            fromUrl:true
-        });
+
+        openSubjectModal(
+            data.subject,
+            {
+                subjects:data.subjects,
+                objects:data.objects,
+                photos:data.photos,
+                sources:data.sources,
+                records:data.records,
+                fromUrl:true
+            }
+        );
     }
 };
 
