@@ -127,8 +127,6 @@ export async function openEditor(type,entity,context={}){
                 await context.updates?.updateSubjectBlock?.(savedEntity,Boolean(backgroundTask));
             }
             modal.close();
-await modal.close();
-
 if(backgroundTask){
     void backgroundTask(savedEntity,async(id,updateData)=>{
         await updateEntity(type,savedEntity,updateData,context,[]);
