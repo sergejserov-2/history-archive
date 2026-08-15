@@ -138,24 +138,21 @@ export const subjectModal={
     params:["id","entityId"],
     load:async params=>{
         if(!params.id||!params.entityId)return null;
-
-        const subject=await getSubject(params.entityId);
+        const[subject,subjects,objects]=await Promise.all([
+            getSubject(params.entityId),
+            getSubjects(),
+            getAllObjects()
+        ]);
         if(!subject)return null;
-
-        const subjects=await getSubjects();
-
-        return{subject,subjects};
+        return{subject,subjects,objects};
     },
     open:async data=>{
         if(!data)return;
-
-        openSubjectModal(
-            data.subject,
-            {
-                subjects:data.subjects,
-                fromUrl:true
-            }
-        );
+        openSubjectModal(data.subject,{
+            subjects:data.subjects,
+            objects:data.objects,
+            fromUrl:true
+        });
     }
 };
 
