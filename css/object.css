@@ -550,13 +550,13 @@
 }
 
 .subject-mention {
-    color: #d8c9a8;
+    color: #70aeff;
     text-decoration: none;
     cursor: pointer;
 }
 
 .subject-mention:hover {
-    color: #eadbbd;
+    color: #70aeff;
     text-decoration: none;
 }
 
