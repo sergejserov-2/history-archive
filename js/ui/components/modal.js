@@ -18,7 +18,7 @@ let previousModalUrl=null;
 
 export function createModal({title="",content=""}){
 
-    closeCurrentModal();
+    const oldModal=currentModal;
 
     const overlay=document.createElement("div");
     overlay.className="modal-overlay";
@@ -51,10 +51,6 @@ export function createModal({title="",content=""}){
         currentModal=null;
         overlay.remove();
 
-        // ==================================
-        // Вернуться к предыдущей модалке
-        // ==================================
-
         if(previousModalUrl){
 
             const url=previousModalUrl;
@@ -72,10 +68,6 @@ export function createModal({title="",content=""}){
             return;
         }
 
-        // ==================================
-        // Обычное закрытие
-        // ==================================
-
         clearModalUrl();
     }
 
@@ -85,6 +77,10 @@ export function createModal({title="",content=""}){
         overlay,
         close
     };
+
+    if(oldModal){
+        oldModal.overlay.remove();
+    }
 
     return{
         root:overlay,
@@ -308,16 +304,15 @@ export async function restoreModalFromUrl(){
 
     closeCurrentModal();
 
-    // ==================================
-    // Открыть новую
-    // ==================================
+// ======================================
+// Открыть новую
+// ======================================
 
-    if(registration.open){
+if(registration.open){
 
-        await registration.open(
-            data
-        );
-    }
+    await registration.open(
+        data
+    );
 }
 
 // ======================================
