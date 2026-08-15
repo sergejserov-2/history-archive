@@ -48,7 +48,11 @@ export function renderRecords(records,recordTypes=[],ADMIN_MODE=false,subjects=[
                 ${
                     record.description?.trim()
                     ?
-                    `<div class="record__description">${renderMentions(record.description.trim(),subjects,subject=>`subject.html?id=${subject.id}`)}</div>`
+                    `<div class="record__description">${renderMentions(
+    record.description.trim(),
+    subjects,
+    getSubjectHref
+)}</div>`
                     :
                     ""
                 }
