@@ -92,3 +92,36 @@
 }
 
 .subject-modal__cover{ position:relative; overflow:hidden; } .subject-modal__cover-image--loading{ opacity:0; }
+
+
+@keyframes photo-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes photo-loading-bg {
+    0% {
+        filter: saturate(.85);
+        transform: scale(1);
+    }
+
+    100% {
+        filter: saturate(1.15);
+        transform: scale(1.04);
+    }
+}
+
+@keyframes photo-loading-blur {
+    0% {
+        transform:
+            translate3d(-4%,-2%,0)
+            scale(1.05);
+    }
+
+    100% {
+        transform:
+            translate3d(4%,3%,0)
+            scale(1.15);
+    }
+}
