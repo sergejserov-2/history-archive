@@ -1,4 +1,4 @@
-import{renderMentions}from"./mentionLink.js";
+import{renderMentions, getSubjectHref}from"./mentionLink.js";
 
 export function renderRecords(records,recordTypes=[],ADMIN_MODE=false,subjects=[]){
     const groups=[];
