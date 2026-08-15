@@ -13,6 +13,7 @@ import{renderPhotos}from"../components/photos.js";
 import{getSources}from"../../api/sources.js";
 import{renderSources}from"../components/sources.js";
 import{getSubjects}from"../../api/subjects.js";
+import{getSubjectTypes}from"../../api/subjectTypes.js";
 import{renderStatusBadgeHTML}from"../components/editor/status.js";
 import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
 import{restoreModalFromUrl}from"../components/modal.js";
@@ -28,6 +29,7 @@ let pageRecords=[];
 let pagePhotos=[];
 let pageSources=[];
 let pageSubjects=[];
+let pageSubjectTypes=[];
 let pageRecordTypes=[];
 let pageAdminMode=false;
 let pageTypes=[];
@@ -47,8 +49,9 @@ const page={
     set photos(value){pagePhotos=value;},
     get sources(){return pageSources;},
     set sources(value){pageSources=value;},
-    get subjects(){return pageSubjects;},
-    get recordTypes(){return pageRecordTypes;},
+get subjects(){return pageSubjects;},
+get subjectTypes(){return pageSubjectTypes;},
+get recordTypes(){return pageRecordTypes;},
     get admin(){return pageAdminMode;},
     get objects(){return pageObjects;},
     get types(){return pageTypes;},
@@ -88,15 +91,26 @@ async function loadPage(){
     console.time("getPhotos");
     console.time("getSources");
     console.time("getSubjects");
-    [pageRecordTypes,pageParents,pageChildren,pageRecords,pagePhotos,pageSources,pageSubjects]=await Promise.all([
-        timed("getRecordTypes",getRecordTypes()),
-        timed("getParents",getParents(object,objects,types)),
-        getChildren(object.id,objects),
-        timed("getRecords",getRecords(object.id)),
-        timed("getPhotos",getPhotos(object.id)),
-        timed("getSources",getSources(object.id)),
-        timed("getSubjects",getSubjects())
-    ]);
+    console.time("getSubjectTypes");
+[
+    pageRecordTypes,
+    pageSubjectTypes,
+    pageParents,
+    pageChildren,
+    pageRecords,
+    pagePhotos,
+    pageSources,
+    pageSubjects
+]=await Promise.all([
+    timed("getRecordTypes",getRecordTypes()),
+    timed("getSubjectTypes",getSubjectTypes()),
+    timed("getParents",getParents(object,objects,types)),
+    getChildren(object.id,objects),
+    timed("getRecords",getRecords(object.id)),
+    timed("getPhotos",getPhotos(object.id)),
+    timed("getSources",getSources(object.id)),
+    timed("getSubjects",getSubjects())
+]);
     console.timeEnd("LOAD DATA");
     console.time("RENDER PAGE");
     await renderPage();
