@@ -7,7 +7,11 @@ import{setupMentionEditor}from"./editor/mentions.js";
 // ======================================
 // Render subject
 // ======================================
-export function renderSubject(subject,subjects=[]){
+export function renderSubject(
+    subject,
+    subjects=[],
+    ADMIN_MODE=false
+){
     if(!subject)return"";
     const years=
         subject.dateStart&&subject.dateEnd
@@ -46,12 +50,12 @@ export function renderSubject(subject,subjects=[]){
             <div class="subject-modal__card">
                 ${cover}
                 <div class="subject-modal__info">
-  <h1 class="subject-modal__title">
+<h1 class="subject-modal__title">
     <span class="subject-modal__title-text">
         ${subject.title??""}
     </span>
     ${
-        pageAdminMode
+        ADMIN_MODE
         ?
         `
         <button
@@ -59,20 +63,14 @@ export function renderSubject(subject,subjects=[]){
             data-action="edit-subject"
             data-id="${subject.id}"
         >
-            <img
-                src="icons/edit.svg"
-                class="admin-icon"
-            >
+            <img src="icons/edit.svg" class="admin-icon">
         </button>
         <button
             class="admin-button"
             data-action="delete-subject"
             data-id="${subject.id}"
         >
-            <img
-                src="icons/delete.svg"
-                class="admin-icon"
-            >
+            <img src="icons/delete.svg" class="admin-icon">
         </button>
         `
         :
