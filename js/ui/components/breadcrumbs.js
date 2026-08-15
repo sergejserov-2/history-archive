@@ -77,20 +77,35 @@ export function renderBreadcrumbs(
             .map(
                 chain => {
 
-                    const parts =
-                        chain.map(
-                            item => `
-                                <a
-                                    class="breadcrumbs__item"
-                                    href="object.html?id=${item.id}"
-                                >
-                                    ${
-                                        item.address ||
-                                        "Без адреса"
-                                    }
-                                </a>
-                            `
-                        );
+const parts =
+    chain.map(item => {
+
+        const address =
+            item.address ||
+            "Без адреса";
+
+        if(!item.id){
+
+            return `
+                <span
+                    class="breadcrumbs__item"
+                >
+                    ${address}
+                </span>
+            `;
+
+        }
+
+        return `
+            <a
+                class="breadcrumbs__item"
+                href="object.html?id=${item.id}"
+            >
+                ${address}
+            </a>
+        `;
+
+    });
 
                     return `
                         <div class="breadcrumbs__chain">
