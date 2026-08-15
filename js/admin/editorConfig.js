@@ -53,7 +53,6 @@ subject:{
     file:true,
     upload:uploadPhoto,
     fileRequired:false,
-    parentsType:"subjects",
     dateMode:"period",
     limits:{
         title:60,
