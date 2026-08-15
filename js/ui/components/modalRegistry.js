@@ -7,7 +7,7 @@ import {getSources} from "../../api/sources.js";
 import {getRecords} from "../../api/records.js";
 import {getObject, getType, getChildren, getAllObjects} from "../../api/objects.js";
 import {getTypes} from "../../api/types.js";
-
+import {getSubject} from "../../api/subjects.js";
 import {openPhotoViewer} from "./photoViewer.js";
 import {openEditor} from "../../admin/editorConfig.js";
 
@@ -162,6 +162,41 @@ export const loginModal = {
 };
 
 // ======================================
+// SUBJECT
+// ======================================
+
+export const subjectModal = {
+    type:"subject",
+    params:["id","entityId"],
+    load:async params=>{
+        if(!params.id||!params.entityId)return null;
+
+        const subject=
+            await getSubject(
+                params.entityId
+            );
+
+        if(!subject)return null;
+
+        return{
+            subject
+        };
+    },
+    open:async data=>{
+        if(!data)return;
+
+        // Пока компонент не создан.
+        // Здесь позже будет:
+        // openSubjectModal(data.subject);
+
+        console.log(
+            "Subject modal:",
+            data.subject
+        );
+    }
+};
+
+// ======================================
 // ALL MODALS
 // ======================================
 
@@ -169,5 +204,6 @@ export const modalRegistry = [
     photoPreviewModal,
     entityEditorModal,
     objectEditorModal,
-    loginModal
+    loginModal,
+    subjectModal
 ];
