@@ -3,7 +3,6 @@
 // ==========================================
 import{
     setupMentionEditor,
-    renderMentions
 }from"./mentions.js";
 import {setupFieldCounters, renderFieldCounterHTML} from "./counters.js";
 
