@@ -409,6 +409,8 @@
    SUBJECT MODAL
 ========================================== */
 
+
+
 .subject-modal {
     width: 100%;
 }
@@ -417,7 +419,6 @@
     display: flex;
     align-items: stretch;
     gap: var(--space-11);
-    padding: var(--space-9);
     background: var(--color-surface);
     border-radius: var(--radius-2xl);
 }
