@@ -124,11 +124,8 @@ export async function openEditor(type,entity,context={}){
             if(type==="photo"&&savedEntity?.id){
                 await context.updates?.updatePhotosBlock?.(savedEntity,isBackgroundUpload);
             }
-            if(type==="subject"&&savedEntity?.id&&isBackgroundUpload){
-                await context.updates?.updateSubjectBlock?.(savedEntity,true);
-            }
-            if(type==="subject"&&savedEntity?.id&&!isBackgroundUpload){
-                await context.updates?.updateSubjectBlock?.(savedEntity,false);
+            if(type==="subject"&&savedEntity?.id){
+                await context.updates?.updateSubjectBlock?.(savedEntity,isBackgroundUpload);
             }
             modal.close();
             if(backgroundTask){
