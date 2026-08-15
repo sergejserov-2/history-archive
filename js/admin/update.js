@@ -87,22 +87,22 @@ export function createPageUpdates(state){
             const block=document.querySelector(".object");
             if(block)block.outerHTML=state.renderObjectBlock();
         },
-        async updateSubjectBlock(savedSubject=null,uploading=false){
-            if(savedSubject?.id)state.subject={...state.subject,...savedSubject};
-            if(!state.subject?.id)return;
-            setSubjectUploading(state.subject.id,uploading);
-            state.subject=await getSubject(state.subject.id);
-            if(!state.subject)return;
-            updateSubjectModal(state.subject,{
-                subjects:state.subjects,
-                objects:state.objects,
-                photos:state.photos,
-                sources:state.sources,
-                records:state.records,
-                subjectTypes:state.subjectTypes
-            });
-            await state.renderSubjectBlock?.();
-        },
+async updateSubjectBlock(savedSubject=null,uploading=false){
+    if(savedSubject?.id)state.subject={...state.subject,...savedSubject};
+    if(!state.subject?.id)return;
+    setSubjectUploading(state.subject.id,Boolean(uploading));
+    state.subject=await getSubject(state.subject.id);
+    if(!state.subject)return;
+    updateSubjectModal(state.subject,{
+        subjects:state.subjects,
+        objects:state.objects,
+        photos:state.photos,
+        sources:state.sources,
+        records:state.records,
+        subjectTypes:state.subjectTypes
+    });
+    await state.renderSubjectBlock?.();
+},
         async updateRecordsBlock(savedRecord=null){
             if(!state.object)return;
             state.records=await getRecords(state.object.id);
@@ -114,24 +114,24 @@ export function createPageUpdates(state){
             }
             if(state.admin||state.records.length)document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.admin));
         },
-        async updatePhotosBlock(savedPhoto=null,uploading=false){
-            if(!state.object)return;
-            state.photos=await getPhotos(state.object.id);
-            if(savedPhoto?.id&&!state.photos.some(photo=>photo.id===savedPhoto.id))state.photos.push(savedPhoto);
-            const photosForRender=state.photos.map(photo=>({...photo,isUploading:Boolean(uploading)&&photo.id===savedPhoto?.id}));
-            const gallery=document.querySelector("#gallery");
-            if(!gallery){
-                if(state.admin||photosForRender.length){
-                    const sources=document.querySelector("#sources");
-                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
-                    if(sources)sources.insertAdjacentHTML("beforebegin",html);
-                    else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
-                }
-            }else{
-                gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}`;
-            }
-            await state.renderCoverState?.();
-        },
+async updatePhotosBlock(savedPhoto=null,uploading=false){
+    if(!state.object)return;
+    state.photos=await getPhotos(state.object.id);
+    if(savedPhoto?.id&&!state.photos.some(photo=>photo.id===savedPhoto.id))state.photos.push(savedPhoto);
+    const photosForRender=state.photos.map(photo=>({...photo,isUploading:Boolean(uploading)&&photo.id===savedPhoto?.id}));
+    const gallery=document.querySelector("#gallery");
+    if(!gallery){
+        if(state.admin||photosForRender.length){
+            const sources=document.querySelector("#sources");
+            const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
+            if(sources)sources.insertAdjacentHTML("beforebegin",html);
+            else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
+        }
+    }else{
+        gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}`;
+    }
+    await state.renderCoverState?.();
+},
         async updateSourcesBlock(savedSource=null){
             if(!state.object)return;
             state.sources=await getSources(state.object.id);
