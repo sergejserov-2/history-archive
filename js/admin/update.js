@@ -144,7 +144,7 @@ export function createPageUpdates(state){
                 return;
             }
             block.innerHTML=`<h2>Источники</h2>${renderSources(state.sources,state.admin,state.subjects)}`;
-        }
+        },
         async updateChildrenBlock(){
             if(!state.object)return;
             state.children=await state.getChildren();
