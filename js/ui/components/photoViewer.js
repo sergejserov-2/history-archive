@@ -51,27 +51,15 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
     });
 
     const root=modal.root;
+    root.querySelector(".modal")?.classList.add("modal--photo-viewer");
 
-    root.querySelector(".modal")
-        ?.classList.add("modal--photo-viewer");
-
-    const imageArea=root.querySelector(
-        ".photo-viewer__image-area"
-    );
-
-    const image=root.querySelector(
-        "#photoViewerImage"
-    );
-
-    const imageBackground=root.querySelector(
-        ".photo-viewer__image-bg"
-    );
+    const imageArea=root.querySelector(".photo-viewer__image-area");
+    const image=root.querySelector("#photoViewerImage");
+    const imageBackground=root.querySelector(".photo-viewer__image-bg");
 
     if(!imageArea||!image)return modal;
 
-    // ======================================
-    // Image state
-    // ======================================
+    image.style.visibility="hidden";
 
     let fitScale=1;
     let zoom=1;
@@ -92,10 +80,14 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
     let pinchStartDistance=null;
     let pinchStartZoom=1;
 
+    let relativeX=0;
+    let relativeY=0;
+
     function updateTransform(){
         scale=fitScale*zoom;
+
         image.style.transform=
-            `translate(${translateX}px,${translateY}px) scale(${scale})`;
+            `translate3d(${translateX}px,${translateY}px,0) scale(${scale})`;
     }
 
     function calculateFitScale(){
@@ -105,7 +97,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         const imageHeight=image.naturalHeight;
 
         if(!areaWidth||!areaHeight||!imageWidth||!imageHeight){
-            return;
+            return false;
         }
 
         fitScale=Math.min(
@@ -114,6 +106,34 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         );
 
         updateTransform();
+
+        return true;
+    }
+
+    function saveRelativePosition(){
+        const width=image.naturalWidth*scale;
+        const height=image.naturalHeight*scale;
+
+        relativeX=
+            width
+            ? translateX/width
+            : 0;
+
+        relativeY=
+            height
+            ? translateY/height
+            : 0;
+    }
+
+    function restoreRelativePosition(){
+        const width=image.naturalWidth*scale;
+        const height=image.naturalHeight*scale;
+
+        translateX=
+            relativeX*width;
+
+        translateY=
+            relativeY*height;
     }
 
     function resetView(){
@@ -122,75 +142,23 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         scale=1;
         translateX=0;
         translateY=0;
+        relativeX=0;
+        relativeY=0;
         dragging=false;
         pinchStartDistance=null;
         imageArea.classList.remove("is-dragging");
         image.style.transform="";
+        image.style.visibility="hidden";
     }
 
-    function setInitialImage(photo){
-        resetView();
-
-        if(photo.previewPath){
-            imageBackground.style.backgroundImage=
-                `url('${photo.previewPath}')`;
-        }else{
-            imageBackground.style.backgroundImage="";
-        }
-
-        image.src=photo.storagePath??"";
-
-        image.onload=()=>{
-            calculateFitScale();
-        };
-    }
-
-    // ======================================
-    // Show photo
-    // ======================================
-
-    function showPhoto(nextPhoto,nextIndex,{updateUrl=true}={}){
-
-        if(!nextPhoto)return;
-
-        currentIndex=nextIndex;
-
-        resetView();
-
-    if(nextPhoto.previewPath){
-            imageBackground.style.backgroundImage=
-                `url('${nextPhoto.previewPath}')`;
-        }else{
-            imageBackground.style.backgroundImage="";
-        }
-
-        const title=root.querySelector(
-            ".photo-viewer__title"
-        );
-
-        const description=root.querySelector(
-            ".photo-viewer__description"
-        );
-
-        const author=root.querySelector(
-            ".photo-viewer__author"
-        );
-
-        const authorValue=root.querySelector(
-            ".photo-viewer__author-value"
-        );
-
-        const date=root.querySelector(
-            ".photo-viewer__date"
-        );
-
-        const dateValue=root.querySelector(
-            ".photo-viewer__date-value"
-        );
-
-        const download=root.querySelector(
-            ".photo-viewer__download"
-        );
+    function updateInfo(nextPhoto){
+        const title=root.querySelector(".photo-viewer__title");
+        const description=root.querySelector(".photo-viewer__description");
+        const author=root.querySelector(".photo-viewer__author");
+        const authorValue=root.querySelector(".photo-viewer__author-value");
+        const date=root.querySelector(".photo-viewer__date");
+        const dateValue=root.querySelector(".photo-viewer__date-value");
+        const download=root.querySelector(".photo-viewer__download");
 
         if(title){
             title.textContent=nextPhoto.title??"";
@@ -202,23 +170,13 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         }
 
         if(author){
-            if(nextPhoto.author){
-                authorValue.textContent=nextPhoto.author;
-                author.hidden=false;
-            }else{
-                authorValue.textContent="";
-                author.hidden=true;
-            }
+            authorValue.textContent=nextPhoto.author??"";
+            author.hidden=!nextPhoto.author;
         }
 
         if(date){
-            if(nextPhoto.date){
-                dateValue.textContent=nextPhoto.date;
-                date.hidden=false;
-            }else{
-                dateValue.textContent="";
-                date.hidden=true;
-            }
+            dateValue.textContent=nextPhoto.date??"";
+            date.hidden=!nextPhoto.date;
         }
 
         if(download){
@@ -230,84 +188,121 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
                 download.hidden=true;
             }
         }
+    }
+
+    function loadImage(src){
+        return new Promise((resolve,reject)=>{
+            const loader=new Image();
+
+            loader.onload=()=>{
+                resolve(loader);
+            };
+
+            loader.onerror=reject;
+            loader.src=src;
+        });
+    }
+
+    async function loadPhotoImage(nextPhoto){
+        resetView();
+
+        if(nextPhoto.previewPath){
+            imageBackground.style.backgroundImage=
+                `url('${nextPhoto.previewPath}')`;
+        }else{
+            imageBackground.style.backgroundImage="";
+        }
+
+        if(!nextPhoto.previewPath){
+            if(!nextPhoto.storagePath)return;
+
+            try{
+                await loadImage(nextPhoto.storagePath);
+
+                image.src=nextPhoto.storagePath;
+
+                if(calculateFitScale()){
+                    image.style.visibility="visible";
+                }
+            }catch(error){
+                console.error("Ошибка загрузки изображения:",error);
+            }
+
+            return;
+        }
+
+        try{
+            await loadImage(nextPhoto.previewPath);
+
+            image.src=nextPhoto.previewPath;
+
+            calculateFitScale();
+
+            image.style.visibility="visible";
+        }catch(error){
+            console.error("Ошибка загрузки preview:",error);
+            return;
+        }
+
+        if(
+            !nextPhoto.storagePath||
+            nextPhoto.storagePath===nextPhoto.previewPath
+        ){
+            return;
+        }
+
+        try{
+            const original=await loadImage(
+                nextPhoto.storagePath
+            );
+
+            saveRelativePosition();
+
+            image.src=original.src;
+
+            await new Promise(resolve=>{
+                image.onload=resolve;
+            });
+
+            calculateFitScale();
+            restoreRelativePosition();
+            updateTransform();
+        }catch(error){
+            console.error("Ошибка загрузки оригинала:",error);
+        }
+    }
+
+    async function showPhoto(nextPhoto,nextIndex,{updateUrl=true}={}){
+        if(!nextPhoto)return;
+
+        currentIndex=nextIndex;
+
+        updateInfo(nextPhoto);
 
         if(updateUrl&&nextPhoto.id){
             updatePhotoUrl(nextPhoto.id);
         }
 
-        // ==================================
-        // Preview → original
-        // ==================================
-
-        if(nextPhoto.previewPath){
-            image.src=nextPhoto.previewPath;
-
-            image.onload=()=>{
-                calculateFitScale();
-
-                if(
-                    nextPhoto.storagePath&&
-                    nextPhoto.storagePath!==nextPhoto.previewPath
-                ){
-                    const original=new Image();
-
-                    original.onload=()=>{
-                        image.src=nextPhoto.storagePath;
-                    };
-
-                    original.src=nextPhoto.storagePath;
-                }
-            };
-        }else{
-            image.src=nextPhoto.storagePath??"";
-
-            image.onload=()=>{
-                calculateFitScale();
-            };
-        }
+        await loadPhotoImage(nextPhoto);
     }
-
-    // ======================================
-    // Previous
-    // ======================================
 
     function showPrevious(){
         if(currentIndex<=0)return;
 
-        const nextIndex=currentIndex-1;
-
         showPhoto(
-            gallery[nextIndex],
-            nextIndex
+            gallery[currentIndex-1],
+            currentIndex-1
         );
     }
-
-    // ======================================
-    // Next
-    // ======================================
 
     function showNext(){
         if(currentIndex>=gallery.length-1)return;
 
-        const nextIndex=currentIndex+1;
-
         showPhoto(
-            gallery[nextIndex],
-            nextIndex
+            gallery[currentIndex+1],
+            currentIndex+1
         );
     }
-
-    // ======================================
-    // Image load
-    // ======================================
-
-    image.onload=()=>{
-        calculateFitScale();
-    };
-
-    // ======================================
-    // Mouse drag
-    // ======================================
 
     imageArea.addEventListener(
         "mousedown",
@@ -322,9 +317,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
             startTranslateX=translateX;
             startTranslateY=translateY;
 
-            imageArea.classList.add(
-                "is-dragging"
-            );
+            imageArea.classList.add("is-dragging");
         }
     );
 
@@ -333,21 +326,20 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
 
         translateX=
             startTranslateX+
-            (event.clientX-startX);
+            event.clientX-
+            startX;
 
         translateY=
             startTranslateY+
-            (event.clientY-startY);
+            event.clientY-
+            startY;
 
         updateTransform();
     }
 
     function handleMouseUp(){
         dragging=false;
-
-        imageArea.classList.remove(
-            "is-dragging"
-        );
+        imageArea.classList.remove("is-dragging");
     }
 
     window.addEventListener(
@@ -360,28 +352,28 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         handleMouseUp
     );
 
-    // ======================================
-    // Zoom
-    // ======================================
-
     imageArea.addEventListener(
         "wheel",
         event=>{
             event.preventDefault();
 
-            const oldZoom=zoom;
+            const oldScale=fitScale*zoom;
 
-            const direction=
-                event.deltaY<0
-                ?1
-                :-1;
+            const factor=
+                Math.exp(
+                    -event.deltaY*0.001
+                );
 
-            zoom+=direction*0.15;
+            zoom=
+                Math.max(
+                    1,
+                    Math.min(
+                        zoom*factor,
+                        5
+                    )
+                );
 
-            zoom=Math.max(
-                1,
-                Math.min(zoom,5)
-            );
+            const newScale=fitScale*zoom;
 
             const rect=
                 imageArea.getBoundingClientRect();
@@ -395,12 +387,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
                 event.clientY-
                 rect.top-
                 rect.height/2;
-
-            const oldScale=
-                fitScale*oldZoom;
-
-            const newScale=
-                fitScale*zoom;
 
             const ratio=
                 newScale/oldScale;
@@ -419,10 +405,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
             passive:false
         }
     );
-
-    // ======================================
-    // Touch
-    // ======================================
 
     imageArea.addEventListener(
         "touchstart",
@@ -451,9 +433,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
                 pinchStartZoom=zoom;
             }
         },
-        {
-            passive:true
-        }
+        {passive:true}
     );
 
     imageArea.addEventListener(
@@ -469,17 +449,13 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
 
                 translateX=
                     touchStartTranslateX+
-                    (
-                        touch.clientX-
-                        touchStartX
-                    );
+                    touch.clientX-
+                    touchStartX;
 
                 translateY=
                     touchStartTranslateY+
-                    (
-                        touch.clientY-
-                        touchStartY
-                    );
+                    touch.clientY-
+                    touchStartY;
 
                 updateTransform();
             }
@@ -500,18 +476,16 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
                         pinchStartDistance
                     );
 
-                zoom=Math.max(
-                    1,
-
-                    Math.min(zoom,5)
-                );
+                zoom=
+                    Math.max(
+                        1,
+                        Math.min(zoom,5)
+                    );
 
                 updateTransform();
             }
         },
-        {
-            passive:false
-        }
+        {passive:false}
     );
 
     imageArea.addEventListener(
@@ -521,10 +495,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
             pinchStartDistance=null;
         }
     );
-
-    // ======================================
-    // Touch distance
-    // ======================================
 
     function getTouchDistance(first,second){
         const dx=
@@ -536,13 +506,10 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
             second.clientY;
 
         return Math.sqrt(
-            dx*dx+dy*dy
+            dx*dx+
+            dy*dy
         );
     }
-
-    // ======================================
-    // Viewer controls
-    // ======================================
 
     const controls=createViewerControls({
         currentIndex,
@@ -555,21 +522,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false}={}){
         controls.element
     );
 
-    // ======================================
-    // Initial photo
-    // ======================================
-
     showPhoto(
         gallery[currentIndex],
         currentIndex,
-        {
-            updateUrl:false
-        }
+        {updateUrl:false}
     );
-
-    // ======================================
-    // Cleanup
-    // ======================================
 
     const originalClose=modal.close;
 
