@@ -50,9 +50,7 @@ return`
                 ${
                     subject.description?.trim()
                     ?`
-                    <div class="object__description">
-                        ${renderMentions(subject.description.trim(),subjects,getSubjectHref)}
-                    </div>
+                    <div class="object__description">${renderMentions(subject.description.trim(),subjects,getSubjectHref)}</div>
                     `
                     :""
                 }
