@@ -48,14 +48,18 @@ const CONFIG={
         options:{typeSelector:true},
         updates:["updateRecordsBlock"]
     },
-    subject:{
-        title:"Субъект",
-        file:false,
-        limits:{title:60,description:1000},
-        fields:[],
-        options:{typeSelector:true},
-        updates:["updateSubjectBlock"]
-    }
+        subject:{
+            title:"Субъект",
+            file:true,
+            upload:uploadSubjectCover,
+            fileRequired:true,
+            fileRequiredMessage:"Для обложки необходимо выбрать файл",
+            limits:{
+                title:60,
+                description:350
+            },
+            updates:["updateSubjectBlock"]
+        }
 };
 
 function getDefaultEntity(type){
