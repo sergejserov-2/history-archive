@@ -4,6 +4,7 @@ import{getRecords,getAllRecords}from"../../api/records.js";
 import{getObject,getType,getChildren,getAllObjects}from"../../api/objects.js";
 import{getTypes}from"../../api/types.js";
 import{getSubject,getSubjects}from"../../api/subjects.js";
+import{getSubjectTypes}from"../../api/subjectTypes.js";
 import{openPhotoViewer}from"./photoViewer.js";
 import{openEditor}from"../../admin/editorConfig.js";
 import{openSubjectModal}from"./subject.js";
@@ -131,14 +132,16 @@ export const subjectModal={
             objects,
             photos,
             sources,
-            records
+            records,
+            subjectTypes
         ]=await Promise.all([
             getSubject(params.entityId),
             getSubjects(),
             getAllObjects(),
             getAllPhotos(),
             getAllSources(),
-            getAllRecords()
+            getAllRecords(),
+            getSubjectTypes()
         ]);
 
         if(!subject)return null;
@@ -149,7 +152,8 @@ export const subjectModal={
             objects,
             photos,
             sources,
-            records
+            records,
+            subjectTypes
         };
     },
     open:async data=>{
@@ -163,6 +167,7 @@ export const subjectModal={
                 photos:data.photos,
                 sources:data.sources,
                 records:data.records,
+                subjectTypes:data.subjectTypes,
                 fromUrl:true
             }
         );
