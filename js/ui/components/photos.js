@@ -3,6 +3,9 @@
 // ======================================
 
 import {openPhotoViewer} from "./photoViewer.js";
+import {renderLoadingPlaceholder}
+    from "./loadingPlaceholder.js";
+
 
 export function renderPhotos(photos, ADMIN_MODE=false){
     const cards=[];
@@ -28,9 +31,16 @@ export function renderPhotos(photos, ADMIN_MODE=false){
         let mediaHTML;
 
         if(uploading&&!hasPreview){
-            mediaHTML=`<div class="photo-card__loading"><div class="photo-card__loading-bg"></div><div class="photo-card__loading-spinner"></div></div>`;
+            mediaHTML=
+            renderLoadingPlaceholder();
         }else if(hasPreview){
-            mediaHTML=`<div class="photo-card__loading photo-card__loading--preview"><div class="photo-card__loading-bg"></div><div class="photo-card__loading-spinner"></div><img class="photo-card__image${uploading?" photo-card__image--loading":""}" src="${photo.previewPath}" alt="${photo.title??""}"></div>`;
+            mediaHTML=
+            `${renderLoadingPlaceholder("photo-card__loading photo-card__loading--preview")}
+            <img class="photo-card__image${
+                uploading
+                    ? " photo-card__image--loading"
+                    : ""
+            }" src="${photo.previewPath}" alt="${photo.title??""}">`;
         }else{
             mediaHTML=`<div class="photo-card__placeholder">Фото отсутствует</div>`;
         }
