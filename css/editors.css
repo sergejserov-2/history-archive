@@ -661,6 +661,8 @@
     border: var(--border-row);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-modal);
+    width: max-content;
+    max-width: 240px;
    z-index:9999;
 }
 
@@ -673,6 +675,8 @@
     line-height: 1.35;
     text-align: left;
     cursor: pointer;
+    width: max-content;
+    max-width: 240px;
 }
 
 .entity-mention-dropdown .dropdown__item:hover {
@@ -693,4 +697,9 @@
 .entity-mention-dropdown .dropdown__item--disabled {
     color: var(--color-text-muted);
     cursor: default;
+}
+.entity-mention-dropdown .dropdown__item-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
