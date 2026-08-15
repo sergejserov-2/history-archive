@@ -7,7 +7,22 @@ import {renderEntityEditor,setupEditorComponents,setupEditorButtons} from "../ui
 import {getEntity,updateEntity,uploadPhoto,uploadSourceDocument} from "./update.js";
 
 const CONFIG={
-    object:{title:"Объект",fields:[],status:true,parentsType:"objectsWithAddress",parentsRequiredMessage:"Нужен хотя бы один родитель",limits:{title:60,description:350},cover:{photos:[]},options:{typeSelector:true,types:[],defaultTypeId:"",disabledTypeIds:[]},updates:["updateObjectBlock","updateRecordsBlock"]},
+object:{
+    title:"Объект",
+    fields:[],
+    status:true,
+    parentsType:"objectsWithAddress",
+    parentsRequiredMessage:"Нужен хотя бы один родитель",
+    limits:{title:60,description:350},
+    cover:{photos:[]},
+    options:{
+        typeSelector:true,
+        types:[],
+        defaultTypeId:"",
+        disabledTypeIds:[]
+    },
+    updates:["updateObjectBlock"]
+},
     photo:{title:"Фото",upload:uploadPhoto,file:true,fileRequired:true,fileRequiredMessage:"Для фотографии необходимо выбрать файл",parentsType:"objects",dateMode:"date",limits:{title:45,description:350,author:45},fields:["author","date"],updates:["updatePhotosBlock"]},
     source:{title:"Источник",upload:uploadSourceDocument,file:true,fileRequired:true,fileRequiredMessage:"Для источника необходимо выбрать файл",parentsType:"objects",dateMode:"date",limits:{title:45,description:2000,author:45},fields:["author","date"],updates:["updateSourcesBlock"]},
     record:{title:"Запись",file:false,parentsType:"objects",dateMode:"period",limits:{title:45,description:75},fields:["dateStart","dateEnd"],options:{typeSelector:true},updates:["updateRecordsBlock"]}
