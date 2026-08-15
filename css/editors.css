@@ -657,13 +657,13 @@
 
 .entity-mention-dropdown {
     width: 280px;
-    background: var(--color-surface-alt);
-    border: var(--border-row);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-modal);
+      background: var(--color-input);
+    border: var(--border-thin);
+    border-radius: 6px;
+box-shadow: 0 6px 18px rgba(0,0,0,.25);
     width: max-content;
     max-width: 240px;
-   z-index:9999;
+    z-index: 99999;
 }
 
 .entity-mention-dropdown .dropdown__item {
