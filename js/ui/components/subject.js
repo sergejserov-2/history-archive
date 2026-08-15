@@ -5,6 +5,19 @@ import{createModal}from"./modal.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
 
 let currentSubjectModal=null;
+const uploadingSubjects=new Set();
+
+export function setSubjectUploading(id,value){
+    if(!id)return;
+    if(value)uploadingSubjects.add(id);
+    else uploadingSubjects.delete(id);
+    if(currentSubjectModal?.root?.isConnected){
+        const subject=currentSubjectModal.subject;
+        if(subject?.id===id){
+            currentSubjectModal.setContent(renderSubject({...subject,isUploading:value},currentSubjectModal.context.subjects,currentSubjectModal.context.objects,currentSubjectModal.context.photos,currentSubjectModal.context.sources,currentSubjectModal.context.records,currentSubjectModal.context.subjectTypes,isAdmin()));
+        }
+    }
+}
 
 export function renderSubject(subject,subjects=[],objects=[],photos=[],sources=[],records=[],subjectTypes=[],ADMIN_MODE=false){
     if(!subject)return"";
@@ -22,12 +35,16 @@ export function renderSubject(subject,subjects=[],objects=[],photos=[],sources=[
 
 export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sources=[],records=[],subjectTypes=[],fromUrl=false}={}){
     if(!subject)return null;
+    subject={...subject,isUploading:uploadingSubjects.has(subject.id)};
     const ADMIN_MODE=isAdmin();
+    const context={subjects,objects,photos,sources,records,subjectTypes};
     const modal=createModal({
         title:"Сноска",
         content:renderSubject(subject,subjects,objects,photos,sources,records,subjectTypes,ADMIN_MODE),
         width:525
     });
+    modal.subject=subject;
+    modal.context=context;
     currentSubjectModal=modal;
     if(ADMIN_MODE){
         modal.root.addEventListener("click",event=>{
@@ -47,6 +64,9 @@ export function updateSubjectModal(subject,{subjects=[],objects=[],photos=[],sou
         currentSubjectModal=null;
         return;
     }
+    subject={...subject,isUploading:uploadingSubjects.has(subject?.id)};
+    currentSubjectModal.subject=subject;
+    currentSubjectModal.context={subjects,objects,photos,sources,records,subjectTypes};
     currentSubjectModal.setContent(renderSubject(subject,subjects,objects,photos,sources,records,subjectTypes,isAdmin()));
 }
 
