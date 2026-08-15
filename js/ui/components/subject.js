@@ -25,42 +25,42 @@ export function renderSubject(subject,subjects=[],objects=[],photos=[],sources=[
             <div class="subject-modal__cover-placeholder">Фото отсутствует</div>
         </div>
         `;
-    return`
-        <div class="subject-modal">
-            <div class="subject-modal__card">
-                ${cover}
-                <div class="subject-modal__info">
-                    <div class="object__type">${escapeHTML(type?.title??"")}</div>
-                    <h1 class="object__title">
-                        <span class="object__title-text">${escapeHTML(subject.title??"")}</span>
-                        ${
-                            ADMIN_MODE
-                            ?`
-                            <button class="admin-button" data-action="edit-subject" data-id="${escapeHTML(subject.id??"")}">
-                                <img src="icons/edit.svg" class="admin-icon">
-                            </button>
-                            <button class="admin-button" data-action="delete-subject" data-id="${escapeHTML(subject.id??"")}">
-                                <img src="icons/delete.svg" class="admin-icon">
-                            </button>
-                            `
-                            :""
-                        }
-                    </h1>
-                    ${years?`<div class="subject-modal__years">${escapeHTML(years)}</div>`:""}
+return`
+    <div class="subject-modal">
+        <div class="subject-modal__card">
+            ${cover}
+            <div class="subject-modal__info">
+                <div class="object__type">${escapeHTML(type?.title??"")}</div>
+                <h1 class="object__title">
+                    <span class="object__title-text">${escapeHTML(subject.title??"")}</span>
                     ${
-                        subject.description?.trim()
+                        ADMIN_MODE
                         ?`
-                        <div class="object__description">
-                            ${renderMentions(subject.description.trim(),subjects,getSubjectHref)}
-                        </div>
+                        <button class="admin-button" data-action="edit-subject" data-id="${escapeHTML(subject.id??"")}">
+                            <img src="icons/edit.svg" class="admin-icon">
+                        </button>
+                        <button class="admin-button" data-action="delete-subject" data-id="${escapeHTML(subject.id??"")}">
+                            <img src="icons/delete.svg" class="admin-icon">
+                        </button>
                         `
                         :""
                     }
-                </div>
+                </h1>
+                ${years?`<div class="subject-modal__years">${escapeHTML(years)}</div>`:""}
+                ${
+                    subject.description?.trim()
+                    ?`
+                    <div class="object__description">
+                        ${renderMentions(subject.description.trim(),subjects,getSubjectHref)}
+                    </div>
+                    `
+                    :""
+                }
+                ${renderMentionList(subject,objects,photos,sources,records)}
             </div>
-            ${renderMentionList(subject,objects,photos,sources,records)}
         </div>
-    `;
+    </div>
+`;
 }
 
 export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sources=[],records=[],subjectTypes=[],fromUrl=false}={}){
