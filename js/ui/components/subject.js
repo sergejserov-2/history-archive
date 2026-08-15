@@ -69,7 +69,8 @@ export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sourc
     const ADMIN_MODE=isAdmin();
 
     const modal=createModal({
-        title:"",
+        title:"Сноска",
+        width:525
         content:renderSubject(
             subject,
             subjects,
