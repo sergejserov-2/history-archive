@@ -655,50 +655,49 @@
 }
 
 
-.entity-mention-dropdown {
-      background: var(--color-input);
-    border: var(--border-thin);
-    border-radius: 6px;
-box-shadow: 0 6px 18px rgba(0,0,0,.25);
-    width: max-content;
-    max-width: 240px;
-    z-index: 99999;
+.entity-mention-dropdown{
+    width:max-content;
+    max-width:240px;
+    background:var(--color-input);
+    border:var(--border-thin);
+    border-radius:6px;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+    z-index:99999;
 }
 
-.entity-mention-dropdown .dropdown__item {
-    color: var(--color-text-primary);
-    background: var(--color-surface-alt);
-    border: 0;
-    border-bottom: var(--border-row);
-    font-size: var(--font-size-md);
-    line-height: 1.35;
-    text-align: left;
-    cursor: pointer;
-    width: max-content;
-    max-width: 240px;
+.entity-mention-dropdown .dropdown__item{
+    display:block;
+    width:100%;
+    max-width:none;
+    box-sizing:border-box;
+    margin:0;
+    padding:3px 10px;
+
+    background:transparent !important;
+    border:none !important;
+    border-bottom:var(--border-row) !important;
+    border-radius:0 !important;
+
+    color:var(--color-text-primary) !important;
+    font-size:12px !important;
+    line-height:1.4;
+    text-align:left;
+    cursor:pointer;
+    white-space:nowrap;
 }
 
-.entity-mention-dropdown .dropdown__item:hover {
-    background: var(--color-surface-hover);
+.entity-mention-dropdown .dropdown__item:hover{
+    background:var(--color-surface-hover) !important;
+    color:#fff !important;
 }
 
-.entity-mention-dropdown .dropdown__item:first-child {
-    border-top-left-radius: var(--radius-lg);
-    border-top-right-radius: var(--radius-lg);
+.entity-mention-dropdown .dropdown__item:last-child{
+    border-bottom:none !important;
 }
 
-.entity-mention-dropdown .dropdown__item:last-child {
-    border-bottom: 0;
-    border-bottom-left-radius: var(--radius-lg);
-    border-bottom-right-radius: var(--radius-lg);
-}
-
-.entity-mention-dropdown .dropdown__item--disabled {
-    color: var(--color-text-muted);
-    cursor: default;
-}
-.entity-mention-dropdown .dropdown__item-title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.entity-mention-dropdown .dropdown__item-title{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
