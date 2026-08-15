@@ -53,7 +53,6 @@ else if(hasPreview){
             src="${photo.previewPath}"
             alt="${photo.title ?? ""}">
     `;
-}
         }else{
             mediaHTML=`<div class="photo-card__placeholder">Фото отсутствует</div>`;
         }
