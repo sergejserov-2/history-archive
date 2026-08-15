@@ -9,6 +9,7 @@ import{renderRecords}from"../ui/components/records.js";
 import{renderPhotos}from"../ui/components/photos.js";
 import{renderSources}from"../ui/components/sources.js";
 import{renderChildren}from"../ui/components/children.js";
+import{updateSubjectModal}from"../ui/components/subject.js";
 
 const API={
     object:{create:createObject,update:updateObject},
@@ -92,10 +93,21 @@ export function createPageUpdates(state){
             const block=document.querySelector(".object");
             if(block)block.outerHTML=state.renderObjectBlock();
         },
-        async updateSubjectBlock(data){
+        async updateSubjectBlock(data=null){
             if(data)state.subject={...state.subject,...data};
             if(!state.subject?.id)return;
+            const isUploading=state.subject.isUploading===true;
             state.subject=await getSubject(state.subject.id);
+            if(!state.subject)return;
+            state.subject={...state.subject,isUploading};
+            updateSubjectModal(state.subject,{
+                subjects:state.subjects,
+                objects:state.objects,
+                photos:state.photos,
+                sources:state.sources,
+                records:state.records,
+                subjectTypes:state.subjectTypes
+            });
             await state.renderSubjectBlock?.();
         },
         async updateRecordsBlock(savedRecord=null){
@@ -120,7 +132,7 @@ export function createPageUpdates(state){
             if(!gallery){
                 if(state.admin||photosForRender.length){
                     const sources=document.querySelector("#sources");
-                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin,state.subjects)}</section>`;
+                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
                     if(sources)sources.insertAdjacentHTML("beforebegin",html);
                     else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
                 }
@@ -151,9 +163,7 @@ export function createPageUpdates(state){
             const block=document.querySelector("#children");
             const html=`<h2>Дочерние объекты</h2>${await renderChildren(state.children,state.admin,state.object,state.objects,state.types)}`;
             if(block)block.innerHTML=html;
-            else if(state.admin||state.children.length){
-                document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
-            }
+            else if(state.admin||state.children.length)document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
         },
         async onObjectDeleted(){
             const parent=state.parents?.[0];
