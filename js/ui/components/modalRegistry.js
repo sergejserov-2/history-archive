@@ -192,7 +192,6 @@ openSubjectModal(
     {
         subjects:data.subjects,
         fromUrl: true,
-        ADMIN_MODE:data.ADMIN_MODE
     }
 );
     }
