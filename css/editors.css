@@ -656,7 +656,6 @@
 
 
 .entity-mention-dropdown {
-    width: 280px;
       background: var(--color-input);
     border: var(--border-thin);
     border-radius: 6px;
