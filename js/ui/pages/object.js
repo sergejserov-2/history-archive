@@ -147,7 +147,7 @@ function renderObjectBlock(){
                     pageObject.description?.trim()
                     ?
                     `<div class="object__description">${renderMentions(
-    record.description.trim(),
+    pageObject.description.trim(),
     subjects,
     getSubjectHref
 )}</div>`
