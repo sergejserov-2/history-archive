@@ -570,3 +570,54 @@ window.addEventListener(
     }
 
 );
+
+// ======================================
+// Subject mention links
+// ======================================
+document.addEventListener(
+    "click",
+    async event=>{
+        const link=
+            event.target.closest(
+                ".subject-mention"
+            );
+        if(!link)return;
+        event.preventDefault();
+        const href=
+            link.getAttribute("href");
+        if(!href)return;
+        const url=
+            new URL(
+                href,
+                window.location.href
+            );
+        const type=
+            url.searchParams.get(
+                "modal"
+            );
+        if(type!=="subject")return;
+        const entityId=
+            url.searchParams.get(
+                "entityId"
+            );
+        if(!entityId)return;
+        const currentUrl=
+            new URL(
+                window.location.href
+            );
+        currentUrl.searchParams.set(
+            "modal",
+            "subject"
+        );
+        currentUrl.searchParams.set(
+            "entityId",
+            entityId
+        );
+        window.history.pushState(
+            {},
+            "",
+            currentUrl
+        );
+        await restoreModalFromUrl();
+    }
+);
