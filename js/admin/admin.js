@@ -1,6 +1,6 @@
-import {openEditor} from "./editorConfig.js";
-import {deleteEntity} from "./update.js";
-import {setModalUrl} from "../ui/components/modal.js";
+import{openEditor}from"./editorConfig.js";
+import{deleteEntity}from"./update.js";
+import{setModalUrl}from"../ui/components/modal.js";
 
 export function initAdmin(page,updates={}){
     document.addEventListener("click",async event=>{
@@ -10,46 +10,56 @@ export function initAdmin(page,updates={}){
         const action=button.dataset.action;
         const id=button.dataset.id;
 
-const object=page.object;
-const types=page.types;
-const objects=page.objects;
-const photos=page.photos;
-const sources=page.sources;
-const records=page.records;
-const children=page.children;
-const subjects=page.subjects??[];
-const recordTypes=page.recordTypes;
+        const object=page.object;
+        const types=page.types;
+        const objects=page.objects;
+        const photos=page.photos;
+        const sources=page.sources;
+        const records=page.records;
+        const children=page.children;
+        const subjects=page.subjects??[];
+        const recordTypes=page.recordTypes;
 
-const objectType=types.find(
-    type=>type.id===object?.typeId
-);
+        const objectType=types.find(
+            type=>type.id===object?.typeId
+        );
 
-const objectLevel=
-    Number(objectType?.level);
+        const objectLevel=
+            Number(objectType?.level);
 
-const availableRecordTypes=
-    (recordTypes??[]).filter(
-        recordType=>
-            recordType.levels
-                ?.map(Number)
-                .includes(objectLevel)
-    );
+        const availableRecordTypes=
+            (recordTypes??[]).filter(
+                recordType=>
+                    recordType.levels
+                        ?.map(Number)
+                        .includes(objectLevel)
+            );
 
-const context={
-    objects,
-    parentId:object.id,
-    recordTypes:availableRecordTypes,
-    types,
-    photos,
-    sources,
-    children,
-    subjects,
-    updates
-};
+        const context={
+            objects,
+            parentId:object.id,
+            recordTypes:availableRecordTypes,
+            types,
+            photos,
+            sources,
+            records,
+            children,
+            subjects,
+            updates
+        };
 
         if(action==="edit-object"){
-            setModalUrl("object-editor",{entityId:object.id});
-            await openEditor("object",object,context);
+            setModalUrl(
+                "object-editor",
+                {entityId:object.id}
+            );
+
+            await openEditor(
+                "object",
+                object,
+                context
+            );
+
             return;
         }
 
@@ -57,21 +67,36 @@ const context={
             if(!confirm("Удалить объект и все дочерние сущности?"))return;
 
             try{
-                const result=await deleteEntity("object",id,context);
+                const result=
+                    await deleteEntity(
+                        "object",
+                        id,
+                        context
+                    );
 
                 if(result?.parentId){
-                    window.location.href=`object.html?id=${result.parentId}`;
+                    window.location.href=
+                        `object.html?id=${result.parentId}`;
                 }
             }catch(error){
-                console.error("Ошибка удаления объекта:",error);
-                alert("Не удалось удалить объект");
+                console.error(
+                    "Ошибка удаления объекта:",
+                    error
+                );
+
+                alert(
+                    "Не удалось удалить объект"
+                );
             }
 
             return;
         }
 
         if(action==="add-object"){
-            setModalUrl("object-editor",{entityId:null});
+            setModalUrl(
+                "object-editor",
+                {entityId:null}
+            );
 
             await openEditor(
                 "object",
@@ -104,9 +129,10 @@ const context={
         }
 
         if(action==="edit-photo"){
-            const photo=page.photos.find(
-                photo=>photo.id===id
-            );
+            const photo=
+                page.photos.find(
+                    photo=>photo.id===id
+                );
 
             if(!photo)return;
 
@@ -135,7 +161,6 @@ const context={
 
             try{
                 await deleteEntity(
-                    "photo",
                     id,
                     {
                         ...context,
@@ -143,8 +168,14 @@ const context={
                     }
                 );
             }catch(error){
-                console.error("Ошибка удаления фотографии:",error);
-                alert("Не удалось удалить фотографию");
+                console.error(
+                    "Ошибка удаления фотографии:",
+                    error
+                );
+
+                alert(
+                    "Не удалось удалить фотографию"
+                );
             }
 
             return;
@@ -169,9 +200,10 @@ const context={
         }
 
         if(action==="edit-source"){
-            const source=page.sources.find(
-                source=>source.id===id
-            );
+            const source=
+                page.sources.find(
+                    source=>source.id===id
+                );
 
             if(!source)return;
 
@@ -208,8 +240,14 @@ const context={
                     }
                 );
             }catch(error){
-                console.error("Ошибка удаления источника:",error);
-                alert("Не удалось удалить источник");
+                console.error(
+                    "Ошибка удаления источника:",
+                    error
+                );
+
+                alert(
+                    "Не удалось удалить источник"
+                );
             }
 
             return;
@@ -234,9 +272,10 @@ const context={
         }
 
         if(action==="edit-record"){
-            const record=page.records.find(
-                record=>record.id===id
-            );
+            const record=
+                page.records.find(
+                    record=>record.id===id
+                );
 
             if(!record)return;
 
@@ -273,9 +312,70 @@ const context={
                     }
                 );
             }catch(error){
-                console.error("Ошибка удаления записи:",error);
-                alert("Не удалось удалить запись");
+                console.error(
+                    "Ошибка удаления записи:",
+                    error
+                );
+
+                alert(
+                    "Не удалось удалить запись"
+                );
             }
+
+            return;
+        }
+
+        if(action==="edit-subject"){
+            const subject=
+                subjects.find(
+                    subject=>subject.id===id
+                );
+
+            if(!subject)return;
+
+            setModalUrl(
+                "subject",
+                {
+                    entityId:subject.id}
+            );
+
+            await openEditor(
+                "subject",
+                subject,
+                {
+                    ...context,
+                    subjects
+                }
+            );
+
+            return;
+        }
+
+        if(action==="delete-subject"){
+            if(!confirm("Удалить субъект?"))return;
+
+            try{
+                await deleteEntity(
+                    "subject",
+                    id,
+                    {
+                        ...context,
+                        subjects
+                    }
+                );
+            }catch(error){
+                console.error(
+                    "Ошибка удаления субъекта:",
+                    error
+                );
+
+                alert(
+                    "Не удалось удалить субъект"
+                );
+            }
+
+            return;
         }
     });
 }
+                    "photo",
