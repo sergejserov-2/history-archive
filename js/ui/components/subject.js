@@ -108,9 +108,26 @@ export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sourc
 
     const ADMIN_MODE=isAdmin();
 
-    const modal=createModal({
-        title:"Сноска",
-        content:renderSubject(
+const modal=createModal({
+    title:"Сноска",
+    content:renderSubject(
+        subject,
+        subjects,
+        objects,
+        photos,
+        sources,
+        records,
+        subjectTypes,
+        ADMIN_MODE
+    ),
+    width:525
+});
+
+modal.updateSubject=(updatedSubject)=>{
+    subject=updatedSubject;
+
+    modal.setContent(
+        renderSubject(
             subject,
             subjects,
             objects,
@@ -119,9 +136,9 @@ export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sourc
             records,
             subjectTypes,
             ADMIN_MODE
-        ),
-        width:525
-    });
+        )
+    );
+};
 
     if(ADMIN_MODE){
         modal.root.addEventListener("click",event=>{
