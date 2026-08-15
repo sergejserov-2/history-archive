@@ -9,15 +9,9 @@ import{renderRecords}from"../ui/components/records.js";
 import{renderPhotos}from"../ui/components/photos.js";
 import{renderSources}from"../ui/components/sources.js";
 import{renderChildren}from"../ui/components/children.js";
-import{updateSubjectModal}from"../ui/components/subject.js";
+import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
 
-const API={
-    object:{create:createObject,update:updateObject},
-    photo:{create:createPhoto,update:updatePhoto},
-    source:{create:createSource,update:updateSource},
-    record:{create:createRecord,update:updateRecord},
-    subject:{create:createSubject,update:updateSubject}
-};
+const API={object:{create:createObject,update:updateObject},photo:{create:createPhoto,update:updatePhoto},source:{create:createSource,update:updateSource},record:{create:createRecord,update:updateRecord},subject:{create:createSubject,update:updateSubject}};
 
 export async function getEntity(type,id){
     if(type==="object")return await getObject(id);
@@ -77,7 +71,7 @@ export async function deleteEntity(type,id,context={}){
         const subject=(context.subjects??[]).find(subject=>subject.id===id);
         if(subject?.storagePath)await moveFileToDeleted(subject.storagePath);
         await deleteSubject(id);
-        await context.updates?.onSubjectDeleted?.(id);
+        await context.updates?.onSubjectDeleted?.();
         return;
     }
     throw new Error(`Unknown entity type: ${type}`);
@@ -93,25 +87,22 @@ export function createPageUpdates(state){
             const block=document.querySelector(".object");
             if(block)block.outerHTML=state.renderObjectBlock();
         },
-async updateSubjectBlock(savedSubject=null,uploading=false){
-    if(savedSubject?.id){
-        state.subject={...state.subject,...savedSubject};
-    }
-    if(!state.subject?.id)return;
-    const currentUploading=state.subject.isUploading===true;
-    state.subject=await getSubject(state.subject.id);
-    if(!state.subject)return;
-    state.subject={...state.subject,isUploading:currentUploading||Boolean(uploading)};
-    updateSubjectModal(state.subject,{
-        subjects:state.subjects,
-        objects:state.objects,
-        photos:state.photos,
-        sources:state.sources,
-        records:state.records,
-        subjectTypes:state.subjectTypes
-    });
-    await state.renderSubjectBlock?.();
-},
+        async updateSubjectBlock(savedSubject=null,uploading=false){
+            if(savedSubject?.id)state.subject={...state.subject,...savedSubject};
+            if(!state.subject?.id)return;
+            setSubjectUploading(state.subject.id,uploading);
+            state.subject=await getSubject(state.subject.id);
+            if(!state.subject)return;
+            updateSubjectModal(state.subject,{
+                subjects:state.subjects,
+                objects:state.objects,
+                photos:state.photos,
+                sources:state.sources,
+                records:state.records,
+                subjectTypes:state.subjectTypes
+            });
+            await state.renderSubjectBlock?.();
+        },
         async updateRecordsBlock(savedRecord=null){
             if(!state.object)return;
             state.records=await getRecords(state.object.id);
@@ -121,9 +112,7 @@ async updateSubjectBlock(savedSubject=null,uploading=false){
                 block.outerHTML=renderRecords(state.records,state.recordTypes,state.admin,state.subjects);
                 return;
             }
-            if(state.admin||state.records.length){
-                document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.admin));
-            }
+            if(state.admin||state.records.length)document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.admin));
         },
         async updatePhotosBlock(savedPhoto=null,uploading=false){
             if(!state.object)return;
