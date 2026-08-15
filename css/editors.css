@@ -661,6 +661,7 @@
     border: var(--border-row);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-modal);
+   z-index:9999;
 }
 
 .entity-mention-dropdown .dropdown__item {
