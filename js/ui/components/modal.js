@@ -4,7 +4,7 @@ import{isAdmin}from"../../admin/adminMode.js";
 let currentModal=null;
 let previousModalUrl=null;
 
-export function createModal({title="",content=""}){
+export function createModal({title="",content="", width=null}){
     const oldModal=currentModal;
 
     const overlay=document.createElement("div");
