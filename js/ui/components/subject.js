@@ -3,7 +3,7 @@ import{renderMentions,getSubjectHref}from"./mentionLink.js";
 import{renderMentionList}from"./mentionList.js";
 import{createModal}from"./modal.js";
 
-export function renderSubject(subject,subjects=[],objects=[],subjectTypes=[],ADMIN_MODE=false){
+export function renderSubject(subject,subjects=[],objects=[],photos=[],sources=[],records=[],subjectTypes=[],ADMIN_MODE=false){
     if(!subject)return"";
     const type=subjectTypes.find(item=>item.id===subject.typeId);
     const years=subject.dateStart&&subject.dateEnd
@@ -58,31 +58,49 @@ export function renderSubject(subject,subjects=[],objects=[],subjectTypes=[],ADM
                     }
                 </div>
             </div>
-            ${renderMentionList(subject,objects)}
+            ${renderMentionList(subject,objects,photos,sources,records)}
         </div>
     `;
 }
 
-export function openSubjectModal(subject,{subjects=[],objects=[],subjectTypes=[],fromUrl=false}={}){
+export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sources=[],records=[],subjectTypes=[],fromUrl=false}={}){
     if(!subject)return null;
+
     const ADMIN_MODE=isAdmin();
+
     const modal=createModal({
         title:"",
-        content:renderSubject(subject,subjects,objects,subjectTypes,ADMIN_MODE)
+        content:renderSubject(
+            subject,
+            subjects,
+            objects,
+            photos,
+            sources,
+            records,
+            subjectTypes,
+            ADMIN_MODE
+        )
     });
+
     if(ADMIN_MODE){
         modal.root.addEventListener("click",event=>{
             const button=event.target.closest(".admin-button");
             if(!button)return;
+
             const action=button.dataset.action;
             const id=button.dataset.id;
+
             if(!id)return;
-            modal.root.dispatchEvent(new CustomEvent("subject-admin-action",{
-                bubbles:true,
-                detail:{action,id,subject}
-            }));
+
+            modal.root.dispatchEvent(
+                new CustomEvent("subject-admin-action",{
+                    bubbles:true,
+                    detail:{action,id,subject}
+                })
+            );
         });
     }
+
     return modal;
 }
 
