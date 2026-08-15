@@ -124,7 +124,7 @@ export async function openEditor(type,entity,context={}){
                 await context.updates?.updatePhotosBlock?.(savedEntity,Boolean(backgroundTask));
             }
             if(type==="subject"&&savedEntity?.id){
-                await context.updates?.updateSubjectBlock?.({...savedEntity,isUploading:Boolean(backgroundTask)});
+                await context.updates?.updateSubjectBlock?.(savedEntity,Boolean(backgroundTask));
             }
             modal.close();
             if(backgroundTask){
@@ -134,7 +134,7 @@ export async function openEditor(type,entity,context={}){
                         await context.updates?.updatePhotosBlock?.(null,false);
                     }
                     if(type==="subject"&&savedEntity?.id){
-                        await context.updates?.updateSubjectBlock?.({id:savedEntity.id,isUploading:false});
+                        await context.updates?.updateSubjectBlock?.(null,false);
                     }
                 }).catch(async error=>{
                     console.error("Ошибка фоновой загрузки файла:",error);
@@ -142,7 +142,7 @@ export async function openEditor(type,entity,context={}){
                         await context.updates?.updatePhotosBlock?.(null,false);
                     }
                     if(type==="subject"&&savedEntity?.id){
-                        await context.updates?.updateSubjectBlock?.({id:savedEntity.id,isUploading:false});
+                        await context.updates?.updateSubjectBlock?.(null,false);
                     }
                 });
             }
