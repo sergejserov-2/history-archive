@@ -27,7 +27,7 @@ export function renderHeader() {
     <div class="header__logo">
 
         <a href="index.html">
-            История района
+            <img src="icons/logoDark.svg" alt="Historical Archive">
         </a>
 
     </div>
