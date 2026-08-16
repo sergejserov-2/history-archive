@@ -172,7 +172,7 @@ body {
 .header {
     max-width: var(--header-width);
     margin: 20px auto 0;
-    padding: 12px var(--space-9);
+    padding: 8px var(--space-9);
 
     display: flex;
     align-items: center;
@@ -201,6 +201,7 @@ body {
    text-decoration:none;
    font-weight:600;
    color:#9CB7CC;
+   align-content:center;
 }
 
 
