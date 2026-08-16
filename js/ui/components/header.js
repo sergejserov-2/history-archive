@@ -41,11 +41,10 @@ export function renderHeader() {
 <header class="header">
 
     <div class="header__logo">
-
-        <a class="logo__image" href="index.html">
-            <img src="icons/logoDark.svg" alt="Historical Archive">
+       <img src="icons/logoDark.svg" alt="Historical Archive">
+        <a href="index.html">
+        Краснохолмское краеведение
         </a>
-
     </div>
 
     <div class="header__search">
