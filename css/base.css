@@ -185,20 +185,22 @@ body {
 .header__logo {
     width: var(--header-logo-width);
     flex-shrink: 0;
+       display:flex;
+   flex-direction:row;
+   gap: 12px;
 }
 
-.logo__image{
-    display:flex;
-    align-items:center;
-}
-
-.logo__image img{
-    height:40px;
+.header__logo img{
+    height:64px;
     width:auto;
-    display:block;
+    margin:-16px 0;
 }
 
-
+.header__logo a{
+   font-size:16px;
+   text-decoration:none;
+   font-weight:600;
+}
 
 
 .header__search {
