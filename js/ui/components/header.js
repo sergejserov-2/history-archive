@@ -14,6 +14,22 @@ import {
 }
 from "./loginModal.js";
 
+const favicon=document.getElementById("favicon");
+
+if(favicon){
+    const dark=window.matchMedia("(prefers-color-scheme: dark)");
+
+    const update=()=>{
+        favicon.href=dark.matches
+            ?"icons/logoDark.svg"
+            :"icons/logoLight.svg";
+    };
+
+    update();
+    dark.addEventListener("change",update);
+}
+
+
 // ======================================
 // Header component
 // ======================================
@@ -149,3 +165,4 @@ export function renderHeader() {
     return html;
 
 }
+
