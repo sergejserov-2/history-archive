@@ -210,11 +210,6 @@
    PHOTO VIEWER
 ========================================== */
 
-.modal--photo-viewer {
-    width: var(--viewer-width);
-    max-width: 90vw;
-}
-
 .modal--photo-viewer .modal__content {
     position: relative;
 }
