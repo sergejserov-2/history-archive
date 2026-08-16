@@ -183,7 +183,7 @@ body {
 }
 
 .header__logo {
-    width: var(--header-logo-width);
+    width: max-content;
     flex-shrink: 0;
        display:flex;
    flex-direction:row;
@@ -200,6 +200,7 @@ body {
    font-size:16px;
    text-decoration:none;
    font-weight:600;
+   color:#9CB7CC;
 }
 
 
