@@ -187,12 +187,19 @@ body {
     flex-shrink: 0;
 }
 
-.header__logo a {
-    color: var(--color-text-primary);
-    text-decoration: none;
-    font-size: var(--font-size-3xl);
-    font-weight: 600;
+.logo__image{
+    display:flex;
+    align-items:center;
 }
+
+.logo__image img{
+    height:40px;
+    width:auto;
+    display:block;
+}
+
+
+
 
 .header__search {
     flex: 1;
