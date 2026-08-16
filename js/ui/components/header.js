@@ -26,7 +26,7 @@ export function renderHeader() {
 
     <div class="header__logo">
 
-        <a href="index.html">
+        <a class="logo__image" href="index.html">
             <img src="icons/logoDark.svg" alt="Historical Archive">
         </a>
 
