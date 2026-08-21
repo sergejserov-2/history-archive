@@ -4,11 +4,7 @@
 
 .object {
     display: flex;
-    gap: var(--space-11);
-    padding: var(--space-9);
-
-    background: var(--color-surface);
-    border-radius: var(--radius-2xl);
+    gap: var(--space-10);
 }
 
 
