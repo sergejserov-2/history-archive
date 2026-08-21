@@ -3,15 +3,26 @@ import{getPhoto,deletePhoto,createPhoto,updatePhoto,getPhotos}from"../api/photos
 import{getSource,deleteSource,createSource,updateSource,getSources}from"../api/sources.js";
 import{getRecord,deleteRecord,createRecord,updateRecord,getRecords}from"../api/records.js";
 import{getSubject,deleteSubject,createSubject,updateSubject}from"../api/subjects.js";
+import{getType,createType,updateType,deleteType}from"../api/types.js";
+import{getRecordType,createRecordType,updateRecordType,deleteRecordType}from"../api/recordTypes.js";
+import{getSubjectType,createSubjectType,updateSubjectType,deleteSubjectType}from"../api/subjectTypes.js";
 import{moveFileToDeleted,uploadPhoto,uploadSourceDocument}from"../api/storage.js";
-import{getType}from"../api/types.js";
 import{renderRecords}from"../ui/components/records.js";
 import{renderPhotos}from"../ui/components/photos.js";
 import{renderSources}from"../ui/components/sources.js";
 import{renderChildren}from"../ui/components/children.js";
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
 
-const API={object:{create:createObject,update:updateObject},photo:{create:createPhoto,update:updatePhoto},source:{create:createSource,update:updateSource},record:{create:createRecord,update:updateRecord},subject:{create:createSubject,update:updateSubject}};
+const API={
+    object:{create:createObject,update:updateObject},
+    photo:{create:createPhoto,update:updatePhoto},
+    source:{create:createSource,update:updateSource},
+    record:{create:createRecord,update:updateRecord},
+    subject:{create:createSubject,update:updateSubject},
+    objectType:{create:createType,update:updateType,delete:deleteType,get:getType},
+    recordType:{create:createRecordType,update:updateRecordType,delete:deleteRecordType,get:getRecordType},
+    subjectType:{create:createSubjectType,update:updateSubjectType,delete:deleteSubjectType,get:getSubjectType}
+};
 
 export async function getEntity(type,id){
     if(type==="object")return await getObject(id);
@@ -19,6 +30,9 @@ export async function getEntity(type,id){
     if(type==="source")return await getSource(id);
     if(type==="record")return await getRecord(id);
     if(type==="subject")return await getSubject(id);
+    if(type==="objectType")return await getType(id);
+    if(type==="recordType")return await getRecordType(id);
+    if(type==="subjectType")return await getSubjectType(id);
     throw new Error(`Unknown entity type: ${type}`);
 }
 
@@ -74,6 +88,18 @@ export async function deleteEntity(type,id,context={}){
         await context.updates?.onSubjectDeleted?.();
         return;
     }
+    if(type==="objectType"){
+        await deleteType(id);
+        return;
+    }
+    if(type==="recordType"){
+        await deleteRecordType(id);
+        return;
+    }
+    if(type==="subjectType"){
+        await deleteSubjectType(id);
+        return;
+    }
     throw new Error(`Unknown entity type: ${type}`);
 }
 
@@ -83,26 +109,25 @@ export function createPageUpdates(state){
             if(data)state.object={...state.object,...data};
             state.object=await getObject(state.object.id);
             if(!state.object)return;
-            state.type=await getType(state.object.typeId);
             const block=document.querySelector(".object");
             if(block)block.outerHTML=state.renderObjectBlock();
         },
-async updateSubjectBlock(savedSubject=null,uploading=false){
-    if(savedSubject?.id)state.subject={...state.subject,...savedSubject};
-    if(!state.subject?.id)return;
-    setSubjectUploading(state.subject.id,Boolean(uploading));
-    state.subject=await getSubject(state.subject.id);
-    if(!state.subject)return;
-    updateSubjectModal(state.subject,{
-        subjects:state.subjects,
-        objects:state.objects,
-        photos:state.photos,
-        sources:state.sources,
-        records:state.records,
-        subjectTypes:state.subjectTypes
-    });
-    await state.renderSubjectBlock?.();
-},
+        async updateSubjectBlock(savedSubject=null,uploading=false){
+            if(savedSubject?.id)state.subject={...state.subject,...savedSubject};
+            if(!state.subject?.id)return;
+            setSubjectUploading(state.subject.id,Boolean(uploading));
+            state.subject=await getSubject(state.subject.id);
+            if(!state.subject)return;
+            updateSubjectModal(state.subject,{
+                subjects:state.subjects,
+                objects:state.objects,
+                photos:state.photos,
+                sources:state.sources,
+                records:state.records,
+                subjectTypes:state.subjectTypes
+            });
+            await state.renderSubjectBlock?.();
+        },
         async updateRecordsBlock(savedRecord=null){
             if(!state.object)return;
             state.records=await getRecords(state.object.id);
@@ -114,24 +139,24 @@ async updateSubjectBlock(savedSubject=null,uploading=false){
             }
             if(state.admin||state.records.length)document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.admin));
         },
-async updatePhotosBlock(savedPhoto=null,uploading=false){
-    if(!state.object)return;
-    state.photos=await getPhotos(state.object.id);
-    if(savedPhoto?.id&&!state.photos.some(photo=>photo.id===savedPhoto.id))state.photos.push(savedPhoto);
-    const photosForRender=state.photos.map(photo=>({...photo,isUploading:Boolean(uploading)&&photo.id===savedPhoto?.id}));
-    const gallery=document.querySelector("#gallery");
-    if(!gallery){
-        if(state.admin||photosForRender.length){
-            const sources=document.querySelector("#sources");
-            const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
-            if(sources)sources.insertAdjacentHTML("beforebegin",html);
-            else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
-        }
-    }else{
-        gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}`;
-    }
-    await state.renderCoverState?.();
-},
+        async updatePhotosBlock(savedPhoto=null,uploading=false){
+            if(!state.object)return;
+            state.photos=await getPhotos(state.object.id);
+            if(savedPhoto?.id&&!state.photos.some(photo=>photo.id===savedPhoto.id))state.photos.push(savedPhoto);
+            const photosForRender=state.photos.map(photo=>({...photo,isUploading:Boolean(uploading)&&photo.id===savedPhoto?.id}));
+            const gallery=document.querySelector("#gallery");
+            if(!gallery){
+                if(state.admin||photosForRender.length){
+                    const sources=document.querySelector("#sources");
+                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
+                    if(sources)sources.insertAdjacentHTML("beforebegin",html);
+                    else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
+                }
+            }else{
+                gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}`;
+            }
+            await state.renderCoverState?.();
+        },
         async updateSourcesBlock(savedSource=null){
             if(!state.object)return;
             state.sources=await getSources(state.object.id);
