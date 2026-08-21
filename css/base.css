@@ -78,7 +78,7 @@
     --font-size-sm: 12px;
     --font-size-md: 13px;
     --font-size-lg: 14px;
-    --font-size-xl: 15px;
+    --font-size-xl: 16px;
     --font-size-2xl: 18px;
     --font-size-3xl: 19px;
     --font-size-4xl: 20px;
@@ -168,7 +168,7 @@ body {
           margin:-16px 0;
       }
       .header__logo a{
-         font-size:16px;
+         font-size:var(--font-size-xl);
          text-decoration:none;
          font-weight:600;
          color:#9CB7CC;
@@ -237,7 +237,7 @@ body {
 }
 .breadcrumbs__separator {
     margin: 0 var(--space-5);
-    color: #656a70;
+    color: var(--color-text-disabled);
     font-size: var(--font-size-md);
 }
 
@@ -361,9 +361,7 @@ button.admin-button {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    padding: var(--space-7) var(--space-9);
-
+    padding: var(--space-6);
     background: var(--color-surface-dark);
 }
 
@@ -390,7 +388,7 @@ button.admin-button {
 * {
     scrollbar-width: thin;
     scrollbar-color:
-        #3a3e44
+        var(--color-border)
         transparent;
 }
 
@@ -404,10 +402,10 @@ button.admin-button {
 }
 
 *::-webkit-scrollbar-thumb {
-    background: #3a3e44;
+    background: var(--color-card);
     border-radius: 999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-    background: #50555d;
+    background: var(--color-card-hover);
 }
