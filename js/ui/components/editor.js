@@ -1,4 +1,5 @@
 import{setupTypesEditor,renderTypesEditorHTML}from"./editor/types.js";
+import{setupTypeEditor,renderTypeEditorHTML}from"./editor/type.js";
 import{setupStatusEditor,renderStatusEditorHTML}from"./editor/status.js";
 import{setupParentsEditor,renderParentsEditorHTML}from"./editor/parents.js";
 import{setupFileEditor,renderFileEditorHTML}from"./editor/file.js";
@@ -8,6 +9,7 @@ import{setupFieldsEditor,renderFieldsEditorHTML}from"./editor/fields.js";
 
 export function renderEntityEditor(cfg,entity){
     entity=entity??{};
+    if(cfg.entityType==="type")return renderTypeEditorHTML(cfg,entity);
     const options=cfg.options??{};
     const limits=cfg.limits??{};
     const dateEditor=cfg.dateMode?renderDateModeEditorHTML(cfg,entity):"";
@@ -30,6 +32,7 @@ export function renderEntityEditor(cfg,entity){
 }
 
 export function setupEditorComponents(root,cfg,context={},entity={}){
+    if(cfg.entityType==="type")return setupTypeEditor(root,entity,cfg);
     const options=cfg.options??{};
     const fileEditor=cfg.file?setupFileEditor(root,entity,cfg.upload,{
         required:cfg.fileRequired===true,
