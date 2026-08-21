@@ -5,7 +5,7 @@ import{getAllPhotos}from"../../api/photos.js";
 import{getAllSources}from"../../api/sources.js";
 import{getAllRecords}from"../../api/records.js";
 import{isAdmin}from"../../admin/adminMode.js";
-import{openEditor}from"../../admin/editorConfig.js";
+import{openSubjectModal}from"./subject.js";
 import{createModal,setModalUrl}from"./modal.js";
 import{renderEntityList}from"./entityList.js";
 
@@ -35,7 +35,7 @@ export async function openSubjectsModal(){
             subjectTypes,
             isAdmin()
         ),
-        width:800
+        width:420
     });
 
     currentSubjectsModal=modal;
@@ -50,70 +50,72 @@ export async function openSubjectsModal(){
     modal.root.addEventListener(
         "click",
         async event=>{
-            const button=
+            const adminButton=
                 event.target.closest(".admin-button");
 
-            if(!button)return;
+            if(adminButton){
+                const action=
+                    adminButton.dataset.action;
 
-            event.stopPropagation();
+                const id=
+                    adminButton.dataset.id;
 
-            const action=button.dataset.action;
-            const id=button.dataset.id;
+                if(!id)return;
 
-            if(action==="add-subject"){
-                setModalUrl("editor",{
-                    entityId:null,
-                    entityType:"subject"
-                });
+                event.stopPropagation();
 
-                await openEditor(
-                    "subject",
-                    null,
-                    {
-                        subjects,
-                        subjectTypes,
-                        objects,
-                        photos,
-                        sources,
-                        records
-                    },
-                    async()=>{
-                        await refreshSubjectsModal();
-                    }
+                modal.root.dispatchEvent(
+                    new CustomEvent(
+                        "subject-admin-action",
+                        {
+                            bubbles:true,
+                            detail:{
+                                action,
+                                id
+                            }
+                        }
+                    )
                 );
 
                 return;
             }
 
-            if(action==="edit-subject"){
-                const subject=
-                    subjects.find(
-                        item=>item.id===id
-                    );
-
-                if(!subject)return;
-
-                setModalUrl("editor",{
-                    entityId:subject.id,
-                    entityType:"subject"
-                });
-
-                await openEditor(
-                    "subject",
-                    subject,
-                    {
-                        subjects,
-                        subjectTypes,
-                        objects,
-                        photos,
-                        sources,
-                        records
-                    },
-                    async()=>{
-                        await refreshSubjectsModal();
-                    }
+            const row=
+                event.target.closest(
+                    ".entity-list-row"
                 );
-            }
+
+            if(!row)return;
+
+            const id=row.dataset.id;
+
+            if(!id)return;
+
+            event.preventDefault();
+
+            const subject=
+                subjects.find(
+                    item=>item.id===id
+                );
+
+            if(!subject)return;
+
+            setModalUrl("subject",{
+                entityId:id
+            });
+
+            openSubjectModal(
+                subject,
+                {
+                    subjects,
+                    objects,
+                    photos,
+                    sources,
+                    records,
+                    subjectTypes,
+                    fromUrl:true
+                }
+            );
         }
     );
 
@@ -163,62 +165,79 @@ function renderSubjectsList(
     subjectTypes=[],
     ADMIN_MODE=false
 ){
-    const groups=subjectTypes.map(type=>{
-        const items=
-            subjects
-                .filter(
-                    subject=>subject.typeId===type.id
-                )
-                .sort((a,b)=>
-                    (a.title??"").localeCompare(
-                        b.title??"",
-                        "ru"
-                    )
-                )
-                .map(subject=>({
+    const groups=
+        subjectTypes
+            .map(type=>{
+                const items=
+                    subjects
+                        .filter(
+                            subject=>
+                                subject.typeId===type.id
+                        )
+                        .sort((a,b)=>
+                            (a.title??"").localeCompare(
+                                b.title??"",
+                                "ru"
+                            )
+                        )
+                        .map(subject=>({
+                            id:subject.id,
+                            title:escapeHTML(
+                                subject.title??"Без названия"
+                            ),
+                            meta:formatSubjectYears(
+                                subject
+                            ),
+                            actions:ADMIN_MODE
+                                ?`
+                                    <button
+                                        class="admin-button"
+                                        data-action="edit-subject"
+                                        data-id="${escapeHTML(subject.id)}"
+                                        title="Редактировать"
+                                    >
+                                        <img
+                                            src="icons/edit.svg"
+                                            class="admin-icon"
+                                        >
+                                    </button>
+                                    <button
+                                        class="admin-button"
+                                        data-action="delete-subject"
+                                        data-id="${escapeHTML(subject.id)}"
+                                        title="Удалить"
+                                    >
+                                        <img
+                                            src="icons/delete.svg"
+                                            class="admin-icon"
+                                        >
+                                    </button>
+                                `
+                                :""
+                        }));
+
+                return{
                     title:escapeHTML(
-                        subject.title??"Без названия"
+                        type.title??""
                     ),
-                    meta:formatSubjectYears(subject),
-                    href:`?modal=subject&entityId=${encodeURIComponent(subject.id)}`,
-                    actions:ADMIN_MODE
-                        ?`
-                            <button
-                                class="admin-button"
-                                data-action="edit-subject"
-                                data-id="${escapeHTML(subject.id)}"
-                                title="Редактировать"
-                            >
-                                <img src="icons/edit.svg" class="admin-icon">
-                            </button>
-                            <button
-                                class="admin-button"
-                                data-action="delete-subject"
-                                data-id="${escapeHTML(subject.id)}"
-                                title="Удалить"
-                            >
-                                <img src="icons/delete.svg" class="admin-icon">
-                            </button>
-                        `
-                        :""
-                }));
+                    items
+                };
+            })
+            .filter(
+                group=>group.items.length
+            );
 
-        return{
-            title:escapeHTML(type.title??""),
-            items
-        };
-    }).filter(group=>group.items.length);
-
-    const addButton=ADMIN_MODE
-        ?`
-            <div
-                class="entity-list__add"
-                data-action="add-subject"
-            >
-                + Добавить субъект
-            </div>
-        `
-        :"";
+    const addButton=
+        ADMIN_MODE
+            ?`
+                <div
+                    class="entity-list__add"
+                    data-action="add-subject"
+                >
+                    + Добавить субъект
+                </div>
+            `
+            :"";
 
     return renderEntityList({
         groups,
@@ -227,7 +246,10 @@ function renderSubjectsList(
 }
 
 function formatSubjectYears(subject){
-    if(subject.dateStart&&subject.dateEnd){
+    if(
+        subject.dateStart&&
+        subject.dateEnd
+    ){
         return`${escapeHTML(subject.dateStart)} – ${escapeHTML(subject.dateEnd)}`;
     }
 
