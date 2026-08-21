@@ -2,97 +2,119 @@
 // Types API
 // ======================================
 
-import {
-
+import{
     collection,
-
     getDocs,
-
     doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    deleteDoc
+}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    getDoc
-
-}
-from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-import {
-
-    db
-
-}
-from "../firebase.js";
+import{db}from"../firebase.js";
 
 // ======================================
 // Get all types
 // ======================================
 
-export async function getTypes() {
+export async function getTypes(){
 
-    const snapshot = await getDocs(
-
+    const snapshot=await getDocs(
         collection(
             db,
             "types"
         )
-
     );
 
     return snapshot.docs.map(
-
-        doc => ({
-
-            id: doc.id,
-
+        doc=>({
+            id:doc.id,
             ...doc.data()
-
         })
-
     );
-
 }
 
 // ======================================
 // Get one type
 // ======================================
 
-export async function getType(
+export async function getType(typeId){
 
-    typeId
+    if(!typeId)return null;
 
-) {
-
-    if (!typeId) {
-
-        return null;
-
-    }
-
-    const snapshot = await getDoc(
-
+    const snapshot=await getDoc(
         doc(
-
             db,
-
             "types",
-
             typeId
-
         )
-
     );
 
-    if (!snapshot.exists()) {
+    if(!snapshot.exists())return null;
 
-        return null;
-
-    }
-
-    return {
-
-        id: snapshot.id,
-
+    return{
+        id:snapshot.id,
         ...snapshot.data()
-
     };
+}
 
+// ======================================
+// Create type
+// ======================================
+
+export async function createType(id,data){
+
+    if(!id)return null;
+
+    await setDoc(
+        doc(
+            db,
+            "types",
+            id
+        ),
+        data
+    );
+
+    return{
+        id,
+        ...data
+    };
+}
+
+// ======================================
+// Update type
+// ======================================
+
+export async function updateType(id,data){
+
+    if(!id)return null;
+
+    await updateDoc(
+        doc(
+            db,
+            "types",
+            id
+        ),
+        data
+    );
+
+    return id;
+}
+
+// ======================================
+// Delete type
+// ======================================
+
+export async function deleteType(id){
+
+    if(!id)return;
+
+    await deleteDoc(
+        doc(
+            db,
+            "types",
+            id
+        )
+    );
 }
