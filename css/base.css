@@ -19,10 +19,10 @@
     --color-media-hover: #343941;
 
     --color-text: #d8dadd;
+    --color-text-button: #e5e7e9;
     --color-text-primary: #eef0f2;
     --color-text-secondary: #c9cdd2;
     --color-text-light: #e0e3e6;
-    --color-text-button: #e5e7e9;
     --color-text-muted: #b4bac1;
     --color-text-dim: #9da4ac;
     --color-text-faded: #8f969f;
@@ -52,9 +52,7 @@
 
 
     /* ---------- LAYOUT ---------- */
-
     --page-width: 1100px;
-    --header-width: 1100px;
 
     /* ---------- SPACING ---------- */
 
@@ -62,20 +60,18 @@
     --space-2: 4px;
     --space-3: 5px;
     --space-4: 6px;
-    --space-5: 8px;
-    --space-6: 10px;
-    --space-7: 12px;
-    --space-8: 14px;
+    --space-5: 8px; /* Для вертикальных отступов внутри инпутов и ячеек */
+    --space-6: 10px; /* Для полей внутри блоков */
+    --space-7: 12px; /* Для горизонтальных отступов внутри инпутов и ячеек */
+    --space-8: 14px; /* Для широких отступов между блоками */
     --space-9: 16px;
-    --space-10: 18px;
-    --space-11: 20px;
+    --space-10: 18px; /* Для промежутков между широкими блоками */
 
-
-    /* ---------- RADII ---------- */
+   /* ---------- RADII ---------- */
 
     --radius-sm: 4px;
     --radius-md: 5px;
-    --radius-lg: 6px;
+    --radius-lg: 6px; /* Основной радиус */
     --radius-xl: 7px;
     --radius-2xl: 8px;
 
@@ -167,13 +163,13 @@ body {
 ========================================== */
 
 .header {
-    max-width: var(--header-width);
-    margin: 20px auto 0;
-    padding: 8px var(--space-9);
+    max-width: var(--page-width);
+    margin-top: var(--space-8);
+    padding: var(--space-6) var(--space-8);
 
     display: flex;
     align-items: center;
-    gap: var(--space-11);
+    gap: var(--space-10);
 
     background: var(--color-surface);
     border-radius: var(--radius-2xl);
@@ -182,8 +178,8 @@ body {
 .header__logo {
     width: max-content;
     flex-shrink: 0;
-       display:flex;
-   flex-direction:row;
+    display:flex;
+    flex-direction:row;
 }
 
 .header__logo img{
@@ -210,25 +206,21 @@ body {
 .header__search input {
     width: 100%;
     padding: var(--space-5) var(--space-7);
-
     background: var(--color-input);
     border: none;
     border-radius: var(--radius-lg);
-
     color: var(--color-text-light);
     font-size: var(--font-size-lg);
 }
 
 .header__buttons {
-    width: var(--header-buttons-width);
     flex-shrink: 0;
     text-align: right;
 }
 
 .header__buttons button {
-    padding: 7px 15px;
-
-    background: var(--color-surface-dark);
+    padding: var(--space-5) var(--space-7);
+    background: var(--color-media);
     border: none;
     border-radius: var(--radius-lg);
 
@@ -243,7 +235,7 @@ body {
 
 .page {
     max-width: var(--page-width);
-    margin: var(--space-11) auto;
+    margin-top: var(--space-8);
 }
 
 
@@ -251,16 +243,11 @@ body {
    BREADCRUMBS
 ========================================== */
 
-.breadcrumbs {
-    margin: 0 var(--space-9) var(--space-9);
-}
-
 .breadcrumbs__chain {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 0;
-    margin-bottom: var(--space-4);
 }
 
 .breadcrumbs__item {
@@ -290,9 +277,8 @@ body {
 ========================================== */
 
 section {
-    margin-top: var(--space-10);
-    padding: var(--space-9);
-
+    margin-top: var(--space-8);
+    padding: var(--space-6) var(--space-8);
     background: var(--color-surface);
     border-radius: var(--radius-2xl);
 }
