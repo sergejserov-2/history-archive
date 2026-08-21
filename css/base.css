@@ -3,37 +3,31 @@
 ========================================== */
 
 :root {
-    /* ---------- COLORS ---------- */
-
-    --color-bg: #15171a;
-    --color-surface: #1d2024;
-
-    --color-input: #111316;
-
-    --color-media: #25292f;
-    --color-media-dark: #181b1f;
-    --color-media-hover: #2b3037;
-
-    --color-text: #d8dadd;
-    --color-text-button: #e5e7e9;
-    --color-text-primary: #eef0f2;
-    --color-text-secondary: #c9cdd2;
-    --color-text-light: #e0e3e6;
-    --color-text-muted: #b4bac1;
-    --color-text-dim: #9da4ac;
-    --color-text-faded: #8f969f;
-    --color-text-placeholder: #8b9199;
-    --color-text-disabled: #777b80;
-
-    --color-border: #30343a;
-    --color-border-light: #3a3f46;
+    /* ---------- ЦВЕТА ( от тёмного к светлому) ---------- */
+    --color-input: #111316; /* Фон полей ввода */
+    --color-bg: #15171a; /* Фон страницы */
+    --color-surface-dark: #181b1f; /* Фон таблиц */
+    --color-surface: #1d2024; /* Фон блоков */
+    --color-card: #25292f; /* Фон кнопок и карточек */
+    --color-card-hover: #2b3037;
+    --color-border: #30353b; /* Фон отсутствующих фото и границ инпутов */
     --color-border-hover: #555b63;
 
-    --color-accent: #f2c94c;
-    --color-accent-bg: rgba(240, 190, 50, .18);
-    --color-accent-bg-hover: rgba(240, 190, 50, .38);
-    --color-accent-border: rgba(240, 190, 50, .9);
+    --color-text-disabled: #777b80; /* Отключенные пункты */
+    --color-text-faded: #8f969f; /* Цвет года - потусклее */
+    --color-text-dim: #9da4ac; /* Цвет типа - поярче */
+    --color-text-secondary: #c9cdd2; /* Основной текст */
+    --color-text-primary: #eef0f2; /* Заголовки */
+ 
 
+   
+      /* Цвета админки */
+    --color-admin: #f2c94c;
+    --color-admin-bg: rgba(240, 190, 50, .18);
+    --color-admin-bg-hover: rgba(240, 190, 50, .38);
+    --color-admin-border: rgba(240, 190, 50, .9);
+
+      /* Цвета статусов */
     --color-danger: #e36a6a;
     --color-danger-bg: rgba(190, 55, 55, .18);
     --color-danger-border: rgba(210, 70, 70, .8);
@@ -49,8 +43,6 @@
 
     /* ---------- LAYOUT ---------- */
     --page-width: 1100px;
-
-    /* ---------- SPACING ---------- */
 
     --space-1: 2px;
     --space-2: 4px;
@@ -75,17 +67,12 @@
     /* ---------- BORDERS ---------- */
 
     --border-thin: 1px solid var(--color-border);
-    --border-light: 1px solid var(--color-border-light);
     --border-row: 1px solid #25292f;
 
 
     /* ---------- TYPOGRAPHY ---------- */
 
-    --font-family:
-        Inter,
-        Arial,
-        Helvetica,
-        sans-serif;
+    --font-family: Inter, Arial, Helvetica, sans-serif;
 
     --font-size-xs: 11px;
     --font-size-sm: 12px;
@@ -129,9 +116,7 @@
 }
 
 
-/* ==========================================
-   RESET
-========================================== */
+/* =================  RESET =================== */
 
 * {
     margin: 0;
@@ -146,7 +131,7 @@ html {
 body {
     font-family: var(--font-family);
     background: var(--color-bg);
-    color: var(--color-text);
+    color: var(--color-text-secondary);
 }
 
 [hidden] {
@@ -201,8 +186,7 @@ body {
           background: var(--color-input);
           border: none;
           border-radius: var(--radius-lg);
-          color: var(--color-text-light);
-          font-size: var(--font-size-lg);
+          color: var(--color-text-secondary);
       }
    
    .header__buttons {
@@ -211,11 +195,10 @@ body {
    }
       .header__buttons button {
           padding: var(--space-5) var(--space-7);
-          background: var(--color-media);
+          background: var(--color-card);
           border: none;
           border-radius: var(--radius-lg);
-      
-          color: var(--color-text-button);
+          color: var(--color-text-secondary);
           cursor: pointer;
       }
 
@@ -246,12 +229,11 @@ body {
 .breadcrumbs__item {
     color: var(--color-text-faded);
     text-decoration: none;
-    font-size: var(--font-size-lg);
     line-height: 1.5;
     transition: color .15s ease;
 }
 .breadcrumbs__item:hover {
-    color: #c4c7cb;
+    color: var(--color-text-dim);
 }
 .breadcrumbs__separator {
     margin: 0 var(--space-5);
@@ -286,9 +268,9 @@ section h2 {
 
 button.admin-button,
 .admin-button {
-    background: var(--color-accent-bg) !important;
-    border: 1px solid var(--color-accent-border) !important;
-    color: var(--color-accent) !important;
+    background: var(--color-admin-bg) !important;
+    border: 1px solid var(--color-admin-border) !important;
+    color: var(--color-admin) !important;
 
     cursor: pointer;
     transition: var(--transition-fast);
@@ -296,8 +278,8 @@ button.admin-button,
 
 button.admin-button:hover,
 .admin-button:hover {
-    background: var(--color-accent-bg-hover) !important;
-    border-color: var(--color-accent) !important;
+    background: var(--color-admin-bg-hover) !important;
+    border-color: var(--color-admin) !important;
 }
 
 
@@ -317,10 +299,10 @@ button.admin-button {
 .source--add,
 .child-card--add {
     background: rgba(220, 170, 40, .18) !important;
-    border: 1px dashed var(--color-accent-border) !important;
+    border: 1px dashed var(--color-admin) !important;
     border-radius: var(--radius-2xl);
 
-    color: var(--color-accent) !important;
+    color: var(--color-admin) !important;
     cursor: pointer;
 
     font-size: var(--font-size-lg);
@@ -331,8 +313,8 @@ button.admin-button {
 .photo-card--add:hover,
 .source--add:hover,
 .child-card--add:hover {
-    background: var(--color-accent-bg-hover) !important;
-    border-color: var(--color-accent) !important;
+    background: var(--color-admin-bg-hover) !important;
+    border-color: var(--color-admin) !important;
 }
 
 
@@ -382,7 +364,7 @@ button.admin-button {
 
     padding: var(--space-7) var(--space-9);
 
-    background: #24282d;
+    background: var(--color-surface-dark);
 }
 
 .modal__header h2 {
