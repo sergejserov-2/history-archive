@@ -49,11 +49,14 @@ export async function openSubjectsModal(){
 
     modal.root.addEventListener(
         "click",
-        async event=>{
+        event=>{
             const adminButton=
                 event.target.closest(".admin-button");
 
             if(adminButton){
+                event.preventDefault();
+                event.stopPropagation();
+
                 const action=
                     adminButton.dataset.action;
 
@@ -62,17 +65,12 @@ export async function openSubjectsModal(){
 
                 if(!id)return;
 
-                event.stopPropagation();
-
                 modal.root.dispatchEvent(
                     new CustomEvent(
                         "subject-admin-action",
                         {
                             bubbles:true,
-                            detail:{
-                                action,
-                                id
-                            }
+                            detail:{action,id}
                         }
                     )
                 );
@@ -91,14 +89,14 @@ export async function openSubjectsModal(){
 
             if(!id)return;
 
-            event.preventDefault();
-
             const subject=
                 subjects.find(
                     item=>item.id===id
                 );
 
             if(!subject)return;
+
+            event.preventDefault();
 
             setModalUrl("subject",{
                 entityId:id
@@ -217,9 +215,7 @@ function renderSubjectsList(
                         }));
 
                 return{
-                    title:escapeHTML(
-                        type.title??""
-                    ),
+                    title:escapeHTML(type.title??""),
                     items
                 };
             })
