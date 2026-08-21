@@ -4,7 +4,6 @@
 
 export function renderEntityList({
     groups = [],
-    adminMode = false,
     addButton = ""
 } = {}) {
 
@@ -42,25 +41,23 @@ function renderRow(item) {
     const hasMeta =
         Boolean(item.meta?.trim());
 
-    let rowClass = "entity-row";
-
-    if (hasDescription && hasMeta)
-        rowClass += " entity-row--full";
-
-    else if (hasDescription)
-        rowClass += " entity-row--description";
-
-    else if (hasMeta)
-        rowClass += " entity-row--meta";
-
-    else
-        rowClass += " entity-row--title";
+    const rowClass = [
+        "entity-list-row",
+        hasDescription
+            ? "entity-list-row--description"
+            : "entity-list-row--title-only",
+        hasMeta
+            ? "entity-list-row--meta"
+            : ""
+    ]
+        .filter(Boolean)
+        .join(" ");
 
     const content = `
 
-        <div class="entity-row__title">
+        <div class="entity-list-row__title">
 
-            <span class="entity-row__title-text">
+            <span class="entity-list-row__title-text">
                 ${item.title ?? ""}
             </span>
 
@@ -70,27 +67,24 @@ function renderRow(item) {
 
         ${
             hasDescription
-            ?
-            `
-            <div class="entity-row__description">
-                ${item.description}
-            </div>
-            `
-            :
-            ""
+                ? `
+                <div class="entity-list-row__description">
+                    ${item.description}
+                </div>
+                `
+                : ""
         }
 
         ${
             hasMeta
-            ?
-            `
-            <div class="entity-row__meta">
-                ${item.meta}
-            </div>
-            `
-            :
-            ""
+                ? `
+                <div class="entity-list-row__meta">
+                    ${item.meta}
+                </div>
+                `
+                : ""
         }
+
     `;
 
     if (item.href) {
