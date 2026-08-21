@@ -1,4 +1,4 @@
-import{getSubjects,getSubject}from"../../api/subjects.js";
+import{getSubjects}from"../../api/subjects.js";
 import{getSubjectTypes}from"../../api/subjectTypes.js";
 import{getAllObjects}from"../../api/objects.js";
 import{getAllPhotos}from"../../api/photos.js";
@@ -54,6 +54,8 @@ export async function openSubjectsModal(){
                 event.target.closest(".admin-button");
 
             if(!button)return;
+
+            event.stopPropagation();
 
             const action=button.dataset.action;
             const id=button.dataset.id;
