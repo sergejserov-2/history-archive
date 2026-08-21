@@ -380,6 +380,8 @@ button.admin-button {
 
 .modal__content {
     padding: var(--space-8);
+   overflow-y: auto;
+   max-height:90svh;
 }
 
 
