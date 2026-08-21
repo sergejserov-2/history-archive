@@ -363,10 +363,6 @@
         font-size: var(--font-size-md);
     }
 
-    .photo-card {
-        flex: 0 0 110px;
-    }
-
     .photo-card__media {
         width: 110px;
     }
