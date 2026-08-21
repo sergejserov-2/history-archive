@@ -561,7 +561,6 @@
 
 
 
-
 /* ==========================================
    ENTITY LIST
 ========================================== */
@@ -628,11 +627,6 @@
 .entity-row {
     display: grid;
 
-    grid-template-columns:
-        250px
-        minmax(0,1fr)
-        max-content;
-
     align-items: center;
 
     gap: var(--space-8);
@@ -651,6 +645,34 @@
 .entity-row:hover {
     background: var(--color-card-hover);
 }
+
+/* ---------- Dynamic layouts ---------- */
+
+.entity-row--full {
+    grid-template-columns:
+        250px
+        minmax(0,1fr)
+        max-content;
+}
+
+.entity-row--description {
+    grid-template-columns:
+        250px
+        minmax(0,1fr);
+}
+
+.entity-row--meta {
+    grid-template-columns:
+        minmax(0,1fr)
+        max-content;
+}
+
+.entity-row--title {
+    grid-template-columns:
+        minmax(0,1fr);
+}
+
+/* ---------- First / last row ---------- */
 
 .entity-list__group > .entity-row:first-of-type {
     border-top: none;
@@ -698,9 +720,7 @@
     overflow: hidden;
 
     color: var(--color-text-secondary);
-    font-size: var(--fo
-
-nt-size-lg);
+    font-size: var(--font-size-lg);
     line-height: 1.45;
 
     text-overflow: ellipsis;
@@ -720,4 +740,3 @@ nt-size-lg);
 
     white-space: nowrap;
 }
-
