@@ -3,8 +3,9 @@ import{getSources,getAllSources}from"../../api/sources.js";
 import{getRecords,getAllRecords}from"../../api/records.js";
 import{getObject,getType,getChildren,getAllObjects}from"../../api/objects.js";
 import{getTypes}from"../../api/types.js";
+import{getRecordType,getRecordTypes}from"../../api/recordTypes.js";
 import{getSubject,getSubjects}from"../../api/subjects.js";
-import{getSubjectTypes}from"../../api/subjectTypes.js";
+import{getSubjectType,getSubjectTypes}from"../../api/subjectTypes.js";
 import{openPhotoViewer}from"./photoViewer.js";
 import{openEditor}from"../../admin/editorConfig.js";
 import{openSubjectModal}from"./subject.js";
@@ -17,11 +18,7 @@ export const photoPreviewModal={
         if(!params.id||!params.entityId)return null;
 
         const photos=await getPhotos(params.id);
-
-        const photo=
-            photos.find(
-                item=>item.id===params.entityId
-            );
+        const photo=photos.find(item=>item.id===params.entityId);
 
         if(!photo)return null;
 
@@ -30,13 +27,10 @@ export const photoPreviewModal={
     open:async data=>{
         if(!data)return;
 
-        openPhotoViewer(
-            data.photo,
-            {
-                fromUrl:true,
-                photos:data.photos
-            }
-        );
+        openPhotoViewer(data.photo,{
+            fromUrl:true,
+            photos:data.photos
+        });
     }
 };
 
@@ -45,11 +39,60 @@ export const editorModal={
     admin:true,
     params:["id","entityId","entityType"],
     load:async params=>{
-        if(!params.entityId||!params.entityType){
-            return null;
-        }
+        if(!params.entityId||!params.entityType)return null;
 
         const objects=await getAllObjects();
+
+        if(["objectType","recordType","subjectType"].includes(params.entityType)){
+            let entity=null;
+            let context={};
+
+            if(params.entityType==="objectType"){
+                entity=await getType(params.entityId);
+
+                if(!entity)return null;
+
+                const types=await getTypes();
+
+                context={
+                    objects,
+                    types
+                };
+            }
+
+            if(params.entityType==="recordType"){
+                entity=await getRecordType(params.entityId);
+
+                if(!entity)return null;
+
+                const recordTypes=await getRecordTypes();
+
+                context={
+                    objects,
+                    recordTypes
+                };
+            }
+
+            if(params.entityType==="subjectType"){
+                entity=await getSubjectType(params.entityId);
+
+                if(!entity)return null;
+
+                const subjectTypes=await getSubjectTypes();
+
+                context={
+                    objects,
+                    subjectTypes
+                };
+            }
+
+            return{
+                entity,
+                type:params.entityType,
+                objects,
+                context
+            };
+        }
 
         if(params.entityType==="subject"){
             const[
@@ -81,17 +124,15 @@ export const editorModal={
         if(!params.id)return null;
 
         if(params.entityType==="object"){
-            const object=
-                await getObject(params.entityId);
+            const object=await getObject(params.entityId);
 
             if(!object)return null;
 
-            const hasParent=
-                (object.parents??[]).some(parent=>
-                    typeof parent==="string"
-                        ?parent===params.id
-                        :parent?.objectId===params.id
-                );
+            const hasParent=(object.parents??[]).some(parent=>
+                typeof parent==="string"
+                    ?parent===params.id
+                    :parent?.objectId===params.id
+            );
 
             if(!hasParent)return null;
 
@@ -121,15 +162,8 @@ export const editorModal={
             };
         }
 
-        if(
-            !["photo","source","record"]
-                .includes(params.entityType)
-        ){
-            console.error(
-                "Unknown entity type:",
-                params.entityType
-            );
-
+        if(!["photo","source","record"].includes(params.entityType)){
+            console.error("Unknown entity type:",params.entityType);
             return null;
         }
 
@@ -147,10 +181,7 @@ export const editorModal={
             entities=await getRecords(params.id);
         }
 
-        const entity=
-            entities.find(
-                item=>item.id===params.entityId
-            );
+        const entity=entities.find(item=>item.id===params.entityId);
 
         if(!entity)return null;
 
@@ -167,6 +198,16 @@ export const editorModal={
     open:async data=>{
         if(!data)return;
 
+        if(["objectType","recordType","subjectType"].includes(data.type)){
+            openEditor(
+                data.type,
+                data.entity,
+                data.context
+            );
+
+            return;
+        }
+
         if(data.type==="object"){
             openEditor(
                 "object",
@@ -177,8 +218,7 @@ export const editorModal={
                     objects:data.objects,
                     children:data.children,
                     photos:data.photos
-                },
-                ()=>location.reload()
+                }
             );
 
             return;
@@ -193,8 +233,7 @@ export const editorModal={
                     objects:data.objects,
                     subjects:data.subjects,
                     subjectTypes:data.subjectTypes
-                },
-                ()=>{}
+                }
             );
 
             return;
@@ -203,8 +242,7 @@ export const editorModal={
         openEditor(
             data.type,
             data.entity,
-            data.context,
-            ()=>location.reload()
+            data.context
         );
     }
 };
