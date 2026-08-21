@@ -186,7 +186,7 @@ body {
           width: 100%;
           padding: var(--space-5) var(--space-7);
           background: var(--color-input);
-          border: none;
+          border: var(--border-thin);
           border-radius: var(--radius-lg);
           color: var(--color-text-secondary);
       }
@@ -363,7 +363,7 @@ button.admin-button {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-6);
+    padding: var(--space-7) var(--space-8);
     background: var(--color-surface-dark);
 }
 
@@ -379,7 +379,7 @@ button.admin-button {
 }
 
 .modal__content {
-    padding: var(--space-9);
+    padding: var(--space-8);
 }
 
 
