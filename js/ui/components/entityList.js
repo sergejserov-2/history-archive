@@ -24,26 +24,51 @@ function renderGroup(group){
 }
 
 function sortItems(a,b){
-    const aValue=getFirstNumber(a.meta);
-    const bValue=getFirstNumber(b.meta);
+    const aMeta=String(a.meta??"").trim();
+    const bMeta=String(b.meta??"").trim();
 
-    if(aValue===null&&bValue===null)return 0;
-    if(aValue===null)return 1;
-    if(bValue===null)return-1;
+    const aNumber=getFirstNumber(aMeta);
+    const bNumber=getFirstNumber(bMeta);
 
-    return aValue-bValue;
+    if(aNumber!==null&&bNumber===null)return-1;
+    if(aNumber===null&&bNumber!==null)return 1;
+
+    if(aNumber!==null&&bNumber!==null&&aNumber!==bNumber){
+        return aNumber-bNumber;
+    }
+
+    const metaCompare=aMeta.localeCompare(
+        bMeta,
+        "ru",
+        {
+            numeric:true,
+            sensitivity:"base"
+        }
+    );
+
+    if(metaCompare!==0)return metaCompare;
+
+    return String(a.title??"").localeCompare(
+        String(b.title??""),
+        "ru",
+        {
+            sensitivity:"base"
+        }
+    );
 }
 
 function getFirstNumber(value){
-    if(value===undefined||value===null)return null;
+    if(!value)return null;
 
-    const match=String(value).match(/\d+/);
+    const match=value.match(/\d+/);
 
     if(!match)return null;
 
     const number=Number(match[0]);
 
-    return Number.isFinite(number)?number:null;
+    return Number.isFinite(number)
+        ?number
+        :null;
 }
 
 function renderRow(item){
