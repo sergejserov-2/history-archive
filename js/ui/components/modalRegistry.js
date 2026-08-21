@@ -15,14 +15,24 @@ export const photoPreviewModal={
     params:["id","entityId"],
     load:async params=>{
         if(!params.id||!params.entityId)return null;
+
         const photos=await getPhotos(params.id);
         const photo=photos.find(item=>item.id===params.entityId);
+
         if(!photo)return null;
+
         return{photo,photos};
     },
     open:async data=>{
         if(!data)return;
-        openPhotoViewer(data.photo,{fromUrl:true,photos:data.photos});
+
+        openPhotoViewer(
+            data.photo,
+            {
+                fromUrl:true,
+                photos:data.photos
+            }
+        );
     }
 };
 
@@ -31,23 +41,59 @@ export const editorModal={
     admin:true,
     params:["id","entityId","entityType"],
     load:async params=>{
-        if(!params.id||!params.entityType)return null;
+        if(!params.entityId||!params.entityType)return null;
+
         const objects=await getAllObjects();
 
+        if(params.entityType==="subject"){
+            const[
+                subject,
+                subjects,
+                subjectTypes
+            ]=await Promise.all([
+                getSubject(params.entityId),
+                getSubjects(),
+                getSubjectTypes()
+            ]);
+
+            if(!subject)return null;
+
+            return{
+                entity:subject,
+                type:"subject",
+                objects,
+                subjects,
+                subjectTypes,
+                context:{
+                    objects,
+                    subjects,
+                    subjectTypes
+                }
+            };
+        }
+
+        if(!params.id)return null;
+
         if(params.entityType==="object"){
-            if(!params.entityId)return null;
             const object=await getObject(params.entityId);
+
             if(!object)return null;
 
-            const hasParent=(object.parents??[]).some(parent=>
-                typeof parent==="string"
-                    ?parent===params.id
-                    :parent?.objectId===params.id
+            const hasParent=
+                (object.parents??[]).some(parent=>
+                    typeof parent==="string"
+                        ?parent===params.id
+                        :parent?.objectId===params.id
             );
 
             if(!hasParent)return null;
 
-            const[type,types,children,photos]=await Promise.all([
+            const[
+                type,
+                types,
+                children,
+                photos
+            ]=await Promise.all([
                 getType(object.typeId),
                 getTypes(),
                 getChildren(object.id),
@@ -61,29 +107,51 @@ export const editorModal={
                 children,
                 photos,
                 types,
-                context:{parentId:params.id,objects}
+                context:{
+                    parentId:params.id,
+                    objects
+                }
             };
         }
 
         if(!["photo","source","record"].includes(params.entityType)){
-            console.error("Unknown entity type:",params.entityType);
+            console.error(
+                "Unknown entity type:",
+                params.entityType
+            );
+
             return null;
         }
 
         let entities=[];
 
-        if(params.entityType==="photo")entities=await getPhotos(params.id);
-        if(params.entityType==="source")entities=await getSources(params.id);
-        if(params.entityType==="record")entities=await getRecords(params.id);
+        if(params.entityType==="photo"){
+            entities=await getPhotos(params.id);
+        }
 
-        const entity=entities.find(item=>item.id===params.entityId);
+        if(params.entityType==="source"){
+            entities=await getSources(params.id);
+        }
+
+        if(params.entityType==="record"){
+            entities=await getRecords(params.id);
+        }
+
+        const entity=
+            entities.find(
+                item=>item.id===params.entityId
+            );
+
         if(!entity)return null;
 
         return{
             entity,
             type:params.entityType,
             objects,
-            context:{parentId:params.id,objects}
+            context:{
+                parentId:params.id,
+                objects
+            }
         };
     },
     open:async data=>{
@@ -102,6 +170,25 @@ export const editorModal={
                 },
                 ()=>location.reload()
             );
+
+            return;
+        }
+
+        if(data.type==="subject"){
+            openEditor(
+                "subject",
+                data.entity,
+                {
+                    ...data.context,
+                    subjects:data.subjects,
+                    subjectTypes:data.subjectTypes,
+                    objects:data.objects
+                },
+                async()=>{
+                    await restoreSubjectsModalAfterEditor();
+                }
+            );
+
             return;
         }
 
@@ -119,15 +206,6 @@ export const loginModal={
     params:[],
     load:null,
     open:null
-};
-
-export const subjectsModal={
-    type:"subjects",
-    params:[],
-    load:null,
-    open:async()=>{
-        await openSubjectsModal();
-    }
 };
 
 export const subjectModal={
@@ -183,6 +261,36 @@ export const subjectModal={
         );
     }
 };
+
+export const subjectsModal={
+    type:"subjects",
+    params:[],
+    load:null,
+    open:async()=>{
+        await openSubjectsModal();
+    }
+};
+
+async function restoreSubjectsModalAfterEditor(){
+    const url=new URL(window.location.href);
+
+    if(url.searchParams.get("modal")!=="editor"){
+        return;
+    }
+
+    url.searchParams.set("modal","subjects");
+
+    url.searchParams.delete("entityId");
+    url.searchParams.delete("entityType");
+
+    window.history.pushState(
+        {},
+        "",
+        url
+    );
+
+    await openSubjectsModal();
+}
 
 export const modalRegistry=[
     photoPreviewModal,
