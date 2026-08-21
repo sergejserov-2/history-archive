@@ -408,7 +408,7 @@
 .subject-modal__card {
     display: flex;
     align-items: stretch;
-    gap: var(--space-11);
+    gap: var(--space-10);
     background: var(--color-surface);
     border-radius: var(--radius-2xl);
 }
