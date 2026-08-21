@@ -18,7 +18,6 @@ import{renderStatusBadgeHTML}from"../components/editor/status.js";
 import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
 import{restoreModalFromUrl}from"../components/modal.js";
 import{createPageUpdates}from"../../admin/update.js";
-
 const params=new URLSearchParams(window.location.search);
 const objectId=params.get("id");
 let pageObject=null;
@@ -34,7 +33,6 @@ let pageRecordTypes=[];
 let pageAdminMode=false;
 let pageTypes=[];
 let pageObjects=[];
-
 const page={
     get object(){return pageObject;},
     set object(value){pageObject=value;},
@@ -49,9 +47,9 @@ const page={
     set photos(value){pagePhotos=value;},
     get sources(){return pageSources;},
     set sources(value){pageSources=value;},
-get subjects(){return pageSubjects;},
-get subjectTypes(){return pageSubjectTypes;},
-get recordTypes(){return pageRecordTypes;},
+    get subjects(){return pageSubjects;},
+    get subjectTypes(){return pageSubjectTypes;},
+    get recordTypes(){return pageRecordTypes;},
     get admin(){return pageAdminMode;},
     get objects(){return pageObjects;},
     get types(){return pageTypes;},
@@ -62,9 +60,7 @@ get recordTypes(){return pageRecordTypes;},
         if(block)block.outerHTML=renderObjectBlock();
     }
 };
-
 const updates=createPageUpdates(page);
-
 async function loadPage(){
     console.time("LOAD DATA");
     console.time("getAllObjects");
@@ -92,36 +88,25 @@ async function loadPage(){
     console.time("getSources");
     console.time("getSubjects");
     console.time("getSubjectTypes");
-[
-    pageRecordTypes,
-    pageSubjectTypes,
-    pageParents,
-    pageChildren,
-    pageRecords,
-    pagePhotos,
-    pageSources,
-    pageSubjects
-]=await Promise.all([
-    timed("getRecordTypes",getRecordTypes()),
-    timed("getSubjectTypes",getSubjectTypes()),
-    timed("getParents",getParents(object,objects,types)),
-    getChildren(object.id,objects),
-    timed("getRecords",getRecords(object.id)),
-    timed("getPhotos",getPhotos(object.id)),
-    timed("getSources",getSources(object.id)),
-    timed("getSubjects",getSubjects())
-]);
+    [pageRecordTypes,pageSubjectTypes,pageParents,pageChildren,pageRecords,pagePhotos,pageSources,pageSubjects]=await Promise.all([
+        timed("getRecordTypes",getRecordTypes()),
+        timed("getSubjectTypes",getSubjectTypes()),
+        timed("getParents",getParents(object,objects,types)),
+        getChildren(object.id,objects),
+        timed("getRecords",getRecords(object.id)),
+        timed("getPhotos",getPhotos(object.id)),
+        timed("getSources",getSources(object.id)),
+        timed("getSubjects",getSubjects())
+    ]);
     console.timeEnd("LOAD DATA");
     console.time("RENDER PAGE");
     await renderPage();
     console.timeEnd("RENDER PAGE");
 }
-
 export function onPhotoDeleted(){return updates.updatePhotosBlock();}
 export function onSourceDeleted(){return updates.updateSourcesBlock();}
 export function onRecordDeleted(){return updates.updateRecordsBlock();}
 export function onObjectDeleted(){return updates.onObjectDeleted();}
-
 function renderObjectBlock(){
     const coverPhoto=pagePhotos.find(photo=>photo.id===pageObject.coverPhotoId);
     const status=renderStatusBadgeHTML(pageObject.status);
@@ -179,12 +164,11 @@ function renderObjectBlock(){
         </section>
     `;
 }
-
 async function renderPage(){
     const childrenHTML=await renderChildren(pageChildren,pageAdminMode,pageObject,pageObjects,pageTypes);
     const breadcrumbsHTML=renderBreadcrumbs(pageObject,pageParents);
     document.body.innerHTML=`
-        ${renderHeader()}
+        ${renderHeader(page,updates)}
         <main class="page">
             ${breadcrumbsHTML}
             ${renderObjectBlock()}
@@ -227,7 +211,6 @@ async function renderPage(){
         </main>
     `;
 }
-
 loadPage().then(()=>{
     onAdminStateChanged(async admin=>{
         pageAdminMode=admin;
