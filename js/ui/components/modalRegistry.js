@@ -17,7 +17,9 @@ export const photoPreviewModal={
         if(!params.id||!params.entityId)return null;
 
         const photos=await getPhotos(params.id);
-        const photo=photos.find(item=>item.id===params.entityId);
+        const photo=photos.find(
+            item=>item.id===params.entityId
+        );
 
         if(!photo)return null;
 
@@ -75,7 +77,8 @@ export const editorModal={
         if(!params.id)return null;
 
         if(params.entityType==="object"){
-            const object=await getObject(params.entityId);
+            const object=
+                await getObject(params.entityId);
 
             if(!object)return null;
 
@@ -114,7 +117,9 @@ export const editorModal={
             };
         }
 
-        if(!["photo","source","record"].includes(params.entityType)){
+        if(!["photo","source","record"].includes(
+            params.entityType
+        )){
             console.error(
                 "Unknown entity type:",
                 params.entityType
@@ -184,9 +189,7 @@ export const editorModal={
                     subjectTypes:data.subjectTypes,
                     objects:data.objects
                 },
-                async()=>{
-                    await restoreSubjectsModalAfterEditor();
-                }
+                ()=>{}
             );
 
             return;
@@ -270,27 +273,6 @@ export const subjectsModal={
         await openSubjectsModal();
     }
 };
-
-async function restoreSubjectsModalAfterEditor(){
-    const url=new URL(window.location.href);
-
-    if(url.searchParams.get("modal")!=="editor"){
-        return;
-    }
-
-    url.searchParams.set("modal","subjects");
-
-    url.searchParams.delete("entityId");
-    url.searchParams.delete("entityType");
-
-    window.history.pushState(
-        {},
-        "",
-        url
-    );
-
-    await openSubjectsModal();
-}
 
 export const modalRegistry=[
     photoPreviewModal,
