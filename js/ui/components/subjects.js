@@ -6,13 +6,10 @@ import{getAllSources}from"../../api/sources.js";
 import{getAllRecords}from"../../api/records.js";
 import{isAdmin}from"../../admin/adminMode.js";
 import{openEditor}from"../../admin/editorConfig.js";
-import{deleteEntity}from"../../admin/update.js";
+import{createModal,setModalUrl}from"./modal.js";
 import{renderEntityList}from"./entityList.js";
-import{setModalUrl}from"./modal.js";
-import{openSubjectModal}from"./subject.js";
-import{createModal}from"./modal.js";
 
-let currentModal=null;
+let currentSubjectsModal=null;
 
 export async function openSubjectsModal(){
     const[
@@ -33,20 +30,65 @@ export async function openSubjectsModal(){
 
     const modal=createModal({
         title:"Субъекты",
-        content:renderSubjects(subjects,subjectTypes),
-        width:900
+        content:renderSubjectsList(
+            subjects,
+            subjectTypes,
+            isAdmin()
+        ),
+        width:800
     });
 
-    currentModal=modal;
+    currentSubjectsModal=modal;
 
-    modal.root.addEventListener("click",async event=>{
-        const button=event.target.closest(".admin-button");
-        if(button){
+    modal.subjects=subjects;
+    modal.subjectTypes=subjectTypes;
+    modal.objects=objects;
+    modal.photos=photos;
+    modal.sources=sources;
+    modal.records=records;
+
+    modal.root.addEventListener(
+        "click",
+        async event=>{
+            const button=
+                event.target.closest(".admin-button");
+
+            if(!button)return;
+
             const action=button.dataset.action;
             const id=button.dataset.id;
 
+            if(action==="add-subject"){
+                setModalUrl("editor",{
+                    entityId:null,
+                    entityType:"subject"
+                });
+
+                await openEditor(
+                    "subject",
+                    null,
+                    {
+                        subjects,
+                        subjectTypes,
+                        objects,
+                        photos,
+                        sources,
+                        records
+                    },
+                    async()=>{
+                        await refreshSubjectsModal();
+                    }
+                );
+
+                return;
+            }
+
             if(action==="edit-subject"){
-                const subject=subjects.find(item=>item.id===id);
+                const subject=
+                    subjects.find(
+                        item=>item.id===id
+                    );
+
                 if(!subject)return;
 
                 setModalUrl("editor",{
@@ -69,79 +111,16 @@ export async function openSubjectsModal(){
                         await refreshSubjectsModal();
                     }
                 );
-
-                return;
-            }
-
-            if(action==="delete-subject"){
-                if(!id)return;
-
-                if(!confirm("Удалить субъект?"))return;
-
-                try{
-                    await deleteEntity(
-                        "subject",
-                        id,
-                        {
-                            subjects,
-                            subjectTypes,
-                            objects,
-                            photos,
-                            sources,
-                            records
-                        }
-                    );
-
-                    await refreshSubjectsModal();
-                }catch(error){
-                    console.error(
-                        "Ошибка удаления субъекта:",
-                        error
-                    );
-
-                    alert(
-                        "Не удалось удалить субъект"
-                    );
-                }
-
-                return;
             }
         }
-
-        const link=event.target.closest(".subject-list__link");
-        if(!link)return;
-
-        event.preventDefault();
-
-        const id=link.dataset.id;
-        if(!id)return;
-
-        const subject=subjects.find(item=>item.id===id);
-        if(!subject)return;
-
-        setModalUrl("subject",{
-            entityId:subject.id
-        });
-
-        openSubjectModal(
-            subject,
-            {
-                subjects,
-                objects,
-                photos,
-                sources,
-                records,
-                subjectTypes
-            }
-        );
-    });
+    );
 
     return modal;
 }
 
 export async function refreshSubjectsModal(){
-    if(!currentModal?.root?.isConnected){
-        currentModal=null;
+    if(!currentSubjectsModal?.root?.isConnected){
+        currentSubjectsModal=null;
         return;
     }
 
@@ -161,99 +140,77 @@ export async function refreshSubjectsModal(){
         getAllRecords()
     ]);
 
-    currentModal.setContent(
-        renderSubjects(subjects,subjectTypes)
+    currentSubjectsModal.subjects=subjects;
+    currentSubjectsModal.subjectTypes=subjectTypes;
+    currentSubjectsModal.objects=objects;
+    currentSubjectsModal.photos=photos;
+    currentSubjectsModal.sources=sources;
+    currentSubjectsModal.records=records;
+
+    currentSubjectsModal.setContent(
+        renderSubjectsList(
+            subjects,
+            subjectTypes,
+            isAdmin()
+        )
     );
 }
 
-function renderSubjects(subjects=[],subjectTypes=[]){
-    const groups=subjectTypes.map(type=>({
-        title:type.title??"",
-        items:subjects
-            .filter(subject=>subject.typeId===type.id)
-            .sort((a,b)=>
-                (a.title??"").localeCompare(
-                    b.title??"",
-                    "ru"
+function renderSubjectsList(
+    subjects=[],
+    subjectTypes=[],
+    ADMIN_MODE=false
+){
+    const groups=subjectTypes.map(type=>{
+        const items=
+            subjects
+                .filter(
+                    subject=>subject.typeId===type.id
                 )
-            )
-            .map(subject=>({
-                title:escapeHTML(subject.title??"Без названия"),
-                description:subject.description??"",
-                meta:formatYears(subject),
-                href:`#`,
-                id:subject.id,
-                actions:isAdmin()
-                    ?`
-                        <button
-                            class="admin-button"
-                            data-action="edit-subject"
-                            data-id="${escapeHTML(subject.id)}"
-                        >
-                            <img src="icons/edit.svg" class="admin-icon">
-                        </button>
-                        <button
-                            class="admin-button"
-                            data-action="delete-subject"
-                            data-id="${escapeHTML(subject.id)}"
-                        >
-                            <img src="icons/delete.svg" class="admin-icon">
-                        </button>
-                    `
-                    :""
-            }))
-    })).filter(group=>group.items.length);
+                .sort((a,b)=>
+                    (a.title??"").localeCompare(
+                        b.title??"",
+                        "ru"
+                    )
+                )
+                .map(subject=>({
+                    title:escapeHTML(
+                        subject.title??"Без названия"
+                    ),
+                    meta:formatSubjectYears(subject),
+                    href:`?modal=subject&entityId=${encodeURIComponent(subject.id)}`,
+                    actions:ADMIN_MODE
+                        ?`
+                            <button
+                                class="admin-button"
+                                data-action="edit-subject"
+                                data-id="${escapeHTML(subject.id)}"
+                                title="Редактировать"
+                            >
+                                <img src="icons/edit.svg" class="admin-icon">
+                            </button>
+                            <button
+                                class="admin-button"
+                                data-action="delete-subject"
+                                data-id="${escapeHTML(subject.id)}"
+                                title="Удалить"
+                            >
+                                <img src="icons/delete.svg" class="admin-icon">
+                            </button>
+                        `
+                        :""
+                }));
 
-    const untyped=subjects
-        .filter(subject=>
-            !subject.typeId||
-            !subjectTypes.some(
-                type=>type.id===subject.typeId
-            )
-        )
-        .sort((a,b)=>
-            (a.title??"").localeCompare(
-                b.title??"",
-                "ru"
-            )
-        )
-        .map(subject=>({
-            title:escapeHTML(subject.title??"Без названия"),
-            description:subject.description??"",
-            meta:formatYears(subject),
-            href:"#",
-            id:subject.id,
-            actions:isAdmin()
-                ?`
-                    <button
-                        class="admin-button"
-                        data-action="edit-subject"
-                        data-id="${escapeHTML(subject.id)}"
-                    >
-                        <img src="icons/edit.svg" class="admin-icon">
-                    </button>
-                    <button
-                        class="admin-button"
-                        data-action="delete-subject"
-                        data-id="${escapeHTML(subject.id)}"
-                    >
-                        <img src="icons/delete.svg" class="admin-icon">
-                    </button>
-                `
-                :""
-        }));
+        return{
+            title:escapeHTML(type.title??""),
+            items
+        };
+    }).filter(group=>group.items.length);
 
-    if(untyped.length){
-        groups.push({
-            title:"Без типа",
-            items:untyped
-        });
-    }
-
-    const addButton=isAdmin()
+    const addButton=ADMIN_MODE
         ?`
             <div
-                class="entity-list__add subject-list__add"
+                class="entity-list__add"
                 data-action="add-subject"
             >
                 + Добавить субъект
@@ -261,13 +218,13 @@ function renderSubjects(subjects=[],subjectTypes=[]){
         `
         :"";
 
-return renderEntityList({
-    groups,
-    addButton
-});
+    return renderEntityList({
+        groups,
+        addButton
+    });
 }
 
-function formatYears(subject){
+function formatSubjectYears(subject){
     if(subject.dateStart&&subject.dateEnd){
         return`${escapeHTML(subject.dateStart)} – ${escapeHTML(subject.dateEnd)}`;
     }
