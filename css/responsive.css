@@ -47,27 +47,16 @@
     :root {
         --page-width: 100%;
         --header-width: 100%;
-
-        --header-logo-width: auto;
-        --header-buttons-width: auto;
     }
 
     .header {
        border-radius: 0;
        padding: var(--space-6);
-       margin-top: var(--space-8);
     }
-
-   .page {
-       margin-top: var(--space-8);
-    }
-
     section {
         border-radius: 0;
         padding: var(--space-6);
-        margin-top: var(--space-8);
     }
-
    .header__logo a{
       display:none;
    }   
