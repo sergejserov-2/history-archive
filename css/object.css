@@ -642,7 +642,13 @@
     transition:var(--transition-fast);
 }
 
-.entity-list-row:hover {
+/* ---------- clickable rows ---------- */
+
+.entity-list-row[href] {
+    cursor:pointer;
+}
+
+.entity-list-row[href]:hover {
     background:var(--color-card-hover);
 }
 
