@@ -5,8 +5,8 @@ import{getAllObjects}from"../../api/objects.js";
 import{getAllRecords}from"../../api/records.js";
 import{getSubjects}from"../../api/subjects.js";
 import{isAdmin}from"../../admin/adminMode.js";
-import{openEditor}from"./editorConfig.js";
-import{deleteEntity}from"./update.js";
+import{openEditor}from"../../admin/editorConfig.js";
+import{deleteEntity}from"../../admin/update.js";
 import{createModal,setModalUrl}from"./modal.js";
 import{renderEntityList}from"./entityList.js";
 
