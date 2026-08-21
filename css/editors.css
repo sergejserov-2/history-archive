@@ -510,7 +510,7 @@
     position: fixed;
     width: max-content;
     max-width: 260px;
-    padding: var(-- 10px;
+    padding: var(--space-2) var(--space-6);
     background: var(--color-card-hover);
     color: var(--color-text-secondary);
     border-radius: 6px;
