@@ -1,6 +1,6 @@
-import{getPhotos,getAllPhotos}from"../../api/photos.js";
-import{getSources,getAllSources}from"../../api/sources.js";
-import{getRecords,getAllRecords}from"../../api/records.js";
+import{getPhotos}from"../../api/photos.js";
+import{getSources}from"../../api/sources.js";
+import{getRecords}from"../../api/records.js";
 import{getObject,getType,getChildren,getAllObjects}from"../../api/objects.js";
 import{getTypes}from"../../api/types.js";
 import{getSubject,getSubjects}from"../../api/subjects.js";
@@ -17,9 +17,11 @@ export const photoPreviewModal={
         if(!params.id||!params.entityId)return null;
 
         const photos=await getPhotos(params.id);
-        const photo=photos.find(
-            item=>item.id===params.entityId
-        );
+
+        const photo=
+            photos.find(
+                item=>item.id===params.entityId
+            );
 
         if(!photo)return null;
 
@@ -43,7 +45,9 @@ export const editorModal={
     admin:true,
     params:["id","entityId","entityType"],
     load:async params=>{
-        if(!params.entityId||!params.entityType)return null;
+        if(!params.entityId||!params.entityType){
+            return null;
+        }
 
         const objects=await getAllObjects();
 
@@ -87,7 +91,7 @@ export const editorModal={
                     typeof parent==="string"
                         ?parent===params.id
                         :parent?.objectId===params.id
-            );
+                );
 
             if(!hasParent)return null;
 
@@ -117,9 +121,10 @@ export const editorModal={
             };
         }
 
-        if(!["photo","source","record"].includes(
-            params.entityType
-        )){
+        if(
+            !["photo","source","record"]
+                .includes(params.entityType)
+        ){
             console.error(
                 "Unknown entity type:",
                 params.entityType
@@ -185,9 +190,9 @@ export const editorModal={
                 data.entity,
                 {
                     ...data.context,
+                    objects:data.objects,
                     subjects:data.subjects,
-                    subjectTypes:data.subjectTypes,
-                    objects:data.objects
+                    subjectTypes:data.subjectTypes
                 },
                 ()=>{}
             );
@@ -213,9 +218,9 @@ export const loginModal={
 
 export const subjectModal={
     type:"subject",
-    params:["id","entityId"],
+    params:["entityId"],
     load:async params=>{
-        if(!params.id||!params.entityId)return null;
+        if(!params.entityId)return null;
 
         const[
             subject,
