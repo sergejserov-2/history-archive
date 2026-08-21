@@ -8,6 +8,7 @@ import{getSubjectTypes}from"../../api/subjectTypes.js";
 import{openPhotoViewer}from"./photoViewer.js";
 import{openEditor}from"../../admin/editorConfig.js";
 import{openSubjectModal}from"./subject.js";
+import{openSubjectsModal}from"./subjects.js";
 
 export const photoPreviewModal={
     type:"photo-preview",
@@ -120,6 +121,15 @@ export const loginModal={
     open:null
 };
 
+export const subjectsModal={
+    type:"subjects",
+    params:[],
+    load:null,
+    open:async()=>{
+        await openSubjectsModal();
+    }
+};
+
 export const subjectModal={
     type:"subject",
     params:["id","entityId"],
@@ -178,5 +188,6 @@ export const modalRegistry=[
     photoPreviewModal,
     editorModal,
     loginModal,
-    subjectModal
+    subjectModal,
+    subjectsModal
 ];
