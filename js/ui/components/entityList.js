@@ -9,29 +9,6 @@ export function renderEntityList({
         </div>
     `;
 }
-
-function renderGroup(group){
-    return`
-        <div class="entity-list__group">
-            <div class="entity-list__group-title">
-                ${group.title??""}
-            </div>
-            ${group.items.map(renderRow).join("")}
-        </div>
-    `;
-}
-
-export function renderEntityList({
-    groups=[],
-    addButton=""
-}={}){
-    return`
-        <div class="entity-list">
-            ${addButton}
-            ${groups.map(renderGroup).join("")}
-        </div>
-    `;
-}
 function renderGroup(group){
     return`
         <div class="entity-list__group">
