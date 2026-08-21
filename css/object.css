@@ -566,184 +566,206 @@
 ========================================== */
 
 .entity-list {
-    display: flex;
-    flex-direction: column;
+    display:flex;
+    flex-direction:column;
 }
 
 /* ---------- Add button ---------- */
 
 .entity-list__add {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 
-    min-height: 38px;
+    min-height:38px;
 
-    margin-bottom: var(--space-8);
-    padding: 0 var(--space-8);
+    margin-bottom:var(--space-8);
+    padding:0 var(--space-8);
 
-    background: rgba(220, 170, 40, .18);
+    background:rgba(220,170,40,.18);
 
-    border: 1px dashed var(--color-admin) !important;
-    border-radius: var(--radius-2xl);
+    border:1px dashed var(--color-admin) !important;
+    border-radius:var(--radius-2xl);
 
-    color: var(--color-admin);
+    color:var(--color-admin);
 
-    cursor: pointer;
+    cursor:pointer;
 
-    font-size: var(--font-size-lg);
+    font-size:var(--font-size-lg);
 
-    transition: var(--transition-fast);
+    transition:var(--transition-fast);
 }
 
 .entity-list__add:hover {
-    background: var(--color-admin-bg-hover);
-    border-color: var(--color-admin);
+    background:var(--color-admin-bg-hover);
 }
 
 /* ---------- Groups ---------- */
 
 .entity-list__group {
-    display: flex;
-    flex-direction: column;
+    display:flex;
+    flex-direction:column;
 
-    gap: 0;
-    margin-bottom: var(--space-8);
+    margin-bottom:var(--space-8);
 }
 
 .entity-list__group-title {
-    margin-bottom: var(--space-4);
-    padding: 0 var(--space-8);
+    margin-bottom:var(--space-4);
+    padding:0 var(--space-8);
 
-    color: var(--color-text-dim);
-    font-size: var(--font-size-sm);
-    line-height: 1.3;
+    color:var(--color-text-dim);
 
-    text-transform: uppercase;
+    font-size:var(--font-size-sm);
+
+    text-transform:uppercase;
 }
 
-/* ---------- Rows ---------- */
+/* ==========================================
+   ROWS
+========================================== */
 
-.entity-row {
-    display: grid;
+.entity-list-row {
+    align-items:center;
+
+    gap:var(--space-8);
+
+    padding:var(--space-5) var(--space-8);
+
+    background:var(--color-surface-dark);
+
+    border-top:var(--border-row);
+
+    color:inherit;
+    text-decoration:none;
+
+    transition:var(--transition-fast);
+}
+
+.entity-list-row:hover {
+    background:var(--color-card-hover);
+}
+
+/* ---------- first row ---------- */
+
+.entity-list__group > .entity-list-row:first-of-type {
+    border-top:none;
+
+    border-top-left-radius:var(--radius-2xl);
+    border-top-right-radius:var(--radius-2xl);
+}
+
+.entity-list__group > .entity-list-row:last-child {
+    border-bottom-left-radius:var(--radius-2xl);
+    border-bottom-right-radius:var(--radius-2xl);
+}
+
+/* ==========================================
+   LAYOUTS
+========================================== */
+
+/* title + description + meta */
+
+.entity-list-row--description.entity-list-row--meta {
+
+    display:grid;
 
     grid-template-columns:
         250px
         minmax(0,1fr)
         max-content;
-
-    align-items: center;
-
-    gap: var(--space-8);
-    padding: var(--space-5) var(--space-8);
-
-    background: var(--color-surface-dark);
-
-    border-top: var(--border-row);
-
-    color: inherit;
-    text-decoration: none;
-
-    transition: var(--transition-bg);
 }
 
-.entity-row:hover {
-    background: var(--color-card-hover);
-}
+/* title + description */
 
-/* ---------- Dynamic layouts ---------- */
+.entity-list-row--description:not(.entity-list-row--meta) {
 
-.entity-row--full {
-    grid-template-columns:
-        250px
-        minmax(0,1fr)
-        max-content;
-}
+    display:grid;
 
-.entity-row--description {
     grid-template-columns:
         250px
         minmax(0,1fr);
 }
 
-.entity-row--meta {
+/* title + meta */
+
+.entity-list-row--title-only.entity-list-row--meta {
+
+    display:grid;
+
     grid-template-columns:
         minmax(0,1fr)
         max-content;
 }
 
-.entity-row--title {
-    grid-template-columns:
-        minmax(0,1fr);
+/* only title */
+
+.entity-list-row--title-only:not(.entity-list-row--meta) {
+
+    display:block;
 }
 
-/* ---------- First / last row ---------- */
+/* ==========================================
+   TITLE
+========================================== */
 
-.entity-list__group > .entity-row:nth-child(2) {
-    border-top: none;
+.entity-list-row__title {
 
-    border-top-left-radius: var(--radius-2xl);
-    border-top-right-radius: var(--radius-2xl);
+    display:flex;
+    align-items:center;
+
+    gap:var(--space-4);
+
+    min-width:0;
 }
 
-.entity-list__group > .entity-row:last-child {
-    border-bottom-left-radius: var(--radius-2xl);
-    border-bottom-right-radius: var(--radius-2xl);
+.entity-list-row__title-text {
+
+    flex:1 1 auto;
+
+    min-width:0;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+    white-space:nowrap;
+
+    color:var(--color-text-primary);
+
+    font-size:var(--font-size-lg);
+    font-weight:600;
 }
 
-/* ---------- Title ---------- */
+/* ==========================================
+   DESCRIPTION
+========================================== */
 
-.entity-row__title {
-    display: flex;
-    align-items: center;
+.entity-list-row__description {
 
-    min-width: 0;
-    width: 100%;
+    min-width:0;
 
-    gap: var(--space-4);
+    overflow:hidden;
 
-    color: var(--color-text-primary);
-    font-size: var(--font-size-lg);
-    line-height: 1.45;
-    font-weight: 600;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+
+    color:var(--color-text-secondary);
+
+    font-size:var(--font-size-lg);
 }
 
-.entity-row__title-text {
-    flex: 1 1 auto;
+/* ==========================================
+   META
+========================================== */
 
-    min-width: 0;
+.entity-list-row__meta {
 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+    white-space:nowrap;
 
-/* контейнер кнопок */
+    color:var(--color-text-faded);
 
-.entity-row__title .admin-button,
-.entity-row__title .admin-button + .admin-button {
-    flex-shrink: 0;
-}
+    font-size:var(--font-size-lg);
 
-/* ---------- Description ---------- */
+    font-style:italic;
 
-.entity-row__description {
-    min-width: 0;
-    overflow: hidden;
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-lg);
-    line-height: 1.45;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* ---------- Meta ---------- */
-.entity-row__meta {
-    flex-shrink: 0;
-    color: var(--color-text-faded);
-    font-size: var(--font-size-lg);
-    line-height: 1.45;
-    font-style: italic;
-    text-align: right;
-    white-space: nowrap;
+    text-align:right;
 }
