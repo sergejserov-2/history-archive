@@ -42,7 +42,7 @@
    MOBILE
 ========================================== */
 
-@media(max-width: 900px) {
+@media(max-width: 600px) {
 
     :root {
         --page-width: 100%;
@@ -56,13 +56,14 @@
         border-radius: 0;
     }
 
-    .page {
-        margin: var(--space-8);
-    }
-
     section {
         padding: var(--space-7);
     }
+
+   .header__logo a{
+      display:none;
+   }   
+
 
     /* ==========================================
        OBJECT
@@ -347,10 +348,6 @@
 
 @media(max-width: 480px) {
 
-    .page {
-        margin: var(--space-5);
-    }
-
     .object,
     section {
         padding: var(--space-6);
@@ -363,7 +360,4 @@
         font-size: var(--font-size-md);
     }
 
-    .photo-card__media {
-        width: 110px;
-    }
 }
