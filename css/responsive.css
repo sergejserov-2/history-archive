@@ -53,11 +53,18 @@
     }
 
     .header {
-        border-radius: 0;
+       border-radius: 0;
+       padding: var(--space-6);
+       margin: var(--space-8) auto 0;
+    }
+
+   .page {
+       margin: var(--space-8) auto;
     }
 
     section {
-        padding: var(--space-7);
+        border-radius: 0;
+        padding: var(--space-6);
     }
 
    .header__logo a{
@@ -72,43 +79,22 @@
     .object {
         flex-direction: column;
         gap: var(--space-8);
-
         padding: var(--space-7);
     }
 
     .object__cover {
         width: 100%;
-        min-height: auto;
-
-        aspect-ratio: 16 / 9;
-    }
-
-    .object__cover-image {
-        width: 200px;
-        height: 200px;
-
-        object-fit: cover;
-
-        border-radius: var(--radius-lg);
-    }
-
-    .object__cover-placeholder {
-        width: 100%;
-        height: 100%;
-        aspect-ratio: auto;
+        height:200px;
     }
 
     .object__title {
         flex-wrap: wrap;
-
         white-space: normal;
-
         font-size: var(--font-size-3xl);
     }
 
     .object__title-text {
         white-space: normal;
-
         overflow: visible;
         text-overflow: unset;
     }
@@ -124,7 +110,6 @@
     .children-list {
         display: flex;
         flex-direction: column;
-
         gap: var(--space-6);
     }
 
@@ -340,24 +325,4 @@
             var(--space-3)
             var(--space-7);
     }
-}
-
-/* ==========================================
-   SMALL PHONES
-========================================== */
-
-@media(max-width: 480px) {
-
-    .object,
-    section {
-        padding: var(--space-6);
-    }
-
-    .record__title,
-    .record__description,
-    .source__description,
-    .object__description {
-        font-size: var(--font-size-md);
-    }
-
 }
