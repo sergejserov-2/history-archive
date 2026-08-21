@@ -21,12 +21,35 @@ function renderGroup(group){
     `;
 }
 
+export function renderEntityList({
+    groups=[],
+    addButton=""
+}={}){
+    return`
+        <div class="entity-list">
+            ${addButton}
+            ${groups.map(renderGroup).join("")}
+        </div>
+    `;
+}
+function renderGroup(group){
+    return`
+        <div class="entity-list__group">
+            <div class="entity-list__group-title">
+                ${group.title??""}
+            </div>
+            ${group.items.map(renderRow).join("")}
+        </div>
+    `;
+}
 function renderRow(item){
     const hasDescription=Boolean(item.description?.trim());
     const hasMeta=Boolean(item.meta?.trim());
-
     const rowClass=[
         "entity-list-row",
+        item.href
+            ?"entity-list-row--clickable"
+            :"",
         hasDescription
             ?"entity-list-row--description"
             :"entity-list-row--title-only",
@@ -34,7 +57,6 @@ function renderRow(item){
             ?"entity-list-row--meta"
             :""
     ].filter(Boolean).join(" ");
-
     const content=`
         <div class="entity-list-row__title">
             <span class="entity-list-row__title-text">
@@ -61,7 +83,6 @@ function renderRow(item){
                 :""
         }
     `;
-
     if(item.href){
         return`
             <a
@@ -73,7 +94,6 @@ function renderRow(item){
             </a>
         `;
     }
-
     return`
         <div
             class="${rowClass}"
