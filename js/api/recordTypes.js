@@ -18,28 +18,19 @@
 //
 // ВАЖНО:
 // Этот API никак не связан с types.js.
-// Типы объектов остаются в коллекции "types".
 // ======================================
 
-import {
-
+import{
     collection,
     getDocs,
     doc,
     getDoc,
-    addDoc,
+    setDoc,
     updateDoc,
     deleteDoc
+}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-}
-from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-import {
-
-    db
-
-}
-from "../firebase.js";
+import{db}from"../firebase.js";
 
 // ======================================
 // Get all record types
@@ -47,168 +38,101 @@ from "../firebase.js";
 
 export async function getRecordTypes(){
 
-    const snapshot =
-
-        await getDocs(
-
-            collection(
-                db,
-                "recordTypes"
-            )
-
-        );
-
-    return snapshot.docs.map(
-
-        doc => ({
-
-            id:
-                doc.id,
-
-            ...doc.data()
-
-        })
-
+    const snapshot=await getDocs(
+        collection(
+            db,
+            "recordTypes"
+        )
     );
 
+    return snapshot.docs.map(
+        doc=>({
+            id:doc.id,
+            ...doc.data()
+        })
+    );
 }
 
 // ======================================
 // Get one record type
 // ======================================
 
-export async function getRecordType(
+export async function getRecordType(typeId){
 
-    typeId
+    if(!typeId)return null;
 
-){
+    const snapshot=await getDoc(
+        doc(
+            db,
+            "recordTypes",
+            typeId
+        )
+    );
 
-    if(!typeId){
+    if(!snapshot.exists())return null;
 
-        return null;
-
-    }
-
-    const snapshot =
-
-        await getDoc(
-
-            doc(
-
-                db,
-                "recordTypes",
-
-                typeId
-
-            )
-
-        );
-
-    if(!snapshot.exists()){
-
-        return null;
-
-    }
-
-    return {
-
-        id:
-            snapshot.id,
-
+    return{
+        id:snapshot.id,
         ...snapshot.data()
-
     };
-
 }
 
 // ======================================
 // Create record type
 // ======================================
 
-export async function createRecordType(
+export async function createRecordType(id,data){
 
-    data
+    if(!id)return null;
 
-){
+    await setDoc(
+        doc(
+            db,
+            "recordTypes",
+            id
+        ),
+        data
+    );
 
-    const ref =
-
-        await addDoc(
-
-            collection(
-
-                db,
-                "recordTypes"
-
-            ),
-
-            data
-
-        );
-
-    return {
-
-        id:
-            ref.id,
-
+    return{
+        id,
         ...data
-
     };
-
 }
 
 // ======================================
 // Update record type
 // ======================================
 
-export async function updateRecordType(
+export async function updateRecordType(id,data){
 
-    id,
-
-    data
-
-){
+    if(!id)return null;
 
     await updateDoc(
-
         doc(
-
             db,
-
             "recordTypes",
-
             id
-
         ),
-
         data
-
     );
 
+    return id;
 }
 
 // ======================================
 // Delete record type
 // ======================================
 
-export async function deleteRecordType(
+export async function deleteRecordType(id){
 
-    id
-
-){
+    if(!id)return;
 
     await deleteDoc(
-
         doc(
-
             db,
-
             "recordTypes",
-
             id
-
         )
-
     );
-
 }
