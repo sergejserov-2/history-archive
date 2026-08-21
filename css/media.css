@@ -176,11 +176,11 @@
     display: inline-block;
 
     padding: 3px 7px;
-
+    width:max-content;
     background: var(--color-card);
     border-radius: var(--radius-sm);
 
-    color: var(color-text-secondary);
+    color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
     line-height: 1.3;
 
