@@ -627,28 +627,18 @@
 
 .entity-list-row {
     align-items:center;
-
     gap:var(--space-8);
-
     padding:var(--space-5) var(--space-8);
-
     background:var(--color-surface-dark);
-
     border-top:var(--border-row);
-
     color:inherit;
     text-decoration:none;
-
     transition:var(--transition-fast);
 }
-
-/* ---------- clickable rows ---------- */
-
-.entity-list-row[href] {
+.entity-list-row--clickable {
     cursor:pointer;
 }
-
-.entity-list-row[href]:hover {
+.entity-list-row--clickable:hover {
     background:var(--color-card-hover);
 }
 
