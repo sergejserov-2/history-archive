@@ -154,13 +154,7 @@ function renderTypesList(objectTypes=[],recordTypes=[],subjectTypes=[],objects=[
     if(subjectItems.length)groups.push({title:"Типы субъектов",items:subjectItems});
     const addButton=ADMIN_MODE?`
         <div class="entity-list__add admin-button" data-action="add-type" data-type="objectType">
-            + Добавить тип объекта
-        </div>
-        <div class="entity-list__add admin-button" data-action="add-type" data-type="recordType">
-            + Добавить тип записи
-        </div>
-        <div class="entity-list__add admin-button" data-action="add-type" data-type="subjectType">
-            + Добавить тип субъекта
+            + Добавить тип
         </div>
     `:"";
     return renderEntityList({groups,addButton});
