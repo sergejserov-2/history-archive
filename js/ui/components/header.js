@@ -1,18 +1,20 @@
 import{isAdmin,onAdminStateChanged,logout}from"../../admin/adminMode.js";
 import{openLoginModal}from"./loginModal.js";
 import{openSubjectsModal}from"./subjects.js";
+import{openTypesModal}from"./types.js";
 import{setModalUrl}from"./modal.js";
+
 const favicon=document.getElementById("favicon");
+
 if(favicon){
     const dark=window.matchMedia("(prefers-color-scheme: dark)");
     const update=()=>{
-        favicon.href=dark.matches
-            ?"icons/logoDark.svg"
-            :"icons/logoLight.svg";
+        favicon.href=dark.matches?"icons/logoDark.svg":"icons/logoLight.svg";
     };
     update();
     dark.addEventListener("change",update);
 }
+
 export function renderHeader(page=null,updates=null){
     const html=`
 <header class="header">
@@ -25,6 +27,7 @@ export function renderHeader(page=null,updates=null){
     </div>
     <div class="header__buttons">
         <button id="subjectsButton">Субъекты</button>
+        <button id="typesButton">Типы</button>
         <button id="loginButton">Войти</button>
     </div>
 </header>
@@ -42,17 +45,33 @@ export function renderHeader(page=null,updates=null){
                 }
             };
         }
+
+        const typesButton=document.querySelector("#typesButton");
+        if(typesButton){
+            typesButton.onclick=async()=>{
+                setModalUrl("types");
+                try{
+                    await openTypesModal();
+                }catch(error){
+                    console.error("Ошибка открытия списка типов:",error);
+                    alert("Не удалось загрузить типы");
+                }
+            };
+        }
+
         const button=document.querySelector("#loginButton");
         if(!button)return;
+
         const updateButton=ADMIN_MODE=>{
-            button.textContent=ADMIN_MODE
-                ?"Выйти"
-                :"Войти";
+            button.textContent=ADMIN_MODE?"Выйти":"Войти";
         };
+
         updateButton(isAdmin());
+
         onAdminStateChanged(ADMIN_MODE=>{
             updateButton(ADMIN_MODE);
         });
+
         button.onclick=async()=>{
             if(isAdmin()){
                 try{
@@ -66,5 +85,6 @@ export function renderHeader(page=null,updates=null){
             openLoginModal();
         };
     },0);
+
     return html;
 }
