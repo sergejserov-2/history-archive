@@ -711,8 +711,9 @@
     align-items:center;
 
     gap:var(--space-4);
+   width:max-content;
+    max-width:100%;
 
-    min-width:0;
 }
 
 .entity-list-row__title-text {
