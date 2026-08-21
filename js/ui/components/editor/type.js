@@ -1,36 +1,20 @@
 import{createDropdown}from"../dropdown.js";
-import{
-    renderFieldCounterHTML,
-    setupFieldCounters
-}from"./counters.js";
+import{renderFieldCounterHTML,setupFieldCounters}from"./counters.js";
 
+export function renderTypeEditorHTML(cfg={},entity={}){
+    const limits=cfg.limits??{};
+    const targets=cfg.targets??{};
 
-export function renderTypeEditorHTML(
-    cfg={},
-    entity={}
-){
-
-    const limits=
-        cfg.limits??{};
-
-    const targets=
-        cfg.targets??{};
-
-    const target=
-        entity.target??"";
-
-    const levels=
-        targets[target]?.levels??
-        "none";
+    const target=entity.target??"";
+    const targetConfig=targets[target]??{};
+    const levelsMode=targetConfig.levels??"none";
 
     return`
-
         <div class="type-editor">
 
             <div class="entity-row entity-row--title-type">
 
                 <label class="entity-type">
-
                     Тип
 
                     <div class="entity-type__input-wrapper">
@@ -39,18 +23,15 @@ export function renderTypeEditorHTML(
                             id="typeTarget"
                             class="entity-type__input"
                             type="text"
-                            value="${targetTitle(target)}"
+                            value="${targetConfig.title??targetTitle(target)}"
                             readonly
                             autocomplete="off"
                         >
 
                     </div>
-
                 </label>
 
-
                 <label class="entity-title">
-
                     ID
 
                     <input
@@ -66,16 +47,13 @@ export function renderTypeEditorHTML(
                         entity.id,
                         limits.id??45
                     )}
-
                 </label>
 
             </div>
 
-
             <div class="entity-row entity-row--title-type">
 
                 <label class="entity-title">
-
                     Название
 
                     <input
@@ -90,80 +68,73 @@ export function renderTypeEditorHTML(
                         entity.title,
                         limits.title??45
                     )}
-
                 </label>
 
-
                 ${
-                    levels==="none"
-                        ?
-                        ""
-                        :
-                        `
+                    levelsMode==="none"
+                    ?
+                    ""
+                    :
+                    `
+                    <label class="entity-title">
+                        Уровни
 
-                        <label class="entity-title">
-
-                            Уровни
-
-                            <input
-                                id="typeLevels"
-                                class="entity-title__input"
-                                value="${formatLevels(
-                                    entity.levels??
-                                    entity.level
-                                )}"
-                                inputmode="numeric"
-                                autocomplete="off"
-                            >
-
-                        </label>
-
-                        `
+                        <input
+                            id="typeLevels"
+                            class="entity-title__input"
+                            value="${formatLevels(
+                                entity.levels??entity.level
+                            )}"
+                            inputmode="numeric"
+                            autocomplete="off"
+                        >
+                    </label>
+                    `
                 }
 
             </div>
 
         </div>
-
     `;
-
 }
 
-
-export function setupTypeEditor(
-    root,
-    entity={},
-    cfg={}
-){
+export function setupTypeEditor(root,entity={},cfg={}){
 
     const targetInput=
-        root.querySelector(
-            "#typeTarget"
-        );
+        root.querySelector("#typeTarget");
 
     const idInput=
-        root.querySelector(
-            "#typeId"
-        );
+        root.querySelector("#typeId");
 
     const titleInput=
-        root.querySelector(
-            "#typeTitle"
-        );
+        root.querySelector("#typeTitle");
 
     const levelsInput=
-        root.querySelector(
-            "#typeLevels"
-        );
+        root.querySelector("#typeLevels");
 
     const targets=
         cfg.targets??{};
 
+    /*
+     * ВАЖНО:
+     *
+     * target хранится как ID:
+     *
+     * objectType
+     * recordType
+     * subjectType
+     *
+     * Поэтому target никогда не восстанавливаем
+     * из отображаемого title.
+     */
+
+    let currentTarget=
+        entity.target??
+        Object.keys(targets)[0]??
+        "";
 
     const targetItems=
-        Object.entries(
-            targets
-        ).map(
+        Object.entries(targets).map(
             ([id,target])=>({
 
                 id,
@@ -175,18 +146,21 @@ export function setupTypeEditor(
             })
         );
 
-
     const dropdown=
         createDropdown();
 
-
     if(targetInput){
+
+        targetInput.value=
+            targets[currentTarget]?.title??
+            targetTitle(currentTarget);
 
         dropdown.setItems(
             targetItems,
             {
-
                 onSelect(item){
+
+                    currentTarget=item.id;
 
                     targetInput.value=
                         item.title??"";
@@ -198,10 +172,8 @@ export function setupTypeEditor(
                     updateLevelsMode();
 
                 }
-
             }
         );
-
 
         targetInput.addEventListener(
             "click",
@@ -215,9 +187,7 @@ export function setupTypeEditor(
 
                 }else{
 
-                    dropdown.open(
-                        targetInput
-                    );
+                    dropdown.open(targetInput);
 
                     targetInput.focus();
 
@@ -228,14 +198,10 @@ export function setupTypeEditor(
 
     }
 
-
     function updateLevelsMode(){
 
-        const target=
-            getTarget();
-
         const mode=
-            targets[target]?.levels??
+            targets[currentTarget]?.levels??
             "none";
 
         if(!levelsInput)return;
@@ -244,7 +210,6 @@ export function setupTypeEditor(
             mode==="none";
 
     }
-
 
     if(idInput){
 
@@ -264,20 +229,15 @@ export function setupTypeEditor(
 
     }
 
-
     if(levelsInput){
 
         levelsInput.addEventListener(
             "input",
             ()=>{
 
-                const target=
-                    getTarget();
-
                 const mode=
-                    targets[target]?.levels??
+                    targets[currentTarget]?.levels??
                     "none";
-
 
                 if(mode==="single"){
 
@@ -287,15 +247,11 @@ export function setupTypeEditor(
                                 /[^0-9]/g,
                                 ""
                             )
-                            .slice(
-                                0,
-                                1
-                            );
+                            .slice(0,1);
 
                     return;
 
                 }
-
 
                 levelsInput.value=
                     levelsInput.value
@@ -313,73 +269,40 @@ export function setupTypeEditor(
 
     }
 
-
-    setupFieldCounters(
-        root
-    );
+    setupFieldCounters(root);
 
     updateLevelsMode();
-
-
-    function getTarget(){
-
-        return Object.entries(
-            targets
-        )
-        .find(
-            ([,target])=>
-                (
-                    target.title??""
-                )===
-                targetInput?.value
-        )?.[0]??
-        entity.target??
-        "";
-
-    }
-
 
     return{
 
         getData(){
 
-            const target=
-                getTarget();
-
             const mode=
-                targets[target]?.levels??
+                targets[currentTarget]?.levels??
                 "none";
-
 
             const data={
 
-                target,
+                target:
+                    currentTarget,
 
                 id:
-                    idInput
-                        ?.value
-                        .trim()??
+                    idInput?.value.trim()??
                     "",
 
                 title:
-                    titleInput
-                        ?.value
-                        .trim()??
+                    titleInput?.value.trim()??
                     ""
 
             };
 
-
             if(mode==="single"){
 
                 data.level=
-                    levelsInput
-                        ?.value
-                        .trim()??
+                    levelsInput?.value.trim()??
                     "";
 
             }
-
 
             if(mode==="multiple"){
 
@@ -402,15 +325,13 @@ export function setupTypeEditor(
 
             }
 
-
             return data;
 
         },
 
-
         getTarget(){
 
-            return getTarget();
+            return currentTarget;
 
         }
 
@@ -418,31 +339,36 @@ export function setupTypeEditor(
 
 }
 
+function targetTitle(target){
 
-function targetTitle(
-    target
-){
-
-    if(target==="object"){
+    if(target==="objectType")
         return"Объект";
-    }
 
-    if(target==="record"){
+    if(target==="recordType")
         return"Запись";
-    }
 
-    if(target==="subject"){
+    if(target==="subjectType")
         return"Субъект";
-    }
+
+    /*
+     * Старые значения оставляем
+     * для совместимости.
+     */
+
+    if(target==="object")
+        return"Объект";
+
+    if(target==="record")
+        return"Запись";
+
+    if(target==="subject")
+        return"Субъект";
 
     return"";
 
 }
 
-
-function formatLevels(
-    levels
-){
+function formatLevels(levels){
 
     if(
         levels===undefined||
@@ -455,14 +381,10 @@ function formatLevels(
 
     if(Array.isArray(levels)){
 
-        return levels.join(
-            ", "
-        );
+        return levels.join(", ");
 
     }
 
-    return String(
-        levels
-    );
+    return String(levels);
 
 }
