@@ -10,27 +10,21 @@ import{openPhotoViewer}from"./photoViewer.js";
 import{openEditor}from"../../admin/editorConfig.js";
 import{openSubjectModal}from"./subject.js";
 import{openSubjectsModal}from"./subjects.js";
+import{openTypesModal}from"./types.js";
 
 export const photoPreviewModal={
     type:"photo-preview",
     params:["id","entityId"],
     load:async params=>{
         if(!params.id||!params.entityId)return null;
-
         const photos=await getPhotos(params.id);
         const photo=photos.find(item=>item.id===params.entityId);
-
         if(!photo)return null;
-
         return{photo,photos};
     },
     open:async data=>{
         if(!data)return;
-
-        openPhotoViewer(data.photo,{
-            fromUrl:true,
-            photos:data.photos
-        });
+        openPhotoViewer(data.photo,{fromUrl:true,photos:data.photos});
     }
 };
 
@@ -40,7 +34,6 @@ export const editorModal={
     params:["id","entityId","entityType"],
     load:async params=>{
         if(!params.entityId||!params.entityType)return null;
-
         const objects=await getAllObjects();
 
         if(["objectType","recordType","subjectType"].includes(params.entityType)){
@@ -49,75 +42,42 @@ export const editorModal={
 
             if(params.entityType==="objectType"){
                 entity=await getType(params.entityId);
-
                 if(!entity)return null;
-
                 const types=await getTypes();
-
-                context={
-                    objects,
-                    types
-                };
+                context={objects,types};
             }
 
             if(params.entityType==="recordType"){
                 entity=await getRecordType(params.entityId);
-
                 if(!entity)return null;
-
                 const recordTypes=await getRecordTypes();
-
-                context={
-                    objects,
-                    recordTypes
-                };
+                context={objects,recordTypes};
             }
 
             if(params.entityType==="subjectType"){
                 entity=await getSubjectType(params.entityId);
-
                 if(!entity)return null;
-
                 const subjectTypes=await getSubjectTypes();
-
-                context={
-                    objects,
-                    subjectTypes
-                };
+                context={objects,subjectTypes};
             }
 
-            return{
-                entity,
-                type:params.entityType,
-                objects,
-                context
-            };
+            return{entity,type:params.entityType,objects,context};
         }
 
         if(params.entityType==="subject"){
-            const[
-                subject,
-                subjects,
-                subjectTypes
-            ]=await Promise.all([
+            const[subject,subjects,subjectTypes]=await Promise.all([
                 getSubject(params.entityId),
                 getSubjects(),
                 getSubjectTypes()
             ]);
-
             if(!subject)return null;
-
             return{
                 entity:subject,
                 type:"subject",
                 objects,
                 subjects,
                 subjectTypes,
-                context:{
-                    objects,
-                    subjects,
-                    subjectTypes
-                }
+                context:{objects,subjects,subjectTypes}
             };
         }
 
@@ -125,7 +85,6 @@ export const editorModal={
 
         if(params.entityType==="object"){
             const object=await getObject(params.entityId);
-
             if(!object)return null;
 
             const hasParent=(object.parents??[]).some(parent=>
@@ -136,12 +95,7 @@ export const editorModal={
 
             if(!hasParent)return null;
 
-            const[
-                type,
-                types,
-                children,
-                photos
-            ]=await Promise.all([
+            const[type,types,children,photos]=await Promise.all([
                 getType(object.typeId),
                 getTypes(),
                 getChildren(object.id),
@@ -169,20 +123,11 @@ export const editorModal={
 
         let entities=[];
 
-        if(params.entityType==="photo"){
-            entities=await getPhotos(params.id);
-        }
-
-        if(params.entityType==="source"){
-            entities=await getSources(params.id);
-        }
-
-        if(params.entityType==="record"){
-            entities=await getRecords(params.id);
-        }
+        if(params.entityType==="photo")entities=await getPhotos(params.id);
+        if(params.entityType==="source")entities=await getSources(params.id);
+        if(params.entityType==="record")entities=await getRecords(params.id);
 
         const entity=entities.find(item=>item.id===params.entityId);
-
         if(!entity)return null;
 
         return{
@@ -199,51 +144,32 @@ export const editorModal={
         if(!data)return;
 
         if(["objectType","recordType","subjectType"].includes(data.type)){
-            openEditor(
-                data.type,
-                data.entity,
-                data.context
-            );
-
+            await openEditor(data.type,data.entity,data.context);
             return;
         }
 
         if(data.type==="object"){
-            openEditor(
-                "object",
-                data.entity,
-                {
-                    ...data.context,
-                    types:data.types,
-                    objects:data.objects,
-                    children:data.children,
-                    photos:data.photos
-                }
-            );
-
+            await openEditor("object",data.entity,{
+                ...data.context,
+                types:data.types,
+                objects:data.objects,
+                children:data.children,
+                photos:data.photos
+            });
             return;
         }
 
         if(data.type==="subject"){
-            openEditor(
-                "subject",
-                data.entity,
-                {
-                    ...data.context,
-                    objects:data.objects,
-                    subjects:data.subjects,
-                    subjectTypes:data.subjectTypes
-                }
-            );
-
+            await openEditor("subject",data.entity,{
+                ...data.context,
+                objects:data.objects,
+                subjects:data.subjects,
+                subjectTypes:data.subjectTypes
+            });
             return;
         }
 
-        openEditor(
-            data.type,
-            data.entity,
-            data.context
-        );
+        await openEditor(data.type,data.entity,data.context);
     }
 };
 
@@ -293,18 +219,15 @@ export const subjectModal={
     open:async data=>{
         if(!data)return;
 
-        openSubjectModal(
-            data.subject,
-            {
-                subjects:data.subjects,
-                objects:data.objects,
-                photos:data.photos,
-                sources:data.sources,
-                records:data.records,
-                subjectTypes:data.subjectTypes,
-                fromUrl:true
-            }
-        );
+        openSubjectModal(data.subject,{
+            subjects:data.subjects,
+            objects:data.objects,
+            photos:data.photos,
+            sources:data.sources,
+            records:data.records,
+            subjectTypes:data.subjectTypes,
+            fromUrl:true
+        });
     }
 };
 
@@ -317,10 +240,21 @@ export const subjectsModal={
     }
 };
 
+export const typesModal={
+    type:"types",
+    admin:true,
+    params:[],
+    load:null,
+    open:async()=>{
+        await openTypesModal();
+    }
+};
+
 export const modalRegistry=[
     photoPreviewModal,
     editorModal,
     loginModal,
     subjectModal,
-    subjectsModal
+    subjectsModal,
+    typesModal
 ];
