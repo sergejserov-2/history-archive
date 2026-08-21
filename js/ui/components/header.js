@@ -1,16 +1,7 @@
-// ======================================
-// Header component
-// ======================================
-
-import {
-    isAdmin,
-    onAdminStateChanged,
-    logout
-}
-from "../../admin/adminMode.js";
-
-import {openLoginModal} from "./loginModal.js";
-import{openSubjectsModal} from "./subjects.js";
+import{isAdmin,onAdminStateChanged,logout}from"../../admin/adminMode.js";
+import{openLoginModal}from"./loginModal.js";
+import{openSubjectsModal}from"./subjects.js";
+import{setModalUrl}from"./modal.js";
 
 const favicon=document.getElementById("favicon");
 
@@ -27,116 +18,83 @@ if(favicon){
     dark.addEventListener("change",update);
 }
 
-
-// ======================================
-// Header component
-// ======================================
-
-export function renderHeader() {
-
-    const html = `
-
+export function renderHeader(){
+    const html=`
 <header class="header">
-
     <div class="header__logo">
-       <img src="icons/logoDark.svg" alt="Historical Archive">
-        <a href="index.html">
-        Краснохолмское краеведение
-        </a>
+        <img src="icons/logoDark.svg" alt="Historical Archive">
+        <a href="index.html">Краснохолмское краеведение</a>
     </div>
 
     <div class="header__search">
-
-        <input
-            type="text"
-            id="searchInput"
-            placeholder="Поиск..."
-        >
-
+        <input type="text" id="searchInput" placeholder="Поиск...">
     </div>
 
-<div class="header__buttons">
-
-    <button id="subjectsButton">
-        Субъекты
-    </button>
-
-    <button id="loginButton">
-        Войти
-    </button>
-
-</div>
-
+    <div class="header__buttons">
+        <button id="subjectsButton">Субъекты</button>
+        <button id="loginButton">Войти</button>
+    </div>
 </header>
-
 `;
 
-setTimeout(()=>{
+    setTimeout(()=>{
+        const subjectsButton=
+            document.querySelector("#subjectsButton");
 
-    const subjectsButton=
-        document.querySelector(
-            "#subjectsButton"
-        );
+        if(subjectsButton){
+            subjectsButton.onclick=async()=>{
+                setModalUrl("subjects");
 
-    if(subjectsButton){
-        subjectsButton.onclick=async()=>{
-            try{
-                await openSubjectsModal();
-            }catch(error){
-                console.error(
-                    "Ошибка открытия списка субъектов:",
-                    error
-                );
+                try{
+                    await openSubjectsModal();
+                }catch(error){
+                    console.error(
+                        "Ошибка открытия списка субъектов:",
+                        error
+                    );
 
-                alert(
-                    "Не удалось загрузить субъекты"
-                );
-            }
+                    alert(
+                        "Не удалось загрузить субъекты"
+                    );
+                }
+            };
+        }
+
+        const button=
+            document.querySelector("#loginButton");
+
+        if(!button)return;
+
+        const updateButton=ADMIN_MODE=>{
+            button.textContent=
+                ADMIN_MODE
+                    ?"Выйти"
+                    :"Войти";
         };
-    }
 
-    const button=
-        document.querySelector(
-            "#loginButton"
+        updateButton(isAdmin());
+
+        onAdminStateChanged(
+            ADMIN_MODE=>{
+                updateButton(ADMIN_MODE);
+            }
         );
 
-    if(!button){
-        return;
-    }
+        button.onclick=async()=>{
+            if(isAdmin()){
+                try{
+                    await logout();
+                }catch(error){
+                    console.error(error);
+                    alert("Не удалось выйти");
+                }
 
-    function updateButton(ADMIN_MODE){
-        button.textContent=
-            ADMIN_MODE
-                ?"Выйти"
-                :"Войти";
-    }
-
-    updateButton(isAdmin());
-
-    onAdminStateChanged(
-        ADMIN_MODE=>{
-            updateButton(ADMIN_MODE);
-        }
-    );
-
-    button.onclick=async()=>{
-        if(isAdmin()){
-            try{
-                await logout();
-            }catch(error){
-                console.error(error);
-                alert("Не удалось выйти");
+                return;
             }
 
-            return;
-        }
-
-        openLoginModal();
-    };
-
-},0);
+            openLoginModal();
+        };
+    },0);
 
     return html;
-
 }
-
