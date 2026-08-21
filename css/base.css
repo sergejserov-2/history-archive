@@ -165,7 +165,7 @@ body {
 
 .header {
     max-width: var(--page-width);
-    margin-top: var(--space-8);
+    margin: var(--space-8) auto 0;
     padding: var(--space-6) var(--space-8);
 
     display: flex;
@@ -236,13 +236,17 @@ body {
 
 .page {
     max-width: var(--page-width);
-    margin-top: var(--space-8);
+    margin: var(--space-8) auto 0;
 }
 
 
 /* ==========================================
    BREADCRUMBS
 ========================================== */
+
+.breadcrumbs {
+   padding: 0 var(--space-8);
+}
 
 .breadcrumbs__chain {
     display: flex;
