@@ -129,7 +129,7 @@ function renderSubjectsList(
             )
             .map(subject=>({
                 id:subject.id,
-                clickable: true,
+                clickable:true,
                 title:escapeHTML(
                     subject.title??"Без названия"
                 ),
@@ -161,11 +161,68 @@ function renderSubjectsList(
                     `
                     :""
             }));
+
         return{
             title:escapeHTML(type.title??""),
             items
         };
     }).filter(group=>group.items.length);
+
+    const untypedItems=subjects
+        .filter(subject=>
+            !subject.typeId||
+            !subjectTypes.some(
+                type=>type.id===subject.typeId
+            )
+        )
+        .sort((a,b)=>
+            (a.title??"").localeCompare(
+                b.title??"",
+                "ru"
+            )
+        )
+        .map(subject=>({
+            id:subject.id,
+            clickable:true,
+            title:escapeHTML(
+                subject.title??"Без названия"
+            ),
+            meta:formatSubjectYears(subject),
+            actions:ADMIN_MODE
+                ?`
+                    <button
+                        class="admin-button"
+                        data-action="edit-subject"
+                        data-id="${escapeHTML(subject.id)}"
+                        title="Редактировать"
+                    >
+                        <img
+                            src="icons/edit.svg"
+                            class="admin-icon"
+                        >
+                    </button>
+                    <button
+                        class="admin-button"
+                        data-action="delete-subject"
+                        data-id="${escapeHTML(subject.id)}"
+                        title="Удалить"
+                    >
+                        <img
+                            src="icons/delete.svg"
+                            class="admin-icon"
+                        >
+                    </button>
+                `
+                :""
+        }));
+
+    if(untypedItems.length){
+        groups.push({
+            title:"Без типа",
+            items:untypedItems
+        });
+    }
+
     const addButton=ADMIN_MODE
         ?`
             <div
@@ -176,6 +233,7 @@ function renderSubjectsList(
             </div>
         `
         :"";
+
     return renderEntityList({
         groups,
         addButton
