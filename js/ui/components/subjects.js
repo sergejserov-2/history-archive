@@ -261,13 +261,10 @@ function renderSubjects(subjects=[],subjectTypes=[]){
         `
         :"";
 
-    return renderEntityList({
-        groups,
-        addButton
-    }).replace(
-        /<a\s+class="([^"]*entity-list-row[^"]*)" href="#"([^>]*)>/g,
-        `<a class="$1 subject-list__link" href="#" data-id="$2">`
-    );
+return renderEntityList({
+    groups,
+    addButton
+});
 }
 
 function formatYears(subject){
