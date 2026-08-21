@@ -129,6 +129,7 @@ function renderSubjectsList(
             )
             .map(subject=>({
                 id:subject.id,
+                clickable: true,
                 title:escapeHTML(
                     subject.title??"Без названия"
                 ),
