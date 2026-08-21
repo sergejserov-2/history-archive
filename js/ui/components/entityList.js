@@ -22,7 +22,11 @@ function renderGroup(group){
 function renderRow(item){
     const hasDescription=Boolean(item.description?.trim());
     const hasMeta=Boolean(item.meta?.trim());
-    const rowClass=[
+    const rowClass = [
+        "entity-list-row",
+        item.clickable
+            ? "entity-list-row--clickable"
+            : "",
         "entity-list-row",
         item.href
             ?"entity-list-row--clickable"
