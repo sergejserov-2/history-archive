@@ -55,16 +55,17 @@
     .header {
        border-radius: 0;
        padding: var(--space-6);
-       margin: var(--space-8) auto 0;
+       margin-top: var(--space-8);
     }
 
    .page {
-       margin: var(--space-8) auto;
+       margin-top: var(--space-8);
     }
 
     section {
         border-radius: 0;
         padding: var(--space-6);
+        margin-top: var(--space-8);
     }
 
    .header__logo a{
@@ -79,7 +80,6 @@
     .object {
         flex-direction: column;
         gap: var(--space-8);
-        padding: var(--space-7);
     }
 
     .object__cover {
@@ -227,10 +227,6 @@
 
         flex: 1 1 auto;
         min-height: 0;
-
-        width: 200px;
-        height: 200px;
-
         display: flex;
         align-items: center;
         justify-content: center;
