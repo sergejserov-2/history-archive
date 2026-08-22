@@ -431,6 +431,41 @@ button.admin-button {
 }
 
 
+
+.date{
+    display:inline-flex;
+    align-items:center;
+    height:1em;
+    line-height:1;
+    white-space:nowrap;
+}
+
+.date__day{
+    font-size:.7em;
+    line-height:1;
+    align-self:flex-start;
+}
+
+.date__slash{
+    font-size:1em;
+    line-height:1;
+    align-self:center;
+    transform:scaleY(1.35);
+    transform-origin:center;
+}
+
+.date__month{
+    font-size:.7em;
+    line-height:1;
+    align-self:flex-end;
+}
+
+.date__year{
+    font-size:1em;
+    line-height:1;
+    align-self:center;
+}
+
 /* ==========================================
    UNIVERSAL SCROLLBAR
 ========================================== */
