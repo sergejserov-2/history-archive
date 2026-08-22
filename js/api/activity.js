@@ -2,9 +2,9 @@
 // Activity API
 // ======================================
 
-import {db} from "../firebase.js";
+import{db}from"../firebase.js";
 
-import {
+import{
     collection,
     getDocs,
     getDoc,
@@ -14,7 +14,7 @@ import {
     query,
     orderBy,
     limit
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 // ======================================
 // Get activity
@@ -24,14 +24,9 @@ export async function getActivity(id){
 
     if(!id)return null;
 
-    const snapshot=
-        await getDoc(
-            doc(
-                db,
-                "activity",
-                id
-            )
-        );
+    const snapshot=await getDoc(
+        doc(db,"activity",id)
+    );
 
     if(!snapshot.exists())return null;
 
@@ -47,19 +42,12 @@ export async function getActivity(id){
 
 export async function getActivities(){
 
-    const snapshot=
-        await getDocs(
-            query(
-                collection(
-                    db,
-                    "activity"
-                ),
-                orderBy(
-                    "createdAt",
-                    "desc"
-                )
-            )
-        );
+    const snapshot=await getDocs(
+        query(
+            collection(db,"activity"),
+            orderBy("createdAt","desc")
+        )
+    );
 
     return snapshot.docs.map(doc=>({
         id:doc.id,
@@ -73,20 +61,13 @@ export async function getActivities(){
 
 export async function getRecentActivities(count=100){
 
-    const snapshot=
-        await getDocs(
-            query(
-                collection(
-                    db,
-                    "activity"
-                ),
-                orderBy(
-                    "createdAt",
-                    "desc"
-                ),
-                limit(count)
-            )
-        );
+    const snapshot=await getDocs(
+        query(
+            collection(db,"activity"),
+            orderBy("createdAt","desc"),
+            limit(count)
+        )
+    );
 
     return snapshot.docs.map(doc=>({
         id:doc.id,
@@ -100,14 +81,10 @@ export async function getRecentActivities(count=100){
 
 export async function createActivity(data){
 
-    const ref=
-        await addDoc(
-            collection(
-                db,
-                "activity"
-            ),
-            data
-        );
+    const ref=await addDoc(
+        collection(db,"activity"),
+        data
+    );
 
     return{
         id:ref.id,
@@ -124,10 +101,6 @@ export async function deleteActivity(id){
     if(!id)return;
 
     await deleteDoc(
-        doc(
-            db,
-            "activity",
-            id
-        )
+        doc(db,"activity",id)
     );
 }
