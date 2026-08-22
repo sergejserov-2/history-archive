@@ -124,7 +124,7 @@ export async function renderChildren(children,ADMIN_MODE=false,currentObject=nul
                 data-action="add-object"
                 title="${
                     canHaveChildren?"Добавить объект"
-                        :"У объектов данного типа не может быть дочерних объектов"
+                        :"У объектов нижнего уровня не должно быть дочерних объектов"
                 }"
             >
                 + Добавить объект
