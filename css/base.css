@@ -330,6 +330,15 @@ button.admin-button {
     font-size: var(--font-size-lg);
 }
 
+.admin-button--disabled{
+    opacity:.35;
+    cursor:not-allowed !important;
+}
+
+.admin-button--disabled:hover{
+    background:var(--color-admin-bg) !important;
+    border-color:var(--color-admin-border) !important;
+}
 
 /* ---------- Large add buttons ---------- */
 
