@@ -108,8 +108,8 @@ export function renderHeader(page=null,updates=null){
 
             loginButton.textContent=
                 ADMIN_MODE
-                    ?"Выйти"
-                    :"Войти";
+                    ?"<img src="icons/logout.svg" class="header-icon"> Выйти"
+                    :"<img src="icons/login.svg" class="header-icon"> Войти";
 
             loginButton.classList.toggle(
                 "header__button--admin",
