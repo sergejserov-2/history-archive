@@ -32,13 +32,13 @@
     --color-danger-bg: rgba(190, 55, 55, .18);
     --color-danger-border: rgba(210, 70, 70, .8);
 
-    --color-attention: #e2bd4f;
+    --color-attention: #877da9;
     --color-attention-bg: rgba(210, 170, 40, .18);
     --color-attention-border: rgba(230, 190, 50, .8);
 
     --color-deteriorating: #e39a52;
-    --color-deteriorating-bg: rgba(210, 120, 40, .18);
-    --color-deteriorating-border: rgba(230, 140, 55, .8);
+    --color-deteriorating-bg: rgba(55, 136, 151, .18);
+    --color-deteriorating-border: rgba(119, 93, 171, .8);
 
 
     /* ---------- LAYOUT ---------- */
@@ -156,7 +156,7 @@ input {
 
     display: flex;
     align-items: center;
-    gap: var(--space-10);
+    gap: var(--space-6);
 
     background: var(--color-surface);
     border-radius: var(--radius-2xl);
