@@ -136,6 +136,10 @@ body {
     color: var(--color-text-secondary);
 }
 
+input {
+   height:30px;
+}
+
 [hidden] {
     display: none !important;
 }
