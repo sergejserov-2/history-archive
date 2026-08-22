@@ -8,7 +8,6 @@ const button=event.target.closest(".admin-button");
 if(!button)return;
 if(button.classList.contains("admin-button--disabled")){return;}
 const action=button.dataset.action;
-        const action=button.dataset.action;
         const id=button.dataset.id;
         const object=page.object;
         const types=page.types;
