@@ -216,6 +216,8 @@ body {
     cursor:pointer;
 
     transition:var(--transition-fast);
+    display:flex;
+    gap:var(--space-7);
 }
 
 .header__button:hover{
@@ -233,11 +235,12 @@ body {
     border-color:var(--color-admin) !important;
 }
 .header-icon{
-   width:24px;
-   height:24px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: -4px -8px;
 }
 /* ==========================================
    PAGE
