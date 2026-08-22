@@ -290,3 +290,18 @@ export async function deleteObject(id){
     );
 
 }
+
+import{getTypes}from"./types.js";
+
+export async function getHighestLevelObject(objects=null,types=null){
+    const allObjects=objects??await getAllObjects();
+    const allTypes=types??await getTypes();
+    if(!allObjects.length||!allTypes.length)return null;
+    const usedTypeIds=new Set(allObjects.map(object=>object.typeId).filter(Boolean));
+    const usedTypes=allTypes.filter(type=>usedTypeIds.has(type.id));
+    if(!usedTypes.length)return null;
+    const maxLevel=Math.max(...usedTypes.map(type=>Number(type.level)).filter(Number.isFinite));
+    if(!Number.isFinite(maxLevel))return null;
+    const type=usedTypes.find(type=>Number(type.level)===maxLevel);
+    return allObjects.find(object=>object.typeId===type?.id)??null;
+}
