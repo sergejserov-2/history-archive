@@ -22,7 +22,7 @@ export function renderDate(value){
             <span class="date__day">${day}</span>
             <span class="date__slash">/</span>
             <span class="date__month">${month}</span>
-            <span class="date__year">– ${year}</span>
+            <span class="date__year">–${year}</span>
         </span>
     `;
 }
