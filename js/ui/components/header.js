@@ -37,22 +37,22 @@ export function renderHeader(page=null,updates=null){
             id="subjectsButton"
             class="header__button"
         >
-                            <img src="icons/subjects.svg" class="header-icon">
-         </button>
+            <img src="icons/subjects.svg" class="header-icon">
+        </button>
 
         <button
             id="typesButton"
             class="header__button header__button--admin"
             hidden
         >
-                            <img src="icons/types.svg" class="header-icon">
+            <img src="icons/types.svg" class="header-icon">
         </button>
 
         <button
             id="loginButton"
             class="header__button"
         >
-            Войти
+            <img src="icons/login.svg" class="header-icon"> Войти
         </button>
     </div>
 </header>
@@ -106,10 +106,10 @@ export function renderHeader(page=null,updates=null){
                 typesButton.hidden=!ADMIN_MODE;
             }
 
-            loginButton.textContent=
+            loginButton.innerHTML=
                 ADMIN_MODE
-                    ?"<img src="icons/logout.svg" class="header-icon"> Выйти"
-                    :"<img src="icons/login.svg" class="header-icon"> Войти";
+                    ?'<img src="icons/logout.svg" class="header-icon"> Выйти'
+                    :'<img src="icons/login.svg" class="header-icon"> Войти';
 
             loginButton.classList.toggle(
                 "header__button--admin",
