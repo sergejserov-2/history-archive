@@ -4,8 +4,10 @@ import{setModalUrl}from"../ui/components/modal.js";
 import{refreshSubjectsModal}from"../ui/components/subjects.js";
 export function initAdmin(page,updates={}){
     document.addEventListener("click",async event=>{
-        const button=event.target.closest(".admin-button");
-        if(!button)return;
+const button=event.target.closest(".admin-button");
+if(!button)return;
+if(button.classList.contains("admin-button--disabled")){return;}
+const action=button.dataset.action;
         const action=button.dataset.action;
         const id=button.dataset.id;
         const object=page.object;
