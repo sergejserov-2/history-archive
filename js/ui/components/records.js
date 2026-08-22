@@ -98,7 +98,7 @@ const recordsWithoutType=
     }
 
     return `
-    <section class="records">
+    <div class="records">
         ${renderEntityList({
             groups,
             addButton:ADMIN_MODE
@@ -112,6 +112,6 @@ const recordsWithoutType=
                 `
                 :""
         })}
-    </section>
+    </div>
     `;
 }
