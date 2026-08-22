@@ -78,18 +78,34 @@ export function setupTypeEditor(root,entity={},cfg={}){
         if(mode==="none")levelsInput.value="";
     }
 
+    function showError(input,message){
+        if(!input)return;
+        input.setCustomValidity(message);
+        input.reportValidity();
+    }
+
     if(idInput){
         idInput.disabled=used;
         idInput.title=used?"Нельзя изменить: тип используется":"";
-        idInput.addEventListener("input",()=>{idInput.value=idInput.value.replace(/[^A-Za-z0-9_-]/g,"");});
+        idInput.addEventListener("input",()=>{
+            idInput.value=idInput.value.replace(/[^A-Za-z0-9_-]/g,"");
+            idInput.setCustomValidity("");
+        });
+    }
+
+    if(titleInput){
+        titleInput.addEventListener("input",()=>{
+            titleInput.setCustomValidity("");
+        });
     }
 
     if(levelsInput){
         levelsInput.addEventListener("input",()=>{
             if(used)return;
             const mode=targets[currentTarget]?.levels??"none";
+            levelsInput.setCustomValidity("");
             if(mode==="single"){
-                levelsInput.value=levelsInput.value.replace(/[^0-9]/g,"").slice(0,1);
+                levelsInput.value=levelsInput.value.replace(/[^0-9]/g,"");
                 return;
             }
             levelsInput.value=levelsInput.value.replace(/[^0-9, ]/g,"").replace(/,{2,}/g,",");
@@ -102,9 +118,42 @@ export function setupTypeEditor(root,entity={},cfg={}){
     return{
         getData(){
             const mode=targets[currentTarget]?.levels??"none";
-            const data={target:currentTarget,id:idInput?.value.trim()??"",title:titleInput?.value.trim()??""};
-            if(mode==="single")data.level=levelsInput?.value.trim()??"";
-            if(mode==="multiple")data.levels=(levelsInput?.value??"").split(",").map(value=>value.trim()).filter(Boolean).map(Number).filter(Number.isFinite);
+            const id=idInput?.value.trim()??"";
+            const title=titleInput?.value.trim()??"";
+            const levels=levelsInput?.value.trim()??"";
+
+            if(!id){
+                showError(idInput,"Укажите ID");
+                return null;
+            }
+
+            if(!title){
+                showError(titleInput,"Укажите название");
+                return null;
+            }
+
+            if(mode==="single"&&!levels){
+                showError(levelsInput,"Укажите уровень");
+                return null;
+            }
+
+            if(mode==="multiple"&&!levels){
+                showError(levelsInput,"Укажите хотя бы один уровень");
+                return null;
+            }
+
+            const data={target:currentTarget,id,title};
+
+            if(mode==="single")data.level=levels;
+
+            if(mode==="multiple"){
+                data.levels=levels.split(",").map(value=>value.trim()).filter(Boolean).map(Number).filter(Number.isFinite);
+                if(!data.levels.length){
+                    showError(levelsInput,"Укажите хотя бы один уровень");
+                    return null;
+                }
+            }
+
             return data;
         },
         getTarget(){return currentTarget;}
