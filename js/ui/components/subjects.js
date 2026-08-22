@@ -32,7 +32,7 @@ export async function openSubjectsModal({page=null,updates=null}={}){
             subjectTypes,
             isAdmin()
         ),
-        width:420
+        width:525
     });
     currentSubjectsModal=modal;
     modal.subjects=subjects;
