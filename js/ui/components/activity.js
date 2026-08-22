@@ -15,11 +15,11 @@ export async function openActivityModal(){
 
     const activities=await getRecentActivities(100);
 
-    const modal=createModal({
-        title:"Активность",
-        content:renderActivityList(activities),
-        width:525
-    });
+const modal=createModal({
+    title:"История изменений",
+    content:renderActivityList(activities),
+    width:630
+});
 
     currentActivityModal=modal;
     modal.activities=activities;
@@ -261,21 +261,22 @@ function formatEntityName(type){
 }
 
 function formatActivityDate(timestamp){
+    const date=new Date(timestamp);
 
-    if(!timestamp)return"";
+    const months=[
+        "I","II","III","IV","V","VI",
+        "VII","VIII","IX","X","XI","XII"
+    ];
 
-    return new Intl.DateTimeFormat(
-        "ru-RU",
-        {
-            day:"numeric",
-            month:"long",
-            year:"numeric",
-            hour:"2-digit",
-            minute:"2-digit"
-        }
-    ).format(
-        new Date(timestamp)
-    );
+    const day=String(date.getDate()).padStart(2,"0");
+    const month=months[date.getMonth()];
+    const year=String(date.getFullYear()).slice(-2);
+    const time=date.toLocaleTimeString("ru-RU",{
+        hour:"2-digit",
+        minute:"2-digit"
+    });
+
+    return `${day}/${month}-${year}, ${time}`;
 }
 
 function escapeHTML(value=""){
