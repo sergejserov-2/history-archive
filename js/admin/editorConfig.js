@@ -6,7 +6,7 @@ import{getAllRecords}from"../api/records.js";
 import{getSubjects}from"../api/subjects.js";
 
 const ALL_TARGETS={
-    objectType:{title:"Объект",levels:"multiple"},
+    objectType:{title:"Объект",levels:"single"},
     recordType:{title:"Запись",levels:"multiple"},
     subjectType:{title:"Субъект",levels:"none"}
 };
