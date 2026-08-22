@@ -33,12 +33,12 @@
     --color-danger-border: rgba(210, 70, 70, .8);
 
     --color-attention: #877da9;
-    --color-attention-bg: rgba(210, 170, 40, .18);
-    --color-attention-border: rgba(230, 190, 50, .8);
+    --color-attention-bg: rgba(55, 136, 151, .18);
+    --color-attention-border: rgba(119, 93, 171, .8);
 
     --color-deteriorating: #e39a52;
-    --color-deteriorating-bg: rgba(55, 136, 151, .18);
-    --color-deteriorating-border: rgba(119, 93, 171, .8);
+    --color-deteriorating-bg: 
+    --color-deteriorating-border: 
 
 
     /* ---------- LAYOUT ---------- */
