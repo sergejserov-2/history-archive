@@ -7,26 +7,59 @@ import {db} from "../firebase.js";
 import {
     collection,
     getDocs,
+    getDoc,
+    doc,
     addDoc,
+    deleteDoc,
     query,
     orderBy,
     limit
-}
-from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 // ======================================
 // Get activity
 // ======================================
 
-export async function getActivity(limitCount=500){
+export async function getActivity(id){
 
-    const q=query(
-        collection(db,"activity"),
-        orderBy("timestamp","desc"),
-        limit(limitCount)
-    );
+    if(!id)return null;
 
-    const snapshot=await getDocs(q);
+    const snapshot=
+        await getDoc(
+            doc(
+                db,
+                "activity",
+                id
+            )
+        );
+
+    if(!snapshot.exists())return null;
+
+    return{
+        id:snapshot.id,
+        ...snapshot.data()
+    };
+}
+
+// ======================================
+// Get activities
+// ======================================
+
+export async function getActivities(){
+
+    const snapshot=
+        await getDocs(
+            query(
+                collection(
+                    db,
+                    "activity"
+                ),
+                orderBy(
+                    "createdAt",
+                    "desc"
+                )
+            )
+        );
 
     return snapshot.docs.map(doc=>({
         id:doc.id,
@@ -35,29 +68,66 @@ export async function getActivity(limitCount=500){
 }
 
 // ======================================
-// Add activity
+// Get recent activities
 // ======================================
 
-export async function addActivity(data={}){
+export async function getRecentActivities(count=100){
 
-    const activity={
-        action:data.action??"",
-        entityType:data.entityType??"",
-        entityId:data.entityId??"",
-        entityTitle:data.entityTitle??"",
-        targetType:data.targetType??"",
-        targetId:data.targetId??"",
-        userEmail:data.userEmail??"",
-        timestamp:Date.now()
-    };
+    const snapshot=
+        await getDocs(
+            query(
+                collection(
+                    db,
+                    "activity"
+                ),
+                orderBy(
+                    "createdAt",
+                    "desc"
+                ),
+                limit(count)
+            )
+        );
 
-    const ref=await addDoc(
-        collection(db,"activity"),
-        activity
-    );
+    return snapshot.docs.map(doc=>({
+        id:doc.id,
+        ...doc.data()
+    }));
+}
+
+// ======================================
+// Create activity
+// ======================================
+
+export async function createActivity(data){
+
+    const ref=
+        await addDoc(
+            collection(
+                db,
+                "activity"
+            ),
+            data
+        );
 
     return{
         id:ref.id,
-        ...activity
+        ...data
     };
+}
+
+// ======================================
+// Delete activity
+// ======================================
+
+export async function deleteActivity(id){
+
+    if(!id)return;
+
+    await deleteDoc(
+        doc(
+            db,
+            "activity",
+            id
+        )
+    );
 }
