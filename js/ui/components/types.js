@@ -35,6 +35,7 @@ export async function openTypesModal(){
     modal.subjects=subjects;
     modal.root.addEventListener("click",async event=>{
         const adminButton=event.target.closest(".admin-button");
+        if(adminButton.classList.contains("admin-button--disabled")){return;}
         if(adminButton){
             event.preventDefault();
             event.stopPropagation();
@@ -171,7 +172,13 @@ function createTypeItem(type,typeName,objects,records,subjects,ADMIN_MODE){
             <button class="admin-button" data-action="edit-type" data-type="${typeName}" data-id="${escapeHTML(type.id)}" title="Редактировать">
                 <img src="icons/edit.svg" class="admin-icon">
             </button>
-            <button class="admin-button" data-action="delete-type" data-type="${typeName}" data-id="${escapeHTML(type.id)}" title="${used?"Тип используется":"Удалить"}" ${used?"disabled":""}>
+            <button
+                class="admin-button ${used?"admin-button--disabled":""}"
+                data-action="delete-type"
+                data-type="${typeName}"
+                data-id="${escapeHTML(type.id)}"
+                title="${used?"Тип используется и не может быть удалён":"Удалить"}"
+            >
                 <img src="icons/delete.svg" class="admin-icon">
             </button>
         `:""
