@@ -434,10 +434,11 @@ button.admin-button {
 
 .date{
     display:inline-flex;
-    align-items:center;
+    align-items:baseline;
     height:1em;
     line-height:1;
     white-space:nowrap;
+    vertical-align:baseline;
 }
 
 .date__day{
@@ -449,6 +450,7 @@ button.admin-button {
 .date__slash{
     font-size:1em;
     line-height:1;
+    margin:0 .04em;
     align-self:center;
     transform:scaleY(1.35);
     transform-origin:center;
@@ -458,12 +460,14 @@ button.admin-button {
     font-size:.7em;
     line-height:1;
     align-self:flex-end;
+    margin-right:.08em;
 }
 
 .date__year{
     font-size:1em;
     line-height:1;
-    align-self:center;
+    align-self:baseline;
+    margin-left:.08em;
 }
 
 /* ==========================================
