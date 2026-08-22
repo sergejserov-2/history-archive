@@ -131,49 +131,51 @@ async function openActivityTarget(activity){
     // Subject
     // ======================================
 
-    if(entityType==="subject"){
+if(entityType==="subject"){
 
-        setModalUrl("subject",{
-            entityId
-        });
+    if(action==="delete"){
 
-        if(action==="delete"){
+        setModalUrl("subjects",{});
 
-            await openSubjectsModal();
-
-            return;
-        }
-
-        const subject=await getSubject(entityId);
-
-        if(!subject)return;
-
-        openSubjectModal(
-            subject,
-            {
-                fromUrl:true
-            }
-        );
+        await openSubjectsModal();
 
         return;
     }
+
+    const subject=await getSubject(entityId);
+
+    if(!subject)return;
+
+    setModalUrl("subject",{
+        entityId
+    });
+
+    openSubjectModal(
+        subject,
+        {
+            fromUrl:true
+        }
+    );
+
+    return;
+}
 
     // ======================================
     // Types
     // ======================================
 
-    if(
-        entityType==="objectType"||
-        entityType==="recordType"||
-        entityType==="subjectType"
-    ){
+if(
+    entityType==="objectType"||
+    entityType==="recordType"||
+    entityType==="subjectType"
+){
 
-        setModalUrl("types",{});
+    setModalUrl("types",{});
 
-        await openTypesModal();
+    await openTypesModal();
 
-        return;
-    }
+    return;
+}
 }
 
 function renderActivityList(activities=[]){
