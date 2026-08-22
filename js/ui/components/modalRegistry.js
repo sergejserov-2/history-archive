@@ -253,6 +253,7 @@ export const typesModal={
 
 export const activityModal={
     type:"activity",
+    admin:true,
     params:[],
     load:null,
     open:async()=>{
