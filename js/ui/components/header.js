@@ -2,6 +2,7 @@ import{isAdmin,onAdminStateChanged,logout}from"../../admin/adminMode.js";
 import{openLoginModal}from"./loginModal.js";
 import{openSubjectsModal}from"./subjects.js";
 import{openTypesModal}from"./types.js";
+import{openActivityModal}from"./activity.js";
 import{setModalUrl}from"./modal.js";
 import{getHighestLevelObject}from"../../api/objects.js";
 
@@ -29,6 +30,9 @@ export function renderHeader(page=null,updates=null){
             <img src="icons/subjects.svg" class="header-icon">
         </button>
         <button id="typesButton" class="header__button header__button--admin" hidden>
+            <img src="icons/types.svg" class="header-icon">
+        </button>
+        <button id="activityButton" class="header__button header__button--admin" hidden>
             <img src="icons/types.svg" class="header-icon">
         </button>
         <button id="loginButton" class="header__button">
@@ -78,14 +82,46 @@ export function renderHeader(page=null,updates=null){
             };
         }
 
+const activityButton=document.querySelector("#activityButton");
+
+if(activityButton){
+    activityButton.onclick=async()=>{
+        setModalUrl("activity");
+        try{
+            await openActivityModal();
+        }catch(error){
+            console.error(
+                "Ошибка открытия истории изменений:",
+                error
+            );
+            alert(
+                "Не удалось загрузить историю изменений"
+            );
+        }
+    };
+}
+        
         const loginButton=document.querySelector("#loginButton");
         if(!loginButton)return;
 
-        const updateButtons=(ADMIN_MODE)=>{
-            if(typesButton)typesButton.hidden=!ADMIN_MODE;
-            loginButton.innerHTML=ADMIN_MODE?'<img src="icons/logout.svg" class="header-icon"> Выйти':'<img src="icons/login.svg" class="header-icon"> Войти';
-            loginButton.classList.toggle("header__button--admin",ADMIN_MODE);
-        };
+const updateButtons=(ADMIN_MODE)=>{
+
+    if(typesButton)
+        typesButton.hidden=!ADMIN_MODE;
+
+    if(activityButton)
+        activityButton.hidden=!ADMIN_MODE;
+
+    loginButton.innerHTML=
+        ADMIN_MODE
+        ?'<img src="icons/logout.svg" class="header-icon"> Выйти'
+        :'<img src="icons/login.svg" class="header-icon"> Войти';
+
+    loginButton.classList.toggle(
+        "header__button--admin",
+        ADMIN_MODE
+    );
+};
 
         updateButtons(isAdmin());
         onAdminStateChanged(updateButtons);
