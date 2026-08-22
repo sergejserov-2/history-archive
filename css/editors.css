@@ -64,6 +64,18 @@
 }
 
 
+.entity-row--title-levels > .entity-title:first-child {
+    flex: 2 1 0;
+    width: 0;
+    min-width: 0;
+}
+
+.entity-row--title-levels > .entity-title:last-child {
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+}
+
 /* ==========================================
    DATES
 ========================================== */
