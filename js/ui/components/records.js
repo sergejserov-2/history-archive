@@ -3,17 +3,6 @@ import {renderEntityList} from "./entityList.js";
 
 export function renderRecords(records,recordTypes=[],ADMIN_MODE=false,subjects=[]){
 
-    const sortRecords=records=>[...(records??[])].sort((a,b)=>{
-        const dateA=a.dateStart||a.dateEnd||"";
-        const dateB=b.dateStart||b.dateEnd||"";
-        if(!dateA&&!dateB)return(a.title??"").localeCompare(b.title??"","ru");
-        if(!dateA)return 1;
-        if(!dateB)return-1;
-        const dateCompare=String(dateA).localeCompare(String(dateB));
-        if(dateCompare!==0)return dateCompare;
-        return(a.title??"").localeCompare(b.title??"","ru");
-    });
-
     function formatBoundary(value,prefix){
         if(!value)return"";
         let result=value;
@@ -75,28 +64,24 @@ export function renderRecords(records,recordTypes=[],ADMIN_MODE=false,subjects=[
         recordTypes
             .map(recordType=>({
                 type:recordType,
-                records:sortRecords(
-                    (records??[]).filter(
-                        record=>
-                            record.typeId===recordType.id
-                    )
-                )
+records:(records??[]).filter(
+    record=>
+        record.typeId===recordType.id
+)
             }))
             .filter(
                 group=>group.records.length>0
             );
 
-    const recordsWithoutType=
-        sortRecords(
-            (records??[]).filter(
-                record=>
-                    !record.typeId||
-                    !recordTypes.some(
-                        type=>
-                            type.id===record.typeId
-                    )
+const recordsWithoutType=
+    (records??[]).filter(
+        record=>
+            !record.typeId||
+            !recordTypes.some(
+                type=>
+                    type.id===record.typeId
             )
-        );
+    );
 
     typedRecords.forEach(group=>{
         groups.push({
