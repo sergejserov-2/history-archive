@@ -45,7 +45,7 @@ export function renderHeader(page=null,updates=null){
             class="header__button header__button--admin"
             hidden
         >
-            Типы
+                            <img src="icons/types.svg" class="header-icon">
         </button>
 
         <button
