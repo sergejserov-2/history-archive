@@ -23,6 +23,7 @@ const API={
     recordType:{create:createRecordType,update:updateRecordType,delete:deleteRecordType,get:getRecordType},
     subjectType:{create:createSubjectType,update:updateSubjectType,delete:deleteSubjectType,get:getSubjectType}
 };
+const TYPE_TARGETS={objectType:"objectType",recordType:"recordType",subjectType:"subjectType"};
 
 export async function getEntity(type,id){
     if(type==="object")return await getObject(id);
@@ -39,31 +40,36 @@ export async function getEntity(type,id){
 export async function updateEntity(type,entity,data,context={},updates=[]){
     const api=API[type];
     if(!api)throw new Error(`Unknown entity type: ${type}`);
+    if(type==="objectType"||type==="recordType"||type==="subjectType"){
+        const oldId=entity?.id??null;
+        const newId=data?.id?.trim()??"";
+        const oldTarget=entity?.target??type;
+        const newTarget=data?.target??oldTarget;
+        if(!newId)throw new Error("ID типа не указан");
+        const targetApi=API[newTarget];
+        if(!targetApi?.create||!targetApi?.delete)throw new Error(`Unknown type target: ${newTarget}`);
+        if(!oldId){
+            const savedData={...data,id:newId,target:newTarget};
+            return await targetApi.create(newId,savedData);
+        }
+        if(oldId!==newId||oldTarget!==newTarget){
+            const savedData={...data,id:newId,target:newTarget};
+            await targetApi.create(newId,savedData);
+            await API[oldTarget].delete(oldId);
+            return savedData;
+        }
+        const updateData={...data};
+        delete updateData.id;
+        await api.update(oldId,updateData);
+        return{id:oldId,...data};
+    }
     let savedData;
-if(entity?.id){
-
-    await api.update(entity.id,data);
-
-    savedData={
-        id:entity.id,
-        ...data
-    };
-
-}else{
-
-    if(
-        type==="objectType"||
-        type==="recordType"||
-        type==="subjectType"
-    ){
-        savedData=await api.create(
-            data.id,
-            data
-        );
+    if(entity?.id){
+        await api.update(entity.id,data);
+        savedData={id:entity.id,...data};
     }else{
         savedData=await api.create(data);
     }
-}
     for(const update of updates){
         const callback=context.updates?.[update];
         if(typeof callback==="function")await callback(savedData);
