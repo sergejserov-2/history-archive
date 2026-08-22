@@ -37,8 +37,8 @@ export function renderHeader(page=null,updates=null){
             id="subjectsButton"
             class="header__button"
         >
-            Субъекты
-        </button>
+                            <img src="icons/subjects.svg" class="header-icon">
+         </button>
 
         <button
             id="typesButton"
