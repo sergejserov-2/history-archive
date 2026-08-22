@@ -7,15 +7,17 @@ export function renderTypeEditorHTML(cfg={},entity={}){
     const target=entity.target??Object.keys(targets)[0]??"";
     const targetConfig=targets[target]??{};
     const levelsMode=targetConfig.levels??"none";
+    const used=cfg.used===true;
+    const disabledTitle=used?"Нельзя изменить: тип используется":"";
     return`<div class="type-editor">
         <div class="entity-row entity-row--title-type">
             <label class="entity-type">Тип
                 <div class="entity-type__input-wrapper">
-                    <input id="typeTarget" class="entity-type__input" type="text" value="${targetConfig.title??targetTitle(target)}" readonly autocomplete="off">
+                    <input id="typeTarget" class="entity-type__input" type="text" value="${targetConfig.title??targetTitle(target)}" readonly autocomplete="off" ${used?"disabled":""} title="${disabledTitle}">
                 </div>
             </label>
             <label class="entity-title">ID
-                <input id="typeId" class="entity-title__input" value="${entity.id??""}" maxlength="${limits.id??45}" ${entity.id?"readonly":""}>
+                <input id="typeId" class="entity-title__input" value="${entity.id??""}" maxlength="${limits.id??45}" ${used?"disabled":""} title="${disabledTitle}">
                 ${renderFieldCounterHTML("typeId",entity.id,limits.id??45)}
             </label>
         </div>
@@ -25,7 +27,7 @@ export function renderTypeEditorHTML(cfg={},entity={}){
                 ${renderFieldCounterHTML("typeTitle",entity.title,limits.title??45)}
             </label>
             ${levelsMode==="none"?"":`<label class="entity-title">Уровни
-                <input id="typeLevels" class="entity-title__input" value="${formatLevels(entity.levels??entity.level)}" inputmode="numeric" autocomplete="off">
+                <input id="typeLevels" class="entity-title__input" value="${formatLevels(entity.levels??entity.level)}" inputmode="numeric" autocomplete="off" ${used?"disabled":""} title="${disabledTitle}">
             </label>`}
         </div>
     </div>`;
@@ -37,14 +39,14 @@ export function setupTypeEditor(root,entity={},cfg={}){
     const titleInput=root.querySelector("#typeTitle");
     const levelsInput=root.querySelector("#typeLevels");
     const targets=cfg.targets??{};
-    let currentTarget=entity.target??Object.keys(targets)[0]??"";
+    let currentTarget=entity.target??cfg.typeCategory??Object.keys(targets)[0]??"";
     const targetItems=Object.entries(targets).map(([id,target])=>({id,title:target.title??targetTitle(id)}));
     const dropdown=createDropdown();
     const used=cfg.used===true;
-
     if(targetInput){
         targetInput.value=targets[currentTarget]?.title??targetTitle(currentTarget);
         targetInput.disabled=used;
+        targetInput.title=used?"Нельзя изменить: тип используется":"";
         dropdown.setItems(targetItems,{onSelect(item){
             if(used)return;
             currentTarget=item.id;
@@ -64,18 +66,18 @@ export function setupTypeEditor(root,entity={},cfg={}){
             }
         });
     }
-
     function updateLevelsMode(){
         const mode=targets[currentTarget]?.levels??"none";
         if(!levelsInput)return;
         levelsInput.disabled=used||mode==="none";
+        levelsInput.title=used?"Нельзя изменить: тип используется":"";
         if(mode==="none")levelsInput.value="";
     }
-
     if(idInput){
+        idInput.disabled=used;
+        idInput.title=used?"Нельзя изменить: тип используется":"";
         idInput.addEventListener("input",()=>{idInput.value=idInput.value.replace(/[^A-Za-z0-9_-]/g,"");});
     }
-
     if(levelsInput){
         levelsInput.addEventListener("input",()=>{
             if(used)return;
@@ -87,10 +89,8 @@ export function setupTypeEditor(root,entity={},cfg={}){
             levelsInput.value=levelsInput.value.replace(/[^0-9, ]/g,"").replace(/,{2,}/g,",");
         });
     }
-
     setupFieldCounters(root);
     updateLevelsMode();
-
     return{
         getData(){
             const mode=targets[currentTarget]?.levels??"none";
