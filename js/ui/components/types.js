@@ -35,7 +35,13 @@ export async function openTypesModal(){
     modal.subjects=subjects;
     modal.root.addEventListener("click",async event=>{
         const adminButton=event.target.closest(".admin-button");
-        if(adminButton.classList.contains("admin-button--disabled")){return;}
+if(
+    adminButton?.classList.contains(
+        "admin-button--disabled"
+    )
+){
+    return;
+}
         if(adminButton){
             event.preventDefault();
             event.stopPropagation();
