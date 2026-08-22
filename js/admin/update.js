@@ -12,6 +12,7 @@ import{renderPhotos}from"../ui/components/photos.js";
 import{renderSources}from"../ui/components/sources.js";
 import{renderChildren}from"../ui/components/children.js";
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
+import{createActivity}from"../api/activity.js";
 
 const API={
     object:{create:createObject,update:updateObject},
@@ -63,18 +64,46 @@ export async function updateEntity(type,entity,data,context={},updates=[]){
         await api.update(oldId,updateData);
         return{id:oldId,...data};
     }
-    let savedData;
-    if(entity?.id){
-        await api.update(entity.id,data);
-        savedData={id:entity.id,...data};
-    }else{
-        savedData=await api.create(data);
-    }
-    for(const update of updates){
-        const callback=context.updates?.[update];
-        if(typeof callback==="function")await callback(savedData);
-    }
-    return savedData;
+let savedData;
+
+if(entity?.id){
+
+    await api.update(entity.id,data);
+
+    savedData={
+        id:entity.id,
+        ...data
+    };
+
+    await createActivity({
+        action:"update",
+        entityType:type,
+        entityId:entity.id,
+        title:data.title??entity?.title??"",
+        createdAt:Date.now()
+    });
+
+}else{
+
+    savedData=
+        await api.create(data);
+
+    await createActivity({
+        action:"create",
+        entityType:type,
+        entityId:savedData.id,
+        title:savedData.title??"",
+        createdAt:Date.now()
+    });
+
+}
+
+for(const update of updates){
+    const callback=context.updates?.[update];
+    if(typeof callback==="function")await callback(savedData);
+}
+
+return savedData;
 }
 
 
@@ -82,6 +111,14 @@ export async function deleteEntity(type,id,context={}){
     if(type==="object"){
         const object=(context.objects??[]).find(object=>object.id===id);
         const parentId=object?.parents?.[0]?.objectId??object?.parents?.[0]??null;
+        await createActivity({
+        await createActivity({
+            action:"delete",
+            entityType:"object",
+            entityId:id,
+            title:object?.title??"",
+            createdAt:Date.now()
+        });
         await deleteObject(id);
         await context.updates?.onObjectDeleted?.(id);
         return{parentId};
@@ -90,6 +127,12 @@ export async function deleteEntity(type,id,context={}){
         const photo=(context.photos??[]).find(photo=>photo.id===id);
         if(photo?.storagePath)await moveFileToDeleted(photo.storagePath);
         if(photo?.previewPath)await moveFileToDeleted(photo.previewPath);
+        action:"delete",
+            entityType:"photo",
+            entityId:id,
+            title:photo?.title??"",
+            createdAt:Date.now()
+        });
         await deletePhoto(id);
         await context.updates?.updatePhotosBlock?.();
         return;
@@ -97,11 +140,26 @@ export async function deleteEntity(type,id,context={}){
     if(type==="source"){
         const source=(context.sources??[]).find(source=>source.id===id);
         if(source?.storagePath)await moveFileToDeleted(source.storagePath);
+        await createActivity({
+            action:"delete",
+            entityType:"source",
+            entityId:id,
+            title:source?.title??"",
+            createdAt:Date.now()
+        });
         await deleteSource(id);
         await context.updates?.updateSourcesBlock?.();
         return;
     }
     if(type==="record"){
+        const record=(context.records??[]).find(record=>record.id===id);
+        await createActivity({
+            action:"delete",
+            entityType:"record",
+            entityId:id,
+            title:record?.title??"",
+            createdAt:Date.now()
+        });
         await deleteRecord(id);
         await context.updates?.updateRecordsBlock?.();
         return;
@@ -109,6 +167,13 @@ export async function deleteEntity(type,id,context={}){
     if(type==="subject"){
         const subject=(context.subjects??[]).find(subject=>subject.id===id);
         if(subject?.storagePath)await moveFileToDeleted(subject.storagePath);
+        await createActivity({
+            action:"delete",
+            entityType:"subject",
+            entityId:id,
+            title:subject?.title??"",
+            createdAt:Date.now()
+        });
         await deleteSubject(id);
         await context.updates?.onSubjectDeleted?.();
         return;
