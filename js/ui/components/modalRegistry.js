@@ -11,6 +11,7 @@ import{openEditor}from"../../admin/editorConfig.js";
 import{openSubjectModal}from"./subject.js";
 import{openSubjectsModal}from"./subjects.js";
 import{openTypesModal}from"./types.js";
+import{openActivityModal}from"./activity.js";
 
 export const photoPreviewModal={
     type:"photo-preview",
@@ -250,11 +251,21 @@ export const typesModal={
     }
 };
 
+export const activityModal={
+    type:"activity",
+    params:[],
+    load:null,
+    open:async()=>{
+        await openActivityModal();
+    }
+};
+
 export const modalRegistry=[
     photoPreviewModal,
     editorModal,
     loginModal,
     subjectModal,
     subjectsModal,
-    typesModal
+    typesModal,
+    activityModal
 ];
