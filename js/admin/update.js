@@ -133,7 +133,6 @@ export async function deleteEntity(type,id,context={}){
         const object=(context.objects??[]).find(object=>object.id===id);
         const parentId=object?.parents?.[0]?.objectId??object?.parents?.[0]??null;
         await createActivity({
-        await createActivity({
             action:"delete",
             entityType:"object",
             entityId:id,
