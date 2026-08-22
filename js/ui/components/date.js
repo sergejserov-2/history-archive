@@ -1,4 +1,5 @@
 export function renderDate(value){
+
     if(!value)return"";
 
     const date=value instanceof Date
@@ -21,12 +22,13 @@ export function renderDate(value){
             <span class="date__day">${day}</span>
             <span class="date__slash">/</span>
             <span class="date__month">${month}</span>
-            <span class="date__year">-${year}</span>
+            <span class="date__year">–${year}</span>
         </span>
     `;
 }
 
 export function renderDateTime(value){
+
     if(!value)return"";
 
     const date=value instanceof Date
@@ -43,7 +45,5 @@ export function renderDateTime(value){
         }
     );
 
-    return`
-        ${renderDate(date)}, ${time}
-    `;
+    return`${renderDate(date)}, ${time}`;
 }
