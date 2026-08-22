@@ -18,7 +18,7 @@ export function renderDate(value){
     const year=String(date.getFullYear()).slice(-2);
 
     return`
-        <span class="date"><span class="date__day">${day}</span><span class="date__slash">/</span><span class="date__month">${month}</span><span class="date__year">– ${year}</span></span>`;
+        <span class="date"><span class="date__day">${day}</span><span class="date__slash">/</span><span class="date__month">${month}</span><span class="date__year">- ${year}</span></span>`;
 }
 
 export function renderDateTime(value){
