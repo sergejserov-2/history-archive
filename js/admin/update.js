@@ -51,17 +51,38 @@ export async function updateEntity(type,entity,data,context={},updates=[]){
         if(!targetApi?.create||!targetApi?.delete)throw new Error(`Unknown type target: ${newTarget}`);
         if(!oldId){
             const savedData={...data,id:newId,target:newTarget};
+            await createActivity({
+                action:"create",
+                entityType:type,
+                entityId:newId,
+                title:data.title??newId,
+                createdAt:Date.now()
+            });
             return await targetApi.create(newId,savedData);
         }
         if(oldId!==newId||oldTarget!==newTarget){
             const savedData={...data,id:newId,target:newTarget};
             await targetApi.create(newId,savedData);
             await API[oldTarget].delete(oldId);
+            await createActivity({
+                action:"update",
+                entityType:type,
+                entityId:newId,
+                title:data.title??newId,
+                createdAt:Date.now()
+            });
             return savedData;
         }
         const updateData={...data};
         delete updateData.id;
         await api.update(oldId,updateData);
+        await createActivity({
+            action:"update",
+            entityType:type,
+            entityId:newId,
+            title:data.title??newId,
+            createdAt:Date.now()
+        });
         return{id:oldId,...data};
     }
 let savedData;
@@ -179,14 +200,35 @@ export async function deleteEntity(type,id,context={}){
         return;
     }
     if(type==="objectType"){
+        await createActivity({
+            action:"delete",
+            entityType:"objectType",
+            entityId:id,
+            title:id,
+            createdAt:Date.now()
+        });
         await deleteType(id);
         return;
     }
     if(type==="recordType"){
+        await createActivity({
+            action:"delete",
+            entityType:"recordType",
+            entityId:id,
+            title:id,
+            createdAt:Date.now()
+        });
         await deleteRecordType(id);
         return;
     }
     if(type==="subjectType"){
+        await createActivity({
+            action:"delete",
+            entityType:"subjectType",
+            entityId:id,
+            title:id,
+            createdAt:Date.now()
+        });
         await deleteSubjectType(id);
         return;
     }
