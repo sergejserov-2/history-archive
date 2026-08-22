@@ -460,14 +460,14 @@ button.admin-button {
     font-size:.7em;
     line-height:1;
     align-self:flex-end;
-    margin-right:.08em;
+    margin-right:.3em;
 }
 
 .date__year{
     font-size:1em;
     line-height:1;
     align-self:baseline;
-    margin-left:.08em;
+    margin-left:.3em;
 }
 
 /* ==========================================
