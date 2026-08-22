@@ -1,1 +1,20 @@
-https://sergejserov-2.github.io/history-archive/object.html?id=popov-house
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Краснохолмское краеведение</title>
+</head>
+<body>
+<script type="module">
+import{getHighestLevelObject}from"./js/api/objects.js";
+try{
+    const object=await getHighestLevelObject();
+    window.location.replace(object?.id?`object.html?id=${object.id}`:"object.html");
+}catch(error){
+    console.error("Не удалось определить главный объект:",error);
+    window.location.replace("object.html");
+}
+</script>
+</body>
+</html>
