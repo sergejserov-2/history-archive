@@ -21,14 +21,14 @@ export function renderTypeEditorHTML(cfg={},entity={}){
                 ${renderFieldCounterHTML("typeId",entity.id,limits.id??45)}
             </label>
         </div>
-        <div class="entity-row entity-row--title-type">
+        <div class="entity-row entity-row--title-levels">
             <label class="entity-title">Название
                 <input id="typeTitle" class="entity-title__input" value="${entity.title??""}" maxlength="${limits.title??45}">
                 ${renderFieldCounterHTML("typeTitle",entity.title,limits.title??45)}
             </label>
-            ${levelsMode==="none"?"":`<label class="entity-title">Уровни
+            <label id="typeLevelsField" class="entity-title" ${levelsMode==="none"?'hidden':""}>Уровни
                 <input id="typeLevels" class="entity-title__input" value="${formatLevels(entity.levels??entity.level)}" inputmode="numeric" autocomplete="off" ${used?"disabled":""} title="${disabledTitle}">
-            </label>`}
+            </label>
         </div>
     </div>`;
 }
@@ -37,12 +37,14 @@ export function setupTypeEditor(root,entity={},cfg={}){
     const targetInput=root.querySelector("#typeTarget");
     const idInput=root.querySelector("#typeId");
     const titleInput=root.querySelector("#typeTitle");
+    const levelsField=root.querySelector("#typeLevelsField");
     const levelsInput=root.querySelector("#typeLevels");
     const targets=cfg.targets??{};
     let currentTarget=entity.target??cfg.typeCategory??Object.keys(targets)[0]??"";
     const targetItems=Object.entries(targets).map(([id,target])=>({id,title:target.title??targetTitle(id)}));
     const dropdown=createDropdown();
     const used=cfg.used===true;
+
     if(targetInput){
         targetInput.value=targets[currentTarget]?.title??targetTitle(currentTarget);
         targetInput.disabled=used;
@@ -66,18 +68,22 @@ export function setupTypeEditor(root,entity={},cfg={}){
             }
         });
     }
+
     function updateLevelsMode(){
         const mode=targets[currentTarget]?.levels??"none";
+        if(levelsField)levelsField.hidden=mode==="none";
         if(!levelsInput)return;
         levelsInput.disabled=used||mode==="none";
         levelsInput.title=used?"Нельзя изменить: тип используется":"";
         if(mode==="none")levelsInput.value="";
     }
+
     if(idInput){
         idInput.disabled=used;
         idInput.title=used?"Нельзя изменить: тип используется":"";
         idInput.addEventListener("input",()=>{idInput.value=idInput.value.replace(/[^A-Za-z0-9_-]/g,"");});
     }
+
     if(levelsInput){
         levelsInput.addEventListener("input",()=>{
             if(used)return;
@@ -89,8 +95,10 @@ export function setupTypeEditor(root,entity={},cfg={}){
             levelsInput.value=levelsInput.value.replace(/[^0-9, ]/g,"").replace(/,{2,}/g,",");
         });
     }
+
     setupFieldCounters(root);
     updateLevelsMode();
+
     return{
         getData(){
             const mode=targets[currentTarget]?.levels??"none";
