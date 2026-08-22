@@ -172,7 +172,7 @@ body {
     margin:-16px 0;
 }
 
-.header__logo a{
+.header__logo span{
     font-size:var(--font-size-xl);
     text-decoration:none;
     font-weight:600;
