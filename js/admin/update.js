@@ -36,6 +36,10 @@ export async function getEntity(type,id){
     throw new Error(`Unknown entity type: ${type}`);
 }
 
+export async function updateEntity(type,entity,data,context={},updates=[]){
+    const api=API[type];
+    if(!api)throw new Error(`Unknown entity type: ${type}`);
+    let savedData;
 if(entity?.id){
 
     await api.update(entity.id,data);
@@ -60,6 +64,13 @@ if(entity?.id){
         savedData=await api.create(data);
     }
 }
+    for(const update of updates){
+        const callback=context.updates?.[update];
+        if(typeof callback==="function")await callback(savedData);
+    }
+    return savedData;
+}
+
 
 export async function deleteEntity(type,id,context={}){
     if(type==="object"){
