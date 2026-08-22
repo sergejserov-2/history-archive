@@ -669,3 +669,26 @@
     text-overflow:ellipsis;
     white-space:nowrap;
 }
+
+
+.entity-editor input:disabled,
+.entity-editor textarea:disabled,
+.entity-editor select:disabled,
+.object-editor input:disabled,
+.object-editor textarea:disabled,
+.object-editor select:disabled,
+.login-form input:disabled{
+    color:var(--color-text-faded) !important;
+    cursor:not-allowed;
+}
+
+.entity-type__input-wrapper:has(.entity-type__input:disabled)::after,
+.entity-cover__input-wrapper:has(.entity-cover__input:disabled)::after{
+    display:none;
+}
+
+.entity-type__input:disabled,
+.entity-cover__input:disabled{
+    color:var(--color-text-faded) !important;
+    cursor:not-allowed;
+}
