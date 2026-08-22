@@ -232,7 +232,7 @@ body {
     background:var(--color-admin-bg-hover) !important;
     border-color:var(--color-admin) !important;
 }
-.header__icon{
+.header-icon{
    width:24px;
    height:24px;
 margin: -4px -8px;
