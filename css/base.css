@@ -37,8 +37,8 @@
     --color-attention-border: rgba(119, 93, 171, .8);
 
     --color-deteriorating: #e39a52;
-    --color-deteriorating-bg: 
-    --color-deteriorating-border: 
+    --color-deteriorating-bg: rgba(210, 120, 40, .18);
+    --color-deteriorating-border: rgba(230, 140, 55, .8);
 
 
     /* ---------- LAYOUT ---------- */
