@@ -33,7 +33,7 @@ export function renderHeader(page=null,updates=null){
             <img src="icons/types.svg" class="header-icon">
         </button>
         <button id="activityButton" class="header__button header__button--admin" hidden>
-            <img src="icons/types.svg" class="header-icon">
+            <img src="icons/activity.svg" class="header-icon">
         </button>
         <button id="loginButton" class="header__button">
             <img src="icons/login.svg" class="header-icon"> Войти
