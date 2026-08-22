@@ -147,7 +147,8 @@ export async function deleteEntity(type,id,context={}){
         const photo=(context.photos??[]).find(photo=>photo.id===id);
         if(photo?.storagePath)await moveFileToDeleted(photo.storagePath);
         if(photo?.previewPath)await moveFileToDeleted(photo.previewPath);
-        action:"delete",
+        await createActivity({
+            action:"delete",
             entityType:"photo",
             entityId:id,
             title:photo?.title??"",
