@@ -1,4 +1,5 @@
-import{createModal,setModalUrl}from"./modal.js";
+import{createModal}from"./modal.js";
+import{setModalUrl,replaceModalUrl}from"./modalReload.js";
 import{createViewerControls}from"./viewerControls.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,urlParams={}}={}){
@@ -253,10 +254,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,url
     };
     return modal;
 }
+
 function updatePhotoUrl(photoId){
     if(!photoId)return;
-    const url=new URL(window.location.href);
-    url.searchParams.set("modal","photo-preview");
-    url.searchParams.set("entityId",photoId);
-    window.history.replaceState({}, "", url);
+    replaceModalUrl({
+        modal:"photo-preview",
+        entityId:photoId
+    });
 }
