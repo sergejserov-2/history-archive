@@ -72,27 +72,12 @@ function renderFeedback(feedback){
 
     return`
         <div class="feedback">
-
-            <div class="feedback__title">
-                ${title}
-            </div>
-
-            <div class="feedback__message">
-                ${message}
-            </div>
-
+            <div class="feedback__title">${title}</div>
+            <div class="feedback__message">${message}</div>
             <div class="feedback__author">
-
-                <div class="feedback__name">
-                    ${name}
-                </div>
-
-                <div class="feedback__date">
-                    ${date}
-                </div>
-
+                <div class="feedback__name">${name}</div>
+                <div class="feedback__date">${date}</div>
             </div>
-
             ${
                 photoIds.length
                     ?renderFeedbackPhotos(
