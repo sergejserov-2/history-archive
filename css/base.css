@@ -395,7 +395,7 @@ button.admin-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(3px);
     background: var(--modal-overlay-bg);
 }
 
@@ -406,6 +406,12 @@ button.admin-button {
     overflow: hidden;
 
     border-radius: var(--radius-2xl);
+}
+
+.modal--admin{
+    background:var(--color-admin-bg);
+    border:1px solid var(--color-admin);
+    padding:var(--space-2);
 }
 
 .modal__header {
