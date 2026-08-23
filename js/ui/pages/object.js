@@ -16,7 +16,7 @@ import{getSubjects}from"../../api/subjects.js";
 import{getSubjectTypes}from"../../api/subjectTypes.js";
 import{renderStatusBadgeHTML}from"../components/editor/status.js";
 import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
-import{restoreModalFromUrl}from"../components/modal.js";
+import{restoreModalFromUrl}from"../ui/components/modalReload.js";
 import{createPageUpdates}from"../../admin/update.js";
 import{renderFeedbackPrompt,initFeedbackPrompt}from"../components/feedbackPrompt.js";
 import{openFeedbackFormByObjectId}from"../components/feedbackForm.js";
