@@ -2,7 +2,7 @@
 // PAGE LOADER
 // ==========================================
 
-const PAGE_REVEAL_DURATION=360;
+const PAGE_REVEAL_DURATION=260;
 
 let initialized=false;
 
