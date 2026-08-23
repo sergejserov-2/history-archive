@@ -53,6 +53,9 @@
 
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-object-cover);
+
+    cursor: grab;
+    will-change: transform;
 }
 
 .object__cover-placeholder {
@@ -305,11 +308,17 @@
 .subject-modal__cover-image {
     position: relative;
     z-index: 1;
+
     width: 150px;
     aspect-ratio: 3 / 4;
+
     object-fit: cover;
+
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-object-cover);
+
+    cursor: grab;
+    will-change: transform;
 }
 
 .subject-modal__cover-placeholder {
@@ -566,3 +575,8 @@
 
 
 .records{overflow-y:auto;}
+
+
+.cover-image--dragging {
+    cursor: grabbing;
+}
