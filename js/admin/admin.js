@@ -1,6 +1,6 @@
 import{openEditor}from"./editorConfig.js";
 import{deleteEntity}from"./update.js";
-import{setModalUrl}from"./modalReload.js";
+import{setModalUrl}from"../ui/components/modalReload.js";
 import{refreshSubjectsModal}from"../ui/components/subjects.js";
 export function initAdmin(page,updates={}){
     document.addEventListener("click",async event=>{
