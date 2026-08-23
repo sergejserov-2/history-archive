@@ -3,14 +3,17 @@ import{isAdmin}from"../../admin/adminMode.js";
 import{getCurrentModal}from"./modal.js";
 
 let modalHistory=[];
+
 function getRegistration(type){
     return modalRegistry.find(modal=>modal.type===type)??null;
 }
+
 function getUrlParams(registration,url){
     const params={};
     for(const key of registration.params??[])params[key]=url.searchParams.get(key);
     return params;
 }
+
 export function setModalUrl(type,params={}){
     const currentUrl=new URL(window.location.href);
     if(currentUrl.searchParams.get("modal"))modalHistory.push(currentUrl.toString());
@@ -22,17 +25,28 @@ export function setModalUrl(type,params={}){
     });
     window.history.pushState({},"",url);
 }
+
+export function replaceModalUrl(params={}){
+    const url=new URL(window.location.href);
+    Object.entries(params).forEach(([key,value])=>{
+        if(value===null||value===undefined||value==="")url.searchParams.delete(key);
+        else url.searchParams.set(key,String(value));
+    });
+    window.history.replaceState({},"",url);
+}
+
 export function clearModalUrl(){
     const url=new URL(window.location.href);
     const type=url.searchParams.get("modal");
-    const registration=getRegistration(type);
     if(!type)return;
+    const registration=getRegistration(type);
     url.searchParams.delete("modal");
     for(const key of registration?.params??[]){
         if(key!=="id")url.searchParams.delete(key);
     }
     window.history.pushState({},"",url);
 }
+
 async function reload(){
     const url=new URL(window.location.href);
     const type=url.searchParams.get("modal");
@@ -72,12 +86,15 @@ async function reload(){
         modalHistory=[];
     });
 }
+
 export async function restoreModalFromUrl(){
     await reload();
 }
+
 window.addEventListener("popstate",async()=>{
     await reload();
 });
+
 document.addEventListener("click",async event=>{
     const link=event.target.closest(".subject-mention");
     if(!link)return;
