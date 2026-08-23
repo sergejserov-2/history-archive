@@ -1,4 +1,4 @@
-import{setModalUrl,restoreModalFromUrl}from"./modal.js";
+import{setModalUrl,restoreModalFromUrl}from"./modalReload.js";
 
 export function renderFeedbackPrompt(objectId){
     if(!objectId)return"";
