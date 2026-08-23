@@ -442,7 +442,7 @@ button.admin-button {
    box-shadow: var(--shadow-object-cover);
 }
 
-.modal--admin .modal-header{
+.modal--admin .modal__header{
     color:var(--color-admin);
 }
 
