@@ -16,7 +16,6 @@ import{openActivityModal}from"./activity.js";
 import{openFeedbacksModal}from"./feedbacks.js";
 import{openFeedbackModal}from"./feedback.js";
 import{openFeedbackFormByObjectId}from"./feedbackForm.js";
-
 export const photoPreviewModal={
     type:"photo-preview",
     params:["id","entityId"],
@@ -32,7 +31,6 @@ export const photoPreviewModal={
         openPhotoViewer(data.photo,{fromUrl:true,photos:data.photos});
     }
 };
-
 export const editorModal={
     type:"editor",
     admin:true,
@@ -42,21 +40,9 @@ export const editorModal={
         const objects=await getAllObjects();
         if(["objectType","recordType","subjectType"].includes(params.entityType)){
             let entity=null,context={};
-            if(params.entityType==="objectType"){
-                entity=await getType(params.entityId);
-                if(!entity)return null;
-                context={objects,types:await getTypes()};
-            }
-            if(params.entityType==="recordType"){
-                entity=await getRecordType(params.entityId);
-                if(!entity)return null;
-                context={objects,recordTypes:await getRecordTypes()};
-            }
-            if(params.entityType==="subjectType"){
-                entity=await getSubjectType(params.entityId);
-                if(!entity)return null;
-                context={objects,subjectTypes:await getSubjectTypes()};
-            }
+            if(params.entityType==="objectType"){entity=await getType(params.entityId);if(!entity)return null;const types=await getTypes();context={objects,types};}
+            if(params.entityType==="recordType"){entity=await getRecordType(params.entityId);if(!entity)return null;const recordTypes=await getRecordTypes();context={objects,recordTypes};}
+            if(params.entityType==="subjectType"){entity=await getSubjectType(params.entityId);if(!entity)return null;const subjectTypes=await getSubjectTypes();context={objects,subjectTypes};}
             return{entity,type:params.entityType,objects,context};
         }
         if(params.entityType==="subject"){
@@ -71,10 +57,7 @@ export const editorModal={
             const[type,types,children,photos]=await Promise.all([getType(object.typeId),getTypes(),getChildren(object.id),getPhotos(object.id)]);
             return{entity:object,type:"object",objects,children,photos,types,context:{objects}};
         }
-        if(!["photo","source","record"].includes(params.entityType)){
-            console.error("Unknown entity type:",params.entityType);
-            return null;
-        }
+        if(!["photo","source","record"].includes(params.entityType)){console.error("Unknown entity type:",params.entityType);return null;}
         let entities=[];
         if(params.entityType==="photo")entities=await getPhotos(params.id);
         if(params.entityType==="source")entities=await getSources(params.id);
@@ -83,25 +66,15 @@ export const editorModal={
         if(!entity)return null;
         return{entity,type:params.entityType,objects,context:{parentId:params.id,objects}};
     },
-    open:async data=>{if(!data)return;
-        if(["objectType","recordType","subjectType"].includes(data.type)){
-            await openEditor(data.type,data.entity,data.context);
-            return;
-        }
-        if(data.type==="object"){
-            await openEditor("object",data.entity,{...data.context,types:data.types,objects:data.objects,children:data.children,photos:data.photos});
-            return;
-        }
-        if(data.type==="subject"){
-            await openEditor("subject",data.entity,{...data.context,objects:data.objects,subjects:data.subjects,subjectTypes:data.subjectTypes});
-            return;
-        }
+    open:async data=>{
+        if(!data)return;
+        if(["objectType","recordType","subjectType"].includes(data.type)){await openEditor(data.type,data.entity,data.context);return;}
+        if(data.type==="object"){await openEditor("object",data.entity,{...data.context,types:data.types,objects:data.objects,children:data.children,photos:data.photos});return;}
+        if(data.type==="subject"){await openEditor("subject",data.entity,{...data.context,objects:data.objects,subjects:data.subjects,subjectTypes:data.subjectTypes});return;}
         await openEditor(data.type,data.entity,data.context);
     }
 };
-
 export const loginModal={type:"login",params:[],load:null,open:null};
-
 export const subjectModal={
     type:"subject",
     params:["entityId"],
@@ -116,14 +89,12 @@ export const subjectModal={
         openSubjectModal(data.subject,{subjects:data.subjects,objects:data.objects,photos:data.photos,sources:data.sources,records:data.records,subjectTypes:data.subjectTypes,fromUrl:true});
     }
 };
-
 export const subjectsModal={type:"subjects",params:[],load:null,open:async()=>{await openSubjectsModal();}};
 export const typesModal={type:"types",admin:true,params:[],load:null,open:async()=>{await openTypesModal();}};
 export const activityModal={type:"activity",admin:true,params:[],load:null,open:async()=>{await openActivityModal();}};
-export const feedbacksModal={type:"feedbacks",admin:true,params:[],load:null,open:async()=>{await openFeedbacksModal({fromUrl:true});}};
-
-export const feedbackViewModal={
-    type:"feedback-view",
+export const feedbacksModal={type:"feedbacks",admin:true,params:[],load:null,open:async()=>{await openFeedbacksModal();}};
+export const feedbackModal={
+    type:"feedback",
     params:["entityId"],
     load:async params=>{
         if(!params.entityId)return null;
@@ -136,9 +107,8 @@ export const feedbackViewModal={
         openFeedbackModal(data.feedback,{fromUrl:true});
     }
 };
-
-export const feedbackModal={
-    type:"feedback",
+export const feedbackFormModal={
+    type:"feedback-form",
     params:["objectId"],
     load:async params=>{
         if(!params.objectId)return null;
@@ -149,16 +119,4 @@ export const feedbackModal={
         await openFeedbackFormByObjectId(data.objectId);
     }
 };
-
-export const modalRegistry=[
-    photoPreviewModal,
-    editorModal,
-    loginModal,
-    subjectModal,
-    subjectsModal,
-    typesModal,
-    activityModal,
-    feedbacksModal,
-    feedbackViewModal,
-    feedbackModal
-];
+export const modalRegistry=[photoPreviewModal,editorModal,loginModal,subjectModal,subjectsModal,typesModal,activityModal,feedbacksModal,feedbackModal,feedbackFormModal];
