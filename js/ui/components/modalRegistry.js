@@ -9,6 +9,7 @@ import{getSubjectType,getSubjectTypes}from"../../api/subjectTypes.js";
 import{getFeedback}from"../../api/feedback.js";
 import{openPhotoViewer}from"./photoViewer.js";
 import{openEditor}from"../../admin/editorConfig.js";
+import{openLoginModal}from"./login.js";
 import{openSubjectModal}from"./subject.js";
 import{openSubjectsModal}from"./subjects.js";
 import{openTypesModal}from"./types.js";
@@ -116,7 +117,14 @@ export const editorModal={
     }
 };
 
-export const loginModal={type:"login",params:[],load:null,open:null};
+export const loginModal={
+    type:"login",
+    params:[],
+    load:null,
+    open:async()=>{
+        await openLoginModal({fromUrl:true});
+    }
+};
 
 export const subjectModal={
     type:"subject",
