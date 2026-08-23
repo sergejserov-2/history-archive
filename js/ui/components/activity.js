@@ -1,5 +1,6 @@
 import{getRecentActivities}from"../../api/activity.js";
-import{createModal,setModalUrl}from"./modal.js";
+import{createModal}from"./modal.js";
+import{setModalUrl}from"./modalReload.js";
 import{renderEntityList}from"./entityList.js";
 import{openSubjectModal}from"./subject.js";
 import{openSubjectsModal}from"./subjects.js";
