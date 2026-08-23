@@ -3,6 +3,7 @@ import{openLoginModal}from"./loginModal.js";
 import{openSubjectsModal}from"./subjects.js";
 import{openTypesModal}from"./types.js";
 import{openActivityModal}from"./activity.js";
+import{openFeedbacksModal}from"./feedbacks.js";
 import{setModalUrl}from"./modal.js";
 import{getHighestLevelObject}from"../../api/objects.js";
 
@@ -31,6 +32,9 @@ export function renderHeader(page=null,updates=null){
         </button>
         <button id="typesButton" class="header__button header__button--admin" hidden>
             <img src="icons/types.svg" class="header-icon">
+        </button>
+        <button id="feedbacksButton" class="header__button header__button--admin" hidden>
+            <img src="icons/feedbacks.svg" class="header-icon">
         </button>
         <button id="activityButton" class="header__button header__button--admin" hidden>
             <img src="icons/activity.svg" class="header-icon">
@@ -82,56 +86,73 @@ export function renderHeader(page=null,updates=null){
             };
         }
 
-const activityButton=document.querySelector("#activityButton");
+        const feedbacksButton=document.querySelector("#feedbacksButton");
 
-if(activityButton){
-    activityButton.onclick=async()=>{
-        setModalUrl("activity");
-        try{
-            await openActivityModal();
-        }catch(error){
-            console.error(
-                "Ошибка открытия истории изменений:",
-                error
-            );
-            alert(
-                "Не удалось загрузить историю изменений"
-            );
+        if(feedbacksButton){
+            feedbacksButton.onclick=async()=>{
+                setModalUrl("feedbacks");
+                try{
+                    await openFeedbacksModal();
+                }catch(error){
+                    console.error("Ошибка открытия списка обращений:",error);
+                    alert("Не удалось загрузить обращения");
+                }
+            };
         }
-    };
-}
-        
+
+        const activityButton=document.querySelector("#activityButton");
+
+        if(activityButton){
+            activityButton.onclick=async()=>{
+                setModalUrl("activity");
+                try{
+                    await openActivityModal();
+                    }catch(error){
+                    console.error("Ошибка открытия истории изменений:",error);
+                    alert("Не удалось загрузить историю изменений");
+                }
+            };
+        }
+
         const loginButton=document.querySelector("#loginButton");
+
         if(!loginButton)return;
 
-const updateButtons=(ADMIN_MODE)=>{
+        const updateButtons=(ADMIN_MODE)=>{
+            if(typesButton)
+                typesButton.hidden=!ADMIN_MODE;
 
-    if(typesButton)
-        typesButton.hidden=!ADMIN_MODE;
+            if(feedbacksButton)
+                feedbacksButton.hidden=!ADMIN_MODE;
 
-    if(activityButton)
-        activityButton.hidden=!ADMIN_MODE;
+            if(activityButton)
+                activityButton.hidden=!ADMIN_MODE;
 
-    loginButton.innerHTML=
-        ADMIN_MODE
-        ?'<img src="icons/logout.svg" class="header-icon"> Выйти'
-        :'<img src="icons/login.svg" class="header-icon"> Войти';
+            loginButton.innerHTML=
+                ADMIN_MODE
+                    ?'<img src="icons/logout.svg" class="header-icon"> Выйти'
+                    :'<img src="icons/login.svg" class="header-icon"> Войти';
 
-    loginButton.classList.toggle(
-        "header__button--admin",
-        ADMIN_MODE
-    );
-};
+            loginButton.classList.toggle(
+                "header__button--admin",
+                ADMIN_MODE
+            );
+        };
 
         updateButtons(isAdmin());
         onAdminStateChanged(updateButtons);
 
         loginButton.onclick=async()=>{
             if(isAdmin()){
-                try{await logout();}
-                catch(error){console.error(error);alert("Не удалось выйти");}
+                try{
+                    await logout();
+                }catch(error){
+                    console.error("Не удалось выйти:",error);
+                    alert("Не удалось выйти");
+                }
                 return;
             }
+
             openLoginModal();
         };
     },0);
