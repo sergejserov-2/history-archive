@@ -191,9 +191,35 @@ async function openActivityTarget(activity){
 
 function renderActivityList(activities=[]){
 
-    const items=
-        [...activities]
-            .map(activity=>({
+    const groups=new Map();
+
+    [...activities]
+        .sort(
+            (a,b)=>
+                Number(b.createdAt??0)-
+                Number(a.createdAt??0)
+        )
+        .forEach(activity=>{
+
+            const date=
+                new Date(
+                    Number(activity.createdAt??0)
+                );
+
+            const key=
+                `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+
+            if(!groups.has(key)){
+                groups.set(
+                    key,
+                    {
+                        date,
+                        items:[]
+                    }
+                );
+            }
+
+            groups.get(key).items.push({
 
                 id:activity.id,
 
@@ -202,7 +228,9 @@ function renderActivityList(activities=[]){
                 sortValue:
                     Number(
                         activity.createdAt??0
-                    ),title:
+                    ),
+
+                title:
                     escapeHTML(
                         activity.adminName||
                         activity.adminEmail||
@@ -218,18 +246,71 @@ function renderActivityList(activities=[]){
                     renderDateTime(
                         activity.createdAt
                     )
-            }));
+            });
+        });
 
     return renderEntityList({
 
         groups:[
-            {
-                title:"",
-                items,
-                sortDirection:"desc"
-            }
+            ...groups.values()
+                .map(group=>({
+
+                    title:
+                        formatActivityGroupDate(
+                            group.date
+                        ),
+
+                    items:
+                        group.items,
+
+                    sortDirection:
+                        "desc"
+
+                }))
         ]
+
     });
+}
+
+function formatActivityGroupDate(date){
+
+    const now=
+        new Date();
+
+    const today=
+        new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+        );
+
+    const target=
+        new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate()
+        );
+
+    const diff=
+        Math.round(
+            (today-target)/
+            86400000
+        );
+
+    if(diff===0)
+        return"Сегодня";
+
+    if(diff===1)
+        return"Вчера";
+
+    return date.toLocaleDateString(
+        "ru-RU",
+        {
+            day:"numeric",
+            month:"long",
+            year:"numeric"
+        }
+    );
 }
 
 function formatActivityDescription(activity){
