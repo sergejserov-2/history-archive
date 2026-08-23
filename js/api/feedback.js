@@ -1,3 +1,7 @@
+// ======================================
+// Feedback API
+// ======================================
+
 import{db}from"../firebase.js";
 import{
     collection,
@@ -10,6 +14,11 @@ import{
     orderBy,
     limit
 }from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import{uploadPhoto}from"./storage.js";
+
+// ======================================
+// Get feedback
+// ======================================
 
 export async function getFeedback(id){
 
@@ -27,6 +36,10 @@ export async function getFeedback(id){
     };
 }
 
+// ======================================
+// Get feedbacks
+// ======================================
+
 export async function getFeedbacks(){
 
     const snapshot=await getDocs(
@@ -41,6 +54,10 @@ export async function getFeedbacks(){
         ...doc.data()
     }));
 }
+
+// ======================================
+// Get recent feedbacks
+// ======================================
 
 export async function getRecentFeedbacks(count=100){
 
@@ -58,6 +75,10 @@ export async function getRecentFeedbacks(count=100){
     }));
 }
 
+// ======================================
+// Create feedback
+// ======================================
+
 export async function createFeedback(data){
 
     if(!data?.name?.trim()){
@@ -72,27 +93,28 @@ export async function createFeedback(data){
         throw new Error("Напишите сообщение");
     }
 
+    const photoIds=[];
+
+    for(const file of(data.files??[])){
+
+        const uploadResult=
+            await uploadPhoto(file);
+
+        photoIds.push({
+            storagePath:uploadResult.storagePath,
+            previewPath:uploadResult.previewPath
+        });
+    }
+
     const feedback={
-
         name:data.name.trim(),
-
         email:data.email?.trim()??"",
-
         title:data.title.trim(),
-
         message:data.message.trim(),
-
         objectId:data.objectId??null,
-
         objectTitle:data.objectTitle??"",
-
-        photoIds:
-            Array.isArray(data.photoIds)
-                ?data.photoIds
-                :[],
-
+        photoIds,
         status:"new",
-
         createdAt:Date.now()
     };
 
@@ -106,6 +128,10 @@ export async function createFeedback(data){
         ...feedback
     };
 }
+
+// ======================================
+// Delete feedback
+// ======================================
 
 export async function deleteFeedback(id){
 
