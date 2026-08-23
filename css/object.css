@@ -5,6 +5,7 @@
 .object {
     display: flex;
     gap: var(--space-10);
+   max-height: 70svh;
 }
 
 
