@@ -6,7 +6,7 @@ import{openFeedbackModal}from"./feedback.js";
 let currentFeedbacksModal=null;
 export async function openFeedbacksModal(){
     const feedbacks=await getRecentFeedbacks(100);
-    const modal=createModal({title:"Обращения",content:renderFeedbackList(feedbacks),width:630});
+    const modal=createModal({title:"Обращения",content:renderFeedbackList(feedbacks),width:630, admin: true});
     currentFeedbacksModal=modal;
     modal.feedbacks=feedbacks;
     modal.root.onclick=event=>{
