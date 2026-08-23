@@ -1,24 +1,31 @@
-import{getAllFeedback}from"../../api/feedback.js";
+// ==========================================
+// Feedbacks modal
+// ==========================================
+
+import{getRecentFeedbacks}from"../../api/feedback.js";
 import{createModal}from"./modal.js";
 import{renderEntityList}from"./entityList.js";
 import{renderDateTime}from"./date.js";
 
 let currentFeedbacksModal=null;
 
+// ==========================================
+// Open feedbacks modal
+// ==========================================
+
 export async function openFeedbacksModal(){
 
     const feedbacks=
-        await getAllFeedback();
+        await getRecentFeedbacks(100);
 
-    const modal=
-        createModal({
-            title:"Обращения",
-            content:
-                renderFeedbackList(
-                    feedbacks
-                ),
-            width:630
-        });
+    const modal=createModal({
+        title:"Обращения",
+        content:
+            renderFeedbackList(
+                feedbacks
+            ),
+        width:630
+    });
 
     currentFeedbacksModal=
         modal;
@@ -28,6 +35,10 @@ export async function openFeedbacksModal(){
 
     return modal;
 }
+
+// ==========================================
+// Refresh feedbacks modal
+// ==========================================
 
 export async function refreshFeedbacksModal(){
 
@@ -41,7 +52,7 @@ export async function refreshFeedbacksModal(){
     }
 
     const feedbacks=
-        await getAllFeedback();
+        await getRecentFeedbacks(100);
 
     currentFeedbacksModal.feedbacks=
         feedbacks;
@@ -53,6 +64,10 @@ export async function refreshFeedbacksModal(){
     );
 }
 
+// ==========================================
+// Render feedback list
+// ==========================================
+
 function renderFeedbackList(
     feedbacks=[]
 ){
@@ -63,8 +78,12 @@ function renderFeedbackList(
     [...feedbacks]
         .sort(
             (a,b)=>
-                Number(b.createdAt??0)-
-                Number(a.createdAt??0)
+                Number(
+                    b.createdAt??0
+                )-
+                Number(
+                    a.createdAt??0
+                )
         )
         .forEach(feedback=>{
 
@@ -90,36 +109,40 @@ function renderFeedbackList(
 
             }
 
-            groups.get(key).items.push({
+            groups
+                .get(key)
+                .items
+                .push({
 
-                id:
-                    feedback.id,
+                    id:
+                        feedback.id,
 
-                clickable:true,
+                    clickable:
+                        true,
 
-                sortValue:
-                    Number(
-                        feedback.createdAt??0
-                    ),
+                    sortValue:
+                        Number(
+                            feedback.createdAt??0
+                        ),
 
-                title:
-                    escapeHTML(
-                        feedback.name||
-                        "Без имени"
-                    ),
+                    title:
+                        escapeHTML(
+                            feedback.name||
+                            "Без имени"
+                        ),
 
-                description:
-                    escapeHTML(
-                        feedback.title||
-                        "Без заголовка"
-                    ),
+                    description:
+                        escapeHTML(
+                            feedback.title||
+                            "Без заголовка"
+                        ),
 
-                meta:
-                    renderDateTime(
-                        feedback.createdAt
-                    )
+                    meta:
+                        renderDateTime(
+                            feedback.createdAt
+                        )
 
-            });
+                });
 
         });
 
@@ -144,10 +167,15 @@ function renderFeedbackList(
         ]
 
     });
-
 }
 
-function formatFeedbackGroupDate(date){
+// ==========================================
+// Format group date
+// ==========================================
+
+function formatFeedbackGroupDate(
+    date
+){
 
     const now=
         new Date();
@@ -186,15 +214,33 @@ function formatFeedbackGroupDate(date){
             year:"numeric"
         }
     );
-
 }
+
+// ==========================================
+// Escape HTML
+// ==========================================
 
 function escapeHTML(value=""){
 
     return String(value)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","'");
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "'"
+        );
 }
