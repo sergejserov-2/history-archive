@@ -7,7 +7,8 @@ import{getSubjects}from"../../api/subjects.js";
 import{isAdmin}from"../../admin/adminMode.js";
 import{openEditor}from"../../admin/editorConfig.js";
 import{deleteEntity}from"../../admin/update.js";
-import{createModal,setModalUrl}from"./modal.js";
+import{createModal}from"./modal.js";
+import{setModalUrl}from"./modalReload.js";
 import{renderEntityList}from"./entityList.js";
 
 let currentTypesModal=null;
