@@ -6,12 +6,14 @@ import{getTypes}from"../../api/types.js";
 import{getRecordType,getRecordTypes}from"../../api/recordTypes.js";
 import{getSubject,getSubjects}from"../../api/subjects.js";
 import{getSubjectType,getSubjectTypes}from"../../api/subjectTypes.js";
+
 import{openPhotoViewer}from"./photoViewer.js";
 import{openEditor}from"../../admin/editorConfig.js";
 import{openSubjectModal}from"./subject.js";
 import{openSubjectsModal}from"./subjects.js";
 import{openTypesModal}from"./types.js";
 import{openActivityModal}from"./activity.js";
+import{openFeedbackFormByObjectId}from"./feedbackForm.js";
 
 export const photoPreviewModal={
     type:"photo-preview",
@@ -254,6 +256,25 @@ export const activityModal={
     }
 };
 
+export const feedbackModal={
+    type:"feedback",
+    params:["objectId"],
+    load:async params=>{
+        if(!params.objectId)return null;
+
+        return{
+            objectId:params.objectId
+        };
+    },
+    open:async data=>{
+        if(!data)return;
+
+        await openFeedbackFormByObjectId(
+            data.objectId
+        );
+    }
+};
+
 export const modalRegistry=[
     photoPreviewModal,
     editorModal,
@@ -261,5 +282,6 @@ export const modalRegistry=[
     subjectModal,
     subjectsModal,
     typesModal,
-    activityModal
+    activityModal,
+    feedbackModal
 ];
