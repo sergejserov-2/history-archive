@@ -55,18 +55,42 @@
     box-shadow: var(--shadow-object-cover);
 
     cursor: grab;
+
+    user-select: none;
+    -webkit-user-select: none;
+
+    touch-action: none;
+
     will-change: transform;
+}
+
+.object__cover-image.cover-image--dragging {
+    cursor: grabbing;
+}
+
+.object__cover-image.cover-image--spring {
+    transition:
+        transform .7s cubic-bezier(
+            .17,
+            .89,
+            .32,
+            1.35
+        );
 }
 
 .object__cover-placeholder {
     position: relative;
     z-index: 1;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     text-align: center;
+
     color: var(--color-text-faded);
     background: var(--color-border);
+
     border-radius: var(--radius-lg);
 }
 
@@ -285,13 +309,18 @@
 
 .subject-modal__cover {
     position: relative;
+
     width: 150px;
     min-height: 200px;
+
     flex-shrink: 0;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     overflow: hidden;
+
     background: var(--color-border);
     border-radius: var(--radius-lg);
 }
@@ -299,8 +328,10 @@
 .subject-modal__cover-bg {
     position: absolute;
     inset: 0;
+
     background-size: cover;
     background-position: center;
+
     filter: blur(18px) brightness(.45);
     transform: scale(1.15);
 }
@@ -318,25 +349,51 @@
     box-shadow: var(--shadow-object-cover);
 
     cursor: grab;
+
+    user-select: none;
+    -webkit-user-select: none;
+
+    touch-action: none;
+
     will-change: transform;
+}
+
+.subject-modal__cover-image.cover-image--dragging {
+    cursor: grabbing;
+}
+
+.subject-modal__cover-image.cover-image--spring {
+    transition:
+        transform .7s cubic-bezier(
+            .17,
+            .89,
+            .32,
+            1.35
+        );
 }
 
 .subject-modal__cover-placeholder {
     position: relative;
     z-index: 1;
+
     width: 150px;
     aspect-ratio: 3 / 4;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     padding: var(--space-5);
+
     box-sizing: border-box;
+
     text-align: center;
+
     color: var(--color-text-faded);
     background: var(--color-border);
+
     border-radius: var(--radius-lg);
 }
-
 .subject-modal__info {
     flex: 1;
     min-width: 0;
@@ -576,7 +633,3 @@
 
 .records{overflow-y:auto;}
 
-
-.cover-image--dragging {
-    cursor: grabbing;
-}
