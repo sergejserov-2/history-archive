@@ -1,4 +1,10 @@
 let currentModal=null;
+let modalHistory=[];
+
+
+/* ==========================================
+   WAIT FOR TRANSITION
+========================================== */
 
 function waitForTransition(element,callback){
 
@@ -27,7 +33,10 @@ function waitForTransition(element,callback){
 
             if(
                 event.target===element &&
-                event.propertyName==="transform"
+                (
+                    event.propertyName==="transform" ||
+                    event.propertyName==="opacity"
+                )
             ){
 
                 finish();
@@ -52,6 +61,10 @@ function waitForTransition(element,callback){
 
 }
 
+
+/* ==========================================
+   CREATE MODAL ELEMENT
+========================================== */
 
 function createModalElement({
 
@@ -105,6 +118,10 @@ function createModalElement({
 }
 
 
+/* ==========================================
+   CREATE MODAL
+========================================== */
+
 export function createModal({
 
     title="",
@@ -145,7 +162,28 @@ export function createModal({
 
 
     /* ======================================
-       NEW MODAL
+       SAVE CURRENT MODAL IN HISTORY
+    ====================================== */
+
+    if(oldModal){
+
+        modalHistory.push({
+
+            overlay:oldModal.overlay,
+
+            element:oldModal.element,
+
+            close:oldModal.close,
+
+            closeHandler:oldModal.closeHandler
+
+        });
+
+    }
+
+
+    /* ======================================
+       CREATE NEW MODAL
     ====================================== */
 
     const modal=createModalElement({
@@ -159,11 +197,11 @@ export function createModal({
 
 
     /*
-        При замене новая модалка добавляется
-        поверх старой.
+        При замене новая модалка стартует
+        немного уменьшенной.
 
-        В этот момент старая ещё полностью
-        видима.
+        Она сразу добавляется поверх старой,
+        поэтому пустого места нет.
     */
 
     if(isReplacement){
@@ -174,13 +212,14 @@ export function createModal({
 
     }
 
+
     overlay.appendChild(
         modal
     );
 
 
     /* ======================================
-       START ANIMATION
+       ANIMATION
     ====================================== */
 
     requestAnimationFrame(()=>{
@@ -188,8 +227,8 @@ export function createModal({
         requestAnimationFrame(()=>{
 
             /*
-                При первом открытии показываем
-                overlay.
+                Overlay показываем только
+                при первом открытии.
             */
 
             if(!isReplacement){
@@ -202,8 +241,8 @@ export function createModal({
 
 
             /*
-                При замене сначала оставляем
-                новую модалку в состоянии .94.
+                Старая модалка слегка
+                схлопывается внутрь.
             */
 
             if(oldModal){
@@ -216,11 +255,10 @@ export function createModal({
 
 
             /*
-                Следующий кадр запускает
-                появление новой модалки.
-
-                Сначала удаляем replacement,
-                затем добавляем visible.
+                Отдельный кадр нужен,
+                чтобы браузер гарантированно
+                увидел начальное состояние
+                новой модалки.
             */
 
             requestAnimationFrame(()=>{
@@ -263,9 +301,9 @@ export function createModal({
         closing=true;
 
 
-        /*
-            Обычное закрытие.
-        */
+        /* ==================================
+           CLOSE CURRENT MODAL
+        ================================== */
 
         modal.classList.remove(
             "modal--visible"
@@ -285,46 +323,74 @@ export function createModal({
         modal.remove();
 
 
-        /*
-            Важный момент:
+        /* ==================================
+           RESTORE PREVIOUS MODAL
+        ================================== */
 
-            closeHandler может восстановить
-            предыдущую модалку через modalReload.
-        */
+        if(modalHistory.length){
 
-        if(closeHandler){
+            const previous=
+                modalHistory.pop();
 
-            await closeHandler();
+            /*
+                Предыдущая модалка уже
+                находится в DOM.
+
+                Просто возвращаем её
+                из состояния replaced.
+            */
+
+            if(
+                previous.element &&
+                previous.element.parentNode
+            ){
+
+                previous.element.classList.remove(
+                    "modal--replaced"
+                );
+
+                previous.element.classList.add(
+                    "modal--visible"
+                );
+
+                currentModal={
+
+                    overlay:previous.overlay,
+
+                    element:previous.element,
+
+                    close:previous.close,
+
+                    closeHandler:
+                        previous.closeHandler
+
+                };
+
+                return;
+
+            }
 
         }
 
 
-        /*
-            Если предыдущая модалка не была
-            восстановлена — закрываем overlay.
-        */
+        /* ==================================
+           NO HISTORY — CLOSE OVERLAY
+        ================================== */
 
-        if(
-            currentModal?.element===modal
-        ){
+        currentModal=null;
 
-            currentModal=null;
+        modalHistory=[];
 
+        overlay.classList.remove(
+            "modal-overlay--visible"
+        );
 
-            overlay.classList.remove(
-                "modal-overlay--visible"
-            );
+        await waitForTransition(
+            overlay,
+            ()=>{}
+        );
 
-
-            await waitForTransition(
-                overlay,
-                ()=>{}
-            );
-
-
-            overlay.remove();
-
-        }
+        overlay.remove();
 
     }
 
@@ -347,29 +413,16 @@ export function createModal({
 
 
     /* ======================================
-       REMOVE OLD MODAL
+       REMOVE OLD MODAL AFTER ANIMATION
     ====================================== */
 
     if(oldModal){
-
-        /*
-            Старая модалка уже получила
-            .modal--replaced.
-
-            Ждём окончания её схлопывания
-            и только потом удаляем DOM.
-        */
 
         void waitForTransition(
 
             oldModal.element,
 
             ()=>{
-
-                /*
-                    На случай, если класс ещё
-                    не успел быть установлен.
-                */
 
                 oldModal.element.classList.remove(
                     "modal--visible"
@@ -381,17 +434,7 @@ export function createModal({
 
             }
 
-        ).then(()=>{
-
-            if(
-                oldModal.element.parentNode
-            ){
-
-                oldModal.element.remove();
-
-            }
-
-        });
+        );
 
     }
 
@@ -408,11 +451,7 @@ export function createModal({
 
         close,
 
-        setCloseHandler(handler){
-
-            closeHandler=handler;
-
-        }
+        closeHandler:null
 
     };
 
@@ -450,6 +489,15 @@ export function createModal({
 
             closeHandler=handler;
 
+            if(
+                currentModal?.element===modal
+            ){
+
+                currentModal.closeHandler=
+                    handler;
+
+            }
+
         },
 
         close
@@ -459,12 +507,20 @@ export function createModal({
 }
 
 
+/* ==========================================
+   GET CURRENT MODAL
+========================================== */
+
 export function getCurrentModal(){
 
     return currentModal;
 
 }
 
+
+/* ==========================================
+   CLOSE CURRENT MODAL
+========================================== */
 
 export function closeCurrentModal(){
 
