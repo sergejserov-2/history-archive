@@ -18,6 +18,7 @@ import{renderStatusBadgeHTML}from"../components/editor/status.js";
 import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
 import{restoreModalFromUrl}from"../components/modal.js";
 import{createPageUpdates}from"../../admin/update.js";
+import{renderFeedbackPrompt,initFeedbackPrompt}from"../components/feedbackPrompt.js";
 import{openFeedbackFormByObjectId}from"../components/feedbackForm.js";
 const params=new URLSearchParams(window.location.search);
 const objectId=params.get("id");
