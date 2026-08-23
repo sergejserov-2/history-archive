@@ -81,7 +81,22 @@ export function updateSubjectModal(subject,{subjects=[],objects=[],photos=[],sou
     subject={...subject,isUploading:uploadingSubjects.has(subject?.id)};
     currentSubjectModal.subject=subject;
     currentSubjectModal.context={subjects,objects,photos,sources,records,subjectTypes};
-    currentSubjectModal.setContent(renderSubject(subject,subjects,objects,photos,sources,records,subjectTypes,isAdmin()));
+    currentSubjectModal.setContent(
+        renderSubject(
+            subject,
+            subjects,
+            objects,
+            photos,
+            sources,
+            records,
+            subjectTypes,
+            isAdmin()
+        )
+    );
+
+    initCoverDrag(
+        currentSubjectModal.root
+    );
 }
 
 function escapeHTML(value=""){
