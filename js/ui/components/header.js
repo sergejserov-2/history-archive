@@ -4,7 +4,7 @@ import{openSubjectsModal}from"./subjects.js";
 import{openTypesModal}from"./types.js";
 import{openActivityModal}from"./activity.js";
 import{openFeedbacksModal}from"./feedbacks.js";
-import{setModalUrl}from"./modal.js";
+import{setModalUrl}from"./modalReload.js";
 import{getHighestLevelObject}from"../../api/objects.js";
 
 const favicon=document.getElementById("favicon");
