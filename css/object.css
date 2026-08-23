@@ -562,3 +562,6 @@
     color: #a5d2ff;
     text-decoration: none;
 }
+
+
+.records{overflow-y:auto;}
