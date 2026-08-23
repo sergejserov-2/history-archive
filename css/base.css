@@ -407,13 +407,13 @@ button.admin-button {
 ========================================== */
 
 .modal-overlay {
+
     position: fixed;
     inset: 0;
+
     z-index: var(--modal-z-index);
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
 
     background: rgba(0, 0, 0, 0);
 
@@ -425,28 +425,45 @@ button.admin-button {
         opacity var(--modal-overlay-duration) ease,
         background var(--modal-overlay-duration) ease,
         backdrop-filter var(--modal-overlay-duration) ease;
+
 }
 
 .modal-overlay--visible {
+
     opacity: 1;
 
     background: var(--modal-overlay-bg);
 
     backdrop-filter: blur(3px);
+
 }
 
 .modal-overlay--closing {
+
     opacity: 0;
 
     background: rgba(0, 0, 0, 0);
 
     backdrop-filter: blur(0);
 
-    transition-duration: var(--modal-close-duration);
+    transition-duration:
+        var(--modal-close-duration);
+
 }
 
+
+/* ==========================================
+   MODAL WINDOW
+========================================== */
+
 .modal {
-    width: var(--modal-width,420px);
+
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    width: var(--modal-width, 420px);
     max-width: 90vw;
 
     overflow: hidden;
@@ -456,70 +473,189 @@ button.admin-button {
     opacity: 0;
 
     transform:
-        translateY(10px)
+        translate(-50%, -50%)
         scale(.94);
+
+    transform-origin: center center;
 
     transition:
         opacity .18s ease,
-        transform var(--modal-bounce-duration) cubic-bezier(.34,1.56,.64,1);
+        transform var(--modal-bounce-duration)
+        cubic-bezier(.34,1.56,.64,1);
+
 }
 
+
+/* ==========================================
+   NORMAL APPEAR
+========================================== */
+
 .modal--visible {
+
     opacity: 1;
 
     transform:
-        translateY(0)
+        translate(-50%, -50%)
         scale(1);
+
 }
 
-.modal--closing {
+
+/* ==========================================
+   MODAL REPLACEMENT
+========================================== */
+
+/*
+    Новая модалка появляется поверх старой.
+*/
+
+.modal--replacement {
+
     opacity: 0;
 
     transform:
-        translateY(6px)
+        translate(-50%, -50%)
+        scale(.94);
+
+}
+
+
+/*
+    Старая модалка слегка схлопывается
+    внутрь.
+
+    Никакого движения по X/Y.
+*/
+
+.modal--replaced {
+
+    opacity: 0;
+
+    transform:
+        translate(-50%, -50%)
+        scale(.97);
+
+    transition:
+        opacity .16s ease,
+        transform .20s
+        cubic-bezier(.4, 0, .7, 1);
+
+}
+
+
+/* ==========================================
+   NORMAL CLOSE
+========================================== */
+
+.modal--closing {
+
+    opacity: 0;
+
+    transform:
+        translate(-50%, -50%)
         scale(.96);
 
     transition:
         opacity var(--modal-close-duration) ease,
         transform var(--modal-close-duration) ease;
+
 }
 
-.modal--admin{
-    background:var(--color-admin-bg);
-    border:1px solid var(--color-admin);
-    padding:var(--space-2);
+
+/* ==========================================
+   ADMIN
+========================================== */
+
+.modal--admin {
+
+    background: var(--color-admin-bg);
+
+    border: 1px solid var(--color-admin);
+
+    padding: var(--space-2);
+
 }
+
+
+/* ==========================================
+   HEADER
+========================================== */
 
 .modal__header {
+
     display: flex;
+
     align-items: center;
     justify-content: space-between;
-    padding: var(--space-7) var(--space-8);
-    background: var(--color-surface-dark);
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+
+    padding:
+        var(--space-7)
+        var(--space-8);
+
+    background:
+        var(--color-surface-dark);
+
+    border-radius:
+        var(--radius-sm)
+        var(--radius-sm)
+        0
+        0;
+
 }
 
 .modal__header h2 {
-    font-size: var(--font-size-xl);
+
+    font-size:
+        var(--font-size-xl);
+
 }
 
 .modal__close {
+
     font-size: 20px;
+
     line-height: 1;
+
     cursor: pointer;
+
 }
+
+
+/* ==========================================
+   CONTENT
+========================================== */
 
 .modal__content {
-   padding: var(--space-8);
-   overflow-y: auto;
-   max-height:90svh;
-   background: var(--color-surface);
-   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+
+    padding:
+        var(--space-8);
+
+    overflow-y: auto;
+
+    max-height: 90svh;
+
+    background:
+        var(--color-surface);
+
+    border-radius:
+        0
+        0
+        var(--radius-sm)
+        var(--radius-sm);
+
 }
 
-.modal--admin .modal__header{
-    color:var(--color-admin);
+.modal--admin .modal__header {
+
+    color:
+        var(--color-admin);
+
 }
+
+
+
+
+
 
 .date{
     display:inline-flex;
