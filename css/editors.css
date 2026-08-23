@@ -587,7 +587,7 @@
 }
 
 .dropdown__item:hover {
-    background: var(--color-surface-hover) !important;
+    background: var(--color-card) !important;
     color: var(--text-primary) !important;
 }
 
