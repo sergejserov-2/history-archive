@@ -53,7 +53,8 @@ function setupCoverDrag(cover){
 
     function start(event){
 
-        if(event.button!==undefined&&event.button!==0){
+        // Только левая кнопка мыши
+        if(event.pointerType==="mouse"&&event.button!==0){
             return;
         }
 
@@ -77,7 +78,7 @@ function setupCoverDrag(cover){
             "cover-image--dragging"
         );
 
-        cover.setPointerCapture?.(
+        image.setPointerCapture?.(
             event.pointerId
         );
 
@@ -113,7 +114,6 @@ function setupCoverDrag(cover){
         if(!dragging)return;
 
         dragging=false;
-        offsetY=0;
 
         image.classList.remove(
             "cover-image--dragging"
@@ -123,10 +123,12 @@ function setupCoverDrag(cover){
             "cover-image--spring"
         );
 
+        offsetY=0;
+
         image.style.transform=
             "translate3d(0,0,0)";
 
-        cover.releasePointerCapture?.(
+        image.releasePointerCapture?.(
             event.pointerId
         );
     }
@@ -149,5 +151,18 @@ function setupCoverDrag(cover){
     image.addEventListener(
         "pointercancel",
         end
+    );
+
+    image.addEventListener(
+        "lostpointercapture",
+        end
+    );
+
+    // Не даём ПКМ открывать контекстное меню
+    image.addEventListener(
+        "contextmenu",
+        event=>{
+            event.preventDefault();
+        }
     );
 }
