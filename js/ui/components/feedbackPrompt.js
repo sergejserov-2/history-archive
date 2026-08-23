@@ -1,4 +1,4 @@
-import{setModalUrl}from"./modal.js";
+import{setModalUrl,restoreModalFromUrl}from"./modal.js";
 
 export function renderFeedbackPrompt(objectId){
     if(!objectId)return"";
@@ -43,7 +43,7 @@ export function initFeedbackPrompt(){
     );
 
     if(button){
-        button.onclick=()=>{
+        button.onclick=async()=>{
             const objectId=
                 button.dataset.feedbackObjectId;
 
@@ -53,6 +53,8 @@ export function initFeedbackPrompt(){
                 "feedback",
                 {objectId}
             );
+
+            await restoreModalFromUrl();
         };
     }
 
