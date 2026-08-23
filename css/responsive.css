@@ -57,7 +57,7 @@
         padding: var(--space-6);
     }
    
-   .header__logo a{
+   .header__logo span{
       display:none;
    }   
 
