@@ -18,6 +18,7 @@ import{renderStatusBadgeHTML}from"../components/editor/status.js";
 import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
 import{restoreModalFromUrl}from"../components/modal.js";
 import{createPageUpdates}from"../../admin/update.js";
+import{openFeedbackFormByObjectId}from"../components/feedbackForm.js";
 const params=new URLSearchParams(window.location.search);
 const objectId=params.get("id");
 let pageObject=null;
@@ -171,6 +172,14 @@ async function renderPage(){
         ${renderHeader(page,updates)}
         <main class="page">
             ${breadcrumbsHTML}
+            <section class="feedback-prompt">
+                <div class="feedback-prompt__text">
+                    У вас есть информация об этом объекте?
+                </div>
+                <button class="feedback-prompt__button">
+                    Напишите нам!
+                </button>
+            </section>
             ${renderObjectBlock()}
             ${
                 pageAdminMode||pagePhotos.length
@@ -210,6 +219,31 @@ async function renderPage(){
             }
         </main>
     `;
+    const feedbackButton=
+    document.querySelector(".feedback-prompt__button");
+
+    if(feedbackButton){
+        feedbackButton.onclick=async()=>{
+            setModalUrl(
+                "feedback",
+                {objectId:pageObject.id}
+            );
+    
+            try{
+                await openFeedbackFormByObjectId(
+                    pageObject.id
+                );
+            }catch(error){
+                console.error(
+                    "Ошибка открытия формы обращения:",
+                    error
+                );
+                alert(
+                    "Не удалось открыть форму обращения"
+                );
+            }
+        };
+    }
 }
 loadPage().then(()=>{
     onAdminStateChanged(async admin=>{
