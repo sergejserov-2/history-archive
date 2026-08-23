@@ -7,11 +7,8 @@ import {
 }
 from "../../admin/adminMode.js";
 
-import {
-    createModal,
-    setModalUrl
-}
-from "./modal.js";
+import{createModal}from"./modal.js";
+import{setModalUrl}from"./modalReload.js";
 
 // ======================================
 // Open login modal
