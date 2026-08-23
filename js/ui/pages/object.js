@@ -166,21 +166,31 @@ function renderObjectBlock(){
     `;
 }
 async function renderPage(){
-    const childrenHTML=await renderChildren(pageChildren,pageAdminMode,pageObject,pageObjects,pageTypes);
-    const breadcrumbsHTML=renderBreadcrumbs(pageObject,pageParents);
+    const childrenHTML=await renderChildren(
+        pageChildren,
+        pageAdminMode,
+        pageObject,
+        pageObjects,
+        pageTypes
+    );
+
+    const breadcrumbsHTML=
+        renderBreadcrumbs(
+            pageObject,
+            pageParents
+        );
+
     document.body.innerHTML=`
         ${renderHeader(page,updates)}
+
         <main class="page">
+
             ${breadcrumbsHTML}
-            <section class="feedback-prompt">
-                <div class="feedback-prompt__text">
-                    У вас есть информация об этом объекте?
-                </div>
-                <button class="feedback-prompt__button">
-                    Напишите нам!
-                </button>
-            </section>
+
+            ${renderFeedbackPrompt(pageObject.id)}
+
             ${renderObjectBlock()}
+
             ${
                 pageAdminMode||pagePhotos.length
                 ?
@@ -193,18 +203,24 @@ async function renderPage(){
                 :
                 ""
             }
+
             ${
                 pageAdminMode||pageSources.length
                 ?
                 `
                 <section id="sources">
                     <h2>Источники</h2>
-                    ${renderSources(pageSources,pageAdminMode,pageSubjects)}
+                    ${renderSources(
+                        pageSources,
+                        pageAdminMode,
+                        pageSubjects
+                    )}
                 </section>
                 `
                 :
                 ""
             }
+
             ${
                 pageAdminMode||pageChildren.length
                 ?
@@ -217,33 +233,11 @@ async function renderPage(){
                 :
                 ""
             }
+
         </main>
     `;
-    const feedbackButton=
-    document.querySelector(".feedback-prompt__button");
 
-    if(feedbackButton){
-        feedbackButton.onclick=async()=>{
-            setModalUrl(
-                "feedback",
-                {objectId:pageObject.id}
-            );
-    
-            try{
-                await openFeedbackFormByObjectId(
-                    pageObject.id
-                );
-            }catch(error){
-                console.error(
-                    "Ошибка открытия формы обращения:",
-                    error
-                );
-                alert(
-                    "Не удалось открыть форму обращения"
-                );
-            }
-        };
-    }
+    initFeedbackPrompt();
 }
 loadPage().then(()=>{
     onAdminStateChanged(async admin=>{
