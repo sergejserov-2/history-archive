@@ -1,9 +1,4 @@
-// ======================================
-// Feedback API
-// ======================================
-
 import{db}from"../firebase.js";
-
 import{
     collection,
     getDocs,
@@ -15,10 +10,6 @@ import{
     orderBy,
     limit
 }from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-// ======================================
-// Get feedback
-// ======================================
 
 export async function getFeedback(id){
 
@@ -36,10 +27,6 @@ export async function getFeedback(id){
     };
 }
 
-// ======================================
-// Get feedbacks
-// ======================================
-
 export async function getFeedbacks(){
 
     const snapshot=await getDocs(
@@ -54,10 +41,6 @@ export async function getFeedbacks(){
         ...doc.data()
     }));
 }
-
-// ======================================
-// Get recent feedbacks
-// ======================================
 
 export async function getRecentFeedbacks(count=100){
 
@@ -75,10 +58,6 @@ export async function getRecentFeedbacks(count=100){
     }));
 }
 
-// ======================================
-// Create feedback
-// ======================================
-
 export async function createFeedback(data){
 
     if(!data?.name?.trim()){
@@ -95,38 +74,26 @@ export async function createFeedback(data){
 
     const feedback={
 
-        name:
-            data.name.trim(),
+        name:data.name.trim(),
 
-        email:
-            data.email?.trim()??"",
+        email:data.email?.trim()??"",
 
-        title:
-            data.title.trim(),
+        title:data.title.trim(),
 
-        message:
-            data.message.trim(),
+        message:data.message.trim(),
 
-        objectId:
-            data.objectId??null,
+        objectId:data.objectId??null,
 
-        objectTitle:
-            data.objectTitle??"",
+        objectTitle:data.objectTitle??"",
 
-        file:
-            data.file
-                ?{
-                    name:data.file.name,
-                    type:data.file.type,
-                    size:data.file.size
-                }
-                :null,
+        photoIds:
+            Array.isArray(data.photoIds)
+                ?data.photoIds
+                :[],
 
-        status:
-            "new",
+        status:"new",
 
-        createdAt:
-            Date.now()
+        createdAt:Date.now()
     };
 
     const ref=await addDoc(
@@ -139,10 +106,6 @@ export async function createFeedback(data){
         ...feedback
     };
 }
-
-// ======================================
-// Delete feedback
-// ======================================
 
 export async function deleteFeedback(id){
 
