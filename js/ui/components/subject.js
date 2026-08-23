@@ -3,6 +3,8 @@ import{renderMentions,getSubjectHref}from"./mentionLink.js";
 import{renderMentionList}from"./mentionList.js";
 import{createModal}from"./modal.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
+import{initCoverDrag}from"./coverDrag.js";
+
 
 let currentSubjectModal=null;
 const uploadingSubjects=new Set();
@@ -28,7 +30,7 @@ export function renderSubject(subject,subjects=[],objects=[],photos=[],sources=[
     const cover=uploading&&!hasPreview
         ?`<div class="subject-modal__cover">${renderLoadingPlaceholder()}</div>`
         :hasPreview
-            ?`<div class="subject-modal__cover">${uploading?renderLoadingPlaceholder():""}<div class="subject-modal__cover-bg" style="background-image:url('${subject.previewPath}')"></div><img class="subject-modal__cover-image${uploading?" subject-modal__cover-image--loading":""}" src="${subject.previewPath}" alt="${escapeHTML(subject.title??"")}"></div>`
+            ?`<div class="subject-modal__cover" data-cover-drag>${uploading?renderLoadingPlaceholder():""}<div class="subject-modal__cover-bg" style="background-image:url('${subject.previewPath}')"></div><img class="subject-modal__cover-image${uploading?" subject-modal__cover-image--loading":""}" data-cover-image src="${subject.previewPath}" alt="${escapeHTML(subject.title??"")}" draggable="false"></div>`
             :`<div class="subject-modal__cover"><div class="subject-modal__cover-placeholder">Фото отсутствует</div></div>`;
     return`<div class="subject-modal"><div class="subject-modal__card">${cover}<div class="subject-modal__info"><div class="object__type">${escapeHTML(type?.title??"")}</div><h1 class="object__title"><span class="object__title-text">${escapeHTML(subject.title??"")}</span>${ADMIN_MODE?`<button class="admin-button" data-action="edit-subject" data-id="${escapeHTML(subject.id??"")}"><img src="icons/edit.svg" class="admin-icon"></button><button class="admin-button" data-action="delete-subject" data-id="${escapeHTML(subject.id??"")}"><img src="icons/delete.svg" class="admin-icon"></button>`:""}</h1>${years?`<div class="subject-modal__years">${escapeHTML(years)}</div>`:""}${subject.description?.trim()?`<div class="object__description">${renderMentions(subject.description.trim(),subjects,getSubjectHref)}</div>`:""}${renderMentionList(subject,objects,photos,sources,records)}</div></div></div>`;
 }
