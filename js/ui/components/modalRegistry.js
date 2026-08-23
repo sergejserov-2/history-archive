@@ -6,6 +6,7 @@ import{getTypes}from"../../api/types.js";
 import{getRecordType,getRecordTypes}from"../../api/recordTypes.js";
 import{getSubject,getSubjects}from"../../api/subjects.js";
 import{getSubjectType,getSubjectTypes}from"../../api/subjectTypes.js";
+import{getFeedback}from"../../api/feedback.js";
 
 import{openPhotoViewer}from"./photoViewer.js";
 import{openEditor}from"../../admin/editorConfig.js";
@@ -15,6 +16,7 @@ import{openTypesModal}from"./types.js";
 import{openActivityModal}from"./activity.js";
 import{openFeedbacksModal}from"./feedbacks.js";
 import{openFeedbackFormByObjectId}from"./feedbackForm.js";
+import{openFeedbackModal}from"./feedback.js";
 
 export const photoPreviewModal={
     type:"photo-preview",
@@ -286,6 +288,43 @@ export const feedbackModal={
     }
 };
 
+export const feedbackViewModal={
+    type:"feedback-view",
+    admin:true,
+    params:["entityId"],
+
+    load:async params=>{
+
+        if(!params.entityId){
+            return null;
+        }
+
+        const feedback=
+            await getFeedback(
+                params.entityId
+            );
+
+        if(!feedback){
+            return null;
+        }
+
+        return{
+            feedback
+        };
+    },
+
+    open:async data=>{
+
+        if(!data){
+            return;
+        }
+
+        openFeedbackModal(
+            data.feedback
+        );
+    }
+};
+
 export const modalRegistry=[
     photoPreviewModal,
     editorModal,
@@ -295,5 +334,6 @@ export const modalRegistry=[
     typesModal,
     activityModal,
     feedbacksModal,
-    feedbackModal
+    feedbackModal,
+    feedbackViewModal
 ];
