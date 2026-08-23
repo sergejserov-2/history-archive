@@ -1,33 +1,47 @@
-let loader=null;
+// ==========================================
+// PAGE LOADER
+// ==========================================
 
-export function showPageLoader(){
+const PAGE_REVEAL_DURATION=360;
 
-    if(loader)return;
+let initialized=false;
 
-    loader=document.createElement("div");
+export function initPageLoader(){
 
-    loader.className="page-loader";
+    if(initialized)return;
 
-    document.body.appendChild(loader);
+    initialized=true;
+
+    document.body.classList.add(
+        "page-loading"
+    );
 }
 
-export function hidePageLoader(){
+export function revealPage(){
 
-    if(!loader)return;
+    return new Promise(resolve=>{
 
-    loader.classList.add(
-        "page-loader--hidden"
-    );
+        requestAnimationFrame(()=>{
 
-    const currentLoader=loader;
+            requestAnimationFrame(()=>{
 
-    loader=null;
+                document.body.classList.remove(
+                    "page-loading"
+                );
 
-    currentLoader.addEventListener(
-        "transitionend",
-        ()=>{
-            currentLoader.remove();
-        },
-        {once:true}
-    );
+                document.body.classList.add(
+                    "page-ready"
+                );
+
+                setTimeout(
+                    resolve,
+                    PAGE_REVEAL_DURATION
+                );
+
+            });
+
+        });
+
+    });
+
 }
