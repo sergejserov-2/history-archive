@@ -96,7 +96,7 @@ const modal=createModal({
     title:entity.id
         ?`Изменить ${cfg.title.toLowerCase()}`
         :`Добавить ${cfg.title.toLowerCase()}`,
-    content:form,,
+    content:form,
     admin: true
 });
 
