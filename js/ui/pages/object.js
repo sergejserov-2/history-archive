@@ -187,10 +187,8 @@ async function renderPage(){
 
             ${breadcrumbsHTML}
 
-            ${renderFeedbackPrompt(pageObject.id)}
-
             ${renderObjectBlock()}
-
+            ${renderFeedbackPrompt(pageObject.id)}
             ${
                 pageAdminMode||pagePhotos.length
                 ?
