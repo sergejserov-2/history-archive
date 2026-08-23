@@ -539,40 +539,6 @@ export function setupEditorButtons(
 
 }
 
-
-export function renderConfiguredEntityEditor(
-    cfg,
-    entity,
-    context
-){
-
-    const options={
-
-        ...(cfg.options??{}),
-
-        types:
-            cfg.options?.typeSelector
-                ?
-                (
-                    context?.recordTypes??
-                    []
-                )
-                :
-                []
-
-    };
-
-    return renderEntityEditor(
-        {
-            ...cfg,
-            options
-        },
-        entity
-    );
-
-}
-
-
 export{
     setupParentsEditor,
     setupFileEditor,
