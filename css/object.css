@@ -548,3 +548,17 @@
 
     text-align:right;
 }
+
+.subject-mention {
+    color: #70aeff;
+    text-decoration: none;
+    cursor: pointer;
+}
+.subject-mention:visited {
+    color: #70aeff;
+}
+
+.subject-mention:hover {
+    color: #a5d2ff;
+    text-decoration: none;
+}
