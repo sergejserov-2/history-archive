@@ -1,18 +1,11 @@
-// ==========================================
-// Feedbacks modal
-// ==========================================
 import{getRecentFeedbacks}from"../../api/feedback.js";
-import{createModal,setModalUrl}from"./modal.js";
+import{createModal}from"./modal.js";
 import{renderEntityList}from"./entityList.js";
 import{renderDateTime}from"./date.js";
 import{openFeedbackModal}from"./feedback.js";
 let currentFeedbacksModal=null;
-// ==========================================
-// Open feedbacks modal
-// ==========================================
-export async function openFeedbacksModal({fromUrl=false}={}){
+export async function openFeedbacksModal(){
     const feedbacks=await getRecentFeedbacks(100);
-    if(!fromUrl)setModalUrl("feedbacks");
     const modal=createModal({title:"Обращения",content:renderFeedbackList(feedbacks),width:630});
     currentFeedbacksModal=modal;
     modal.feedbacks=feedbacks;
@@ -20,42 +13,27 @@ export async function openFeedbacksModal({fromUrl=false}={}){
         const row=event.target.closest(".entity-list-row");
         if(!row)return;
         const feedback=modal.feedbacks.find(item=>item.id===row.dataset.id);
-        if(feedback)openFeedbackModal(feedback);
+        if(!feedback)return;
+        openFeedbackModal(feedback);
     };
     return modal;
 }
-// ==========================================
-// Refresh feedbacks modal
-// ==========================================
 export async function refreshFeedbacksModal(){
     if(!currentFeedbacksModal?.root?.isConnected){currentFeedbacksModal=null;return;}
     const feedbacks=await getRecentFeedbacks(100);
     currentFeedbacksModal.feedbacks=feedbacks;
     currentFeedbacksModal.setContent(renderFeedbackList(feedbacks));
 }
-// ==========================================
-// Render feedback list
-// ==========================================
 function renderFeedbackList(feedbacks=[]){
     const groups=new Map();
     [...feedbacks].sort((a,b)=>Number(b.createdAt??0)-Number(a.createdAt??0)).forEach(feedback=>{
         const date=new Date(Number(feedback.createdAt??0));
         const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
         if(!groups.has(key))groups.set(key,{date,items:[]});
-        groups.get(key).items.push({
-            id:feedback.id,
-            clickable:true,
-            sortValue:Number(feedback.createdAt??0),
-            title:escapeHTML(feedback.name||"Без имени"),
-            description:escapeHTML(feedback.title||"Без заголовка"),
-            meta:renderDateTime(feedback.createdAt)
-        });
+        groups.get(key).items.push({id:feedback.id,clickable:true,sortValue:Number(feedback.createdAt??0),title:escapeHTML(feedback.name||"Без имени"),description:escapeHTML(feedback.title||"Без заголовка"),meta:renderDateTime(feedback.createdAt)});
     });
     return renderEntityList({groups:[...groups.values()].map(group=>({title:formatFeedbackGroupDate(group.date),items:group.items,sortDirection:"desc"}))});
 }
-// ==========================================
-// Format group date
-// ==========================================
 function formatFeedbackGroupDate(date){
     const now=new Date();
     const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
