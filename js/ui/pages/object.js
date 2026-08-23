@@ -435,12 +435,12 @@ loadPage()
                     );
                 }
 
-                await revealPage();
-
-                await restoreModalFromUrl();
-
             }
         );
+
+        await revealPage();
+
+        await restoreModalFromUrl();
 
     })
     .catch(error=>{
