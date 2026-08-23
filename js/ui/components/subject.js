@@ -42,9 +42,21 @@ export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sourc
     const context={subjects,objects,photos,sources,records,subjectTypes};
     const modal=createModal({
         title:"Сноска",
-        content:renderSubject(subject,subjects,objects,photos,sources,records,subjectTypes,ADMIN_MODE),
+        content:renderSubject(
+            subject,
+            subjects,
+            objects,
+            photos,
+            sources,
+            records,
+            subjectTypes,
+            ADMIN_MODE
+        ),
         width:525
     });
+
+    initCoverDrag(modal.root);
+
     modal.subject=subject;
     modal.context=context;
     currentSubjectModal=modal;
