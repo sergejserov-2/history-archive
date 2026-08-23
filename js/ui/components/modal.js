@@ -1,22 +1,22 @@
-let currentModal=null;
-let modalHistory=[];
+let currentModal = null;
+let modalHistory = [];
 
 
 /* ==========================================
    WAIT FOR TRANSITION
 ========================================== */
 
-function waitForTransition(element,callback){
+function waitForTransition(element, callback){
 
-    return new Promise(resolve=>{
+    return new Promise(resolve => {
 
-        let finished=false;
+        let finished = false;
 
-        const finish=()=>{
+        const finish = () => {
 
-            if(finished)return;
+            if(finished) return;
 
-            finished=true;
+            finished = true;
 
             element.removeEventListener(
                 "transitionend",
@@ -29,13 +29,13 @@ function waitForTransition(element,callback){
 
         };
 
-        const onTransitionEnd=event=>{
+        const onTransitionEnd = event => {
 
             if(
-                event.target===element &&
+                event.target === element &&
                 (
-                    event.propertyName==="transform" ||
-                    event.propertyName==="opacity"
+                    event.propertyName === "transform" ||
+                    event.propertyName === "opacity"
                 )
             ){
 
@@ -45,7 +45,7 @@ function waitForTransition(element,callback){
 
         };
 
-        const timeout=setTimeout(
+        const timeout = setTimeout(
             finish,
             500
         );
@@ -68,18 +68,18 @@ function waitForTransition(element,callback){
 
 function createModalElement({
 
-    title="",
-    content="",
-    width=null,
-    admin=false
+    title = "",
+    content = "",
+    width = null,
+    admin = false
 
-}={}){
+} = {}){
 
-    const modal=document.createElement(
+    const modal = document.createElement(
         "div"
     );
 
-    modal.className=
+    modal.className =
         admin
             ? "modal modal--admin"
             : "modal";
@@ -93,7 +93,7 @@ function createModalElement({
 
     }
 
-    modal.innerHTML=`
+    modal.innerHTML = `
 
         <div class="modal__header">
 
@@ -124,20 +124,20 @@ function createModalElement({
 
 export function createModal({
 
-    title="",
-    content="",
-    width=null,
-    admin=false
+    title = "",
+    content = "",
+    width = null,
+    admin = false
 
-}={}){
+} = {}){
 
-    const oldModal=currentModal;
+    const oldModal = currentModal;
 
-    let overlay=
+    let overlay =
         oldModal?.overlay ??
         null;
 
-    const isReplacement=
+    const isReplacement =
         Boolean(oldModal);
 
 
@@ -147,11 +147,11 @@ export function createModal({
 
     if(!overlay){
 
-        overlay=document.createElement(
+        overlay = document.createElement(
             "div"
         );
 
-        overlay.className=
+        overlay.className =
             "modal-overlay";
 
         document.body.appendChild(
@@ -169,13 +169,20 @@ export function createModal({
 
         modalHistory.push({
 
-            overlay:oldModal.overlay,
+            overlay:
+                oldModal.overlay,
 
-            element:oldModal.element,
+            element:
+                oldModal.element,
 
-            close:oldModal.close,
+            close:
+                oldModal.close,
 
-            closeHandler:oldModal.closeHandler
+            closeHandler:
+                oldModal.closeHandler,
+
+            setCloseHandler:
+                oldModal.setCloseHandler
 
         });
 
@@ -186,7 +193,7 @@ export function createModal({
        CREATE NEW MODAL
     ====================================== */
 
-    const modal=createModalElement({
+    const modal = createModalElement({
 
         title,
         content,
@@ -196,13 +203,9 @@ export function createModal({
     });
 
 
-    /*
-        При замене новая модалка стартует
-        немного уменьшенной.
-
-        Она сразу добавляется поверх старой,
-        поэтому пустого места нет.
-    */
+    /* ======================================
+       INITIAL REPLACEMENT STATE
+    ====================================== */
 
     if(isReplacement){
 
@@ -219,68 +222,32 @@ export function createModal({
 
 
     /* ======================================
-       ANIMATION
+       CLOSE HANDLER
     ====================================== */
 
-    requestAnimationFrame(()=>{
+    let closing = false;
 
-        requestAnimationFrame(()=>{
-
-            /*
-                Overlay показываем только
-                при первом открытии.
-            */
-
-            if(!isReplacement){
-
-                overlay.classList.add(
-                    "modal-overlay--visible"
-                );
-
-            }
+    let closeHandler = null;
 
 
-            /*
-                Старая модалка слегка
-                схлопывается внутрь.
-            */
+    /* ======================================
+       SET CLOSE HANDLER
+    ====================================== */
 
-            if(oldModal){
+    function setCloseHandler(handler){
 
-                oldModal.element.classList.add(
-                    "modal--replaced"
-                );
+        closeHandler = handler;
 
-            }
+        if(
+            currentModal?.element === modal
+        ){
 
+            currentModal.closeHandler =
+                handler;
 
-            /*
-                Отдельный кадр нужен,
-                чтобы браузер гарантированно
-                увидел начальное состояние
-                новой модалки.
-            */
+        }
 
-            requestAnimationFrame(()=>{
-
-                modal.classList.remove(
-                    "modal--replacement"
-                );
-
-                modal.classList.add(
-                    "modal--visible"
-                );
-
-            });
-
-        });
-
-    });
-
-
-    let closing=false;
-
-    let closeHandler=null;
+    }
 
 
     /* ======================================
@@ -290,7 +257,7 @@ export function createModal({
     async function close(){
 
         if(
-            currentModal?.element!==modal ||
+            currentModal?.element !== modal ||
             closing
         ){
 
@@ -298,7 +265,7 @@ export function createModal({
 
         }
 
-        closing=true;
+        closing = true;
 
 
         /* ==================================
@@ -316,7 +283,7 @@ export function createModal({
 
         await waitForTransition(
             modal,
-            ()=>{}
+            () => {}
         );
 
 
@@ -329,16 +296,8 @@ export function createModal({
 
         if(modalHistory.length){
 
-            const previous=
+            const previous =
                 modalHistory.pop();
-
-            /*
-                Предыдущая модалка уже
-                находится в DOM.
-
-                Просто возвращаем её
-                из состояния replaced.
-            */
 
             if(
                 previous.element &&
@@ -353,16 +312,22 @@ export function createModal({
                     "modal--visible"
                 );
 
-                currentModal={
+                currentModal = {
 
-                    overlay:previous.overlay,
+                    overlay:
+                        previous.overlay,
 
-                    element:previous.element,
+                    element:
+                        previous.element,
 
-                    close:previous.close,
+                    close:
+                        previous.close,
 
                     closeHandler:
-                        previous.closeHandler
+                        previous.closeHandler,
+
+                    setCloseHandler:
+                        previous.setCloseHandler
 
                 };
 
@@ -377,18 +342,20 @@ export function createModal({
            NO HISTORY — CLOSE OVERLAY
         ================================== */
 
-        currentModal=null;
+        currentModal = null;
 
-        modalHistory=[];
+        modalHistory = [];
 
         overlay.classList.remove(
             "modal-overlay--visible"
         );
 
+
         await waitForTransition(
             overlay,
-            ()=>{}
+            () => {}
         );
+
 
         overlay.remove();
 
@@ -399,34 +366,45 @@ export function createModal({
        CLOSE BUTTON
     ====================================== */
 
-    const closeButton=
+    const closeButton =
         modal.querySelector(
             ".modal__close"
         );
 
     if(closeButton){
 
-        closeButton.onclick=
+        closeButton.onclick =
             close;
 
     }
 
 
     /* ======================================
-       REMOVE OLD MODAL AFTER ANIMATION
+       ANIMATION
     ====================================== */
 
-    if(oldModal){
+    requestAnimationFrame(() => {
 
-        void waitForTransition(
+        requestAnimationFrame(() => {
 
-            oldModal.element,
+            /* ------------------------------
+               Overlay
+            ------------------------------ */
 
-            ()=>{
+            if(!isReplacement){
 
-                oldModal.element.classList.remove(
-                    "modal--visible"
+                overlay.classList.add(
+                    "modal-overlay--visible"
                 );
+
+            }
+
+
+            /* ------------------------------
+               Old modal
+            ------------------------------ */
+
+            if(oldModal){
 
                 oldModal.element.classList.add(
                     "modal--replaced"
@@ -434,24 +412,46 @@ export function createModal({
 
             }
 
-        );
 
-    }
+            /* ------------------------------
+               New modal
+            ------------------------------ */
+
+            requestAnimationFrame(() => {
+
+                modal.classList.remove(
+                    "modal--replacement"
+                );
+
+                modal.classList.add(
+                    "modal--visible"
+                );
+
+            });
+
+        });
+
+    });
 
 
     /* ======================================
        CURRENT MODAL
     ====================================== */
 
-    currentModal={
+    currentModal = {
 
         overlay,
 
-        element:modal,
+        element:
+            modal,
 
         close,
 
-        closeHandler:null
+        closeHandler:
+
+            null,
+
+        setCloseHandler
 
     };
 
@@ -460,9 +460,10 @@ export function createModal({
        PUBLIC API
     ====================================== */
 
-    return{
+    return {
 
-        root:overlay,
+        root:
+            overlay,
 
         content:
             modal.querySelector(
@@ -471,34 +472,21 @@ export function createModal({
 
         setContent(html){
 
-            const contentElement=
+            const contentElement =
                 modal.querySelector(
                     ".modal__content"
                 );
 
             if(contentElement){
 
-                contentElement.innerHTML=
+                contentElement.innerHTML =
                     html;
 
             }
 
         },
 
-        setCloseHandler(handler){
-
-            closeHandler=handler;
-
-            if(
-                currentModal?.element===modal
-            ){
-
-                currentModal.closeHandler=
-                    handler;
-
-            }
-
-        },
+        setCloseHandler,
 
         close
 
@@ -524,7 +512,7 @@ export function getCurrentModal(){
 
 export function closeCurrentModal(){
 
-    if(!currentModal)return;
+    if(!currentModal) return;
 
     void currentModal.close();
 
