@@ -13,6 +13,7 @@ import{openSubjectModal}from"./subject.js";
 import{openSubjectsModal}from"./subjects.js";
 import{openTypesModal}from"./types.js";
 import{openActivityModal}from"./activity.js";
+import{openFeedbacksModal}from"./feedbacks.js";
 import{openFeedbackFormByObjectId}from"./feedbackForm.js";
 
 export const photoPreviewModal={
@@ -256,6 +257,16 @@ export const activityModal={
     }
 };
 
+export const feedbacksModal={
+    type:"feedbacks",
+    admin:true,
+    params:[],
+    load:null,
+    open:async()=>{
+        await openFeedbacksModal();
+    }
+};
+
 export const feedbackModal={
     type:"feedback",
     params:["objectId"],
@@ -283,5 +294,6 @@ export const modalRegistry=[
     subjectsModal,
     typesModal,
     activityModal,
+    feedbacksModal,
     feedbackModal
 ];
