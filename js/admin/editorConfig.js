@@ -92,12 +92,13 @@ export async function openEditor(type,entity,context={}){
     if(!cfg)return;
 
     const form=renderEntityEditor(cfg,entity);
-    const modal=createModal({
-        title:entity.id
-            ?`Изменить ${cfg.title.toLowerCase()}`
-            :`Добавить ${cfg.title.toLowerCase()}`,
-        content:form
-    });
+const modal=createModal({
+    title:entity.id
+        ?`Изменить ${cfg.title.toLowerCase()}`
+        :`Добавить ${cfg.title.toLowerCase()}`,
+    content:form,
+    admin:true
+});
 
     const root=modal.root;
     const editor=setupEditorComponents(root,cfg,context,entity);
