@@ -84,38 +84,31 @@ export const editorModal={
 
         if(!params.id)return null;
 
-        if(params.entityType==="object"){
-            const object=await getObject(params.entityId);
-            if(!object)return null;
+if(params.entityType==="object"){
 
-            const hasParent=(object.parents??[]).some(parent=>
-                typeof parent==="string"
-                    ?parent===params.id
-                    :parent?.objectId===params.id
-            );
+    const object=await getObject(params.entityId);
 
-            if(!hasParent)return null;
+    if(!object)return null;
 
-            const[type,types,children,photos]=await Promise.all([
-                getType(object.typeId),
-                getTypes(),
-                getChildren(object.id),
-                getPhotos(object.id)
-            ]);
+    const[type,types,children,photos]=await Promise.all([
+        getType(object.typeId),
+        getTypes(),
+        getChildren(object.id),
+        getPhotos(object.id)
+    ]);
 
-            return{
-                entity:object,
-                type:"object",
-                objects,
-                children,
-                photos,
-                types,
-                context:{
-                    parentId:params.id,
-                    objects
-                }
-            };
+    return{
+        entity:object,
+        type:"object",
+        objects,
+        children,
+        photos,
+        types,
+        context:{
+            objects
         }
+    };
+}
 
         if(!["photo","source","record"].includes(params.entityType)){
             console.error("Unknown entity type:",params.entityType);
