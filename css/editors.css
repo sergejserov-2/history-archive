@@ -554,7 +554,7 @@
     background: var(--color-input);
     border: var(--border-thin);
     border-top: none !important;
-    border-radius: 0 0 va 6px;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
 
