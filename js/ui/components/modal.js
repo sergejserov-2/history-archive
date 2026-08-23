@@ -1,10 +1,13 @@
 let currentModal=null;
 
 function waitForTransition(element,callback){
+
     return new Promise(resolve=>{
+
         let finished=false;
 
         const finish=()=>{
+
             if(finished)return;
 
             finished=true;
@@ -20,7 +23,13 @@ function waitForTransition(element,callback){
         };
 
         const onTransitionEnd=event=>{
-            if(event.target===element)finish();
+
+            if(
+                event.target===element &&
+                event.propertyName==="transform"
+            ){
+                finish();
+            }
         };
 
         const timeout=setTimeout(
@@ -34,7 +43,9 @@ function waitForTransition(element,callback){
         );
 
         callback();
+
     });
+
 }
 
 function createModalElement({
@@ -44,7 +55,9 @@ function createModalElement({
     admin=false
 }={}){
 
-    const modal=document.createElement("div");
+    const modal=document.createElement(
+        "div"
+    );
 
     modal.className=
         admin
@@ -52,24 +65,36 @@ function createModalElement({
             : "modal";
 
     if(width){
+
         modal.style.setProperty(
             "--modal-width",
             `${width}px`
         );
+
     }
 
     modal.innerHTML=`
+
         <div class="modal__header">
+
             <h2>${title}</h2>
-            <span class="modal__close">×</span>
+
+            <span class="modal__close">
+                ×
+            </span>
+
         </div>
 
         <div class="modal__content">
+
             ${content}
+
         </div>
+
     `;
 
     return modal;
+
 }
 
 export function createModal({
@@ -100,21 +125,24 @@ export function createModal({
         document.body.appendChild(
             overlay
         );
+
     }
 
     const modal=createModalElement({
+
         title,
         content,
         width,
         admin
+
     });
 
     /*
-        Новая модалка добавляется поверх старой.
-        Старая пока остаётся полностью живой.
+        При замене обе модалки находятся
+        внутри одного overlay одновременно.
     */
 
-    if(oldModal){
+    if(isReplacement){
 
         modal.classList.add(
             "modal--replacement"
@@ -124,41 +152,46 @@ export function createModal({
             modal
         );
 
-        requestAnimationFrame(()=>{
-
-            requestAnimationFrame(()=>{
-
-                modal.classList.add(
-                    "modal--visible"
-                );
-
-                oldModal.element.classList.add(
-                    "modal--replaced"
-                );
-
-            });
-
-        });
-
     }else{
 
         overlay.appendChild(
             modal
         );
 
+    }
+
+    /*
+        Запускаем появление новой модалки
+        отдельным кадром после её вставки.
+    */
+
+    requestAnimationFrame(()=>{
+
         requestAnimationFrame(()=>{
 
-            overlay.classList.add(
-                "modal-overlay--visible"
-            );
+            if(!isReplacement){
+
+                overlay.classList.add(
+                    "modal-overlay--visible"
+                );
+
+            }
 
             modal.classList.add(
                 "modal--visible"
             );
 
+            if(oldModal){
+
+                oldModal.element.classList.add(
+                    "modal--replaced"
+                );
+
+            }
+
         });
 
-    }
+    });
 
     let closing=false;
     let closeHandler=null;
@@ -175,11 +208,15 @@ export function createModal({
         closing=true;
 
         /*
-            Обычное закрытие последней модалки.
+            Обычное закрытие текущей модалки.
         */
 
         modal.classList.remove(
             "modal--visible"
+        );
+
+        modal.classList.add(
+            "modal--closing"
         );
 
         await waitForTransition(
@@ -189,13 +226,21 @@ export function createModal({
 
         modal.remove();
 
+        /*
+            Если closeHandler восстановил
+            предыдущую модалку — overlay
+            здесь ещё не закрываем.
+        */
+
         if(closeHandler){
+
             await closeHandler();
+
         }
 
         /*
-            Если closeHandler восстановил
-            предыдущую модалку, overlay оставляем.
+            Если текущей модалки больше нет,
+            закрываем overlay.
         */
 
         if(
@@ -214,7 +259,9 @@ export function createModal({
             );
 
             overlay.remove();
+
         }
+
     }
 
     const closeButton=
@@ -223,22 +270,26 @@ export function createModal({
         );
 
     if(closeButton){
-        closeButton.onclick=close;
+
+        closeButton.onclick=
+            close;
+
     }
 
     /*
-        Старую модалку удаляем только после
-        завершения её transition.
-
-        ВАЖНО:
-        она не исчезает раньше появления новой.
+        При замене старая модалка
+        сначала начинает схлопываться,
+        а удаляется только после transition.
     */
 
     if(oldModal){
 
         void waitForTransition(
+
             oldModal.element,
+
             ()=>{
+
                 oldModal.element.classList.remove(
                     "modal--visible"
                 );
@@ -246,26 +297,37 @@ export function createModal({
                 oldModal.element.classList.add(
                     "modal--replaced"
                 );
+
             }
+
         ).then(()=>{
 
             if(
                 oldModal.element.parentNode
             ){
+
                 oldModal.element.remove();
+
             }
 
         });
+
     }
 
     currentModal={
+
         overlay,
+
         element:modal,
+
         close,
 
         setCloseHandler(handler){
+
             closeHandler=handler;
+
         }
+
     };
 
     return{
@@ -285,21 +347,30 @@ export function createModal({
                 );
 
             if(contentElement){
+
                 contentElement.innerHTML=
                     html;
+
             }
+
         },
 
         setCloseHandler(handler){
+
             closeHandler=handler;
+
         },
 
         close
+
     };
+
 }
 
 export function getCurrentModal(){
+
     return currentModal;
+
 }
 
 export function closeCurrentModal(){
@@ -307,4 +378,5 @@ export function closeCurrentModal(){
     if(!currentModal)return;
 
     void currentModal.close();
+
 }
