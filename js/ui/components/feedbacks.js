@@ -6,26 +6,21 @@ import{getRecentFeedbacks}from"../../api/feedback.js";
 import{createModal}from"./modal.js";
 import{renderEntityList}from"./entityList.js";
 import{renderDateTime}from"./date.js";
+import{openFeedbackModal}from"./feedback.js";
 
 let currentFeedbacksModal=null;
-
-// ==========================================
-// Open feedbacks modal
-// ==========================================
 
 export async function openFeedbacksModal(){
 
     const feedbacks=
         await getRecentFeedbacks(100);
 
-    const modal=createModal({
-        title:"Обращения",
-        content:
-            renderFeedbackList(
-                feedbacks
-            ),
-        width:630
-    });
+    const modal=
+        createModal({
+            title:"Обращения",
+            content:renderFeedbackList(feedbacks),
+            width:630
+        });
 
     currentFeedbacksModal=
         modal;
@@ -33,21 +28,38 @@ export async function openFeedbacksModal(){
     modal.feedbacks=
         feedbacks;
 
+    modal.root.onclick=event=>{
+
+        const row=
+            event.target.closest(
+                ".entity-list-row"
+            );
+
+        if(!row)return;
+
+        const feedback=
+            modal.feedbacks.find(
+                item=>
+                    item.id===
+                    row.dataset.id
+            );
+
+        if(!feedback)return;
+
+        openFeedbackModal(
+            feedback
+        );
+    };
+
     return modal;
 }
-
-// ==========================================
-// Refresh feedbacks modal
-// ==========================================
 
 export async function refreshFeedbacksModal(){
 
     if(
         !currentFeedbacksModal?.root?.isConnected
     ){
-
         currentFeedbacksModal=null;
-
         return;
     }
 
@@ -63,10 +75,6 @@ export async function refreshFeedbacksModal(){
         )
     );
 }
-
-// ==========================================
-// Render feedback list
-// ==========================================
 
 function renderFeedbackList(
     feedbacks=[]
@@ -98,22 +106,16 @@ function renderFeedbackList(
                 `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 
             if(!groups.has(key)){
-
-                groups.set(
-                    key,
-                    {
-                        date,
-                        items:[]
-                    }
-                );
-
+                groups.set(key,{
+                    date,
+                    items:[]
+                });
             }
 
             groups
                 .get(key)
                 .items
                 .push({
-
                     id:
                         feedback.id,
 
@@ -141,37 +143,26 @@ function renderFeedbackList(
                         renderDateTime(
                             feedback.createdAt
                         )
-
                 });
 
         });
 
     return renderEntityList({
-
         groups:[
             ...groups.values()
                 .map(group=>({
-
                     title:
                         formatFeedbackGroupDate(
                             group.date
                         ),
-
                     items:
                         group.items,
-
                     sortDirection:
                         "desc"
-
                 }))
         ]
-
     });
 }
-
-// ==========================================
-// Format group date
-// ==========================================
 
 function formatFeedbackGroupDate(
     date
@@ -200,11 +191,8 @@ function formatFeedbackGroupDate(
             86400000
         );
 
-    if(diff===0)
-        return"Сегодня";
-
-    if(diff===1)
-        return"Вчера";
+    if(diff===0)return"Сегодня";
+    if(diff===1)return"Вчера";
 
     return date.toLocaleDateString(
         "ru-RU",
@@ -216,31 +204,11 @@ function formatFeedbackGroupDate(
     );
 }
 
-// ==========================================
-// Escape HTML
-// ==========================================
-
 function escapeHTML(value=""){
-
     return String(value)
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "'"
-        );
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","'");
 }
