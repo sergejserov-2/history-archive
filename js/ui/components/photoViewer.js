@@ -1,10 +1,7 @@
-// ======================================
-// Photo viewer
-// ======================================
-import{createModal}from"./modal.js";
+import{createModal,setModalUrl}from"./modal.js";
 import{createViewerControls}from"./viewerControls.js";
 
-export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}){
+export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,urlParams={}}={}){
     if(!photo)return;
     const gallery=[...(photos??[])];
     let currentIndex=gallery.findIndex(item=>item.id===photo.id);
@@ -12,7 +9,12 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         gallery.unshift(photo);
         currentIndex=0;
     }
-    if(!fromUrl&&photo.id)updatePhotoUrl(photo.id);
+    if(!fromUrl&&photo.id){
+        const params={...urlParams,entityId:photo.id};
+        const currentUrl=new URL(window.location.href);
+        if(!params.id&&currentUrl.searchParams.get("id"))params.id=currentUrl.searchParams.get("id");
+        setModalUrl("photo-preview",params);
+    }
     const form=`
 <div class="photo-viewer">
     <div class="photo-viewer__image-area">
@@ -239,12 +241,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         const dy=first.clientY-second.clientY;
         return Math.sqrt(dx*dx+dy*dy);
     }
-    const controls=createViewerControls({
-        currentIndex,
-        total:gallery.length,
-        onPrevious:showPrevious,
-        onNext:showNext
-    });
+    const controls=createViewerControls({currentIndex,total:gallery.length,onPrevious:showPrevious,onNext:showNext});
     root.appendChild(controls.element);
     showPhoto(gallery[currentIndex],currentIndex,{updateUrl:false});
     const originalClose=modal.close;
@@ -256,13 +253,10 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     };
     return modal;
 }
-// ======================================
-// Update URL
-// ======================================
 function updatePhotoUrl(photoId){
     if(!photoId)return;
     const url=new URL(window.location.href);
     url.searchParams.set("modal","photo-preview");
     url.searchParams.set("entityId",photoId);
-    window.history.pushState({}, "", url);
+    window.history.replaceState({}, "", url);
 }
