@@ -20,6 +20,8 @@ import{restoreModalFromUrl}from"../components/modal.js";
 import{createPageUpdates}from"../../admin/update.js";
 import{renderFeedbackPrompt,initFeedbackPrompt}from"../components/feedbackPrompt.js";
 import{openFeedbackFormByObjectId}from"../components/feedbackForm.js";
+import{initCoverDrag}from"../components/coverDrag.js";
+
 const params=new URLSearchParams(window.location.search);
 const objectId=params.get("id");
 let pageObject=null;
@@ -59,7 +61,11 @@ const page={
     getChildren:()=>getChildren(pageObject.id,pageObjects),
     renderCoverState:async()=>{
         const block=document.querySelector(".object");
-        if(block)block.outerHTML=renderObjectBlock();
+    
+        if(block){
+            block.outerHTML=renderObjectBlock();
+            initCoverDrag(block.parentElement);
+        }
     }
 };
 const updates=createPageUpdates(page);
@@ -114,16 +120,22 @@ function renderObjectBlock(){
     const status=renderStatusBadgeHTML(pageObject.status);
     return`
         <section class="object">
-            <div class="object__cover">
-                ${
-                    coverPhoto?.previewPath
-                    ?
-                    `<div class="object__cover-bg" style="background-image:url('${coverPhoto.previewPath}')"></div>
-                     <img class="object__cover-image" src="${coverPhoto.previewPath}" alt="${coverPhoto.title??""}">`
-                    :
-                    `<div class="object__cover-placeholder">Фото отсутствует</div>`
-                }
-            </div>
+<div class="object__cover" data-cover-drag>
+    ${
+        coverPhoto?.previewPath
+        ?
+        `<div class="object__cover-bg" style="background-image:url('${coverPhoto.previewPath}')"></div>
+         <img
+             class="object__cover-image"
+             data-cover-image
+             src="${coverPhoto.previewPath}"
+             alt="${coverPhoto.title??""}"
+             draggable="false"
+         >`
+        :
+        `<div class="object__cover-placeholder">Фото отсутствует</div>`
+    }
+</div>
             <div class="object__info">
                 <div class="object__type">${pageType?.title??""}</div>
                 <h1 class="object__title">
@@ -235,8 +247,9 @@ async function renderPage(){
 
         </main>
     `;
-
+    initCoverDrag(document);
     initFeedbackPrompt();
+
 }
 loadPage().then(()=>{
     onAdminStateChanged(async admin=>{
