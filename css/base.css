@@ -107,7 +107,9 @@
 
     --modal-z-index: 1000;
     --modal-overlay-bg: rgba(0, 0, 0, .7);
-
+    --modal-overlay-duration: .22s;
+    --modal-bounce-duration: .32s;
+    --modal-close-duration: .18s;
 
     /* ---------- PHOTO VIEWER ---------- */
 
@@ -395,8 +397,35 @@ button.admin-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(3px);
+
+    background: rgba(0, 0, 0, 0);
+
+    backdrop-filter: blur(0);
+
+    opacity: 0;
+
+    transition:
+        opacity var(--modal-overlay-duration) ease,
+        background var(--modal-overlay-duration) ease,
+        backdrop-filter var(--modal-overlay-duration) ease;
+}
+
+.modal-overlay--visible {
+    opacity: 1;
+
     background: var(--modal-overlay-bg);
+
+    backdrop-filter: blur(3px);
+}
+
+.modal-overlay--closing {
+    opacity: 0;
+
+    background: rgba(0, 0, 0, 0);
+
+    backdrop-filter: blur(0);
+
+    transition-duration: var(--modal-close-duration);
 }
 
 .modal {
@@ -406,6 +435,36 @@ button.admin-button {
     overflow: hidden;
 
     border-radius: var(--radius-2xl);
+
+    opacity: 0;
+
+    transform:
+        translateY(10px)
+        scale(.94);
+
+    transition:
+        opacity .18s ease,
+        transform var(--modal-bounce-duration) cubic-bezier(.34,1.56,.64,1);
+}
+
+.modal--visible {
+    opacity: 1;
+
+    transform:
+        translateY(0)
+        scale(1);
+}
+
+.modal--closing {
+    opacity: 0;
+
+    transform:
+        translateY(6px)
+        scale(.96);
+
+    transition:
+        opacity var(--modal-close-duration) ease,
+        transform var(--modal-close-duration) ease;
 }
 
 .modal--admin{
