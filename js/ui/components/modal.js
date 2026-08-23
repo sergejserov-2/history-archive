@@ -4,14 +4,25 @@ import{isAdmin}from"../../admin/adminMode.js";
 let currentModal=null;
 let modalHistory=[];
 
+function getCurrentModalRegistration(){
+    const type=new URL(window.location.href).searchParams.get("modal");
+    if(!type)return null;
+    return modalRegistry.find(modal=>modal.type===type)??null;
+}
+
 export function createModal({title="",content="",width=null}){
     const oldModal=currentModal;
 
     const overlay=document.createElement("div");
     overlay.className="modal-overlay";
 
+    const registration=getCurrentModalRegistration();
+
     const modal=document.createElement("div");
-    modal.className="modal";
+    modal.className=registration?.admin
+        ?"modal modal--admin"
+        :"modal";
+
     if(width)modal.style.setProperty("--modal-width",`${width}px`);
 
     modal.innerHTML=`
