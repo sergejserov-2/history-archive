@@ -6,7 +6,8 @@ import{getAllSources}from"../../api/sources.js";
 import{getAllRecords}from"../../api/records.js";
 import{isAdmin}from"../../admin/adminMode.js";
 import{openSubjectModal}from"./subject.js";
-import{createModal,setModalUrl}from"./modal.js";
+import{createModal}from"./modal.js";
+import{setModalUrl}from"./modalReload.js";
 import{renderEntityList}from"./entityList.js";
 let currentSubjectsModal=null;
 export async function openSubjectsModal({page=null,updates=null}={}){
