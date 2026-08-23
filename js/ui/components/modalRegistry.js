@@ -9,7 +9,7 @@ import{getSubjectType,getSubjectTypes}from"../../api/subjectTypes.js";
 import{getFeedback}from"../../api/feedback.js";
 import{openPhotoViewer}from"./photoViewer.js";
 import{openEditor}from"../../admin/editorConfig.js";
-import{openLoginModal}from"./login.js";
+import{openLoginModal}from"./loginModal.js";
 import{openSubjectModal}from"./subject.js";
 import{openSubjectsModal}from"./subjects.js";
 import{openTypesModal}from"./types.js";
