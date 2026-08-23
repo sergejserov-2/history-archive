@@ -17,7 +17,8 @@ export async function openActivityModal(){
     const modal=createModal({
         title:"История изменений",
         content:renderActivityList(activities),
-        width:630
+        width:630,
+        admin: true
     });
 
     currentActivityModal=modal;
