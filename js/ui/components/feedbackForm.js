@@ -5,7 +5,10 @@ import{
     renderFieldsEditorHTML,
     setupFieldsEditor
 }from"./editor/fields.js";
-import{renderFileEditorHTML}from"./editor/file.js";
+import{
+    renderFileEditorHTML,
+    setupFileEditor
+}from"./editor/file.js";
 
 function escapeHTML(value=""){
     return String(value)
@@ -65,28 +68,34 @@ export async function openFeedbackForm(object){
 
                     ${fields.descriptionField}
 
-                    ${renderFileEditorHTML()}
+                    ${renderFileEditorHTML({
+                        multiple:true
+                    })}
 
                     <div class="feedback-form__object">
+
                         <div>
                             Объект
                         </div>
 
                         <strong>
-                            ${escapeHTML(object.title??"")}
+                            ${escapeHTML(
+                                object.title??""
+                            )}
                         </strong>
 
                         ${
                             object.address
-                                ?
+                                ?`
+                                    <div>
+                                        ${escapeHTML(
+                                            object.address
+                                        )}
+                                    </div>
                                 `
-                                <div>
-                                    ${escapeHTML(object.address)}
-                                </div>
-                                `
-                                :
-                                ""
+                                :""
                         }
+
                     </div>
 
                     <div class="entity-editor__buttons">
@@ -117,6 +126,16 @@ export async function openFeedbackForm(object){
             {}
         );
 
+    const fileEditor=
+        setupFileEditor(
+            root,
+            {},
+            null,
+            {
+                multiple:true
+            }
+        );
+
     const nameInput=
         root.querySelector(
             "#feedbackName"
@@ -127,86 +146,11 @@ export async function openFeedbackForm(object){
             "#feedbackEmail"
         );
 
-    const fileInput=
-        root.querySelector(
-            "#entityFile"
-        );
+    function showError(
+        input,
+        message
+    ){
 
-    const fileSelect=
-        root.querySelector(
-            "#entityFileSelect"
-        );
-
-    const fileCurrent=
-        root.querySelector(
-            "#entityFileCurrent"
-        );
-
-    const fileName=
-        root.querySelector(
-            "#entityFileName"
-        );
-
-    const fileRemove=
-        root.querySelector(
-            "#entityFileRemove"
-        );
-
-    let selectedFile=null;
-
-    if(fileSelect&&fileInput){
-        fileSelect.onclick=()=>{
-            fileInput.click();
-        };
-    }
-
-    if(fileInput){
-        fileInput.onchange=event=>{
-            selectedFile=
-                event.target.files[0]??null;
-
-            if(!selectedFile){
-                if(fileCurrent)fileCurrent.hidden=true;
-                if(fileSelect)fileSelect.hidden=false;
-                return;
-            }
-
-            if(fileName){
-                fileName.textContent=
-                    selectedFile.name;
-            }
-
-            if(fileSelect){
-                fileSelect.hidden=true;
-            }
-
-            if(fileCurrent){
-                fileCurrent.hidden=false;
-            }
-        };
-    }
-
-    if(fileRemove){
-        fileRemove.onclick=event=>{
-            event.stopPropagation();
-
-            selectedFile=null;
-
-            if(fileInput){
-                fileInput.value="";
-            }
-
-            if(fileCurrent){
-                fileCurrent.hidden=true;
-            }
-
-            if(fileSelect){
-                fileSelect.hidden=false;
-            }
-        };
-    }
-
-    function showError(input,message){
         if(!input)return;
 
         input.setCustomValidity(
@@ -217,19 +161,24 @@ export async function openFeedbackForm(object){
     }
 
     if(nameInput){
+
         nameInput.addEventListener(
             "input",
-            ()=>{
-                nameInput.setCustomValidity("");
+            ()=>{nameInput.setCustomValidity(
+                    ""
+                );
             }
         );
     }
 
     if(emailInput){
+
         emailInput.addEventListener(
             "input",
             ()=>{
-                emailInput.setCustomValidity("");
+                emailInput.setCustomValidity(
+                    ""
+                );
             }
         );
     }
@@ -245,116 +194,167 @@ export async function openFeedbackForm(object){
         );
 
     if(cancelButton){
+
         cancelButton.onclick=
             ()=>modal.close();
     }
 
     if(saveButton){
-        saveButton.onclick=async()=>{
 
-            const name=
-                nameInput?.value.trim()??"";
+        saveButton.onclick=
+            async()=>{
 
-            if(!name){
-                showError(
-                    nameInput,
-                    "Укажите ваше имя"
-                );
-                return;
-            }
+                const name=
+                    nameInput
+                        ?.value
+                        .trim()??"";
 
-            const email=
-                emailInput?.value.trim()??"";
+                if(!name){
 
-            if(
-                email&&
-                !emailInput.checkValidity()
-            ){
-                emailInput.reportValidity();
-                return;
-            }
-
-            const fieldsData=
-                fieldsEditor.getData();
-
-            const title=
-                fieldsData.title?.trim()??"";
-
-            const message=
-                fieldsData.description?.trim()??"";
-
-            if(!title){
-                showError(
-                    root.querySelector("#entityTitle"),
-                    "Укажите заголовок"
-                );
-                return;
-            }
-
-            if(!message){
-                showError(
-                    root.querySelector("#entityDescription"),
-                    "Напишите сообщение"
-                );
-                return;
-            }
-
-            saveButton.disabled=true;
-            saveButton.textContent="Отправляем...";
-
-            try{
-
-                await createFeedback({
-                    name,
-                    email,
-                    title,
-                    message,
-                    objectId:object.id,
-                    objectTitle:object.title??"",
-                    file:selectedFile
-                });
-
-                modal.setContent(`
-                    <div class="entity-editor feedback-form">
-                        <h3>Спасибо!</h3>
-
-                        <p>
-                            Ваше обращение отправлено.
-                            Спасибо, что помогаете нам
-                            дополнять архив.
-                        </p>
-
-                        <div class="entity-editor__buttons">
-                            <button id="entityCancel">
-                                Закрыть
-                            </button>
-                        </div>
-                    </div>
-                `);const closeButton=
-                    modal.root.querySelector(
-                        "#entityCancel"
+                    showError(
+                        nameInput,
+                        "Укажите ваше имя"
                     );
 
-                if(closeButton){
-                    closeButton.onclick=
-                        ()=>modal.close();
+                    return;
                 }
 
-            }catch(error){
+                const email=
+                    emailInput
+                        ?.value
+                        .trim()??"";
 
-                console.error(
-                    "Ошибка отправки обращения:",
-                    error
-                );
+                if(
+                    email&&
+                    !emailInput.checkValidity()
+                ){
 
-                saveButton.disabled=false;
-                saveButton.textContent="Отправить";
+                    emailInput.reportValidity();
 
-                alert(
-                    "Не удалось отправить обращение"
-                );
-            }
-        };
+                    return;
+                }
+
+                const fieldsData=
+                    fieldsEditor.getData();
+
+                const title=
+                    fieldsData.title
+                        ?.trim()??"";
+
+                const message=
+                    fieldsData.description
+                        ?.trim()??"";
+
+                if(!title){
+
+                    showError(
+                        root.querySelector(
+                            "#entityTitle"
+                        ),
+                        "Укажите заголовок"
+                    );
+
+                    return;
+                }
+
+                if(!message){
+
+                    showError(
+                        root.querySelector(
+                            "#entityDescription"
+                        ),
+                        "Напишите сообщение"
+                    );
+
+                    return;
+                }
+
+                saveButton.disabled=
+                    true;
+
+                saveButton.textContent=
+                    "Отправляем...";
+
+                try{
+
+                    const fileData=
+                        fileEditor
+                            ?.getData();
+
+                    await createFeedback({
+
+                        name,
+
+                        email,
+
+                        title,
+
+                        message,
+
+                        objectId:
+                            object.id,
+
+                        objectTitle:
+                            object.title??"",
+
+                        files:
+                            fileData?.files
+                            ??[]
+
+                    });
+
+                    modal.setContent(`
+                        <div class="entity-editor feedback-form">
+
+                            <h3>
+                                Спасибо!
+                            </h3>
+
+                            <p>
+                                Ваше обращение отправлено.
+                                Спасибо, что помогаете нам
+                                дополнять архив.
+                            </p>
+
+                            <div class="entity-editor__buttons">
+
+                                <button id="entityCancel">
+                                    Закрыть
+                                </button>
+
+                            </div>
+
+                        </div>
+                    `);
+
+                    const closeButton=
+                        modal.root.querySelector(
+                            "#entityCancel"
+                        );
+
+                    if(closeButton){
+
+                        closeButton.onclick=()=>modal.close();
+                    }
+
+                }catch(error){
+
+                    console.error(
+                        "Ошибка отправки обращения:",
+                        error
+                    );
+
+                    saveButton.disabled=
+                        false;
+
+                    saveButton.textContent=
+                        "Отправить";
+
+                    alert(
+                        "Не удалось отправить обращение"
+                    );
+                }
+            };
     }
 
     return modal;
