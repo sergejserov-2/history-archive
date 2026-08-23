@@ -279,9 +279,24 @@
    FILE SELECTOR
 ========================================== */
 
+/* ==========================================
+   FILE SELECTOR
+========================================== */
+
 .entity-file {
     display: flex;
-    width: max-content;
+    flex-wrap: wrap;
+
+    width: 100%;
+}
+
+#entityFilesList {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: var(--space-4);
+
+    width: 100%;
 }
 
 .entity-file__select,
@@ -301,6 +316,10 @@
     border-radius: var(--radius-xl);
 
     color: var(--color-admin);
+}
+
+#entityFileSelect {
+    margin-top: var(--space-4);
 }
 
 #entityFileName {
@@ -326,7 +345,6 @@
 
     cursor: pointer;
 }
-
 /* ==========================================
    EDITOR BUTTONS
 ========================================== */
