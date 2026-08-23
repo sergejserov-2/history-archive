@@ -461,25 +461,23 @@
 ========================================== */
 
 .feedback__photos{
-    background:#1d2024;
-    border-radius:8px;
-    padding:12px;
-}
-
-.feedback__photos-list{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
+    background: var(--color-surface-dark);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: var(--space-4);gap: var(--space-8);
+    padding: var(--space-5) var(--space-8);
 }
 
 .feedback__photo{
     width:64px;
     height:64px;
     flex-shrink:0;
-    border-radius:6px;
+    border-radius:var(--radius-sm);
     overflow:hidden;
     cursor:pointer;
-    background:#292d33;
+    background:var(--color-border);
 }
 
 .feedback__photo img{
