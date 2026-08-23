@@ -1,4 +1,5 @@
-import{createModal,setModalUrl}from"./modal.js";
+import{createModal}from"./modal.js";
+import{setModalUrl}from"./modalReload.js";
 import{renderDateTime}from"./date.js";
 import{openPhotoViewer}from"./photoViewer.js";
 
