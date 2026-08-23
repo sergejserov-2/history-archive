@@ -25,7 +25,8 @@ export async function openTypesModal(){
     const modal=createModal({
         title:"Типы",
         content:renderTypesList(objectTypes,recordTypes,subjectTypes,objects,records,subjects,isAdmin()),
-        width:420
+        width:420,
+        admin: true
     });
     currentTypesModal=modal;
     modal.objectTypes=objectTypes;
