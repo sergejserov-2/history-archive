@@ -756,7 +756,7 @@ section h2 {
     opacity:0;
 
     transform:
-        scale(0);
+        scale(.94);
 
     pointer-events:none;
 
@@ -768,7 +768,7 @@ section h2 {
     animation:
         admin-button-enter
         .18s
-        ease
+        ease-out
         both;
 
 }
@@ -779,7 +779,7 @@ section h2 {
     animation:
         admin-button-exit
         .16s
-        ease
+        ease-in
         both;
 
 }
