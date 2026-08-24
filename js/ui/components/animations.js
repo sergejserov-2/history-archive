@@ -6,7 +6,8 @@
 //
 // height
 // padding
-// margin
+//
+// margin НЕ анимируется.
 //
 // Никакого opacity.
 // Никакого scale.
@@ -52,12 +53,6 @@ export function animateExpand(
     const targetPaddingBottom =
         computed.paddingBottom;
 
-    const targetMarginTop =
-        computed.marginTop;
-
-    const targetMarginBottom =
-        computed.marginBottom;
-
 
     element.style.overflow =
         "hidden";
@@ -71,23 +66,14 @@ export function animateExpand(
     element.style.paddingBottom =
         "0px";
 
-    element.style.marginTop =
-        "0px";
 
-    element.style.marginBottom =
-        "0px";
-
-
-    // Зафиксировать начальное состояние.
     element.offsetHeight;
 
 
     element.style.transition = `
         height ${EXPAND_DURATION}ms ease,
         padding-top ${EXPAND_DURATION}ms ease,
-        padding-bottom ${EXPAND_DURATION}ms ease,
-        margin-top ${EXPAND_DURATION}ms ease,
-        margin-bottom ${EXPAND_DURATION}ms ease
+        padding-bottom ${EXPAND_DURATION}ms ease
     `;
 
 
@@ -101,12 +87,6 @@ export function animateExpand(
 
         element.style.paddingBottom =
             targetPaddingBottom;
-
-        element.style.marginTop =
-            targetMarginTop;
-
-        element.style.marginBottom =
-            targetMarginBottom;
 
     });
 
@@ -125,12 +105,6 @@ export function animateExpand(
                 element.style.paddingBottom =
                     "";
 
-                element.style.marginTop =
-                    "";
-
-                element.style.marginBottom =
-                    "";
-
                 element.style.transition =
                     "";
 
@@ -143,7 +117,7 @@ export function animateExpand(
 
                 resolve();
 
-            }, EXPAND_DURATION + 30);
+            }, EXPAND_DURATION + 20);
 
     });
 
@@ -167,13 +141,6 @@ export function animateCollapse(
     );
 
 
-    element.hidden = false;
-
-
-    // ==================================
-    // Сначала получаем реальные размеры
-    // ==================================
-
     const computed =
         window.getComputedStyle(
             element
@@ -181,8 +148,7 @@ export function animateCollapse(
 
 
     const currentHeight =
-        element.scrollHeight;
-
+        element.getBoundingClientRect().height;
 
     const currentPaddingTop =
         computed.paddingTop;
@@ -190,16 +156,9 @@ export function animateCollapse(
     const currentPaddingBottom =
         computed.paddingBottom;
 
-    const currentMarginTop =
-        computed.marginTop;
 
-    const currentMarginBottom =
-        computed.marginBottom;
+    element.hidden = false;
 
-
-    // ==================================
-    // Фиксируем начальное состояние
-    // ==================================
 
     element.style.overflow =
         "hidden";
@@ -213,35 +172,16 @@ export function animateCollapse(
     element.style.paddingBottom =
         currentPaddingBottom;
 
-    element.style.marginTop =
-        currentMarginTop;
 
-    element.style.marginBottom =
-        currentMarginBottom;
-
-
-    // Критически важно:
-    // браузер должен один раз
-    // применить зафиксированное состояние.
     element.offsetHeight;
 
-
-    // ==================================
-    // Включаем переход
-    // ==================================
 
     element.style.transition = `
         height ${COLLAPSE_DURATION}ms ease,
         padding-top ${COLLAPSE_DURATION}ms ease,
-        padding-bottom ${COLLAPSE_DURATION}ms ease,
-        margin-top ${COLLAPSE_DURATION}ms ease,
-        margin-bottom ${COLLAPSE_DURATION}ms ease
+        padding-bottom ${COLLAPSE_DURATION}ms ease
     `;
 
-
-    // ==================================
-    // Запускаем схлопывание
-    // ==================================
 
     requestAnimationFrame(()=>{
 
@@ -252,12 +192,6 @@ export function animateCollapse(
             "0px";
 
         element.style.paddingBottom =
-            "0px";
-
-        element.style.marginTop =
-            "0px";
-
-        element.style.marginBottom =
             "0px";
 
     });
@@ -277,12 +211,6 @@ export function animateCollapse(
                 element.style.paddingBottom =
                     "";
 
-                element.style.marginTop =
-                    "";
-
-                element.style.marginBottom =
-                    "";
-
                 element.style.transition =
                     "";
 
@@ -298,7 +226,7 @@ export function animateCollapse(
 
                 resolve();
 
-            }, COLLAPSE_DURATION + 30);
+            }, COLLAPSE_DURATION + 20);
 
     });
 
@@ -322,11 +250,18 @@ export function animateResize(
     );
 
 
-    element.hidden = false;
-
-
     const currentHeight =
         element.getBoundingClientRect().height;
+
+
+    element.style.height =
+        `${currentHeight}px`;
+
+    element.style.overflow =
+        "hidden";
+
+
+    element.offsetHeight;
 
 
     const targetHeight =
@@ -340,19 +275,15 @@ export function animateResize(
         ) < 1
     ){
 
+        element.style.height =
+            "auto";
+
+        element.style.overflow =
+            "";
+
         return;
 
     }
-
-
-    element.style.overflow =
-        "hidden";
-
-    element.style.height =
-        `${currentHeight}px`;
-
-
-    element.offsetHeight;
 
 
     element.style.transition = `
@@ -383,7 +314,7 @@ export function animateResize(
             element._sizeAnimationTimer =
                 null;
 
-        }, EXPAND_DURATION + 30);
+        }, EXPAND_DURATION + 20);
 
 }
 
