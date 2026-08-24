@@ -217,7 +217,6 @@ function renderTypesList(
                 "add-type",
                 "Добавить тип"
             )
-            :""
     });
 }
 
@@ -267,7 +266,6 @@ function createTypeItem(
                 }
             )}
             `
-            :""
     };
 }
 function getTypeById(type,id,modal){
