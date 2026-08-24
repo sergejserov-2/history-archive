@@ -6,20 +6,15 @@
 //
 // height
 // padding
+// margin
 //
 // Никакого opacity.
 // Никакого scale.
 // ======================================
 
 
-const EXPAND_DURATION = 340;
-const COLLAPSE_DURATION = 320;
-
-const EXPAND_EASING =
-    "cubic-bezier(.22,1,.36,1)";
-
-const COLLAPSE_EASING =
-    "cubic-bezier(.4,0,.7,1)";
+const EXPAND_DURATION = 320;
+const COLLAPSE_DURATION = 300;
 
 
 // ======================================
@@ -57,6 +52,12 @@ export function animateExpand(
     const targetPaddingBottom =
         computed.paddingBottom;
 
+    const targetMarginTop =
+        computed.marginTop;
+
+    const targetMarginBottom =
+        computed.marginBottom;
+
 
     // ==================================
     // Начальное состояние
@@ -74,9 +75,16 @@ export function animateExpand(
     element.style.paddingBottom =
         "0px";
 
+    element.style.marginTop =
+        "0px";
 
-    // Принудительно фиксируем
-    // начальное состояние.
+    element.style.marginBottom =
+        "0px";
+
+
+    // ==================================
+    // Принудительно фиксируем layout
+    // ==================================
 
     element.offsetHeight;
 
@@ -86,26 +94,38 @@ export function animateExpand(
     // ==================================
 
     element.style.transition = `
-        height ${EXPAND_DURATION}ms ${EXPAND_EASING},
-        padding-top ${EXPAND_DURATION}ms ${EXPAND_EASING},
-        padding-bottom ${EXPAND_DURATION}ms ${EXPAND_EASING}
+        height ${EXPAND_DURATION}ms ease,
+        padding-top ${EXPAND_DURATION}ms ease,
+        padding-bottom ${EXPAND_DURATION}ms ease,
+        margin-top ${EXPAND_DURATION}ms ease,
+        margin-bottom ${EXPAND_DURATION}ms ease
     `;
 
 
     // ==================================
-    // Запуск
+    // Запуск через два кадра
     // ==================================
 
     requestAnimationFrame(()=>{
 
-        element.style.height =
-            `${targetHeight}px`;
+        requestAnimationFrame(()=>{
 
-        element.style.paddingTop =
-            targetPaddingTop;
+            element.style.height =
+                `${targetHeight}px`;
 
-        element.style.paddingBottom =
-            targetPaddingBottom;
+            element.style.paddingTop =
+                targetPaddingTop;
+
+            element.style.paddingBottom =
+                targetPaddingBottom;
+
+            element.style.marginTop =
+                targetMarginTop;
+
+            element.style.marginBottom =
+                targetMarginBottom;
+
+        });
 
     });
 
@@ -128,6 +148,12 @@ export function animateExpand(
                 element.style.paddingBottom =
                     "";
 
+                element.style.marginTop =
+                    "";
+
+                element.style.marginBottom =
+                    "";
+
                 element.style.transition =
                     "";
 
@@ -141,7 +167,7 @@ export function animateExpand(
                 resolve();
 
             },
-            EXPAND_DURATION + 30
+            EXPAND_DURATION + 40
         );
 
     });
@@ -166,9 +192,6 @@ export function animateCollapse(
     );
 
 
-    element.hidden = false;
-
-
     const computed =
         window.getComputedStyle(
             element
@@ -184,6 +207,20 @@ export function animateCollapse(
 
     const currentPaddingBottom =
         computed.paddingBottom;
+
+    const currentMarginTop =
+        computed.marginTop;
+
+    const currentMarginBottom =
+        computed.marginBottom;
+
+
+    // ==================================
+    // Элемент должен оставаться видимым
+    // до конца анимации
+    // ==================================
+
+    element.hidden = false;
 
 
     // ==================================
@@ -202,9 +239,16 @@ export function animateCollapse(
     element.style.paddingBottom =
         currentPaddingBottom;
 
+    element.style.marginTop =
+        currentMarginTop;
 
-    // Принудительно фиксируем
-    // начальное состояние.
+    element.style.marginBottom =
+        currentMarginBottom;
+
+
+    // ==================================
+    // Фиксируем layout
+    // ==================================
 
     element.offsetHeight;
 
@@ -214,26 +258,38 @@ export function animateCollapse(
     // ==================================
 
     element.style.transition = `
-        height ${COLLAPSE_DURATION}ms ${COLLAPSE_EASING},
-        padding-top ${COLLAPSE_DURATION}ms ${COLLAPSE_EASING},
-        padding-bottom ${COLLAPSE_DURATION}ms ${COLLAPSE_EASING}
+        height ${COLLAPSE_DURATION}ms ease,
+        padding-top ${COLLAPSE_DURATION}ms ease,
+        padding-bottom ${COLLAPSE_DURATION}ms ease,
+        margin-top ${COLLAPSE_DURATION}ms ease,
+        margin-bottom ${COLLAPSE_DURATION}ms ease
     `;
 
 
     // ==================================
-    // Запуск
+    // Запуск через два кадра
     // ==================================
 
     requestAnimationFrame(()=>{
 
-        element.style.height =
-            "0px";
+        requestAnimationFrame(()=>{
 
-        element.style.paddingTop =
-            "0px";
+            element.style.height =
+                "0px";
 
-        element.style.paddingBottom =
-            "0px";
+            element.style.paddingTop =
+                "0px";
+
+            element.style.paddingBottom =
+                "0px";
+
+            element.style.marginTop =
+                "0px";
+
+            element.style.marginBottom =
+                "0px";
+
+        });
 
     });
 
@@ -256,6 +312,12 @@ export function animateCollapse(
                 element.style.paddingBottom =
                     "";
 
+                element.style.marginTop =
+                    "";
+
+                element.style.marginBottom =
+                    "";
+
                 element.style.transition =
                     "";
 
@@ -272,7 +334,7 @@ export function animateCollapse(
                 resolve();
 
             },
-            COLLAPSE_DURATION + 30
+            COLLAPSE_DURATION + 40
         );
 
     });
@@ -297,38 +359,23 @@ export function animateResize(
     );
 
 
-    const computed =
-        window.getComputedStyle(
-            element
-        );
-
+    // ==================================
+    // Текущая высота
+    // ==================================
 
     const currentHeight =
         element.getBoundingClientRect().height;
-
-
-    const currentPaddingTop =
-        computed.paddingTop;
-
-    const currentPaddingBottom =
-        computed.paddingBottom;
 
 
     // ==================================
     // Фиксируем текущее состояние
     // ==================================
 
-    element.style.height =
-        `${currentHeight}px`;
-
-    element.style.paddingTop =
-        currentPaddingTop;
-
-    element.style.paddingBottom =
-        currentPaddingBottom;
-
     element.style.overflow =
         "hidden";
+
+    element.style.height =
+        `${currentHeight}px`;
 
 
     element.offsetHeight;
@@ -343,7 +390,7 @@ export function animateResize(
 
 
     // ==================================
-    // Ничего менять не нужно
+    // Высота практически не изменилась
     // ==================================
 
     if(
@@ -355,12 +402,6 @@ export function animateResize(
 
         element.style.height =
             "auto";
-
-        element.style.paddingTop =
-            "";
-
-        element.style.paddingBottom =
-            "";
 
         element.style.overflow =
             "";
@@ -375,18 +416,22 @@ export function animateResize(
     // ==================================
 
     element.style.transition = `
-        height ${EXPAND_DURATION}ms ${EXPAND_EASING}
+        height ${EXPAND_DURATION}ms ease
     `;
 
 
     // ==================================
-    // Запуск
+    // Запуск через два кадра
     // ==================================
 
     requestAnimationFrame(()=>{
 
-        element.style.height =
-            `${targetHeight}px`;
+        requestAnimationFrame(()=>{
+
+            element.style.height =
+                `${targetHeight}px`;
+
+        });
 
     });
 
@@ -401,12 +446,6 @@ export function animateResize(
             element.style.height =
                 "auto";
 
-            element.style.paddingTop =
-                "";
-
-            element.style.paddingBottom =
-                "";
-
             element.style.transition =
                 "";
 
@@ -417,7 +456,7 @@ export function animateResize(
                 null;
 
         },
-        EXPAND_DURATION + 30
+        EXPAND_DURATION + 40
     );
 
 }
