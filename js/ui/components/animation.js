@@ -1,24 +1,35 @@
+// ======================================
+// BLOCK ANIMATION
+// ======================================
+
 export function insertAnimated(
-    element,
-    html
+    parent,
+    html,
+    position="beforeend"
 ){
 
-    element.insertAdjacentHTML(
-        "beforeend",
+    parent.insertAdjacentHTML(
+        position,
         html
     );
 
     const block =
-        element.lastElementChild;
+        position==="beforeend"
+        ?
+        parent.lastElementChild
+        :
+        parent.previousElementSibling;
+
+    if(!block)return;
 
     block.classList.add(
-        "block-enter"
+        "block-collapsed"
     );
 
     requestAnimationFrame(()=>{
 
         block.classList.add(
-            "block-enter-active"
+            "block-expanded"
         );
 
     });
@@ -28,9 +39,47 @@ export function insertAnimated(
         ()=>{
 
             block.classList.remove(
-                "block-enter",
-                "block-enter-active"
+                "block-collapsed",
+                "block-expanded"
             );
+
+        },
+        {
+            once:true
+        }
+    );
+
+}
+
+/**
+ * Удаление блока с анимацией
+ */
+
+export function removeAnimated(
+    block
+){
+
+    if(!block)return;
+
+    const height =
+        block.scrollHeight;
+
+    block.style.maxHeight =
+        height+"px";
+
+    requestAnimationFrame(()=>{
+
+        block.classList.add(
+            "block-removing"
+        );
+
+    });
+
+    block.addEventListener(
+        "transitionend",
+        ()=>{
+
+            block.remove();
 
         },
         {
