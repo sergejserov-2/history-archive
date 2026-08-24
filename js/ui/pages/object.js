@@ -361,9 +361,6 @@ async function renderPage(){
             }
 
             ${
-                pageAdminMode||
-                pageChildren.length
-                ?
                 `
                 <section id="children">
 
@@ -373,8 +370,6 @@ async function renderPage(){
 
                 </section>
                 `
-                :
-                ""
             }
 
         </main>
