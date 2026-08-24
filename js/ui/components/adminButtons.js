@@ -1,68 +1,171 @@
-/* ==========================================
-   ADMIN BUTTONS
-========================================== */
+let enabled=true;
 
-export function renderAdminButtons(actions=[]){
+export function setAdminButtonsEnabled(value){
+    enabled=value;
+}
 
-    return `
-        <span class="admin-buttons" data-admin-buttons>
-            ${actions.map(action=>`
-                <button
-                    class="admin-button"
-                    data-action="${action.type}"
-                    ${action.id?`data-id="${action.id}"`:""}
-                    ${action.title?`title="${action.title}"`:""}
-                >
-                    <img
-                        src="icons/${action.icon}.svg"
-                        class="admin-icon"
-                    >
-                </button>
-            `).join("")}
-        </span>
+export function adminButton(
+    action,
+    id="",
+    icon=null,
+    title=""
+){
+
+    if(!enabled)return"";
+
+    return`
+        <button
+            class="admin-button"
+            data-action="${action}"
+            ${id?`data-id="${id}"`:""}
+            ${title?`title="${title}"`:""}
+        >
+            <img
+                src="icons/${icon||getIcon(action)}.svg"
+                class="admin-icon"
+            >
+        </button>
+    `;
+}
+
+export function adminEdit(
+    type,
+    id
+){
+
+    return adminButton(
+        `edit-${type}`,
+        id,
+        "edit",
+        "Редактировать"
+    );
+
+}
+
+export function adminDelete(
+    type,
+    id
+){
+
+    return adminButton(
+        `delete-${type}`,
+        id,
+        "delete",
+        "Удалить"
+    );
+
+}
+
+export function adminAdd(
+    action,
+    text
+){
+
+    if(!enabled)return"";
+
+    return`
+        <div
+            class="entity-list__add admin-button"
+            data-action="${action}"
+        >
+            + ${text}
+        </div>
     `;
 
 }
 
-export function showAdminButtons(container,actions=[]){
+export function adminHeaderButton(
+    id,
+    icon,
+    title=""
+){
 
-    if(!container)return;
+    if(!enabled)return"";
 
-    container.innerHTML=
-        renderAdminButtons(actions);
-
-    const buttons=
-        container.querySelector(
-            "[data-admin-buttons]"
-        );
-
-    requestAnimationFrame(()=>{
-
-        buttons?.classList.add(
-            "admin-buttons--visible"
-        );
-
-    });
+    return`
+        <button
+            id="${id}"
+            class="header__button header__button--admin"
+            hidden
+            title="${title}"
+        >
+            <img
+                src="icons/${icon}.svg"
+                class="header-icon"
+            >
+        </button>
+    `;
 
 }
 
-export function hideAdminButtons(container){
+export function adminLoginButton(){
 
-    const buttons=
-        container?.querySelector(
-            "[data-admin-buttons]"
-        );
+    return`
+        <button
+            id="loginButton"
+            class="header__button"
+        >
+            <img
+                src="icons/login.svg"
+                class="header-icon"
+            >
+            Войти
+        </button>
+    `;
 
-    if(!buttons)return;
+}
 
-    buttons.classList.remove(
-        "admin-buttons--visible"
+export function adminUpdateHeaderButton(
+    button,
+    admin
+){
+
+    if(!button)return;
+
+    button.hidden=!admin;
+
+}
+
+export function adminUpdateLogin(
+    button,
+    admin
+){
+
+    if(!button)return;
+
+    button.innerHTML=admin
+        ?
+        `
+        <img
+            src="icons/logout.svg"
+            class="header-icon"
+        >
+        Выйти
+        `
+        :
+        `
+        <img
+            src="icons/login.svg"
+            class="header-icon"
+        >
+        Войти
+        `;
+
+    button.classList.toggle(
+        "header__button--admin",
+        admin
     );
 
-    buttons.classList.add(
-        "admin-buttons--closing"
-    );
+}
 
-    setTimeout(()=>buttons.remove(),200);
+function getIcon(action){
+
+    if(action.startsWith("edit"))
+        return"edit";
+
+    if(action.startsWith("delete"))
+        return"delete";
+
+    return"edit";
 
 }
