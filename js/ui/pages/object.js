@@ -332,23 +332,17 @@ async function renderPage(){
             }
 
             ${
-                pageAdminMode||
-                pagePhotos.length
-                ?
                 `
                 <section id="gallery">
 
                     <h2>Фотографии</h2>
 
                     ${renderPhotos(
-                        pagePhotos,
-                        pageAdminMode
+                        pagePhotos
                     )}
 
                 </section>
                 `
-                :
-                ""
             }
 
             ${
