@@ -736,19 +736,6 @@ section h2 {
    ADMIN BUTTONS
 ========================================== */
 
-/*
-    Универсальное состояние.
-
-    Геометрией управляет animations.js.
-
-    opacity + scale используются только
-    для короткого визуального появления/
-    исчезновения.
-
-    Эти два механизма никогда не работают
-    одновременно.
-*/
-
 .admin-button{
 
     opacity:1;
@@ -765,7 +752,7 @@ section h2 {
 
 
 /* ==========================================
-   VISUAL HIDDEN
+   Hidden
 ========================================== */
 
 .admin-button--hidden{
@@ -773,7 +760,7 @@ section h2 {
     opacity:0;
 
     transform:
-        scale(.94);
+        scale(0);
 
     pointer-events:none;
 
@@ -781,14 +768,14 @@ section h2 {
 
 
 /* ==========================================
-   VISUAL ENTER
+   Enter
 ========================================== */
 
 .admin-button--entering{
 
     animation:
         admin-button-enter
-        .14s
+        300ms
         ease
         both;
 
@@ -796,14 +783,14 @@ section h2 {
 
 
 /* ==========================================
-   VISUAL EXIT
+   Exit
 ========================================== */
 
 .admin-button--exiting{
 
     animation:
         admin-button-exit
-        .12s
+        300ms
         ease
         both;
 
@@ -811,12 +798,12 @@ section h2 {
 
 
 /* ==========================================
-   ENTER
+   Appearance
 ========================================== */
 
 @keyframes admin-button-enter{
 
-    from{
+    0%{
 
         opacity:0;
 
@@ -825,7 +812,7 @@ section h2 {
 
     }
 
-    to{
+    100%{
 
         opacity:1;
 
@@ -838,12 +825,12 @@ section h2 {
 
 
 /* ==========================================
-   EXIT
+   Disappearance
 ========================================== */
 
 @keyframes admin-button-exit{
 
-    from{
+    0%{
 
         opacity:1;
 
@@ -852,7 +839,7 @@ section h2 {
 
     }
 
-    to{
+    100%{
 
         opacity:0;
 
@@ -865,7 +852,7 @@ section h2 {
 
 
 /* ==========================================
-   SMALL ADMIN BUTTONS
+   Small admin buttons
 ========================================== */
 
 button.admin-button{
@@ -889,7 +876,7 @@ button.admin-button{
 
 
 /* ==========================================
-   ADMIN ADD BLOCKS
+   Expandable admin blocks
 ========================================== */
 
 .entity-list__add,
