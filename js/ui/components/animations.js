@@ -2,7 +2,7 @@
 // Universal block animations
 // ======================================
 //
-// Отвечает только за геометрию.
+// Отвечает только за геометрию блока:
 //
 // height
 // padding
@@ -11,13 +11,16 @@
 // Никакого opacity.
 // Никакого scale.
 //
-// Геометрия и визуальная анимация
-// никогда не должны конкурировать.
+// Геометрическая анимация возвращает
+// Promise, который завершается только
+// после фактического окончания фазы.
 // ======================================
 
 
-const EXPAND_DURATION = 220;
-const COLLAPSE_DURATION = 200;
+export const EXPAND_DURATION = 320;
+export const COLLAPSE_DURATION = 300;
+
+const PHASE_GAP = 1;
 
 
 // ======================================
@@ -25,21 +28,20 @@ const COLLAPSE_DURATION = 200;
 // ======================================
 
 export function animateExpand(
-    element,
-    callback = null
+    element
 ){
 
-    if(!element)
-        return;
+    if(!element){
+
+        return Promise.resolve();
+
+    }
 
 
     cancelSizeAnimation(
         element
     );
 
-
-    // Элемент должен участвовать
-    // в layout.
 
     element.hidden = false;
 
@@ -66,9 +68,9 @@ export function animateExpand(
         computed.marginBottom;
 
 
-    // ----------------------------------
-    // Начальное состояние
-    // ----------------------------------
+    // ==================================
+    // Initial state
+    // ==================================
 
     element.style.overflow =
         "hidden";
@@ -89,14 +91,14 @@ export function animateExpand(
         "0px";
 
 
-    // Фиксируем начальное состояние.
+    // Применяем начальное состояние.
 
     element.offsetHeight;
 
 
-    // ----------------------------------
+    // ==================================
     // Transition
-    // ----------------------------------
+    // ==================================
 
     element.style.transition = `
         height ${EXPAND_DURATION}ms ease,
@@ -107,67 +109,130 @@ export function animateExpand(
     `;
 
 
-    requestAnimationFrame(()=>{
+    return new Promise(
+        resolve => {
 
-        element.style.height =
-            `${targetHeight}px`;
-
-        element.style.paddingTop =
-            targetPaddingTop;
-
-        element.style.paddingBottom =
-            targetPaddingBottom;
-
-        element.style.marginTop =
-            targetMarginTop;
-
-        element.style.marginBottom =
-            targetMarginBottom;
-
-    });
+            let finished = false;
 
 
-    const finish = ()=>{
+            const finish = ()=>{
 
-        element.style.height =
-            "auto";
+                if(finished)
+                    return;
 
-        element.style.paddingTop =
-            "";
-
-        element.style.paddingBottom =
-            "";
-
-        element.style.marginTop =
-            "";
-
-        element.style.marginBottom =
-            "";
-
-        element.style.transition =
-            "";
-
-        element.style.overflow =
-            "";
-
-        element._sizeAnimationTimer =
-            null;
+                finished = true;
 
 
-        if(callback){
+                element.removeEventListener(
+                    "transitionend",
+                    onTransitionEnd
+                );
 
-            callback();
+
+                clearTimeout(
+                    fallbackTimer
+                );
+
+
+                element.style.height =
+                    "auto";
+
+                element.style.paddingTop =
+                    "";
+
+                element.style.paddingBottom =
+                    "";
+
+                element.style.marginTop =
+                    "";
+
+                element.style.marginBottom =
+                    "";
+
+                element.style.transition =
+                    "";
+
+                element.style.overflow =
+                    "";
+
+
+                element._sizeAnimationTimer =
+                    null;
+
+
+                resolve();
+
+            };
+
+
+            const onTransitionEnd = event =>{
+
+                if(
+                    event.target !== element
+                ){
+
+                    return;
+
+                }
+
+
+                if(
+                    event.propertyName !==
+                    "height"
+                ){
+
+                    return;
+
+                }
+
+
+                finish();
+
+            };
+
+
+            element.addEventListener(
+                "transitionend",
+                onTransitionEnd
+            );
+
+
+            const fallbackTimer =
+                setTimeout(
+                    finish,
+                    EXPAND_DURATION + 50
+                );
+
+
+            element._sizeAnimationTimer =
+                fallbackTimer;
+
+
+            // ==================================
+            // Start
+            // ==================================
+
+            requestAnimationFrame(()=>{
+
+                element.style.height =
+                    `${targetHeight}px`;
+
+                element.style.paddingTop =
+                    targetPaddingTop;
+
+                element.style.paddingBottom =
+                    targetPaddingBottom;
+
+                element.style.marginTop =
+                    targetMarginTop;
+
+                element.style.marginBottom =
+                    targetMarginBottom;
+
+            });
 
         }
-
-    };
-
-
-    element._sizeAnimationTimer =
-        setTimeout(
-            finish,
-            EXPAND_DURATION + 20
-        );
+    );
 
 }
 
@@ -178,11 +243,17 @@ export function animateExpand(
 
 export function animateCollapse(
     element,
-    callback = null
+    callback=null
 ){
 
-    if(!element)
-        return;
+    if(!element){
+
+        if(callback)
+            callback();
+
+        return Promise.resolve();
+
+    }
 
 
     cancelSizeAnimation(
@@ -190,21 +261,11 @@ export function animateCollapse(
     );
 
 
-    // Элемент должен быть в layout
-    // во время схлопывания.
-
-    element.hidden = false;
-
-
     const computed =
         window.getComputedStyle(
             element
         );
 
-
-    // ----------------------------------
-    // Текущее состояние
-    // ----------------------------------
 
     const currentHeight =
         element.getBoundingClientRect().height;
@@ -220,6 +281,9 @@ export function animateCollapse(
 
     const currentMarginBottom =
         computed.marginBottom;
+
+
+    element.hidden = false;
 
 
     element.style.overflow =
@@ -241,14 +305,10 @@ export function animateCollapse(
         currentMarginBottom;
 
 
-    // Фиксируем текущее состояние.
+    // Применяем текущее состояние.
 
     element.offsetHeight;
 
-
-    // ----------------------------------
-    // Transition
-    // ----------------------------------
 
     element.style.transition = `
         height ${COLLAPSE_DURATION}ms ease,
@@ -259,159 +319,141 @@ export function animateCollapse(
     `;
 
 
-    requestAnimationFrame(()=>{
+    return new Promise(
+        resolve => {
 
-        element.style.height =
-            "0px";
-
-        element.style.paddingTop =
-            "0px";
-
-        element.style.paddingBottom =
-            "0px";
-
-        element.style.marginTop =
-            "0px";
-
-        element.style.marginBottom =
-            "0px";
-
-    });
+            let finished = false;
 
 
-    const finish = ()=>{
+            const finish = ()=>{
 
-        element.style.height =
-            "";
+                if(finished)
+                    return;
 
-        element.style.paddingTop =
-            "";
-
-        element.style.paddingBottom =
-            "";
-
-        element.style.marginTop =
-            "";
-
-        element.style.marginBottom =
-            "";
-
-        element.style.transition =
-            "";
-
-        element.style.overflow =
-            "";
-
-        element.hidden =
-            true;
-
-        element._sizeAnimationTimer =
-            null;
+                finished = true;
 
 
-        if(callback){
-
-            callback();
-
-        }
-
-    };
+                element.removeEventListener(
+                    "transitionend",
+                    onTransitionEnd
+                );
 
 
-    element._sizeAnimationTimer =
-        setTimeout(
-            finish,
-            COLLAPSE_DURATION + 20
-        );
-
-}
+                clearTimeout(
+                    fallbackTimer
+                );
 
 
-// ======================================
-// Resize
-// ======================================
-//
-// Для уже открытого блока.
-//
-// Контент изменился:
-// 2 строки → 8 строк
-// или
-// 8 строк → 2 строки
-//
-// Блок плавно меняет высоту.
-// ======================================
+                element.style.height =
+                    "";
 
-export function animateResize(
-    element
-){
+                element.style.paddingTop =
+                    "";
 
-    if(!element)
-        return;
+                element.style.paddingBottom =
+                    "";
 
+                element.style.marginTop =
+                    "";
 
-    cancelSizeAnimation(
-        element
-    );
+                element.style.marginBottom =
+                    "";
+
+                element.style.transition =
+                    "";
+
+                element.style.overflow =
+                    "";
 
 
-    const currentHeight =
-        element.getBoundingClientRect().height;
+                element.hidden =
+                    true;
 
 
-    const targetHeight =
-        element.scrollHeight;
+                element._sizeAnimationTimer =
+                    null;
 
 
-    if(
-        Math.abs(
-            currentHeight -
-            targetHeight
-        ) < 1
-    ){
+                if(callback){
 
-        return;
+                    callback();
 
-    }
+                }
 
 
-    element.style.overflow =
-        "hidden";
+                resolve();
 
-    element.style.height =
-        `${currentHeight}px`;
+            };
 
 
-    element.offsetHeight;
+            const onTransitionEnd = event =>{
+
+                if(
+                    event.target !== element
+                ){
+
+                    return;
+
+                }
 
 
-    element.style.transition =
-        `height ${EXPAND_DURATION}ms ease`;
+                if(
+                    event.propertyName !==
+                    "height"
+                ){
+
+                    return;
+
+                }
 
 
-    requestAnimationFrame(()=>{
+                finish();
 
-        element.style.height =
-            `${targetHeight}px`;
-
-    });
+            };
 
 
-    element._sizeAnimationTimer =
-        setTimeout(()=>{
+            element.addEventListener(
+                "transitionend",
+                onTransitionEnd
+            );
 
-            element.style.height =
-                "auto";
 
-            element.style.transition =
-                "";
+            const fallbackTimer =
+                setTimeout(
+                    finish,
+                    COLLAPSE_DURATION + 50
+                );
 
-            element.style.overflow =
-                "";
 
             element._sizeAnimationTimer =
-                null;
+                fallbackTimer;
 
-        }, EXPAND_DURATION + 20);
+
+            // ==================================
+            // Start
+            // ==================================
+
+            requestAnimationFrame(()=>{
+
+                element.style.height =
+                    "0px";
+
+                element.style.paddingTop =
+                    "0px";
+
+                element.style.paddingBottom =
+                    "0px";
+
+                element.style.marginTop =
+                    "0px";
+
+                element.style.marginBottom =
+                    "0px";
+
+            });
+
+        }
+    );
 
 }
 
@@ -442,38 +484,187 @@ export function cancelSizeAnimation(
     }
 
 
-    // Если элемент сейчас находится
-    // в середине height-transition,
-    // сначала сохраняем его фактическую
-    // текущую высоту.
+    element.style.transition =
+        "";
 
-    const computed =
-        window.getComputedStyle(
-            element
-        );
+}
+
+
+// ======================================
+// Resize
+// ======================================
+
+export function animateResize(
+    element
+){
+
+    if(!element)
+        return Promise.resolve();
+
+
+    cancelSizeAnimation(
+        element
+    );
+
+
+    const currentHeight =
+        element.getBoundingClientRect().height;
+
+
+    element.style.height =
+        `${currentHeight}px`;
+
+    element.style.overflow =
+        "hidden";
+
+
+    element.offsetHeight;
+
+
+    const targetHeight =
+        element.scrollHeight;
 
 
     if(
-        computed.height !== "auto" &&
-        element.offsetParent !== null
+        Math.abs(
+            currentHeight -
+            targetHeight
+        ) < 1
     ){
 
-        const currentHeight =
-            element.getBoundingClientRect().height;
-
-
-        element.style.transition =
-            "none";
-
         element.style.height =
-            `${currentHeight}px`;
+            "auto";
 
-        element.offsetHeight;
+        element.style.overflow =
+            "";
+
+        return Promise.resolve();
 
     }
 
 
-    element.style.transition =
-        "";
+    element.style.transition = `
+        height ${EXPAND_DURATION}ms ease
+    `;
+
+
+    return new Promise(
+        resolve => {
+
+            let finished = false;
+
+
+            const finish = ()=>{
+
+                if(finished)
+                    return;
+
+                finished = true;
+
+
+                element.removeEventListener(
+                    "transitionend",
+                    onTransitionEnd
+                );
+
+
+                clearTimeout(
+                    fallbackTimer
+                );
+
+
+                element.style.height =
+                    "auto";
+
+                element.style.transition =
+                    "";
+
+                element.style.overflow =
+                    "";
+
+                element._sizeAnimationTimer =
+                    null;
+
+
+                resolve();
+
+            };
+
+
+            const onTransitionEnd = event =>{
+
+                if(
+                    event.target !== element
+                ){
+
+                    return;
+
+                }
+
+
+                if(
+                    event.propertyName !==
+                    "height"
+                ){
+
+                    return;
+
+                }
+
+
+                finish();
+
+            };
+
+
+            element.addEventListener(
+                "transitionend",
+                onTransitionEnd
+            );
+
+
+            const fallbackTimer =
+                setTimeout(
+                    finish,
+                    EXPAND_DURATION + 50
+                );
+
+
+            element._sizeAnimationTimer =
+                fallbackTimer;
+
+
+            requestAnimationFrame(()=>{
+
+                element.style.height =
+                    `${targetHeight}px`;
+
+            });
+
+        }
+    );
+
+}
+
+
+// ======================================
+// Phase gap
+// ======================================
+//
+// Минимальная пауза между двумя фазами.
+// ======================================
+
+export function waitAnimationGap(){
+
+    return new Promise(
+        resolve => {
+
+            setTimeout(
+                resolve,
+                PHASE_GAP
+            );
+
+        }
+    );
 
 }
