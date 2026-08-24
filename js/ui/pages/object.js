@@ -300,7 +300,6 @@ async function renderPage(){
     const childrenHTML=
         await renderChildren(
             pageChildren,
-            pageAdminMode,
             pageObject,
             pageObjects,
             pageTypes
