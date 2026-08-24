@@ -11,16 +11,11 @@
 // Никакого opacity.
 // Никакого scale.
 //
-// Геометрическая анимация возвращает
-// Promise, который завершается только
-// после фактического окончания фазы.
 // ======================================
 
 
-export const EXPAND_DURATION = 320;
-export const COLLAPSE_DURATION = 300;
-
-const PHASE_GAP = 1;
+const EXPAND_DURATION = 320;
+const COLLAPSE_DURATION = 300;
 
 
 // ======================================
@@ -31,11 +26,8 @@ export function animateExpand(
     element
 ){
 
-    if(!element){
-
+    if(!element)
         return Promise.resolve();
-
-    }
 
 
     cancelSizeAnimation(
@@ -68,10 +60,6 @@ export function animateExpand(
         computed.marginBottom;
 
 
-    // ==================================
-    // Initial state
-    // ==================================
-
     element.style.overflow =
         "hidden";
 
@@ -91,14 +79,8 @@ export function animateExpand(
         "0px";
 
 
-    // Применяем начальное состояние.
-
     element.offsetHeight;
 
-
-    // ==================================
-    // Transition
-    // ==================================
 
     element.style.transition = `
         height ${EXPAND_DURATION}ms ease,
@@ -109,30 +91,30 @@ export function animateExpand(
     `;
 
 
-    return new Promise(
-        resolve => {
+    requestAnimationFrame(()=>{
 
-            let finished = false;
+        element.style.height =
+            `${targetHeight}px`;
+
+        element.style.paddingTop =
+            targetPaddingTop;
+
+        element.style.paddingBottom =
+            targetPaddingBottom;
+
+        element.style.marginTop =
+            targetMarginTop;
+
+        element.style.marginBottom =
+            targetMarginBottom;
+
+    });
 
 
-            const finish = ()=>{
+    return new Promise(resolve=>{
 
-                if(finished)
-                    return;
-
-                finished = true;
-
-
-                element.removeEventListener(
-                    "transitionend",
-                    onTransitionEnd
-                );
-
-
-                clearTimeout(
-                    fallbackTimer
-                );
-
+        element._sizeAnimationTimer =
+            setTimeout(()=>{
 
                 element.style.height =
                     "auto";
@@ -155,84 +137,15 @@ export function animateExpand(
                 element.style.overflow =
                     "";
 
-
                 element._sizeAnimationTimer =
                     null;
 
 
                 resolve();
 
-            };
+            }, EXPAND_DURATION + 20);
 
-
-            const onTransitionEnd = event =>{
-
-                if(
-                    event.target !== element
-                ){
-
-                    return;
-
-                }
-
-
-                if(
-                    event.propertyName !==
-                    "height"
-                ){
-
-                    return;
-
-                }
-
-
-                finish();
-
-            };
-
-
-            element.addEventListener(
-                "transitionend",
-                onTransitionEnd
-            );
-
-
-            const fallbackTimer =
-                setTimeout(
-                    finish,
-                    EXPAND_DURATION + 50
-                );
-
-
-            element._sizeAnimationTimer =
-                fallbackTimer;
-
-
-            // ==================================
-            // Start
-            // ==================================
-
-            requestAnimationFrame(()=>{
-
-                element.style.height =
-                    `${targetHeight}px`;
-
-                element.style.paddingTop =
-                    targetPaddingTop;
-
-                element.style.paddingBottom =
-                    targetPaddingBottom;
-
-                element.style.marginTop =
-                    targetMarginTop;
-
-                element.style.marginBottom =
-                    targetMarginBottom;
-
-            });
-
-        }
-    );
+    });
 
 }
 
@@ -242,18 +155,11 @@ export function animateExpand(
 // ======================================
 
 export function animateCollapse(
-    element,
-    callback=null
+    element
 ){
 
-    if(!element){
-
-        if(callback)
-            callback();
-
+    if(!element)
         return Promise.resolve();
-
-    }
 
 
     cancelSizeAnimation(
@@ -269,6 +175,7 @@ export function animateCollapse(
 
     const currentHeight =
         element.getBoundingClientRect().height;
+
 
     const currentPaddingTop =
         computed.paddingTop;
@@ -305,8 +212,6 @@ export function animateCollapse(
         currentMarginBottom;
 
 
-    // Применяем текущее состояние.
-
     element.offsetHeight;
 
 
@@ -319,30 +224,30 @@ export function animateCollapse(
     `;
 
 
-    return new Promise(
-        resolve => {
+    requestAnimationFrame(()=>{
 
-            let finished = false;
+        element.style.height =
+            "0px";
+
+        element.style.paddingTop =
+            "0px";
+
+        element.style.paddingBottom =
+            "0px";
+
+        element.style.marginTop =
+            "0px";
+
+        element.style.marginBottom =
+            "0px";
+
+    });
 
 
-            const finish = ()=>{
+    return new Promise(resolve=>{
 
-                if(finished)
-                    return;
-
-                finished = true;
-
-
-                element.removeEventListener(
-                    "transitionend",
-                    onTransitionEnd
-                );
-
-
-                clearTimeout(
-                    fallbackTimer
-                );
-
+        element._sizeAnimationTimer =
+            setTimeout(()=>{
 
                 element.style.height =
                     "";
@@ -365,95 +270,18 @@ export function animateCollapse(
                 element.style.overflow =
                     "";
 
-
                 element.hidden =
                     true;
-
 
                 element._sizeAnimationTimer =
                     null;
 
 
-                if(callback){
-
-                    callback();
-
-                }
-
-
                 resolve();
 
-            };
+            }, COLLAPSE_DURATION + 20);
 
-
-            const onTransitionEnd = event =>{
-
-                if(
-                    event.target !== element
-                ){
-
-                    return;
-
-                }
-
-
-                if(
-                    event.propertyName !==
-                    "height"
-                ){
-
-                    return;
-
-                }
-
-
-                finish();
-
-            };
-
-
-            element.addEventListener(
-                "transitionend",
-                onTransitionEnd
-            );
-
-
-            const fallbackTimer =
-                setTimeout(
-                    finish,
-                    COLLAPSE_DURATION + 50
-                );
-
-
-            element._sizeAnimationTimer =
-                fallbackTimer;
-
-
-            // ==================================
-            // Start
-            // ==================================
-
-            requestAnimationFrame(()=>{
-
-                element.style.height =
-                    "0px";
-
-                element.style.paddingTop =
-                    "0px";
-
-                element.style.paddingBottom =
-                    "0px";
-
-                element.style.marginTop =
-                    "0px";
-
-                element.style.marginBottom =
-                    "0px";
-
-            });
-
-        }
-    );
+    });
 
 }
 
@@ -499,7 +327,7 @@ export function animateResize(
 ){
 
     if(!element)
-        return Promise.resolve();
+        return;
 
 
     cancelSizeAnimation(
@@ -538,7 +366,7 @@ export function animateResize(
         element.style.overflow =
             "";
 
-        return Promise.resolve();
+        return;
 
     }
 
@@ -548,123 +376,29 @@ export function animateResize(
     `;
 
 
-    return new Promise(
-        resolve => {
+    requestAnimationFrame(()=>{
 
-            let finished = false;
+        element.style.height =
+            `${targetHeight}px`;
 
-
-            const finish = ()=>{
-
-                if(finished)
-                    return;
-
-                finished = true;
+    });
 
 
-                element.removeEventListener(
-                    "transitionend",
-                    onTransitionEnd
-                );
+    element._sizeAnimationTimer =
+        setTimeout(()=>{
 
+            element.style.height =
+                "auto";
 
-                clearTimeout(
-                    fallbackTimer
-                );
+            element.style.transition =
+                "";
 
-
-                element.style.height =
-                    "auto";
-
-                element.style.transition =
-                    "";
-
-                element.style.overflow =
-                    "";
-
-                element._sizeAnimationTimer =
-                    null;
-
-
-                resolve();
-
-            };
-
-
-            const onTransitionEnd = event =>{
-
-                if(
-                    event.target !== element
-                ){
-
-                    return;
-
-                }
-
-
-                if(
-                    event.propertyName !==
-                    "height"
-                ){
-
-                    return;
-
-                }
-
-
-                finish();
-
-            };
-
-
-            element.addEventListener(
-                "transitionend",
-                onTransitionEnd
-            );
-
-
-            const fallbackTimer =
-                setTimeout(
-                    finish,
-                    EXPAND_DURATION + 50
-                );
-
+            element.style.overflow =
+                "";
 
             element._sizeAnimationTimer =
-                fallbackTimer;
+                null;
 
-
-            requestAnimationFrame(()=>{
-
-                element.style.height =
-                    `${targetHeight}px`;
-
-            });
-
-        }
-    );
-
-}
-
-
-// ======================================
-// Phase gap
-// ======================================
-//
-// Минимальная пауза между двумя фазами.
-// ======================================
-
-export function waitAnimationGap(){
-
-    return new Promise(
-        resolve => {
-
-            setTimeout(
-                resolve,
-                PHASE_GAP
-            );
-
-        }
-    );
+        }, EXPAND_DURATION + 20);
 
 }
