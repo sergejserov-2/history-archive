@@ -213,7 +213,7 @@ function renderTypesList(
     return renderEntityList({
         groups,
         addButton:
-            ?adminAdd(
+            adminAdd(
                 "add-type",
                 "Добавить тип"
             )
@@ -249,7 +249,6 @@ function createTypeItem(
             type.levels??type.level
         ),
         actions:
-            ?
             `
             ${adminEdit(
                 typeName,
