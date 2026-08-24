@@ -2,7 +2,7 @@
 // Universal block animations
 // ======================================
 //
-// Отвечает только за геометрию блока:
+// Отвечает только за геометрию:
 //
 // height
 // padding
@@ -10,7 +10,6 @@
 //
 // Никакого opacity.
 // Никакого scale.
-//
 // ======================================
 
 
@@ -287,38 +286,6 @@ export function animateCollapse(
 
 
 // ======================================
-// Cancel
-// ======================================
-
-export function cancelSizeAnimation(
-    element
-){
-
-    if(!element)
-        return;
-
-
-    if(
-        element._sizeAnimationTimer
-    ){
-
-        clearTimeout(
-            element._sizeAnimationTimer
-        );
-
-        element._sizeAnimationTimer =
-            null;
-
-    }
-
-
-    element.style.transition =
-        "";
-
-}
-
-
-// ======================================
 // Resize
 // ======================================
 
@@ -400,5 +367,37 @@ export function animateResize(
                 null;
 
         }, EXPAND_DURATION + 20);
+
+}
+
+
+// ======================================
+// Cancel
+// ======================================
+
+export function cancelSizeAnimation(
+    element
+){
+
+    if(!element)
+        return;
+
+
+    if(
+        element._sizeAnimationTimer
+    ){
+
+        clearTimeout(
+            element._sizeAnimationTimer
+        );
+
+        element._sizeAnimationTimer =
+            null;
+
+    }
+
+
+    element.style.transition =
+        "";
 
 }
