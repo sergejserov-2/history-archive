@@ -28,19 +28,13 @@ export function animateExpand(
 ){
 
     if(!element)
-        return;
+        return Promise.resolve();
 
-
-    // Останавливаем предыдущую
-    // геометрическую анимацию.
 
     cancelSizeAnimation(
         element
     );
 
-
-    // Элемент должен существовать
-    // в layout.
 
     element.hidden = false;
 
@@ -50,8 +44,6 @@ export function animateExpand(
             element
         );
 
-
-    // Запоминаем реальные значения.
 
     const targetHeight =
         element.scrollHeight;
@@ -69,29 +61,27 @@ export function animateExpand(
         computed.marginBottom;
 
 
-    // Начальное состояние.
+    element.style.overflow =
+        "hidden";
 
-    element.style.overflow = "hidden";
+    element.style.height =
+        "0px";
 
-    element.style.height = "0px";
+    element.style.paddingTop =
+        "0px";
 
-    element.style.paddingTop = "0px";
+    element.style.paddingBottom =
+        "0px";
 
-    element.style.paddingBottom = "0px";
+    element.style.marginTop =
+        "0px";
 
-    element.style.marginTop = "0px";
+    element.style.marginBottom =
+        "0px";
 
-    element.style.marginBottom = "0px";
-
-
-    // Принудительно фиксируем
-    // начальное состояние перед
-    // следующим кадром.
 
     element.offsetHeight;
 
-
-    // Запускаем переход.
 
     element.style.transition = `
         height ${EXPAND_DURATION}ms ease,
@@ -102,60 +92,66 @@ export function animateExpand(
     `;
 
 
-    requestAnimationFrame(()=>{
+    return new Promise(resolve => {
 
-        element.style.height =
-            `${targetHeight}px`;
+        const finish = ()=>{
 
-        element.style.paddingTop =
-            targetPaddingTop;
+            element.style.height =
+                "auto";
 
-        element.style.paddingBottom =
-            targetPaddingBottom;
+            element.style.paddingTop =
+                "";
 
-        element.style.marginTop =
-            targetMarginTop;
+            element.style.paddingBottom =
+                "";
 
-        element.style.marginBottom =
-            targetMarginBottom;
+            element.style.marginTop =
+                "";
 
-    });
+            element.style.marginBottom =
+                "";
 
+            element.style.transition =
+                "";
 
-    const finish = ()=>{
+            element.style.overflow =
+                "";
 
-        element.style.height =
-            "auto";
+            element._sizeAnimationTimer =
+                null;
 
-        element.style.paddingTop =
-            "";
+            resolve();
 
-        element.style.paddingBottom =
-            "";
+        };
 
-        element.style.marginTop =
-            "";
-
-        element.style.marginBottom =
-            "";
-
-        element.style.transition =
-            "";
-
-        element.style.overflow =
-            "";
 
         element._sizeAnimationTimer =
-            null;
+            setTimeout(
+                finish,
+                EXPAND_DURATION + 30
+            );
 
-    };
 
+        requestAnimationFrame(()=>{
 
-    element._sizeAnimationTimer =
-        setTimeout(
-            finish,
-            EXPAND_DURATION + 30
-        );
+            element.style.height =
+                `${targetHeight}px`;
+
+            element.style.paddingTop =
+                targetPaddingTop;
+
+            element.style.paddingBottom =
+                targetPaddingBottom;
+
+            element.style.marginTop =
+                targetMarginTop;
+
+            element.style.marginBottom =
+                targetMarginBottom;
+
+        });
+
+    });
 
 }
 
@@ -165,12 +161,11 @@ export function animateExpand(
 // ======================================
 
 export function animateCollapse(
-    element,
-    callback=null
+    element
 ){
 
     if(!element)
-        return;
+        return Promise.resolve();
 
 
     cancelSizeAnimation(
@@ -183,9 +178,6 @@ export function animateCollapse(
             element
         );
 
-
-    // Сначала фиксируем текущую
-    // реальную высоту.
 
     const currentHeight =
         element.getBoundingClientRect().height;
@@ -204,7 +196,8 @@ export function animateCollapse(
         computed.marginBottom;
 
 
-    element.hidden = false;
+    element.hidden =
+        false;
 
     element.style.overflow =
         "hidden";
@@ -225,9 +218,6 @@ export function animateCollapse(
         currentMarginBottom;
 
 
-    // Принудительно применяем
-    // текущее состояние.
-
     element.offsetHeight;
 
 
@@ -240,70 +230,69 @@ export function animateCollapse(
     `;
 
 
-    requestAnimationFrame(()=>{
+    return new Promise(resolve => {
 
-        element.style.height =
-            "0px";
+        const finish = ()=>{
 
-        element.style.paddingTop =
-            "0px";
+            element.style.height =
+                "";
 
-        element.style.paddingBottom =
-            "0px";
+            element.style.paddingTop =
+                "";
 
-        element.style.marginTop =
-            "0px";
+            element.style.paddingBottom =
+                "";
 
-        element.style.marginBottom =
-            "0px";
+            element.style.marginTop =
+                "";
 
-    });
+            element.style.marginBottom =
+                "";
 
+            element.style.transition =
+                "";
 
-    const finish = ()=>{
+            element.style.overflow =
+                "";
 
-        element.style.height =
-            "";
+            element.hidden =
+                true;
 
-        element.style.paddingTop =
-            "";
+            element._sizeAnimationTimer =
+                null;
 
-        element.style.paddingBottom =
-            "";
+            resolve();
 
-        element.style.marginTop =
-            "";
+        };
 
-        element.style.marginBottom =
-            "";
-
-        element.style.transition =
-            "";
-
-        element.style.overflow =
-            "";
-
-        element.hidden =
-            true;
 
         element._sizeAnimationTimer =
-            null;
+            setTimeout(
+                finish,
+                COLLAPSE_DURATION + 30
+            );
 
 
-        if(callback){
+        requestAnimationFrame(()=>{
 
-            callback();
+            element.style.height =
+                "0px";
 
-        }
+            element.style.paddingTop =
+                "0px";
 
-    };
+            element.style.paddingBottom =
+                "0px";
 
+            element.style.marginTop =
+                "0px";
 
-    element._sizeAnimationTimer =
-        setTimeout(
-            finish,
-            COLLAPSE_DURATION + 30
-        );
+            element.style.marginBottom =
+                "0px";
+
+        });
+
+    });
 
 }
 
@@ -343,18 +332,6 @@ export function cancelSizeAnimation(
 // ======================================
 // Recalculate
 // ======================================
-//
-// Используется, когда содержимое уже
-// открытого блока изменилось.
-//
-// Например:
-//
-// было 2 строки
-// стало 8 строк
-//
-// Блок плавно переходит
-// на новую высоту.
-// ======================================
 
 export function animateResize(
     element
@@ -372,8 +349,6 @@ export function animateResize(
     const currentHeight =
         element.getBoundingClientRect().height;
 
-
-    // Фиксируем текущую высоту.
 
     element.style.height =
         `${currentHeight}px`;
