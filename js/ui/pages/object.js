@@ -1,7 +1,7 @@
 import {
     adminEdit,
     adminDelete
-} from "./adminButtons.js";
+} from "../components/adminButtons.js";
 import{isAdmin,onAdminStateChanged}from"../../admin/adminMode.js";
 import{initAdmin}from"../../admin/admin.js";
 import{getObject,getType,getParents,getChildren,getAllObjects}from"../../api/objects.js";
