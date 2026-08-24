@@ -444,10 +444,6 @@ export function hideAdminButton(
     // ==================================
 
     button.classList.remove(
-        "admin-button--hidden"
-    );
-
-    button.classList.remove(
         "admin-button--entering"
     );
 
