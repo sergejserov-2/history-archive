@@ -192,17 +192,16 @@ export function adminAdd(
     options={}
 ){
 
-    return`
+return`
 
 <div
 class="
 ${options.className||"entity-list__add"}
 admin-button
 admin-button--hidden
-${options.disabled?
-    "admin-button--disabled":
-    ""}
+${options.disabled?"admin-button--disabled":""}
 "
+hidden
 data-action="${action}"
 >
 
