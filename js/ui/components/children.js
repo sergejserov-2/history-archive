@@ -1,7 +1,9 @@
 import {getParents} from "../../api/objects.js";
 import {getPhotos} from "../../api/photos.js";
 import {renderStatusBadgeHTML} from "./editor/status.js";
-
+import {
+    adminAdd
+} from "./adminButtons.js";
 export async function renderChildren(children,ADMIN_MODE=false,currentObject=null,objects=[],types=[]){
 
     const typeMap=new Map(types.map(type=>[type.id,type]));
@@ -116,21 +118,23 @@ export async function renderChildren(children,ADMIN_MODE=false,currentObject=nul
             </div>
         </a>
     `);
+if(ADMIN_MODE){
 
-    if(ADMIN_MODE){
-        cards.unshift(`
-            <div
-                class="child-card child-card--add admin-button ${canHaveChildren?"":"admin-button--disabled"}"
-                data-action="add-object"
-                title="${
-                    canHaveChildren?"Добавить объект"
-                        :"У объектов нижнего уровня не должно быть дочерних объектов"
-                }"
-            >
-                + Добавить объект
-            </div>
-        `);
-    }
+    cards.unshift(
+        adminAdd(
+            "add-object",
+            "Добавить объект",
+            {
+                className:"child-card child-card--add",
+                disabled:!canHaveChildren,
+                title:canHaveChildren
+                    ? ""
+                    : "У объектов нижнего уровня не должно быть дочерних объектов"
+            }
+        )
+    );
+
+}
 
     return `<div class="children-list">${cards.join("")}</div>`;
 }
