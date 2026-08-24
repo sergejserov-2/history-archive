@@ -1,20 +1,24 @@
 import {
     animateExpand,
-    animateCollapse,
-    waitAnimationGap
+    animateCollapse
 } from "./animations.js";
 
 
 // ======================================
-// Admin buttons
+// Durations
 // ======================================
 
-const ENTER_DURATION = 420;
-const EXIT_DURATION = 300;
+const ENTER_SIZE_DURATION = 320;
+const ENTER_VISUAL_DELAY = 10;
+const ENTER_VISUAL_DURATION = 300;
+
+const EXIT_VISUAL_DURATION = 300;
+const EXIT_SIZE_DELAY = 10;
+const EXIT_SIZE_DURATION = 300;
 
 
 // ======================================
-// Large admin blocks
+// Large / expandable admin blocks
 // ======================================
 
 function isExpandableAdminBlock(
@@ -47,41 +51,6 @@ function isExpandableAdminBlock(
 
 
 // ======================================
-// State
-// ======================================
-
-function isHidden(
-    button
-){
-
-    return (
-        button.hidden ||
-        button.classList.contains(
-            "admin-button--hidden"
-        )
-    );
-
-}
-
-
-function isVisible(
-    button
-){
-
-    return (
-        !button.hidden &&
-        !button.classList.contains(
-            "admin-button--hidden"
-        ) &&
-        !button.classList.contains(
-            "admin-button--exiting"
-        )
-    );
-
-}
-
-
-// ======================================
 // Show
 // ======================================
 
@@ -93,84 +62,123 @@ export async function showAdminButton(
         return;
 
 
-    // Если уже полностью показана —
-    // ничего не делаем.
+    cancelAnimation(
+        button
+    );
+
+
+    button.hidden = false;
+
+
+    // ----------------------------------
+    // Large block
+    // ----------------------------------
 
     if(
-        isVisible(button) &&
-        !button.classList.contains(
-            "admin-button--entering"
+        isExpandableAdminBlock(
+            button
         )
     ){
+
+        button.classList.add(
+            "admin-button--hidden"
+        );
+
+
+        // ==================================
+        // PHASE 1
+        // Геометрическое раскрытие
+        // ==================================
+
+        await animateExpand(
+            button
+        );
+
+
+        if(button.hidden)
+            return;
+
+
+        // Небольшая пауза между
+        // геометрией и появлением.
+
+        await delay(
+            ENTER_VISUAL_DELAY
+        );
+
+
+        if(button.hidden)
+            return;
+
+
+        // ==================================
+        // PHASE 2
+        // Визуальное появление
+        // ==================================
+
+        button.classList.remove(
+            "admin-button--hidden"
+        );
+
+        button.classList.add(
+            "admin-button--entering"
+        );
+
+
+        button._adminAnimationTimer =
+            setTimeout(()=>{
+
+                button.classList.remove(
+                    "admin-button--entering"
+                );
+
+                button._adminAnimationTimer =
+                    null;
+
+            }, ENTER_VISUAL_DURATION + 20);
+
 
         return;
 
     }
 
 
-    cancelAnimation(
-        button
-    );
-
-
-    button.hidden =
-        false;
-
+    // ----------------------------------
+    // Small button
+    // ----------------------------------
 
     button.classList.add(
         "admin-button--hidden"
     );
 
 
-    // ==================================
-    // Фаза 1
-    // РАСКРЫТИЕ
-    // ==================================
-
-    await animateExpand(
-        button
-    );
+    await delay(0);
 
 
     if(button.hidden)
         return;
 
-
-    // ==================================
-    // 1ms пауза
-    // ==================================
-
-    await waitAnimationGap();
-
-
-    if(button.hidden)
-        return;
-
-
-    // ==================================
-    // Фаза 2
-    // ПОЯВЛЕНИЕ
-    // ==================================
 
     button.classList.remove(
         "admin-button--hidden"
     );
-
 
     button.classList.add(
         "admin-button--entering"
     );
 
 
-    await waitVisualAnimation(
-        button,
-        ENTER_DURATION
-    );
+    button._adminAnimationTimer =
+        setTimeout(()=>{
 
+            button.classList.remove(
+                "admin-button--entering"
+            );
 
-    button.classList.remove(
-        "admin-button--entering"
-    );
+            button._adminAnimationTimer =
+                null;
+
+        }, ENTER_VISUAL_DURATION + 20);
 
 }
 
@@ -187,44 +195,99 @@ export async function hideAdminButton(
         return;
 
 
-    // Если уже скрыта —
-    // ничего не делаем.
+    cancelAnimation(
+        button
+    );
+
+
+    if(button.hidden)
+        return;
+
+
+    // ----------------------------------
+    // Large block
+    // ----------------------------------
 
     if(
-        isHidden(button) &&
-        !button.classList.contains(
-            "admin-button--entering"
+        isExpandableAdminBlock(
+            button
         )
     ){
+
+        // ==================================
+        // PHASE 1
+        // Визуальное исчезновение
+        // ==================================
+
+        button.classList.remove(
+            "admin-button--entering"
+        );
+
+        button.classList.add(
+            "admin-button--exiting"
+        );
+
+
+        await delay(
+            EXIT_VISUAL_DURATION
+        );
+
+
+        // На этом этапе opacity/scale уже
+        // полностью закончились.
+
+        button.classList.remove(
+            "admin-button--exiting"
+        );
+
+
+        if(button.hidden)
+            return;
+
+
+        // ==================================
+        // Небольшой зазор
+        // ==================================
+
+        await delay(
+            EXIT_SIZE_DELAY
+        );
+
+
+        if(button.hidden)
+            return;
+
+
+        // ==================================
+        // PHASE 2
+        // Геометрическое схлопывание
+        // ==================================
+
+        await animateCollapse(
+            button
+        );
+
 
         return;
 
     }
 
 
-    cancelAnimation(
-        button
-    );
-
-
-    // ==================================
-    // Фаза 1
-    // РАЗВОПЛОЩЕНИЕ
-    // ==================================
+    // ----------------------------------
+    // Small button
+    // ----------------------------------
 
     button.classList.remove(
         "admin-button--entering"
     );
-
 
     button.classList.add(
         "admin-button--exiting"
     );
 
 
-    await waitVisualAnimation(
-        button,
-        EXIT_DURATION
+    await delay(
+        EXIT_VISUAL_DURATION
     );
 
 
@@ -232,111 +295,11 @@ export async function hideAdminButton(
         "admin-button--exiting"
     );
 
-
-    if(button.hidden)
-        return;
-
-
-    // ==================================
-    // 1ms пауза
-    // ==================================
-
-    await waitAnimationGap();
-
-
-    if(button.hidden)
-        return;
-
-
-    // ==================================
-    // Фаза 2
-    // СХЛОПЫВАНИЕ
-    // ==================================
-
-    await animateCollapse(
-        button
+    button.classList.add(
+        "admin-button--hidden"
     );
 
-}
-
-
-// ======================================
-// Visual animation helper
-// ======================================
-
-function waitVisualAnimation(
-    button,
-    duration
-){
-
-    return new Promise(
-        resolve => {
-
-            let finished = false;
-
-
-            const finish = ()=>{
-
-                if(finished)
-                    return;
-
-                finished = true;
-
-
-                button.removeEventListener(
-                    "animationend",
-                    onAnimationEnd
-                );
-
-
-                clearTimeout(
-                    timer
-                );
-
-
-                button._adminAnimationTimer =
-                    null;
-
-
-                resolve();
-
-            };
-
-
-            const onAnimationEnd = event =>{
-
-                if(
-                    event.target !== button
-                ){
-
-                    return;
-
-                }
-
-
-                finish();
-
-            };
-
-
-            button.addEventListener(
-                "animationend",
-                onAnimationEnd
-            );
-
-
-            const timer =
-                setTimeout(
-                    finish,
-                    duration + 50
-                );
-
-
-            button._adminAnimationTimer =
-                timer;
-
-        }
-    );
+    button.hidden = true;
 
 }
 
@@ -354,31 +317,36 @@ export function updateAdminButton(
         return;
 
 
-    admin = !!admin;
+    const shouldShow =
+        !!admin;
 
 
-    if(admin){
-
-        if(
-            isVisible(button)
-        ){
-
-            return;
-
-        }
-
-
-        showAdminButton(
-            button
+    const isVisible =
+        !button.hidden &&
+        !button.classList.contains(
+            "admin-button--hidden"
         );
 
-        return;
 
-    }
+    const isEntering =
+        button.classList.contains(
+            "admin-button--entering"
+        );
 
+    const isExiting =
+        button.classList.contains(
+            "admin-button--exiting"
+        );
+
+
+    // ==================================
+    // Ничего не изменилось
+    // ==================================
 
     if(
-        isHidden(button)
+        shouldShow &&
+        isVisible &&
+        !isExiting
     ){
 
         return;
@@ -386,61 +354,31 @@ export function updateAdminButton(
     }
 
 
-    hideAdminButton(
-        button
-    );
+    if(
+        !shouldShow &&
+        button.hidden &&
+        !isEntering
+    ){
 
-}
-
-
-// ======================================
-// Set state immediately
-// ======================================
-//
-// Для MutationObserver.
-//
-// Никакой анимации.
-//
-
-export function setAdminButtonState(
-    button,
-    admin
-){
-
-    if(!button)
         return;
 
-
-    cancelAnimation(
-        button
-    );
+    }
 
 
-    button.classList.remove(
-        "admin-button--entering"
-    );
+    // ==================================
+    // State transition
+    // ==================================
 
-    button.classList.remove(
-        "admin-button--exiting"
-    );
+    if(shouldShow){
 
-
-    if(admin){
-
-        button.hidden =
-            false;
-
-        button.classList.remove(
-            "admin-button--hidden"
+        showAdminButton(
+            button
         );
 
     }else{
 
-        button.hidden =
-            true;
-
-        button.classList.add(
-            "admin-button--hidden"
+        hideAdminButton(
+            button
         );
 
     }
@@ -486,6 +424,25 @@ function cancelAnimation(
 
 
 // ======================================
+// Delay
+// ======================================
+
+function delay(
+    milliseconds
+){
+
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                milliseconds
+            )
+    );
+
+}
+
+
+// ======================================
 // Base button
 // ======================================
 
@@ -502,17 +459,17 @@ export function adminButton(
 <button
 class="
 admin-button
-${options.className || ""}
+${options.className||""}
 admin-button--hidden
 "
 hidden
 data-action="${action}"
-${id ? `data-id="${id}"` : ""}
-${title ? `title="${title}"` : ""}
+${id?`data-id="${id}"`:""}
+${title?`title="${title}"`:""}
 >
 
 <img
-src="icons/${icon || getIcon(action)}.svg"
+src="icons/${icon||getIcon(action)}.svg"
 class="admin-icon">
 
 </button>
@@ -540,7 +497,7 @@ export function adminEdit(
 
         "edit",
 
-        options.title ||
+        options.title||
         "Редактировать",
 
         options
@@ -568,7 +525,7 @@ export function adminDelete(
 
         "delete",
 
-        options.title ||
+        options.title||
         "Удалить",
 
         options
@@ -592,12 +549,10 @@ export function adminAdd(
 
 <div
 class="
-${options.className || "entity-list__add"}
+${options.className||"entity-list__add"}
 admin-button
 admin-button--hidden
-${options.disabled
-    ? "admin-button--disabled"
-    : ""}
+${options.disabled?"admin-button--disabled":""}
 "
 hidden
 data-action="${action}"
