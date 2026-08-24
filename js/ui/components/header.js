@@ -3,7 +3,7 @@ import {
     adminLoginButton,
     adminUpdateHeaderButton,
     adminUpdateLogin
-} from "../../admin/adminButtons.js";
+} from "./adminButtons.js";
 import{isAdmin,onAdminStateChanged,logout}from"../../admin/adminMode.js";
 import{openLoginModal}from"./loginModal.js";
 import{openSubjectsModal}from"./subjects.js";
