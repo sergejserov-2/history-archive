@@ -736,6 +736,15 @@ section h2 {
    ADMIN BUTTONS
 ========================================== */
 
+/*
+    Базовое состояние.
+
+    Никаких transition здесь нет.
+
+    Анимацией полностью управляют
+    --entering и --exiting.
+*/
+
 .admin-button{
 
     opacity:1;
@@ -743,28 +752,186 @@ section h2 {
     transform:
         scale(1);
 
-    transition:
-        opacity .18s ease,
-        transform .25s cubic-bezier(.34,1.56,.64,1);
+    transform-origin:
+        center center;
+
+    pointer-events:auto;
 
 }
+
+/*
+    Полностью скрытое состояние.
+
+    hidden используется JS отдельно.
+
+    Этот класс нужен для состояния
+    до появления элемента.
+*/
 
 .admin-button--hidden{
 
     opacity:0;
 
     transform:
-        scale(.85);
+        scale(0);
 
     pointer-events:none;
 
 }
 
-/* маленькие */
+/*
+    =========================================
+    ПОЯВЛЕНИЕ
+    =========================================
+
+    Сначала размер:
+
+        0
+        ↓
+        1.08
+        ↓
+        .96
+        ↓
+        1
+
+    И только после этого
+    появляется opacity.
+*/
+
+.admin-button--entering{
+
+    animation:
+        admin-button-enter
+        .42s
+        both;
+
+}
+
+/*
+    =========================================
+    ИСЧЕЗНОВЕНИЕ
+    =========================================
+*/
+
+.admin-button--exiting{
+
+    animation:
+        admin-button-exit
+        .30s
+        both;
+
+}
+
+/*
+    Появление.
+
+    Первые ~70%:
+    opacity = 0
+
+    Последняя часть:
+    opacity появляется.
+
+    Поэтому кнопка сначала
+    "выпрыгивает", а затем
+    мягко проявляется.
+*/
+
+@keyframes admin-button-enter{
+
+    0%{
+
+        opacity:0;
+
+        transform:
+            scale(0);
+
+    }
+
+    55%{
+
+        opacity:0;
+
+        transform:
+            scale(1.08);
+
+    }
+
+    72%{
+
+        opacity:0;
+
+        transform:
+            scale(.96);
+
+    }
+
+    100%{
+
+        opacity:1;
+
+        transform:
+            scale(1);
+
+    }
+
+}
+
+/*
+    Обратная анимация.
+
+    Сначала исчезает opacity,
+    затем блок схлопывается
+    обратно в 0.
+*/
+
+@keyframes admin-button-exit{
+
+    0%{
+
+        opacity:1;
+
+        transform:
+            scale(1);
+
+    }
+
+    28%{
+
+        opacity:0;
+
+        transform:
+            scale(.96);
+
+    }
+
+    55%{
+
+        opacity:0;
+
+        transform:
+            scale(1.04);
+
+    }
+
+    100%{
+
+        opacity:0;
+
+        transform:
+            scale(0);
+
+    }
+
+}
+
+/* ==========================================
+   SMALL ADMIN BUTTONS
+========================================== */
 
 button.admin-button{
 
     width:22px;
+
     height:22px;
 
     padding:2px;
@@ -774,12 +941,13 @@ button.admin-button{
 .admin-icon{
 
     width:16px;
+
     height:16px;
 
 }
 
 /* ==========================================
-   ADD BLOCKS
+   ADMIN ADD BLOCKS
 ========================================== */
 
 .entity-list__add,
@@ -789,12 +957,13 @@ button.admin-button{
 
     overflow:hidden;
 
+    transform-origin:
+        center center;
+
     transition:
-        opacity .2s ease,
-        transform .25s ease,
-        max-height .3s ease,
-        padding .3s ease,
-        margin .3s ease;
+        max-height .32s ease,
+        padding .32s ease,
+        margin .32s ease;
 
 }
 
@@ -802,8 +971,6 @@ button.admin-button{
 .photo-card--add.admin-button--hidden,
 .source--add.admin-button--hidden,
 .child-card--add.admin-button--hidden{
-
-    opacity:0;
 
     max-height:0;
 
@@ -814,65 +981,6 @@ button.admin-button{
     margin-bottom:0;
 
     transform:
-        scale(.96);
-
-}
-
-
-/* ==========================================
-   BLOCK ANIMATION
-========================================== */
-
-.block-collapsed{
-
-    opacity:0;
-
-    max-height:0;
-
-    overflow:hidden;
-
-    transform:
-        translateY(-10px);
-
-}
-
-.block-expanded{
-
-    opacity:1;
-
-    max-height:2000px;
-
-    transform:
-        translateY(0);
-
-    transition:
-
-        opacity .25s ease,
-
-        max-height .35s ease,
-
-        transform .3s
-        cubic-bezier(.34,1.56,.64,1);
-
-}
-
-.block-removing{
-
-    opacity:0;
-
-    max-height:0 !important;
-
-    transform:
-        translateY(-10px);
-
-    overflow:hidden;
-
-    transition:
-
-        opacity .2s ease,
-
-        max-height .3s ease,
-
-        transform .25s ease;
+        scale(0);
 
 }
