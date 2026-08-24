@@ -192,7 +192,8 @@ export function renderSources(
                         ?
 
                         `
-                        <span class="source__date">${source.date}
+                        <span class="source__date">
+                        ${source.date}
                         </span>
                         `
 
