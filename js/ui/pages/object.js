@@ -3,6 +3,9 @@ import {
     adminDelete
 } from "../components/adminButtons.js";
 import{onAdminStateChanged}from"../../admin/adminMode.js";
+import {
+    initAdminController
+} from "../../admin/adminController.js";
 import{initAdmin}from"../../admin/admin.js";
 import{getObject,getType,getParents,getChildren,getAllObjects}from"../../api/objects.js";
 import{getTypes}from"../../api/types.js";
@@ -28,6 +31,7 @@ import{initCoverDrag}from"../components/coverDrag.js";
 import{initPageLoader,revealPage}from"../components/pageLoader.js";
 
 initPageLoader();
+initAdminController();
 
 const params=new URLSearchParams(window.location.search);
 const objectId=params.get("id");
