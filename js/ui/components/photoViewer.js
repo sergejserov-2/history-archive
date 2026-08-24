@@ -4,7 +4,7 @@ import{createViewerControls}from"./viewerControls.js";
 import {
     adminEdit,
     adminDelete
-} from "../../admin/adminButtons.js";
+} from "./adminButtons.js";
 import {
     isAdmin
 } from "../../admin/adminMode.js";
