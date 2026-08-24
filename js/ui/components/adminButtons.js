@@ -175,16 +175,16 @@ export function hideAdminButton(
     }
 
 
-    // ----------------------------------
-    // Сначала визуально исчезаем
-    // ----------------------------------
-
-    button.classList.remove(
-        "admin-button--entering"
-    );
+    // ==================================
+    // Этап 1 — исчезновение
+    // ==================================
 
     button.classList.remove(
         "admin-button--hidden"
+    );
+
+    button.classList.remove(
+        "admin-button--entering"
     );
 
     button.classList.add(
@@ -200,10 +200,9 @@ export function hideAdminButton(
             );
 
 
-            // ----------------------------------
-            // Только теперь схлопываем
-            // геометрию.
-            // ----------------------------------
+            // ==================================
+            // Этап 2 — схлопывание
+            // ==================================
 
             animateCollapse(
                 button
