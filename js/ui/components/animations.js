@@ -2,7 +2,7 @@
 // Universal block animations
 // ======================================
 //
-// Отвечает только за геометрию:
+// Отвечает только за геометрию блока:
 //
 // height
 // padding
@@ -11,11 +11,12 @@
 // Никакого opacity.
 // Никакого scale.
 //
-// Анимация возвращает callback после
-// завершения геометрической фазы.
+// Используется как универсальный механизм
+// для больших и маленьких динамических
+// элементов.
 // ======================================
 
-const EXPAND_DURATION = 260;
+const EXPAND_DURATION = 280;
 const COLLAPSE_DURATION = 240;
 
 
@@ -36,6 +37,8 @@ export function animateExpand(
         element
     );
 
+
+    // Элемент обязан быть в layout.
 
     element.hidden = false;
 
@@ -89,7 +92,7 @@ export function animateExpand(
         "0px";
 
 
-    // Принудительно фиксируем
+    // Принудительно применяем
     // начальное состояние.
 
     element.offsetHeight;
@@ -107,6 +110,10 @@ export function animateExpand(
         margin-bottom ${EXPAND_DURATION}ms ease
     `;
 
+
+    // ----------------------------------
+    // Запуск
+    // ----------------------------------
 
     requestAnimationFrame(()=>{
 
@@ -129,7 +136,7 @@ export function animateExpand(
 
 
     // ----------------------------------
-    // Finish
+    // Завершение
     // ----------------------------------
 
     const finish = ()=>{
@@ -171,7 +178,7 @@ export function animateExpand(
     element._sizeAnimationTimer =
         setTimeout(
             finish,
-            EXPAND_DURATION + 20
+            EXPAND_DURATION + 30
         );
 
 }
@@ -193,6 +200,9 @@ export function animateCollapse(
     cancelSizeAnimation(
         element
     );
+
+
+    element.hidden = false;
 
 
     const computed =
@@ -221,8 +231,9 @@ export function animateCollapse(
         computed.marginBottom;
 
 
-    element.hidden = false;
-
+    // ----------------------------------
+    // Фиксируем текущее состояние
+    // ----------------------------------
 
     element.style.overflow =
         "hidden";
@@ -243,9 +254,6 @@ export function animateCollapse(
         currentMarginBottom;
 
 
-    // Принудительно применяем
-    // текущее состояние.
-
     element.offsetHeight;
 
 
@@ -261,6 +269,10 @@ export function animateCollapse(
         margin-bottom ${COLLAPSE_DURATION}ms ease
     `;
 
+
+    // ----------------------------------
+    // Запуск
+    // ----------------------------------
 
     requestAnimationFrame(()=>{
 
@@ -283,7 +295,7 @@ export function animateCollapse(
 
 
     // ----------------------------------
-    // Finish
+    // Завершение
     // ----------------------------------
 
     const finish = ()=>{
@@ -309,6 +321,9 @@ export function animateCollapse(
         element.style.overflow =
             "";
 
+        element.hidden =
+            true;
+
         element._sizeAnimationTimer =
             null;
 
@@ -325,7 +340,7 @@ export function animateCollapse(
     element._sizeAnimationTimer =
         setTimeout(
             finish,
-            COLLAPSE_DURATION + 20
+            COLLAPSE_DURATION + 30
         );
 
 }
@@ -334,21 +349,9 @@ export function animateCollapse(
 // ======================================
 // Resize
 // ======================================
-//
-// Используется, когда уже открытый
-// блок изменил содержимое.
-//
-// Например:
-//
-// 2 строки → 8 строк
-// 8 строк → 2 строки
-//
-// Блок плавно переходит на новую высоту.
-// ======================================
 
 export function animateResize(
-    element,
-    callback = null
+    element
 ){
 
     if(!element)
@@ -391,12 +394,6 @@ export function animateResize(
         element.style.overflow =
             "";
 
-        if(callback){
-
-            callback();
-
-        }
-
         return;
 
     }
@@ -430,14 +427,7 @@ export function animateResize(
             element._sizeAnimationTimer =
                 null;
 
-
-            if(callback){
-
-                callback();
-
-            }
-
-        }, EXPAND_DURATION + 20);
+        }, EXPAND_DURATION + 30);
 
 }
 
