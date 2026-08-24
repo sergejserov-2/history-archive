@@ -29,38 +29,70 @@ export function showAdminButton(
 // Hide
 // ======================================
 
-export function hideAdminButton(
-    button
-){
+function hideAdminButton(button){
 
     if(!button)
+        return;
+
+    // Если кнопка уже скрыта —
+    // ничего не делаем.
+
+    if(button.hidden)
         return;
 
     button.classList.add(
         "admin-button--hidden"
     );
 
+    const hide = ()=>{
+
+        if(
+            button.classList.contains(
+                "admin-button--hidden"
+            )
+        ){
+
+            button.hidden = true;
+
+        }
+
+    };
+
+    // Основной вариант:
+    // ждём завершения анимации opacity.
+
+    const onTransitionEnd = event =>{
+
+        if(
+            event.propertyName !==
+            "opacity"
+        ){
+
+            return;
+
+        }
+
+        hide();
+
+        button.removeEventListener(
+            "transitionend",
+            onTransitionEnd
+        );
+
+    };
+
     button.addEventListener(
         "transitionend",
-        ()=>{
+        onTransitionEnd
+    );
 
-            // Проверяем, что кнопка всё ещё
-            // должна быть скрыта.
+    // Резервный вариант.
+    // Если transitionend по какой-либо причине
+    // не пришёл — всё равно полностью скрываем.
 
-            if(
-                button.classList.contains(
-                    "admin-button--hidden"
-                )
-            ){
-
-                button.hidden = true;
-
-            }
-
-        },
-        {
-            once:true
-        }
+    setTimeout(
+        hide,
+        300
     );
 
 }
