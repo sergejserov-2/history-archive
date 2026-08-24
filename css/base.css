@@ -732,39 +732,18 @@ section h2 {
 
 
 
-/* ==========================================
-   ADMIN BUTTON ANIMATION
-========================================== */
-
 .admin-button{
-
-    opacity:0;
-
-    transform:
-        scale(.85);
-
-    pointer-events:none;
-
-    transition:
-        opacity .18s ease,
-        transform .25s cubic-bezier(.34,1.56,.64,1);
-
-}
-
-/* появление */
-
-.admin-button--visible{
 
     opacity:1;
 
     transform:
         scale(1);
 
-    pointer-events:auto;
+    transition:
+        opacity .18s ease,
+        transform .25s cubic-bezier(.34,1.56,.64,1);
 
 }
-
-/* исчезновение */
 
 .admin-button--hidden{
 
@@ -777,65 +756,68 @@ section h2 {
 
 }
 
-/* ==========================================
-   SMALL ICON BUTTONS
-========================================== */
-
 button.admin-button{
 
     width:22px;
     height:22px;
-    padding:2px !important;
+    padding:2px;
 
 }
-
-/* ==========================================
-   LARGE ADD BUTTONS
-========================================== */
-
-.entity-list__add.admin-button,
-.photo-card--add.admin-button,
-.source--add.admin-button,
-.child-card--add.admin-button,
-.record--add.admin-button{
-
-    transition:
-        opacity .22s ease,
-        transform .25s cubic-bezier(.34,1.56,.64,1);
-
-}
-
-/* ==========================================
-   ICON
-========================================== */
 
 .admin-icon{
 
     width:16px;
     height:16px;
 
-    display:block;
+}
+
+/* большие кнопки */
+
+.entity-list__add,
+.photo-card--add,
+.source--add,
+.child-card--add{
+
+    overflow:hidden;
+
+    transition:
+        opacity .2s ease,
+        transform .25s ease;
 
 }
 
-/* ==========================================
-   DISABLED ADMIN BUTTON
-========================================== */
+.entity-list__add.admin-button--hidden,
+.photo-card--add.admin-button--hidden,
+.source--add.admin-button--hidden,
+.child-card--add.admin-button--hidden{
 
-.admin-button--disabled{
+    opacity:0;
 
-    opacity:.35 !important;
-
-    cursor:not-allowed !important;
+    transform:
+        scale(.96);
 
 }
 
-.admin-button--disabled:hover{
+.block-enter{
 
-    background:
-        var(--color-admin-bg) !important;
+    opacity:0;
 
-    border-color:
-        var(--color-admin-border) !important;
+    transform:
+        translateY(-8px)
+        scale(.98);
+
+}
+
+.block-enter-active{
+
+    opacity:1;
+
+    transform:
+        translateY(0)
+        scale(1);
+
+    transition:
+        opacity .22s ease,
+        transform .28s cubic-bezier(.34,1.56,.64,1);
 
 }
