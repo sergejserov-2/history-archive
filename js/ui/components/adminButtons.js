@@ -16,6 +16,12 @@ export function setAdminButtonsEnabled(value){
 
 }
 
+export function isAdminButtonsEnabled(){
+
+    return enabled;
+
+}
+
 // ======================================
 // Refresh
 // ======================================
@@ -106,10 +112,9 @@ admin-button
 ${options.className||""}
 admin-button--hidden
 "
-hidden
 data-action="${action}"
-${id?`data-id="${id}`:""}
-title="${title}"
+${id?`data-id="${id}"`:""}
+${title?`title="${title}"`:""}
 >
 
 <img
@@ -133,11 +138,11 @@ options={}
 ){
 
 return adminButton(
-`edit-${type}`,
-id,
-"edit",
-options.title||"Редактировать",
-options
+    `edit-${type}`,
+    id,
+    "edit",
+    options.title||"Редактировать",
+    options
 );
 
 }
@@ -153,10 +158,11 @@ options={}
 ){
 
 return adminButton(
-`delete-${type}`,
-id,
-"delete",
-options
+    `delete-${type}`,
+    id,
+    "delete",
+    options.title||"Удалить",
+    options
 );
 
 }
@@ -178,8 +184,8 @@ class="
 ${options.className||"entity-list__add"}
 admin-button
 admin-button--hidden
+${options.disabled?"admin-button--disabled":""}
 "
-hidden
 data-action="${action}"
 >
 
@@ -211,7 +217,6 @@ header__button--admin
 admin-button
 admin-button--hidden
 "
-hidden
 title="${title}"
 >
 
@@ -275,8 +280,8 @@ admin
 `;
 
 button.classList.toggle(
-"header__button--admin",
-admin
+    "header__button--admin",
+    admin
 );
 
 }
@@ -310,12 +315,12 @@ if(admin){
 
 function getIcon(action){
 
-if(action.startsWith("edit"))
-return "edit";
+    if(action.startsWith("edit"))
+        return "edit";
 
-if(action.startsWith("delete"))
-return "delete";
+    if(action.startsWith("delete"))
+        return "delete";
 
-return "edit";
+    return "edit";
 
 }
