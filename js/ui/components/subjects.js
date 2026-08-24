@@ -35,7 +35,7 @@ export async function openSubjectsModal({page=null,updates=null}={}){
         title:"Субъекты",
         content:renderSubjectsList(
             subjects,
-            subjectTypes,
+            subjectTypes
         ),
         width:525
     });
@@ -113,7 +113,7 @@ export async function refreshSubjectsModal(){
     currentSubjectsModal.setContent(
         renderSubjectsList(
             subjects,
-            subjectTypes,
+            subjectTypes
         )
     );
 }
@@ -202,8 +202,7 @@ function renderSubjectsList(
         adminAdd(
             "add-subject",
             "Добавить субъект"
-        )
-        :"";
+        );
 
     return renderEntityList({
         groups,
