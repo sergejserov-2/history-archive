@@ -1,12 +1,24 @@
-let enabled=false;
+// ======================================
+// Admin buttons
+// ======================================
+
+let enabled = false;
+
+// ======================================
+// State
+// ======================================
 
 export function setAdminButtonsEnabled(value){
 
-    enabled=value;
+    enabled = value;
 
     refreshAdminButtons();
 
 }
+
+// ======================================
+// Refresh
+// ======================================
 
 export function refreshAdminButtons(){
 
@@ -16,43 +28,67 @@ export function refreshAdminButtons(){
 
             if(enabled){
 
-                button.hidden=false;
+                showAdminButton(button);
 
-                requestAnimationFrame(()=>{
+            }else{
 
-                    button.classList.remove(
-                        "admin-button--hidden"
-                    );
-
-                });
-
-                return;
+                hideAdminButton(button);
 
             }
-
-            button.classList.add(
-                "admin-button--hidden"
-            );
-
-            button.addEventListener(
-                "transitionend",
-                ()=>{
-
-                    if(!enabled){
-
-                        button.hidden=true;
-
-                    }
-
-                },
-                {
-                    once:true
-                }
-            );
 
         });
 
 }
+
+// ======================================
+// Show
+// ======================================
+
+function showAdminButton(button){
+
+    button.hidden=false;
+
+    requestAnimationFrame(()=>{
+
+        button.classList.remove(
+            "admin-button--hidden"
+        );
+
+    });
+
+}
+
+// ======================================
+// Hide
+// ======================================
+
+function hideAdminButton(button){
+
+    button.classList.add(
+        "admin-button--hidden"
+    );
+
+    button.addEventListener(
+        "transitionend",
+        ()=>{
+
+            if(!enabled){
+
+                button.hidden=true;
+
+            }
+
+        },
+        {
+            once:true
+        }
+    );
+
+}
+
+// ======================================
+// Base button
+// ======================================
 
 export function adminButton(
     action,
@@ -72,20 +108,23 @@ admin-button--hidden
 "
 hidden
 data-action="${action}"
-${id?`data-id="${id}"`:""}
+${id?`data-id="${id}`:""}
 title="${title}"
 >
 
 <img
 src="icons/${icon||getIcon(action)}.svg"
-class="admin-icon"
->
+class="admin-icon">
 
 </button>
 
 `;
 
 }
+
+// ======================================
+// Edit
+// ======================================
 
 export function adminEdit(
 type,
@@ -103,6 +142,10 @@ options
 
 }
 
+// ======================================
+// Delete
+// ======================================
+
 export function adminDelete(
 type,
 id,
@@ -113,11 +156,14 @@ return adminButton(
 `delete-${type}`,
 id,
 "delete",
-options.title||"Удалить",
 options
 );
 
 }
+
+// ======================================
+// Add
+// ======================================
 
 export function adminAdd(
 action,
@@ -132,7 +178,6 @@ class="
 ${options.className||"entity-list__add"}
 admin-button
 admin-button--hidden
-${options.disabled?"admin-button--disabled":""}
 "
 hidden
 data-action="${action}"
@@ -145,6 +190,10 @@ data-action="${action}"
 `;
 
 }
+
+// ======================================
+// Header admin button
+// ======================================
 
 export function adminHeaderButton(
 id,
@@ -176,6 +225,10 @@ class="header-icon">
 
 }
 
+// ======================================
+// Login
+// ======================================
+
 export function adminLoginButton(){
 
 return`
@@ -197,6 +250,10 @@ class="header-icon">
 
 }
 
+// ======================================
+// Login update
+// ======================================
+
 export function adminUpdateLogin(
 button,
 admin
@@ -204,7 +261,7 @@ admin
 
 if(!button)return;
 
-button.innerHTML=
+button.innerHTML =
 admin
 ?
 `
@@ -224,69 +281,32 @@ admin
 
 }
 
-
 // ======================================
-// Update header admin button
+// Header update
 // ======================================
 
 export function adminUpdateHeaderButton(
-    button,
-    admin
+button,
+admin
 ){
 
-    if(!button) return;
+if(!button)return;
 
-    if(admin){
+if(admin){
 
-        button.hidden = false;
+    showAdminButton(button);
 
-        // дать браузеру отрисовать
-        requestAnimationFrame(()=>{
+}else{
 
-            button.classList.add(
-                "admin-button--visible"
-            );
-
-            button.classList.remove(
-                "admin-button--hidden"
-            );
-
-        });
-
-        return;
-
-    }
-
-    button.classList.remove(
-        "admin-button--visible"
-    );
-
-    button.classList.add(
-        "admin-button--hidden"
-    );
-
-    const hide = ()=>{
-
-        if(!admin){
-
-            button.hidden = true;
-
-        }
-
-        button.removeEventListener(
-            "transitionend",
-            hide
-        );
-
-    };
-
-    button.addEventListener(
-        "transitionend",
-        hide
-    );
+    hideAdminButton(button);
 
 }
 
+}
+
+// ======================================
+// Icons
+// ======================================
 
 function getIcon(action){
 
