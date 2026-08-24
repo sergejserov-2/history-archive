@@ -19,7 +19,7 @@ from "../firebase.js";
 import {
     setAdminButtonsEnabled
 }
-from "./adminButtons.js";
+from "../ui/components/adminButtons.js";
 
 // ======================================
 // State
