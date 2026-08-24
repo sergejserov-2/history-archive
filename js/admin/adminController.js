@@ -8,8 +8,7 @@ import {
 from "./adminMode.js";
 
 import {
-    updateAdminButton,
-    setAdminButtonState
+    updateAdminButton
 }
 from "../ui/components/adminButtons.js";
 
@@ -50,14 +49,8 @@ function getAdminButtons(){
 
 
 // ======================================
-// Synchronize all existing buttons
+// Synchronize all buttons
 // ======================================
-//
-// Используется ТОЛЬКО при реальном
-// изменении admin-состояния.
-//
-// Здесь анимация разрешена.
-//
 
 export function syncAdminButtons(){
 
@@ -76,90 +69,6 @@ export function syncAdminButtons(){
 
 
 // ======================================
-// Synchronize newly inserted buttons
-// ======================================
-//
-// Важно:
-//
-// новые кнопки появляются после
-// innerHTML / outerHTML.
-//
-// Они НЕ должны проигрывать
-// entrance-анимацию заново.
-//
-// Просто сразу получают текущее
-// состояние admin UI.
-//
-
-function syncNewAdminButtons(
-    root
-){
-
-    if(!root)
-        return;
-
-
-    const buttons = [];
-
-
-    // Сам добавленный элемент.
-
-    if(
-        root.nodeType ===
-        Node.ELEMENT_NODE
-    ){
-
-        if(
-            root.matches?.(
-                ".admin-button"
-            )
-        ){
-
-            buttons.push(
-                root
-            );
-
-        }
-
-
-        // Кнопки внутри добавленного
-        // элемента.
-
-        root
-            .querySelectorAll?.(
-                ".admin-button"
-            )
-            .forEach(
-                button => {
-
-                    buttons.push(
-                        button
-                    );
-
-                }
-            );
-
-    }
-
-
-    // Устанавливаем состояние
-    // без анимации.
-
-    buttons.forEach(
-        button => {
-
-            setAdminButtonState(
-                button,
-                currentAdminState
-            );
-
-        }
-    );
-
-}
-
-
-// ======================================
 // Auth state changed
 // ======================================
 
@@ -167,21 +76,17 @@ function handleAdminStateChanged(
     admin
 ){
 
-    admin = !!admin;
+    const nextState =
+        !!admin;
 
 
     // ==================================
     // Ничего не изменилось
     // ==================================
-    //
-    // Firebase / другие подписчики могут
-    // повторно сообщить то же состояние.
-    //
-    // В этом случае вообще ничего
-    // не трогаем.
 
     if(
-        admin === currentAdminState
+        nextState ===
+        currentAdminState
     ){
 
         return;
@@ -189,16 +94,9 @@ function handleAdminStateChanged(
     }
 
 
-    // ==================================
-    // Реальное изменение состояния
-    // ==================================
-
     currentAdminState =
-        admin;
+        nextState;
 
-
-    // Только здесь запускается
-    // анимация существующих кнопок.
 
     syncAdminButtons();
 
@@ -208,16 +106,6 @@ function handleAdminStateChanged(
 // ======================================
 // Observe dynamically inserted HTML
 // ======================================
-//
-// Observer НЕ вызывает syncAdminButtons().
-//
-// Иначе любой innerHTML / outerHTML
-// повторно запускал бы анимацию всех
-// кнопок на странице.
-//
-// Observer только мгновенно выставляет
-// состояние новым кнопкам.
-//
 
 function observeAdminButtons(){
 
@@ -233,6 +121,10 @@ function observeAdminButtons(){
         new MutationObserver(
             mutations => {
 
+                let hasNewButtons =
+                    false;
+
+
                 mutations.forEach(
                     mutation => {
 
@@ -240,15 +132,55 @@ function observeAdminButtons(){
                             .forEach(
                                 node => {
 
-                                    syncNewAdminButtons(
-                                        node
-                                    );
+                                    if(
+                                        node.nodeType !==
+                                        Node.ELEMENT_NODE
+                                    ){
+
+                                        return;
+
+                                    }
+
+
+                                    if(
+                                        node.matches?.(
+                                            ".admin-button"
+                                        )
+                                    ){
+
+                                        hasNewButtons =
+                                            true;
+
+                                        return;
+
+                                    }
+
+
+                                    if(
+                                        node.querySelector?.(
+                                            ".admin-button"
+                                        )
+                                    ){
+
+                                        hasNewButtons =
+                                            true;
+
+                                    }
 
                                 }
                             );
 
                     }
                 );
+
+
+                if(
+                    hasNewButtons
+                ){
+
+                    syncAdminButtons();
+
+                }
 
             }
         );
@@ -259,8 +191,8 @@ function observeAdminButtons(){
         document.body,
 
         {
-            childList: true,
-            subtree: true
+            childList:true,
+            subtree:true
         }
 
     );
@@ -281,18 +213,10 @@ export function initAdminController(){
     initialized = true;
 
 
-    // ==================================
-    // Firebase auth state
-    // ==================================
-
     onAdminStateChanged(
         handleAdminStateChanged
     );
 
-
-    // ==================================
-    // Dynamic buttons
-    // ==================================
 
     observeAdminButtons();
 
@@ -312,7 +236,7 @@ if(
         "DOMContentLoaded",
         initAdminController,
         {
-            once: true
+            once:true
         }
     );
 
