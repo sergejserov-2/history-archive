@@ -817,3 +817,62 @@ button.admin-button{
         scale(.96);
 
 }
+
+
+/* ==========================================
+   BLOCK ANIMATION
+========================================== */
+
+.block-collapsed{
+
+    opacity:0;
+
+    max-height:0;
+
+    overflow:hidden;
+
+    transform:
+        translateY(-10px);
+
+}
+
+.block-expanded{
+
+    opacity:1;
+
+    max-height:2000px;
+
+    transform:
+        translateY(0);
+
+    transition:
+
+        opacity .25s ease,
+
+        max-height .35s ease,
+
+        transform .3s
+        cubic-bezier(.34,1.56,.64,1);
+
+}
+
+.block-removing{
+
+    opacity:0;
+
+    max-height:0 !important;
+
+    transform:
+        translateY(-10px);
+
+    overflow:hidden;
+
+    transition:
+
+        opacity .2s ease,
+
+        max-height .3s ease,
+
+        transform .25s ease;
+
+}
