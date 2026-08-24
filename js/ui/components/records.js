@@ -1,5 +1,10 @@
 import {renderMentions,getSubjectHref} from "./mentionLink.js";
 import {renderEntityList} from "./entityList.js";
+import{
+    adminEdit,
+    adminDelete,
+    adminAdd
+}from"./adminButtons.js";
 
 export function renderRecords(records,recordTypes=[],ADMIN_MODE=false,subjects=[]){
 
@@ -32,27 +37,17 @@ export function renderRecords(records,recordTypes=[],ADMIN_MODE=false,subjects=[
                 :"",
             meta:period,
             actions:ADMIN_MODE
-                ?`
-                <button
-                    class="admin-button"
-                    data-action="edit-record"
-                    data-id="${record.id}"
-                >
-                    <img
-                        src="icons/edit.svg"
-                        class="admin-icon"
-                    >
-                </button>
-                <button
-                    class="admin-button"
-                    data-action="delete-record"
-                    data-id="${record.id}"
-                >
-                    <img
-                        src="icons/delete.svg"
-                        class="admin-icon"
-                    >
-                </button>
+                ?
+                `
+                ${adminEdit(
+                    "record",
+                    record.id
+                )}
+            
+                ${adminDelete(
+                    "record",
+                    record.id
+                )}
                 `
                 :""
         };
@@ -102,14 +97,11 @@ const recordsWithoutType=
         ${renderEntityList({
             groups,
             addButton:ADMIN_MODE
-                ?`
-                <div
-                    class="entity-list__add admin-button"
-                    data-action="add-record"
-                >
-                    + Добавить запись
-                </div>
-                `
+                ?
+                adminAdd(
+                    "add-record",
+                    "Добавить запись"
+                )
                 :""
         })}
     </div>
