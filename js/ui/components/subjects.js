@@ -4,7 +4,6 @@ import{getAllObjects}from"../../api/objects.js";
 import{getAllPhotos}from"../../api/photos.js";
 import{getAllSources}from"../../api/sources.js";
 import{getAllRecords}from"../../api/records.js";
-import{isAdmin}from"../../admin/adminMode.js";
 import{openSubjectModal}from"./subject.js";
 import{createModal}from"./modal.js";
 import{setModalUrl}from"./modalReload.js";
@@ -37,7 +36,6 @@ export async function openSubjectsModal({page=null,updates=null}={}){
         content:renderSubjectsList(
             subjects,
             subjectTypes,
-            isAdmin()
         ),
         width:525
     });
@@ -116,14 +114,12 @@ export async function refreshSubjectsModal(){
         renderSubjectsList(
             subjects,
             subjectTypes,
-            isAdmin()
         )
     );
 }
 function renderSubjectsList(
     subjects=[],
-    subjectTypes=[],
-    ADMIN_MODE=false
+    subjectTypes=[]
 ){
     const groups=subjectTypes.map(type=>{
         const items=subjects
@@ -141,8 +137,7 @@ function renderSubjectsList(
                     subject.title??"Без названия"
                 ),
                 meta:formatSubjectYears(subject),
-               actions:ADMIN_MODE
-                    ?
+               actions:
                     `
                     ${adminEdit(
                         "subject",
@@ -154,7 +149,6 @@ function renderSubjectsList(
                         escapeHTML(subject.id)
                     )}
                     `
-                    :""
             }));
 
         return{
@@ -183,8 +177,7 @@ function renderSubjectsList(
                 subject.title??"Без названия"
             ),
             meta:formatSubjectYears(subject),
-            actions:ADMIN_MODE
-                ?
+            actions:
                 `
                 ${adminEdit(
                     "subject",
@@ -196,7 +189,6 @@ function renderSubjectsList(
                     escapeHTML(subject.id)
                 )}
                 `
-                :""
         }));
 
     if(untypedItems.length){
@@ -206,8 +198,7 @@ function renderSubjectsList(
         });
     }
     
-    const addButton=ADMIN_MODE
-        ?
+    const addButton=
         adminAdd(
             "add-subject",
             "Добавить субъект"
