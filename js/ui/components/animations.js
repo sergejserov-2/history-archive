@@ -94,6 +94,10 @@ export function animateExpand(
 // Collapse
 // ======================================
 
+// ======================================
+// Collapse
+// ======================================
+
 export function animateCollapse(
     element
 ){
@@ -120,6 +124,13 @@ export function animateCollapse(
     element.style.height =
         `${currentHeight}px`;
 
+    // ВАЖНО:
+    // min-height не должен мешать
+    // геометрическому схлопыванию до 0.
+
+    element.style.minHeight =
+        "0px";
+
 
     element.offsetHeight;
 
@@ -142,6 +153,9 @@ export function animateCollapse(
             setTimeout(()=>{
 
                 element.style.height =
+                    "";
+
+                element.style.minHeight =
                     "";
 
                 element.style.transition =
