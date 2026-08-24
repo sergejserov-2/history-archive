@@ -732,6 +732,10 @@ section h2 {
 
 
 
+/* ==========================================
+   ADMIN BUTTONS
+========================================== */
+
 .admin-button{
 
     opacity:1;
@@ -756,10 +760,13 @@ section h2 {
 
 }
 
+/* маленькие */
+
 button.admin-button{
 
     width:22px;
     height:22px;
+
     padding:2px;
 
 }
@@ -771,7 +778,9 @@ button.admin-button{
 
 }
 
-/* большие кнопки */
+/* ==========================================
+   ADD BLOCKS
+========================================== */
 
 .entity-list__add,
 .photo-card--add,
@@ -782,7 +791,10 @@ button.admin-button{
 
     transition:
         opacity .2s ease,
-        transform .25s ease;
+        transform .25s ease,
+        max-height .3s ease,
+        padding .3s ease,
+        margin .3s ease;
 
 }
 
@@ -793,31 +805,15 @@ button.admin-button{
 
     opacity:0;
 
+    max-height:0;
+
+    padding-top:0;
+    padding-bottom:0;
+
+    margin-top:0;
+    margin-bottom:0;
+
     transform:
         scale(.96);
-
-}
-
-.block-enter{
-
-    opacity:0;
-
-    transform:
-        translateY(-8px)
-        scale(.98);
-
-}
-
-.block-enter-active{
-
-    opacity:1;
-
-    transform:
-        translateY(0)
-        scale(1);
-
-    transition:
-        opacity .22s ease,
-        transform .28s cubic-bezier(.34,1.56,.64,1);
 
 }
