@@ -1,9 +1,49 @@
+import {
+    animateExpand,
+    animateCollapse
+} from "./animations.js";
+
+
 // ======================================
 // Admin buttons
 // ======================================
 
 const ENTER_DURATION = 420;
 const EXIT_DURATION = 300;
+
+
+// ======================================
+// Large admin blocks
+// ======================================
+
+function isExpandableAdminBlock(
+    element
+){
+
+    if(!element)
+        return false;
+
+
+    return (
+        element.classList.contains(
+            "entity-list__add"
+        )
+        ||
+        element.classList.contains(
+            "photo-card--add"
+        )
+        ||
+        element.classList.contains(
+            "source--add"
+        )
+        ||
+        element.classList.contains(
+            "child-card--add"
+        )
+    );
+
+}
+
 
 // ======================================
 // Show
@@ -16,23 +56,106 @@ export function showAdminButton(
     if(!button)
         return;
 
-    // Отменяем предыдущую анимацию
 
-    cancelAnimation(button);
+    // Отменяем предыдущую анимацию.
 
-    // Элемент должен существовать
-    // в layout перед запуском анимации.
+    cancelAnimation(
+        button
+    );
+
+
+    // ----------------------------------
+    // Большой блок
+    // ----------------------------------
+
+    if(
+        isExpandableAdminBlock(
+            button
+        )
+    ){
+
+        button.hidden = false;
+
+        button.classList.add(
+            "admin-button--hidden"
+        );
+
+
+        requestAnimationFrame(()=>{
+
+            if(button.hidden)
+                return;
+
+
+            // Запускаем геометрическое
+            // раскрытие.
+
+            animateExpand(
+                button
+            );
+
+
+            // Убираем hidden-состояние
+            // только после того, как блок
+            // уже появился в layout.
+
+            button.classList.remove(
+                "admin-button--hidden"
+            );
+
+
+            button.classList.add(
+                "admin-button--entering"
+            );
+
+
+            const finish = ()=>{
+
+                button.classList.remove(
+                    "admin-button--entering"
+                );
+
+                button.removeEventListener(
+                    "animationend",
+                    finish
+                );
+
+            };
+
+
+            button.addEventListener(
+                "animationend",
+                finish,
+                {
+                    once:true
+                }
+            );
+
+
+            button._adminAnimationTimer =
+                setTimeout(
+                    finish,
+                    ENTER_DURATION + 50
+                );
+
+        });
+
+        return;
+
+    }
+
+
+    // ----------------------------------
+    // Обычная маленькая кнопка
+    // ----------------------------------
 
     button.hidden = false;
 
-    // Состояние скрытого элемента
 
     button.classList.add(
         "admin-button--hidden"
     );
 
-    // Первый кадр:
-    // scale(0), opacity(0)
 
     requestAnimationFrame(()=>{
 
@@ -43,6 +166,7 @@ export function showAdminButton(
             return;
 
         }
+
 
         button.classList.remove(
             "admin-button--hidden"
@@ -55,6 +179,7 @@ export function showAdminButton(
         button.classList.add(
             "admin-button--entering"
         );
+
 
         const finish = ()=>{
 
@@ -73,6 +198,7 @@ export function showAdminButton(
 
         };
 
+
         button.addEventListener(
             "animationend",
             finish,
@@ -81,7 +207,6 @@ export function showAdminButton(
             }
         );
 
-        // Резерв
 
         button._adminAnimationTimer =
             setTimeout(
@@ -92,6 +217,7 @@ export function showAdminButton(
     });
 
 }
+
 
 // ======================================
 // Hide
@@ -104,9 +230,96 @@ export function hideAdminButton(
     if(!button)
         return;
 
-    cancelAnimation(button);
 
-    // Уже полностью скрыта
+    cancelAnimation(
+        button
+    );
+
+
+    // ----------------------------------
+    // Большой блок
+    // ----------------------------------
+
+    if(
+        isExpandableAdminBlock(
+            button
+        )
+    ){
+
+        if(button.hidden){
+
+            button.classList.add(
+                "admin-button--hidden"
+            );
+
+            return;
+
+        }
+
+
+        // Сначала запускаем
+        // геометрическое схлопывание.
+
+        animateCollapse(
+            button
+        );
+
+
+        // Одновременно запускаем
+        // уже существующую визуальную
+        // анимацию opacity + scale.
+
+        button.classList.remove(
+            "admin-button--entering"
+        );
+
+        button.classList.add(
+            "admin-button--exiting"
+        );
+
+
+        const finish = ()=>{
+
+            button.classList.remove(
+                "admin-button--exiting"
+            );
+
+            button.classList.add(
+                "admin-button--hidden"
+            );
+
+            button.removeEventListener(
+                "animationend",
+                finish
+            );
+
+        };
+
+
+        button.addEventListener(
+            "animationend",
+            finish,
+            {
+                once:true
+            }
+        );
+
+
+        button._adminAnimationTimer =
+            setTimeout(
+                finish,
+                EXIT_DURATION + 50
+            );
+
+
+        return;
+
+    }
+
+
+    // ----------------------------------
+    // Обычная маленькая кнопка
+    // ----------------------------------
 
     if(button.hidden){
 
@@ -118,6 +331,7 @@ export function hideAdminButton(
 
     }
 
+
     button.classList.remove(
         "admin-button--entering"
     );
@@ -125,6 +339,7 @@ export function hideAdminButton(
     button.classList.add(
         "admin-button--exiting"
     );
+
 
     const finish = ()=>{
 
@@ -138,12 +353,14 @@ export function hideAdminButton(
 
         button.hidden = true;
 
+
         button.removeEventListener(
             "animationend",
             finish
         );
 
     };
+
 
     button.addEventListener(
         "animationend",
@@ -153,7 +370,6 @@ export function hideAdminButton(
         }
     );
 
-    // Резерв
 
     button._adminAnimationTimer =
         setTimeout(
@@ -162,6 +378,7 @@ export function hideAdminButton(
         );
 
 }
+
 
 // ======================================
 // Update one button
@@ -174,6 +391,7 @@ export function updateAdminButton(
 
     if(!button)
         return;
+
 
     if(admin){
 
@@ -190,6 +408,7 @@ export function updateAdminButton(
     }
 
 }
+
 
 // ======================================
 // Cancel animation
@@ -212,6 +431,7 @@ function cancelAnimation(
 
     }
 
+
     button.classList.remove(
         "admin-button--entering"
     );
@@ -221,6 +441,7 @@ function cancelAnimation(
     );
 
 }
+
 
 // ======================================
 // Base button
@@ -258,6 +479,7 @@ class="admin-icon">
 
 }
 
+
 // ======================================
 // Edit
 // ======================================
@@ -285,6 +507,7 @@ export function adminEdit(
 
 }
 
+
 // ======================================
 // Delete
 // ======================================
@@ -311,6 +534,7 @@ export function adminDelete(
     );
 
 }
+
 
 // ======================================
 // Add
@@ -342,6 +566,7 @@ data-action="${action}"
 `;
 
 }
+
 
 // ======================================
 // Header admin button
@@ -377,6 +602,7 @@ class="header-icon">
 
 }
 
+
 // ======================================
 // Login button
 // ======================================
@@ -402,6 +628,7 @@ class="header-icon">
 
 }
 
+
 // ======================================
 // Login button update
 // ======================================
@@ -413,6 +640,7 @@ export function adminUpdateLogin(
 
     if(!button)
         return;
+
 
     button.innerHTML =
 
@@ -438,12 +666,14 @@ class="header-icon">
 Войти
 `;
 
+
     button.classList.toggle(
         "header__button--admin",
         admin
     );
 
 }
+
 
 // ======================================
 // Header admin button update
@@ -461,6 +691,7 @@ export function adminUpdateHeaderButton(
 
 }
 
+
 // ======================================
 // Icons
 // ======================================
@@ -477,6 +708,7 @@ function getIcon(
 
     }
 
+
     if(
         action.startsWith("delete")
     ){
@@ -484,6 +716,7 @@ function getIcon(
         return "delete";
 
     }
+
 
     return "edit";
 
