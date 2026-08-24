@@ -282,16 +282,11 @@ function renderObjectBlock(){
                 }
 
                 ${
-                    pageAdminMode||
-                    pageRecords.length
-                    ?
                     renderRecords(
                         pageRecords,
                         pageRecordTypes,
                         pageSubjects
                     )
-                    :
-                    ""
                 }
 
             </div>
@@ -357,9 +352,6 @@ async function renderPage(){
             }
 
             ${
-                pageAdminMode||
-                pageSources.length
-                ?
                 `
                 <section id="sources">
 
@@ -372,8 +364,6 @@ async function renderPage(){
 
                 </section>
                 `
-                :
-                ""
             }
 
             ${
