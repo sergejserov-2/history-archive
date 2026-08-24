@@ -48,7 +48,7 @@ export function renderSubject(subject,subjects=[],objects=[],photos=[],sources=[
         `
         :""
     }
-    <img src="icons/delete.svg" class="admin-icon"></button>`:""}</h1>${years?`<div class="subject-modal__years">${escapeHTML(years)}</div>`:""}${subject.description?.trim()?`<div class="object__description">${renderMentions(subject.description.trim(),subjects,getSubjectHref)}</div>`:""}${renderMentionList(subject,objects,photos,sources,records)}</div></div></div>`;
+   </h1>${years?`<div class="subject-modal__years">${escapeHTML(years)}</div>`:""}${subject.description?.trim()?`<div class="object__description">${renderMentions(subject.description.trim(),subjects,getSubjectHref)}</div>`:""}${renderMentionList(subject,objects,photos,sources,records)}</div></div></div>`;
 }
 
 export function openSubjectModal(subject,{subjects=[],objects=[],photos=[],sources=[],records=[],subjectTypes=[],fromUrl=false}={}){
