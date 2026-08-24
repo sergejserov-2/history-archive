@@ -1,188 +1,161 @@
 // ======================================
-// Universal animations
+// Universal block animations
+// ======================================
+//
+// Отвечает только за геометрию блока:
+//
+// height
+// padding
+// margin
+//
+// Никакого opacity.
+// Никакого scale.
+//
+// Это позволяет использовать механизм
+// для любых динамических блоков.
 // ======================================
 
-
-// ======================================
-// Constants
-// ======================================
-
-const DEFAULT_DURATION = 300;
-
-
-// ======================================
-// Helpers
-// ======================================
-
-function nextFrame(callback){
-
-    requestAnimationFrame(()=>{
-
-        requestAnimationFrame(callback);
-
-    });
-
-}
-
-
-function getDuration(element, duration){
-
-    if(duration != null)
-        return duration;
-
-    const value =
-        getComputedStyle(element)
-            .getPropertyValue(
-                "--animation-duration"
-            );
-
-    const parsed =
-        parseFloat(value);
-
-    return Number.isFinite(parsed)
-        ? parsed
-        : DEFAULT_DURATION;
-
-}
-
-
-// ======================================
-// Prepare
-// ======================================
-
-function prepareElement(element){
-
-    if(!element)
-        return;
-
-    element.style.overflow =
-        "hidden";
-
-}
-
-
-// ======================================
-// Clear
-// ======================================
-
-function clearAnimationStyles(element){
-
-    if(!element)
-        return;
-
-    element.style.height = "";
-
-    element.style.overflow = "";
-
-    element.style.transition = "";
-
-}
+const EXPAND_DURATION = 320;
+const COLLAPSE_DURATION = 300;
 
 
 // ======================================
 // Expand
 // ======================================
 
-export function expand(
-    element,
-    options={}
+export function animateExpand(
+    element
 ){
 
     if(!element)
-        return Promise.resolve();
+        return;
 
-    const duration =
-        getDuration(
-            element,
-            options.duration
-        );
 
-    prepareElement(element);
+    // Останавливаем предыдущую
+    // геометрическую анимацию.
 
-    // Если hidden — сначала показываем
-    if(element.hidden){
-
-        element.hidden = false;
-
-    }
-
-    // Убираем старое состояние
-    element.classList.remove(
-        "block-collapsed"
+    cancelSizeAnimation(
+        element
     );
 
-    // Начинаем с нулевой высоты
-    element.style.height =
-        "0px";
+
+    // Элемент должен существовать
+    // в layout.
+
+    element.hidden = false;
+
+
+    const computed =
+        window.getComputedStyle(
+            element
+        );
+
+
+    // Запоминаем реальные значения.
+
+    const targetHeight =
+        element.scrollHeight;
+
+    const targetPaddingTop =
+        computed.paddingTop;
+
+    const targetPaddingBottom =
+        computed.paddingBottom;
+
+    const targetMarginTop =
+        computed.marginTop;
+
+    const targetMarginBottom =
+        computed.marginBottom;
+
+
+    // Начальное состояние.
+
+    element.style.overflow = "hidden";
+
+    element.style.height = "0px";
+
+    element.style.paddingTop = "0px";
+
+    element.style.paddingBottom = "0px";
+
+    element.style.marginTop = "0px";
+
+    element.style.marginBottom = "0px";
+
 
     // Принудительно фиксируем
-    // начальное состояние
+    // начальное состояние перед
+    // следующим кадром.
+
     element.offsetHeight;
 
-    return new Promise(resolve=>{
 
-        const finish = ()=>{
+    // Запускаем переход.
 
-            element.removeEventListener(
-                "transitionend",
-                onTransitionEnd
-            );
+    element.style.transition = `
+        height ${EXPAND_DURATION}ms ease,
+        padding-top ${EXPAND_DURATION}ms ease,
+        padding-bottom ${EXPAND_DURATION}ms ease,
+        margin-top ${EXPAND_DURATION}ms ease,
+        margin-bottom ${EXPAND_DURATION}ms ease
+    `;
 
-            element.style.height =
-                "auto";
 
-            element.style.transition =
-                "";
+    requestAnimationFrame(()=>{
 
-            element.style.overflow =
-                "";
+        element.style.height =
+            `${targetHeight}px`;
 
-            resolve();
+        element.style.paddingTop =
+            targetPaddingTop;
 
-        };
+        element.style.paddingBottom =
+            targetPaddingBottom;
 
-        const onTransitionEnd = event=>{
+        element.style.marginTop =
+            targetMarginTop;
 
-            if(
-                event.propertyName !==
-                "height"
-            ){
-
-                return;
-
-            }
-
-            finish();
-
-        };
-
-        element.addEventListener(
-            "transitionend",
-            onTransitionEnd
-        );
-
-        // Получаем реальную высоту
-        // уже после того, как элемент видим
-        const height =
-            element.scrollHeight;
-
-        element.style.transition =
-            `height ${duration}ms cubic-bezier(.34,1.56,.64,1)`;
-
-        nextFrame(()=>{
-
-            element.style.height =
-                `${height}px`;
-
-        });
-
-        // Резерв
-        setTimeout(
-            finish,
-            duration + 50
-        );
+        element.style.marginBottom =
+            targetMarginBottom;
 
     });
+
+
+    const finish = ()=>{
+
+        element.style.height =
+            "auto";
+
+        element.style.paddingTop =
+            "";
+
+        element.style.paddingBottom =
+            "";
+
+        element.style.marginTop =
+            "";
+
+        element.style.marginBottom =
+            "";
+
+        element.style.transition =
+            "";
+
+        element.style.overflow =
+            "";
+
+        element._sizeAnimationTimer =
+            null;
+
+    };
+
+
+    element._sizeAnimationTimer =
+        setTimeout(
+            finish,
+            EXPAND_DURATION + 30
+        );
 
 }
 
@@ -191,172 +164,237 @@ export function expand(
 // Collapse
 // ======================================
 
-export function collapse(
+export function animateCollapse(
     element,
-    options={}
+    callback=null
 ){
 
     if(!element)
-        return Promise.resolve();
+        return;
 
-    // Если уже hidden — ничего делать
-    if(element.hidden)
-        return Promise.resolve();
 
-    const duration =
-        getDuration(
-            element,
-            options.duration
+    cancelSizeAnimation(
+        element
+    );
+
+
+    const computed =
+        window.getComputedStyle(
+            element
         );
 
-    prepareElement(element);
 
-    // Текущая реальная высота
-    const height =
-        element.scrollHeight;
+    // Сначала фиксируем текущую
+    // реальную высоту.
 
-    // Фиксируем её
+    const currentHeight =
+        element.getBoundingClientRect().height;
+
+
+    const currentPaddingTop =
+        computed.paddingTop;
+
+    const currentPaddingBottom =
+        computed.paddingBottom;
+
+    const currentMarginTop =
+        computed.marginTop;
+
+    const currentMarginBottom =
+        computed.marginBottom;
+
+
+    element.hidden = false;
+
+    element.style.overflow =
+        "hidden";
+
     element.style.height =
-        `${height}px`;
+        `${currentHeight}px`;
 
-    // Принудительный reflow
+    element.style.paddingTop =
+        currentPaddingTop;
+
+    element.style.paddingBottom =
+        currentPaddingBottom;
+
+    element.style.marginTop =
+        currentMarginTop;
+
+    element.style.marginBottom =
+        currentMarginBottom;
+
+
+    // Принудительно применяем
+    // текущее состояние.
+
     element.offsetHeight;
 
-    return new Promise(resolve=>{
 
-        let finished = false;
+    element.style.transition = `
+        height ${COLLAPSE_DURATION}ms ease,
+        padding-top ${COLLAPSE_DURATION}ms ease,
+        padding-bottom ${COLLAPSE_DURATION}ms ease,
+        margin-top ${COLLAPSE_DURATION}ms ease,
+        margin-bottom ${COLLAPSE_DURATION}ms ease
+    `;
 
-        const finish = ()=>{
 
-            if(finished)
-                return;
+    requestAnimationFrame(()=>{
 
-            finished = true;
+        element.style.height =
+            "0px";
 
-            element.removeEventListener(
-                "transitionend",
-                onTransitionEnd
-            );
+        element.style.paddingTop =
+            "0px";
 
-            element.hidden = true;
+        element.style.paddingBottom =
+            "0px";
 
-            element.classList.add(
-                "block-collapsed"
-            );
+        element.style.marginTop =
+            "0px";
 
-            clearAnimationStyles(
-                element
-            );
-
-            resolve();
-
-        };
-
-        const onTransitionEnd = event=>{
-
-            if(
-                event.propertyName !==
-                "height"
-            ){
-
-                return;
-
-            }
-
-            finish();
-
-        };
-
-        element.addEventListener(
-            "transitionend",
-            onTransitionEnd
-        );
-
-        element.style.transition =
-            `height ${duration}ms cubic-bezier(.4,0,.7,1)`;
-
-        nextFrame(()=>{
-
-            element.style.height =
-                "0px";
-
-        });
-
-        // Резерв
-        setTimeout(
-            finish,
-            duration + 50
-        );
+        element.style.marginBottom =
+            "0px";
 
     });
 
+
+    const finish = ()=>{
+
+        element.style.height =
+            "";
+
+        element.style.paddingTop =
+            "";
+
+        element.style.paddingBottom =
+            "";
+
+        element.style.marginTop =
+            "";
+
+        element.style.marginBottom =
+            "";
+
+        element.style.transition =
+            "";
+
+        element.style.overflow =
+            "";
+
+        element.hidden =
+            true;
+
+        element._sizeAnimationTimer =
+            null;
+
+
+        if(callback){
+
+            callback();
+
+        }
+
+    };
+
+
+    element._sizeAnimationTimer =
+        setTimeout(
+            finish,
+            COLLAPSE_DURATION + 30
+        );
+
 }
 
 
 // ======================================
-// Toggle
+// Cancel
 // ======================================
 
-export function toggle(
-    element,
-    visible,
-    options={}
-){
-
-    return visible
-        ? expand(element, options)
-        : collapse(element, options);
-
-}
-
-
-// ======================================
-// Animate height change
-// ======================================
-
-export function animateHeight(
-    element,
-    callback,
-    options={}
+export function cancelSizeAnimation(
+    element
 ){
 
     if(!element)
-        return Promise.resolve();
+        return;
 
-    if(element.hidden){
 
-        callback?.();
+    if(
+        element._sizeAnimationTimer
+    ){
 
-        return Promise.resolve();
+        clearTimeout(
+            element._sizeAnimationTimer
+        );
+
+        element._sizeAnimationTimer =
+            null;
 
     }
 
-    const duration =
-        getDuration(
-            element,
-            options.duration
-        );
 
-    prepareElement(element);
+    element.style.transition =
+        "";
 
-    // Старая высота
-    const oldHeight =
-        element.scrollHeight;
+}
 
-    // Фиксируем старую высоту
+
+// ======================================
+// Recalculate
+// ======================================
+//
+// Используется, когда содержимое уже
+// открытого блока изменилось.
+//
+// Например:
+//
+// было 2 строки
+// стало 8 строк
+//
+// Блок плавно переходит
+// на новую высоту.
+// ======================================
+
+export function animateResize(
+    element
+){
+
+    if(!element)
+        return;
+
+
+    cancelSizeAnimation(
+        element
+    );
+
+
+    const currentHeight =
+        element.getBoundingClientRect().height;
+
+
+    // Фиксируем текущую высоту.
+
     element.style.height =
-        `${oldHeight}px`;
+        `${currentHeight}px`;
 
-    // Меняем содержимое
-    callback?.();
+    element.style.overflow =
+        "hidden";
 
-    // Получаем новую высоту
-    const newHeight =
+
+    element.offsetHeight;
+
+
+    const targetHeight =
         element.scrollHeight;
 
-    // Если высота не изменилась —
-    // ничего анимировать не нужно
-    if(oldHeight === newHeight){
+
+    if(
+        Math.abs(
+            currentHeight -
+            targetHeight
+        ) < 1
+    ){
 
         element.style.height =
             "auto";
@@ -364,209 +402,39 @@ export function animateHeight(
         element.style.overflow =
             "";
 
-        return Promise.resolve();
+        return;
 
     }
 
-    // Снова принудительно фиксируем
-    // старое состояние
-    element.style.height =
-        `${oldHeight}px`;
 
-    element.offsetHeight;
+    element.style.transition = `
+        height ${EXPAND_DURATION}ms ease
+    `;
 
-    return new Promise(resolve=>{
 
-        let finished = false;
+    requestAnimationFrame(()=>{
 
-        const finish = ()=>{
+        element.style.height =
+            `${targetHeight}px`;
 
-            if(finished)
-                return;
+    });
 
-            finished = true;
 
-            element.removeEventListener(
-                "transitionend",
-                onTransitionEnd
-            );
+    element._sizeAnimationTimer =
+        setTimeout(()=>{
 
             element.style.height =
                 "auto";
 
-            element.style.overflow =
-                "";
-
             element.style.transition =
                 "";
 
-            resolve();
+            element.style.overflow =
+                "";
 
-        };
+            element._sizeAnimationTimer =
+                null;
 
-        const onTransitionEnd = event=>{
-
-            if(
-                event.propertyName !==
-                "height"
-            ){
-
-                return;
-
-            }
-
-            finish();
-
-        };
-
-        element.addEventListener(
-            "transitionend",
-            onTransitionEnd
-        );
-
-        element.style.transition =
-            `height ${duration}ms cubic-bezier(.34,1.56,.64,1)`;
-
-        nextFrame(()=>{
-
-            element.style.height =
-                `${newHeight}px`;
-
-        });
-
-        setTimeout(
-            finish,
-            duration + 50
-        );
-
-    });
-
-}
-
-
-// ======================================
-// Insert + expand
-// ======================================
-
-export function insertAnimated(
-    container,
-    html,
-    options={}
-){
-
-    if(!container)
-        return null;
-
-    container.insertAdjacentHTML(
-        "beforeend",
-        html
-    );
-
-    const element =
-        container.lastElementChild;
-
-    if(!element)
-        return null;
-
-    // Начальное состояние
-    element.hidden = false;
-
-    element.style.height =
-        "0px";
-
-    element.style.overflow =
-        "hidden";
-
-    element.classList.add(
-        "block-collapsed"
-    );
-
-    // Первый кадр:
-    // элемент существует,
-    // но имеет высоту 0.
-    requestAnimationFrame(()=>{
-
-        expand(
-            element,
-            options
-        );
-
-    });
-
-    return element;
-
-}
-
-
-// ======================================
-// Replace content with height animation
-// ======================================
-
-export function replaceAnimated(
-    element,
-    html,
-    options={}
-){
-
-    if(!element)
-        return Promise.resolve();
-
-    return animateHeight(
-        element,
-        ()=>{
-
-            element.innerHTML =
-                html;
-
-        },
-        options
-    );
-
-}
-
-
-// ======================================
-// Remove with collapse
-// ======================================
-
-export function removeAnimated(
-    element,
-    options={}
-){
-
-    if(!element)
-        return Promise.resolve();
-
-    return collapse(
-        element,
-        options
-    )
-    .then(()=>{
-
-        element.remove();
-
-    });
-
-}
-
-
-// ======================================
-// Reset
-// ======================================
-
-export function resetAnimation(
-    element
-){
-
-    if(!element)
-        return;
-
-    clearAnimationStyles(
-        element
-    );
-
-    element.classList.remove(
-        "block-collapsed"
-    );
+        }, EXPAND_DURATION + 30);
 
 }
