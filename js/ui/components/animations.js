@@ -2,13 +2,9 @@
 // Universal block animations
 // ======================================
 //
-// Отвечает только за геометрию.
+// Отвечает только за геометрию:
 //
-// Анимируем ТОЛЬКО height.
-//
-// Высоты можно подготовить заранее,
-// чтобы во время анимации не выполнять
-// дополнительные измерения layout.
+// height
 //
 // Никакого opacity.
 // Никакого scale.
@@ -19,82 +15,6 @@
 
 const EXPAND_DURATION = 320;
 const COLLAPSE_DURATION = 300;
-
-
-// ======================================
-// Prepare size
-// ======================================
-//
-// Вызывается ДО начала анимации.
-//
-// Запоминаем текущую и естественную высоту.
-// Во время самой анимации layout больше
-// не измеряем.
-//
-
-export function prepareSize(
-    element
-){
-
-    if(!element)
-        return;
-
-
-    cancelSizeAnimation(
-        element
-    );
-
-
-    const wasHidden =
-        element.hidden;
-
-
-    // Для получения scrollHeight
-    // элемент должен быть видимым.
-
-    if(wasHidden)
-        element.hidden = false;
-
-
-    const height =
-        element.scrollHeight;
-
-
-    element._preparedHeight =
-        height;
-
-
-    if(wasHidden)
-        element.hidden = true;
-
-}
-
-
-// ======================================
-// Get prepared height
-// ======================================
-
-function getPreparedHeight(
-    element
-){
-
-    if(
-        Number.isFinite(
-            element?._preparedHeight
-        )
-    ){
-
-        return element._preparedHeight;
-
-    }
-
-
-    // Fallback только если размер
-    // заранее не подготовили.
-
-    return element?.scrollHeight ?? 0;
-
-}
 
 
 // ======================================
@@ -117,19 +37,9 @@ export function animateExpand(
     element.hidden = false;
 
 
-    // ==================================
-    // Берём заранее рассчитанную высоту
-    // ==================================
-
     const targetHeight =
-        getPreparedHeight(
-            element
-        );
+        element.scrollHeight;
 
-
-    // ==================================
-    // Начальное состояние
-    // ==================================
 
     element.style.overflow =
         "hidden";
@@ -138,22 +48,12 @@ export function animateExpand(
         "0px";
 
 
-    // Применяем начальное состояние.
-
     element.offsetHeight;
 
-
-    // ==================================
-    // Transition
-    // ==================================
 
     element.style.transition =
         `height ${EXPAND_DURATION}ms ease`;
 
-
-    // ==================================
-    // Фаза раскрытия
-    // ==================================
 
     requestAnimationFrame(()=>{
 
@@ -162,10 +62,6 @@ export function animateExpand(
 
     });
 
-
-    // ==================================
-    // Завершение
-    // ==================================
 
     return new Promise(resolve=>{
 
@@ -180,9 +76,6 @@ export function animateExpand(
 
                 element.style.overflow =
                     "";
-
-                element._preparedHeight =
-                    null;
 
                 element._sizeAnimationTimer =
                     null;
@@ -217,20 +110,9 @@ export function animateCollapse(
     element.hidden = false;
 
 
-    // ==================================
-    // Используем заранее рассчитанную
-    // высоту.
-    // ==================================
-
     const currentHeight =
-        getPreparedHeight(
-            element
-        );
+        element.getBoundingClientRect().height;
 
-
-    // ==================================
-    // Начальное состояние
-    // ==================================
 
     element.style.overflow =
         "hidden";
@@ -239,24 +121,12 @@ export function animateCollapse(
         `${currentHeight}px`;
 
 
-    // ==================================
-    // Фиксируем стартовую высоту
-    // ==================================
-
     element.offsetHeight;
 
-
-    // ==================================
-    // Transition
-    // ==================================
 
     element.style.transition =
         `height ${COLLAPSE_DURATION}ms ease`;
 
-
-    // ==================================
-    // Фаза схлопывания
-    // ==================================
 
     requestAnimationFrame(()=>{
 
@@ -265,10 +135,6 @@ export function animateCollapse(
 
     });
 
-
-    // ==================================
-    // Завершение
-    // ==================================
 
     return new Promise(resolve=>{
 
@@ -286,9 +152,6 @@ export function animateCollapse(
 
                 element.hidden =
                     true;
-
-                element._preparedHeight =
-                    null;
 
                 element._sizeAnimationTimer =
                     null;
@@ -320,10 +183,6 @@ export function animateResize(
     );
 
 
-    // ==================================
-    // Здесь измеряем только один раз.
-    // ==================================
-
     const currentHeight =
         element.getBoundingClientRect().height;
 
@@ -331,16 +190,6 @@ export function animateResize(
     const targetHeight =
         element.scrollHeight;
 
-
-    // Сохраняем новый размер.
-
-    element._preparedHeight =
-        targetHeight;
-
-
-    // ==================================
-    // Размер практически не изменился
-    // ==================================
 
     if(
         Math.abs(
@@ -350,7 +199,7 @@ export function animateResize(
     ){
 
         element.style.height =
-            "";
+            "auto";
 
         element.style.overflow =
             "";
@@ -359,10 +208,6 @@ export function animateResize(
 
     }
 
-
-    // ==================================
-    // Фиксируем текущую высоту
-    // ==================================
 
     element.style.height =
         `${currentHeight}px`;
@@ -374,17 +219,9 @@ export function animateResize(
     element.offsetHeight;
 
 
-    // ==================================
-    // Transition
-    // ==================================
-
     element.style.transition =
         `height ${EXPAND_DURATION}ms ease`;
 
-
-    // ==================================
-    // Resize
-    // ==================================
 
     requestAnimationFrame(()=>{
 
@@ -394,15 +231,11 @@ export function animateResize(
     });
 
 
-    // ==================================
-    // Завершение
-    // ==================================
-
     element._sizeAnimationTimer =
         setTimeout(()=>{
 
             element.style.height =
-                "";
+                "auto";
 
             element.style.transition =
                 "";
@@ -410,45 +243,10 @@ export function animateResize(
             element.style.overflow =
                 "";
 
-            element._preparedHeight =
-                null;
-
             element._sizeAnimationTimer =
                 null;
 
         }, EXPAND_DURATION + 20);
-
-}
-
-
-// ======================================
-// Prepare all elements
-// ======================================
-//
-// Удобный helper для контроллера.
-//
-// Перед входом в админку:
-//
-// prepareAdminButtonSizes(buttons);
-//
-
-export function prepareSizes(
-    elements
-){
-
-    if(!elements)
-        return;
-
-
-    elements.forEach?.(
-        element => {
-
-            prepareSize(
-                element
-            );
-
-        }
-    );
 
 }
 
