@@ -26,7 +26,10 @@ export function refreshAdminButtons(){
         .querySelectorAll(".admin-button")
         .forEach(button=>{
 
-            button.hidden=!enabled;
+            button.classList.toggle(
+                "admin-button--hidden",
+                !enabled
+            );
 
         });
 
@@ -48,14 +51,16 @@ export function adminButton(
         <button
             class="${[
                 "admin-button",
-                options.className||""
+                options.className||"",
+                !enabled
+                    ?"admin-button--hidden"
+                    :""
             ]
             .filter(Boolean)
             .join(" ")}"
             data-action="${action}"
             ${id?`data-id="${id}"`:""}
             ${title?`title="${title}"`:""}
-            ${!enabled?"hidden":""}
         >
             <img
                 src="icons/${icon||getIcon(action)}.svg"
@@ -63,6 +68,7 @@ export function adminButton(
             >
         </button>
     `;
+
 }
 
 // ======================================
@@ -122,13 +128,15 @@ export function adminAdd(
                 "admin-button",
                 options.disabled
                     ?"admin-button--disabled"
+                    :"",
+                !enabled
+                    ?"admin-button--hidden"
                     :""
             ]
             .filter(Boolean)
             .join(" ")}"
             data-action="${action}"
             ${options.title?`title="${options.title}"`:""}
-            ${!enabled?"hidden":""}
         >
             + ${text}
         </div>
@@ -208,8 +216,7 @@ export function adminUpdateLogin(
     button.innerHTML=
         admin
         ?
-        `
-        <img
+        `<img
             src="icons/logout.svg"
             class="header-icon"
         >
