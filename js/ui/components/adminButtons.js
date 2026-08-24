@@ -53,8 +53,10 @@ export function adminButton(
                 "admin-button",
                 options.className||"",
                 !enabled
-                    ?"admin-button--hidden"
-                    :""
+                    ?
+                    "admin-button--hidden"
+                    :
+                    ""
             ]
             .filter(Boolean)
             .join(" ")}"
@@ -68,7 +70,6 @@ export function adminButton(
             >
         </button>
     `;
-
 }
 
 // ======================================
@@ -127,16 +128,20 @@ export function adminAdd(
                 options.className||"entity-list__add",
                 "admin-button",
                 options.disabled
-                    ?"admin-button--disabled"
-                    :"",
+                    ?
+                    "admin-button--disabled"
+                    :
+                    "",
                 !enabled
-                    ?"admin-button--hidden"
-                    :""
+                    ?
+                    "admin-button--hidden"
+                    :
+                    ""
             ]
             .filter(Boolean)
             .join(" ")}"
             data-action="${action}"
-            ${options.title?`title="${options.title}"`:""}
+            ${options.title?`title="${options.title}`:""}
         >
             + ${text}
         </div>
@@ -216,7 +221,8 @@ export function adminUpdateLogin(
     button.innerHTML=
         admin
         ?
-        `<img
+        `
+        <img
             src="icons/logout.svg"
             class="header-icon"
         >
