@@ -740,27 +740,22 @@ section h2 {
 
     opacity:1;
 
-    transform:
-        scale(1);
-
-    transform-origin:
-        center center;
-
     pointer-events:auto;
+
+    transform:none;
+
+    transform-origin:center center;
 
 }
 
 
 /* ==========================================
-   Hidden
+   PHASE 1 / HIDDEN
 ========================================== */
 
 .admin-button--hidden{
 
     opacity:0;
-
-    transform:
-        scale(0);
 
     pointer-events:none;
 
@@ -768,7 +763,33 @@ section h2 {
 
 
 /* ==========================================
-   Enter
+   PHASE 2 / GEOMETRIC EXPAND
+========================================== */
+
+/*
+    Геометрия управляется JavaScript.
+
+    Для маленьких кнопок:
+        width: 0
+        height: 0
+
+        ↓
+
+        22px × 22px
+
+    Для больших блоков:
+        height: 0
+
+        ↓
+
+        scrollHeight
+
+    Здесь opacity НЕ меняется.
+*/
+
+
+/* ==========================================
+   PHASE 3 / APPEAR
 ========================================== */
 
 .admin-button--entering{
@@ -783,7 +804,7 @@ section h2 {
 
 
 /* ==========================================
-   Exit
+   EXIT PHASE 1 / DISSOLVE
 ========================================== */
 
 .admin-button--exiting{
@@ -798,7 +819,7 @@ section h2 {
 
 
 /* ==========================================
-   Appearance
+   APPEAR ANIMATION
 ========================================== */
 
 @keyframes admin-button-enter{
@@ -807,17 +828,11 @@ section h2 {
 
         opacity:0;
 
-        transform:
-            scale(.94);
-
     }
 
     100%{
 
         opacity:1;
-
-        transform:
-            scale(1);
 
     }
 
@@ -825,7 +840,7 @@ section h2 {
 
 
 /* ==========================================
-   Disappearance
+   DISSOLVE ANIMATION
 ========================================== */
 
 @keyframes admin-button-exit{
@@ -834,17 +849,11 @@ section h2 {
 
         opacity:1;
 
-        transform:
-            scale(1);
-
     }
 
     100%{
 
         opacity:0;
-
-        transform:
-            scale(.94);
 
     }
 
@@ -852,7 +861,7 @@ section h2 {
 
 
 /* ==========================================
-   Small admin buttons
+   SMALL ADMIN BUTTONS
 ========================================== */
 
 button.admin-button{
@@ -876,7 +885,7 @@ button.admin-button{
 
 
 /* ==========================================
-   Expandable admin blocks
+   EXPANDABLE ADMIN BLOCKS
 ========================================== */
 
 .entity-list__add,
@@ -886,7 +895,19 @@ button.admin-button{
 
     overflow:hidden;
 
-    transform-origin:
-        center center;
+    transform-origin:center center;
+
+}
+
+
+/* ==========================================
+   DISABLED ADMIN BUTTON
+========================================== */
+
+.admin-button--disabled{
+
+    opacity:.45;
+
+    pointer-events:none;
 
 }
