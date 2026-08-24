@@ -3,36 +3,17 @@
 // ======================================
 
 // ======================================
-// Refresh
-// ======================================
-
-export function refreshAdminButtons(){
-
-    document
-        .querySelectorAll(".admin-button")
-        .forEach(button=>{
-
-            if(enabled){
-
-                showAdminButton(button);
-
-            }else{
-
-                hideAdminButton(button);
-
-            }
-
-        });
-
-}
-
-// ======================================
 // Show
 // ======================================
 
-function showAdminButton(button){
+export function showAdminButton(
+    button
+){
 
-    button.hidden=false;
+    if(!button)
+        return;
+
+    button.hidden = false;
 
     requestAnimationFrame(()=>{
 
@@ -48,7 +29,12 @@ function showAdminButton(button){
 // Hide
 // ======================================
 
-function hideAdminButton(button){
+export function hideAdminButton(
+    button
+){
+
+    if(!button)
+        return;
 
     button.classList.add(
         "admin-button--hidden"
@@ -58,9 +44,16 @@ function hideAdminButton(button){
         "transitionend",
         ()=>{
 
-            if(!enabled){
+            // Проверяем, что кнопка всё ещё
+            // должна быть скрыта.
 
-                button.hidden=true;
+            if(
+                button.classList.contains(
+                    "admin-button--hidden"
+                )
+            ){
+
+                button.hidden = true;
 
             }
 
@@ -69,6 +62,34 @@ function hideAdminButton(button){
             once:true
         }
     );
+
+}
+
+// ======================================
+// Update one button
+// ======================================
+
+export function updateAdminButton(
+    button,
+    admin
+){
+
+    if(!button)
+        return;
+
+    if(admin){
+
+        showAdminButton(
+            button
+        );
+
+    }else{
+
+        hideAdminButton(
+            button
+        );
+
+    }
 
 }
 
@@ -84,7 +105,7 @@ export function adminButton(
     options={}
 ){
 
-return`
+    return`
 
 <button
 class="
@@ -112,18 +133,25 @@ class="admin-icon">
 // ======================================
 
 export function adminEdit(
-type,
-id,
-options={}
+    type,
+    id,
+    options={}
 ){
 
-return adminButton(
-    `edit-${type}`,
-    id,
-    "edit",
-    options.title||"Редактировать",
-    options
-);
+    return adminButton(
+
+        `edit-${type}`,
+
+        id,
+
+        "edit",
+
+        options.title||
+        "Редактировать",
+
+        options
+
+    );
 
 }
 
@@ -132,18 +160,25 @@ return adminButton(
 // ======================================
 
 export function adminDelete(
-type,
-id,
-options={}
+    type,
+    id,
+    options={}
 ){
 
-return adminButton(
-    `delete-${type}`,
-    id,
-    "delete",
-    options.title||"Удалить",
-    options
-);
+    return adminButton(
+
+        `delete-${type}`,
+
+        id,
+
+        "delete",
+
+        options.title||
+        "Удалить",
+
+        options
+
+    );
 
 }
 
@@ -152,19 +187,21 @@ return adminButton(
 // ======================================
 
 export function adminAdd(
-action,
-text,
-options={}
+    action,
+    text,
+    options={}
 ){
 
-return`
+    return`
 
 <div
 class="
 ${options.className||"entity-list__add"}
 admin-button
 admin-button--hidden
-${options.disabled?"admin-button--disabled":""}
+${options.disabled?
+    "admin-button--disabled":
+    ""}
 "
 data-action="${action}"
 >
@@ -182,12 +219,12 @@ data-action="${action}"
 // ======================================
 
 export function adminHeaderButton(
-id,
-icon,
-title=""
+    id,
+    icon,
+    title=""
 ){
 
-return`
+    return`
 
 <button
 id="${id}"
@@ -211,12 +248,12 @@ class="header-icon">
 }
 
 // ======================================
-// Login
+// Login button
 // ======================================
 
 export function adminLoginButton(){
 
-return`
+    return`
 
 <button
 id="loginButton"
@@ -236,56 +273,61 @@ class="header-icon">
 }
 
 // ======================================
-// Login update
+// Login button update
 // ======================================
 
 export function adminUpdateLogin(
-button,
-admin
+    button,
+    admin
 ){
 
-if(!button)return;
+    if(!button)
+        return;
 
-button.innerHTML =
-admin
-?
+    button.innerHTML =
+
+        admin
+
+        ?
+
 `
-<img src="icons/logout.svg" class="header-icon">
+<img
+src="icons/logout.svg"
+class="header-icon">
+
 Выйти
 `
-:
+
+        :
+
 `
-<img src="icons/login.svg" class="header-icon">
+<img
+src="icons/login.svg"
+class="header-icon">
+
 Войти
 `;
 
-button.classList.toggle(
-    "header__button--admin",
-    admin
-);
+    button.classList.toggle(
+        "header__button--admin",
+        admin
+    );
 
 }
 
 // ======================================
-// Header update
+// Header admin button update
 // ======================================
 
 export function adminUpdateHeaderButton(
-button,
-admin
+    button,
+    admin
 ){
 
-if(!button)return;
-
-if(admin){
-
-    showAdminButton(button);
-
-}else{
-
-    hideAdminButton(button);
-
-}
+    updateAdminButton(
+        button,
+        admin
+    );
 
 }
 
@@ -293,13 +335,25 @@ if(admin){
 // Icons
 // ======================================
 
-function getIcon(action){
+function getIcon(
+    action
+){
 
-    if(action.startsWith("edit"))
+    if(
+        action.startsWith("edit")
+    ){
+
         return "edit";
 
-    if(action.startsWith("delete"))
+    }
+
+    if(
+        action.startsWith("delete")
+    ){
+
         return "delete";
+
+    }
 
     return "edit";
 
