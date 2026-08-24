@@ -803,3 +803,117 @@ button.admin-button {
 .feedback-prompt__close:hover{
     color:var(--color-text-primary);
 }
+
+
+
+/* ==========================================
+   ADMIN BUTTON ANIMATION
+========================================== */
+
+.admin-button{
+
+    opacity:1;
+
+    transform:
+        scale(1);
+
+    transition:
+        opacity .18s ease,
+        transform .25s cubic-bezier(.34,1.56,.64,1),
+        width .25s ease,
+        padding .25s ease,
+        margin .25s ease;
+
+}
+
+/* скрытое состояние */
+
+.admin-button--hidden{
+
+    opacity:0;
+
+    transform:
+        scale(.85);
+
+    pointer-events:none;
+
+}
+
+/* ==========================================
+   SMALL ICON BUTTONS
+========================================== */
+
+button.admin-button{
+
+    width:22px;
+    height:22px;
+
+    padding:2px !important;
+
+    overflow:hidden;
+
+}
+
+button.admin-button.admin-button--hidden{
+
+    width:0;
+
+    padding-left:0 !important;
+    padding-right:0 !important;
+
+    margin-left:0;
+
+    border-width:0 !important;
+
+}
+
+/* ==========================================
+   ICON
+========================================== */
+
+.admin-icon{
+
+    width:16px;
+    height:16px;
+
+    display:block;
+
+}
+
+/* ==========================================
+   LARGE ADD BUTTONS
+========================================== */
+
+.entity-list__add.admin-button,
+.photo-card--add.admin-button,
+.source--add.admin-button,
+.child-card--add.admin-button{
+
+    overflow:hidden;
+
+    transition:
+        opacity .22s ease,
+        max-height .3s ease,
+        padding .3s ease,
+        margin .3s ease;
+
+}
+
+.entity-list__add.admin-button--hidden,
+.photo-card--add.admin-button--hidden,
+.source--add.admin-button--hidden,
+.child-card--add.admin-button--hidden{
+
+    opacity:0;
+
+    max-height:0;
+
+    padding-top:0 !important;
+    padding-bottom:0 !important;
+
+    margin-top:0;
+    margin-bottom:0;
+
+    border-width:0 !important;
+
+}
