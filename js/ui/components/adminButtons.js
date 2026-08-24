@@ -4,10 +4,6 @@
 
 let enabled = false;
 
-// ======================================
-// State
-// ======================================
-
 export function setAdminButtonsEnabled(value){
 
     enabled = value;
