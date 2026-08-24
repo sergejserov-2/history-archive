@@ -253,23 +253,15 @@ function renderObjectBlock(){
         ${pageObject.title??""}
     </span>
 
-    ${
-        pageAdminMode
-        ?
-        `
-        ${adminEdit(
-            "object",
-            pageObject.id
-        )}
+    ${adminEdit(
+        "object",
+        pageObject.id
+    )}
 
-        ${adminDelete(
-            "object",
-            pageObject.id
-        )}
-        `
-        :
-        ""
-    }
+    ${adminDelete(
+        "object",
+        pageObject.id
+    )}
 
     ${status}
 
