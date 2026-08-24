@@ -1,3 +1,7 @@
+import {
+    adminEdit,
+    adminDelete
+} from "./adminButtons.js";
 import{isAdmin,onAdminStateChanged}from"../../admin/adminMode.js";
 import{initAdmin}from"../../admin/admin.js";
 import{getObject,getType,getParents,getChildren,getAllObjects}from"../../api/objects.js";
@@ -243,44 +247,33 @@ function renderObjectBlock(){
                     ${pageType?.title??""}
                 </div>
 
-                <h1 class="object__title">
+<h1 class="object__title">
 
-                    <span class="object__title-text">
-                        ${pageObject.title??""}
-                    </span>
+    <span class="object__title-text">
+        ${pageObject.title??""}
+    </span>
 
-                    ${
-                        pageAdminMode
-                        ?
-                        `
-                        <button
-                            class="admin-button"
-                            data-action="edit-object"
-                        >
-                            <img
-                                src="icons/edit.svg"
-                                class="admin-icon"
-                            >
-                        </button>
+    ${
+        pageAdminMode
+        ?
+        `
+        ${adminEdit(
+            "object",
+            pageObject.id
+        )}
 
-                        <button
-                            class="admin-button"
-                            data-action="delete-object"
-                            data-id="${pageObject.id}"
-                        >
-                            <img
-                                src="icons/delete.svg"
-                                class="admin-icon"
-                            >
-                        </button>
-                        `
-                        :
-                        ""
-                    }
+        ${adminDelete(
+            "object",
+            pageObject.id
+        )}
+        `
+        :
+        ""
+    }
 
-                    ${status}
+    ${status}
 
-                </h1>
+</h1>
 
                 ${
                     pageObject.description?.trim()
