@@ -733,32 +733,81 @@ section h2 {
 
 
 /* ==========================================
-   ADMIN BUTTONS
+   ADMIN BUTTON ANIMATION
 ========================================== */
-
-/* ---------- Small admin buttons ---------- */
 
 .admin-button{
 
-    display:inline-flex;
+    opacity:0;
 
-    align-items:center;
-    justify-content:center;
+    transform:
+        scale(.85);
 
-    opacity:1;
-
-    transform:scale(1);
+    pointer-events:none;
 
     transition:
         opacity .18s ease,
-        transform .22s cubic-bezier(.34,1.56,.64,1),
-        background .15s ease,
-        border-color .15s ease,
-        color .15s ease;
+        transform .25s cubic-bezier(.34,1.56,.64,1);
 
 }
 
-/* ---------- Icons ---------- */
+/* появление */
+
+.admin-button--visible{
+
+    opacity:1;
+
+    transform:
+        scale(1);
+
+    pointer-events:auto;
+
+}
+
+/* исчезновение */
+
+.admin-button--hidden{
+
+    opacity:0;
+
+    transform:
+        scale(.85);
+
+    pointer-events:none;
+
+}
+
+/* ==========================================
+   SMALL ICON BUTTONS
+========================================== */
+
+button.admin-button{
+
+    width:22px;
+    height:22px;
+    padding:2px !important;
+
+}
+
+/* ==========================================
+   LARGE ADD BUTTONS
+========================================== */
+
+.entity-list__add.admin-button,
+.photo-card--add.admin-button,
+.source--add.admin-button,
+.child-card--add.admin-button,
+.record--add.admin-button{
+
+    transition:
+        opacity .22s ease,
+        transform .25s cubic-bezier(.34,1.56,.64,1);
+
+}
+
+/* ==========================================
+   ICON
+========================================== */
 
 .admin-icon{
 
@@ -769,138 +818,8 @@ section h2 {
 
 }
 
-/* ---------- Buttons ---------- */
-
-button.admin-button,
-.admin-button{
-
-    background:var(--color-admin-bg) !important;
-
-    border:
-        1px solid
-        var(--color-admin-border)
-        !important;
-
-    color:var(--color-admin) !important;
-
-    cursor:pointer;
-
-}
-
-button.admin-button:hover,
-.admin-button:hover{
-
-    background:
-        var(--color-admin-bg-hover)
-        !important;
-
-    border-color:
-        var(--color-admin)
-        !important;
-
-}
-
-/* ---------- Small icon size ---------- */
-
-button.admin-button{
-
-    width:22px;
-    height:22px;
-
-    padding:2px !important;
-
-}
-
 /* ==========================================
-   ADMIN INSERT ANIMATION
-========================================== */
-
-.admin-layer--entering{
-
-    opacity:0;
-
-    transform:
-        scale(.85);
-
-}
-
-.admin-layer--visible{
-
-    opacity:1;
-
-    transform:
-        scale(1);
-
-}
-
-.admin-layer--leaving{
-
-    opacity:0;
-
-    transform:
-        scale(.85);
-
-}
-
-/* ==========================================
-   LARGE ADD BUTTONS
-========================================== */
-
-.record--add,
-.photo-card--add,
-.source--add,
-.child-card--add{
-
-    background:
-        rgba(220,170,40,.18)
-        !important;
-
-    border:
-        1px dashed
-        var(--color-admin)
-        !important;
-
-    border-radius:
-        var(--radius-2xl);
-
-    color:
-        var(--color-admin)
-        !important;
-
-    cursor:pointer;
-
-    font-size:
-        var(--font-size-lg);
-
-    transition:
-
-        opacity .22s ease,
-
-        transform .25s cubic-bezier(.34,1.56,.64,1),
-
-        background .15s ease,
-
-        border-color .15s ease;
-
-}
-
-.record--add:hover,
-.photo-card--add:hover,
-.source--add:hover,
-.child-card--add:hover{
-
-    background:
-        var(--color-admin-bg-hover)
-        !important;
-
-    border-color:
-        var(--color-admin)
-        !important;
-
-}
-
-/* ==========================================
-   DISABLED ADMIN ADD
+   DISABLED ADMIN BUTTON
 ========================================== */
 
 .admin-button--disabled{
@@ -914,11 +833,9 @@ button.admin-button{
 .admin-button--disabled:hover{
 
     background:
-        var(--color-admin-bg)
-        !important;
+        var(--color-admin-bg) !important;
 
     border-color:
-        var(--color-admin-border)
-        !important;
+        var(--color-admin-border) !important;
 
 }
