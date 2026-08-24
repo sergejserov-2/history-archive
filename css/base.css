@@ -767,7 +767,8 @@ section h2 {
 
     animation:
         admin-button-enter
-        .42s
+        .18s
+        ease
         both;
 
 }
@@ -777,7 +778,8 @@ section h2 {
 
     animation:
         admin-button-exit
-        .30s
+        .16s
+        ease
         both;
 
 }
@@ -790,15 +792,6 @@ section h2 {
         opacity:0;
 
         transform:
-            scale(0);
-
-    }
-
-    55%{
-
-        opacity:0;
-
-        transform:
             scale(.94);
 
     }
@@ -814,7 +807,6 @@ section h2 {
 
 }
 
-
 @keyframes admin-button-exit{
 
     0%{
@@ -826,21 +818,12 @@ section h2 {
 
     }
 
-    45%{
-
-        opacity:0;
-
-        transform:
-            scale(.94);
-
-    }
-
     100%{
 
         opacity:0;
 
         transform:
-            scale(0);
+            scale(.94);
 
     }
 
