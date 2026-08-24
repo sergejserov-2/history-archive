@@ -2,7 +2,7 @@ import {
     adminEdit,
     adminDelete
 } from "../components/adminButtons.js";
-import{isAdmin,onAdminStateChanged}from"../../admin/adminMode.js";
+import{onAdminStateChanged}from"../../admin/adminMode.js";
 import{initAdmin}from"../../admin/admin.js";
 import{getObject,getType,getParents,getChildren,getAllObjects}from"../../api/objects.js";
 import{getTypes}from"../../api/types.js";
@@ -42,7 +42,6 @@ let pageSources=[];
 let pageSubjects=[];
 let pageSubjectTypes=[];
 let pageRecordTypes=[];
-let pageAdminMode=false;
 let pageTypes=[];
 let pageObjects=[];
 
@@ -63,7 +62,6 @@ const page={
     get subjects(){return pageSubjects;},
     get subjectTypes(){return pageSubjectTypes;},
     get recordTypes(){return pageRecordTypes;},
-    get admin(){return pageAdminMode;},
     get objects(){return pageObjects;},
     get types(){return pageTypes;},
     renderObjectBlock,
@@ -384,8 +382,6 @@ loadPage()
 
         onAdminStateChanged(
             admin=>{
-
-                pageAdminMode=admin;
 
                 if(admin){
 
