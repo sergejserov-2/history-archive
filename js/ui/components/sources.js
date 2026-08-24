@@ -1,14 +1,20 @@
 import{renderMentions, getSubjectHref}from"./mentionLink.js";
+import{
+    adminEdit,
+    adminDelete,
+    adminAdd
+}from"./adminButtons.js";
 
 export function renderSources(sources,ADMIN_MODE=false,subjects=[]){
     const rows=[];
-    if(ADMIN_MODE){
-        rows.push(`
-            <div class="source source--add admin-button" data-action="add-source">
-                + Добавить источник
-            </div>
-        `);
-    }
+if(ADMIN_MODE){
+    rows.push(
+        adminAdd(
+            "add-source",
+            "Добавить источник"
+        )
+    );
+}
     const sortedSources=[...(sources??[])].sort((a,b)=>{
         const dateA=a.date||"";
         const dateB=b.date||"";
@@ -42,12 +48,15 @@ export function renderSources(sources,ADMIN_MODE=false,subjects=[]){
                             ADMIN_MODE
                             ?
                             `
-                            <button class="admin-button" data-action="edit-source" data-id="${source.id}">
-                                <img src="icons/edit.svg" class="admin-icon">
-                            </button>
-                            <button class="admin-button" data-action="delete-source" data-id="${source.id}">
-                                <img src="icons/delete.svg" class="admin-icon">
-                            </button>
+                            ${adminEdit(
+                                "source",
+                                source.id
+                            )}
+                        
+                            ${adminDelete(
+                                "source",
+                                source.id
+                            )}
                             `
                             :
                             ""
