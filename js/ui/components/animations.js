@@ -11,8 +11,8 @@
 // Никакого opacity.
 // Никакого scale.
 //
-// Это позволяет использовать механизм
-// для любых динамических блоков.
+// Используется для любых динамических
+// блоков, включая маленькие admin-button.
 // ======================================
 
 const EXPAND_DURATION = 320;
@@ -36,7 +36,8 @@ export function animateExpand(
     );
 
 
-    element.hidden = false;
+    element.hidden =
+        false;
 
 
     const computed =
@@ -44,6 +45,10 @@ export function animateExpand(
             element
         );
 
+
+    // ----------------------------------
+    // Целевые значения
+    // ----------------------------------
 
     const targetHeight =
         element.scrollHeight;
@@ -60,6 +65,21 @@ export function animateExpand(
     const targetMarginBottom =
         computed.marginBottom;
 
+
+    // ----------------------------------
+    // Новый токен анимации
+    // ----------------------------------
+
+    const token =
+        Symbol();
+
+    element._sizeAnimationToken =
+        token;
+
+
+    // ----------------------------------
+    // Начальное состояние
+    // ----------------------------------
 
     element.style.overflow =
         "hidden";
@@ -80,8 +100,14 @@ export function animateExpand(
         "0px";
 
 
+    // Применяем начальное состояние.
+
     element.offsetHeight;
 
+
+    // ----------------------------------
+    // Transition
+    // ----------------------------------
 
     element.style.transition = `
         height ${EXPAND_DURATION}ms ease,
@@ -95,6 +121,18 @@ export function animateExpand(
     return new Promise(resolve => {
 
         const finish = ()=>{
+
+            if(
+                element._sizeAnimationToken !==
+                token
+            ){
+
+                resolve();
+
+                return;
+
+            }
+
 
             element.style.height =
                 "auto";
@@ -120,9 +158,20 @@ export function animateExpand(
             element._sizeAnimationTimer =
                 null;
 
+            element._sizeAnimationResolve =
+                null;
+
+            element._sizeAnimationToken =
+                null;
+
+
             resolve();
 
         };
+
+
+        element._sizeAnimationResolve =
+            resolve;
 
 
         element._sizeAnimationTimer =
@@ -133,6 +182,18 @@ export function animateExpand(
 
 
         requestAnimationFrame(()=>{
+
+            if(
+                element._sizeAnimationToken !==
+                token
+            ){
+
+                resolve();
+
+                return;
+
+            }
+
 
             element.style.height =
                 `${targetHeight}px`;
@@ -173,15 +234,22 @@ export function animateCollapse(
     );
 
 
+    element.hidden =
+        false;
+
+
     const computed =
         window.getComputedStyle(
             element
         );
 
 
+    // ----------------------------------
+    // Текущее состояние
+    // ----------------------------------
+
     const currentHeight =
         element.getBoundingClientRect().height;
-
 
     const currentPaddingTop =
         computed.paddingTop;
@@ -196,8 +264,20 @@ export function animateCollapse(
         computed.marginBottom;
 
 
-    element.hidden =
-        false;
+    // ----------------------------------
+    // Новый токен анимации
+    // ----------------------------------
+
+    const token =
+        Symbol();
+
+    element._sizeAnimationToken =
+        token;
+
+
+    // ----------------------------------
+    // Фиксируем текущее состояние
+    // ----------------------------------
 
     element.style.overflow =
         "hidden";
@@ -221,6 +301,10 @@ export function animateCollapse(
     element.offsetHeight;
 
 
+    // ----------------------------------
+    // Transition
+    // ----------------------------------
+
     element.style.transition = `
         height ${COLLAPSE_DURATION}ms ease,
         padding-top ${COLLAPSE_DURATION}ms ease,
@@ -233,6 +317,18 @@ export function animateCollapse(
     return new Promise(resolve => {
 
         const finish = ()=>{
+
+            if(
+                element._sizeAnimationToken !==
+                token
+            ){
+
+                resolve();
+
+                return;
+
+            }
+
 
             element.style.height =
                 "";
@@ -261,9 +357,20 @@ export function animateCollapse(
             element._sizeAnimationTimer =
                 null;
 
+            element._sizeAnimationResolve =
+                null;
+
+            element._sizeAnimationToken =
+                null;
+
+
             resolve();
 
         };
+
+
+        element._sizeAnimationResolve =
+            resolve;
 
 
         element._sizeAnimationTimer =
@@ -274,6 +381,18 @@ export function animateCollapse(
 
 
         requestAnimationFrame(()=>{
+
+            if(
+                element._sizeAnimationToken !==
+                token
+            ){
+
+                resolve();
+
+                return;
+
+            }
+
 
             element.style.height =
                 "0px";
@@ -323,6 +442,28 @@ export function cancelSizeAnimation(
     }
 
 
+    // Разрешаем старый Promise,
+    // если анимация была прервана.
+
+    if(
+        element._sizeAnimationResolve
+    ){
+
+        const resolve =
+            element._sizeAnimationResolve;
+
+        element._sizeAnimationResolve =
+            null;
+
+        resolve();
+
+    }
+
+
+    element._sizeAnimationToken =
+        null;
+
+
     element.style.transition =
         "";
 
@@ -331,6 +472,18 @@ export function cancelSizeAnimation(
 
 // ======================================
 // Recalculate
+// ======================================
+//
+// Используется, когда содержимое уже
+// открытого блока изменилось.
+//
+// Например:
+//
+// было 2 строки
+// стало 8 строк
+//
+// Блок плавно переходит
+// на новую высоту.
 // ======================================
 
 export function animateResize(
@@ -382,12 +535,29 @@ export function animateResize(
     }
 
 
+    const token =
+        Symbol();
+
+    element._sizeAnimationToken =
+        token;
+
+
     element.style.transition = `
         height ${EXPAND_DURATION}ms ease
     `;
 
 
     requestAnimationFrame(()=>{
+
+        if(
+            element._sizeAnimationToken !==
+            token
+        ){
+
+            return;
+
+        }
+
 
         element.style.height =
             `${targetHeight}px`;
@@ -397,6 +567,16 @@ export function animateResize(
 
     element._sizeAnimationTimer =
         setTimeout(()=>{
+
+            if(
+                element._sizeAnimationToken !==
+                token
+            ){
+
+                return;
+
+            }
+
 
             element.style.height =
                 "auto";
@@ -408,6 +588,9 @@ export function animateResize(
                 "";
 
             element._sizeAnimationTimer =
+                null;
+
+            element._sizeAnimationToken =
                 null;
 
         }, EXPAND_DURATION + 30);
