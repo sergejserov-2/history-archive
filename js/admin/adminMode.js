@@ -16,6 +16,11 @@ import {
 }
 from "../firebase.js";
 
+import {
+    setAdminButtonsEnabled
+}
+from "./adminButtons.js";
+
 // ======================================
 // State
 // ======================================
@@ -40,11 +45,15 @@ onAuthStateChanged(
 
         currentUser = user;
 
-        ADMIN_MODE = !!user;
+ADMIN_MODE = !!user;
 
-        authReady = true;
+authReady = true;
 
-        listeners.forEach(
+setAdminButtonsEnabled(
+    ADMIN_MODE
+);
+
+listeners.forEach(
 
             callback => {
 
