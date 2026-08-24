@@ -10,6 +10,12 @@ import{deleteEntity}from"../../admin/update.js";
 import{createModal}from"./modal.js";
 import{setModalUrl}from"./modalReload.js";
 import{renderEntityList}from"./entityList.js";
+import{
+    adminEdit,
+    adminDelete,
+    adminAdd
+}from"./adminButtons.js";
+
 
 let currentTypesModal=null;
 
@@ -147,52 +153,131 @@ export async function refreshTypesModal(){
     );
 }
 
-function renderTypesList(objectTypes=[],recordTypes=[],subjectTypes=[],objects=[],records=[],subjects=[],ADMIN_MODE=false){
+function renderTypesList(
+    objectTypes=[],
+    recordTypes=[],
+    subjectTypes=[],
+    objects=[],
+    records=[],
+    subjects=[],
+    ADMIN_MODE=false
+){
+
     const groups=[];
+
     const objectItems=objectTypes
-        .map(type=>createTypeItem(type,"objectType",objects,records,subjects,ADMIN_MODE))
+        .map(type=>createTypeItem(
+            type,
+            "objectType",
+            objects,
+            records,
+            subjects,
+            ADMIN_MODE
+        ))
         .sort(sortItems);
+
     const recordItems=recordTypes
-        .map(type=>createTypeItem(type,"recordType",objects,records,subjects,ADMIN_MODE))
+        .map(type=>createTypeItem(
+            type,
+            "recordType",
+            objects,
+            records,
+            subjects,
+            ADMIN_MODE
+        ))
         .sort(sortItems);
+
     const subjectItems=subjectTypes
-        .map(type=>createTypeItem(type,"subjectType",objects,records,subjects,ADMIN_MODE))
+        .map(type=>createTypeItem(
+            type,
+            "subjectType",
+            objects,
+            records,
+            subjects,
+            ADMIN_MODE
+        ))
         .sort(sortItems);
-    if(objectItems.length)groups.push({title:"Типы объектов",items:objectItems});
-    if(recordItems.length)groups.push({title:"Типы записей",items:recordItems});
-    if(subjectItems.length)groups.push({title:"Типы субъектов",items:subjectItems});
-    const addButton=ADMIN_MODE?`
-        <div class="entity-list__add admin-button" data-action="add-type" data-type="objectType">
-            + Добавить тип
-        </div>
-    `:"";
-    return renderEntityList({groups,addButton});
+
+    if(objectItems.length)
+        groups.push({
+            title:"Типы объектов",
+            items:objectItems
+        });
+
+    if(recordItems.length)
+        groups.push({
+            title:"Типы записей",
+            items:recordItems
+        });
+
+    if(subjectItems.length)
+        groups.push({
+            title:"Типы субъектов",
+            items:subjectItems
+        });
+
+    return renderEntityList({
+        groups,
+        addButton:ADMIN_MODE
+            ?adminAdd(
+                "add-type",
+                "Добавить тип"
+            )
+            :""
+    });
 }
 
-function createTypeItem(type,typeName,objects,records,subjects,ADMIN_MODE){
-    const used=isTypeUsed(typeName,type.id,{objects,records,subjects});
+function createTypeItem(
+    type,
+    typeName,
+    objects,
+    records,
+    subjects,
+    ADMIN_MODE
+){
+
+    const used=isTypeUsed(
+        typeName,
+        type.id,
+        {
+            objects,
+            records,
+            subjects
+        }
+    );
+
     return{
         id:type.id,
         clickable:false,
-        title:escapeHTML(type.title??"Без названия"),
-        meta:formatLevels(type.levels??type.level),
-        actions:ADMIN_MODE?`
-            <button class="admin-button" data-action="edit-type" data-type="${typeName}" data-id="${escapeHTML(type.id)}" title="Редактировать">
-                <img src="icons/edit.svg" class="admin-icon">
-            </button>
-            <button
-                class="admin-button ${used?"admin-button--disabled":""}"
-                data-action="delete-type"
-                data-type="${typeName}"
-                data-id="${escapeHTML(type.id)}"
-                title="${used?"Тип используется и не может быть удалён":"Удалить"}"
-            >
-                <img src="icons/delete.svg" class="admin-icon">
-            </button>
-        `:""
+        title:escapeHTML(
+            type.title??"Без названия"
+        ),
+        meta:formatLevels(
+            type.levels??type.level
+        ),
+        actions:ADMIN_MODE
+            ?
+            `
+            ${adminEdit(
+                typeName,
+                escapeHTML(type.id)
+            )}
+            ${adminDelete(
+                typeName,
+                escapeHTML(type.id),
+                {
+                    className:used
+                        ?"admin-button--disabled"
+                        :"",
+                    title:used
+                        ?"Тип используется и не может быть удалён"
+                        :"Удалить"
+                }
+            )}
+            `
+            :""
     };
 }
-
 function getTypeById(type,id,modal){
     if(type==="objectType")return modal.objectTypes.find(item=>item.id===id);
     if(type==="recordType")return modal.recordTypes.find(item=>item.id===id);
