@@ -2,7 +2,7 @@
 // Universal block animations
 // ======================================
 //
-// Отвечает только за геометрию блока:
+// Отвечает только за геометрию.
 //
 // height
 // padding
@@ -11,13 +11,13 @@
 // Никакого opacity.
 // Никакого scale.
 //
-// Используется как универсальный механизм
-// для больших и маленьких динамических
-// элементов.
+// Геометрия и визуальная анимация
+// никогда не должны конкурировать.
 // ======================================
 
-const EXPAND_DURATION = 280;
-const COLLAPSE_DURATION = 240;
+
+const EXPAND_DURATION = 220;
+const COLLAPSE_DURATION = 200;
 
 
 // ======================================
@@ -38,7 +38,8 @@ export function animateExpand(
     );
 
 
-    // Элемент обязан быть в layout.
+    // Элемент должен участвовать
+    // в layout.
 
     element.hidden = false;
 
@@ -48,10 +49,6 @@ export function animateExpand(
             element
         );
 
-
-    // ----------------------------------
-    // Целевые значения
-    // ----------------------------------
 
     const targetHeight =
         element.scrollHeight;
@@ -92,8 +89,7 @@ export function animateExpand(
         "0px";
 
 
-    // Принудительно применяем
-    // начальное состояние.
+    // Фиксируем начальное состояние.
 
     element.offsetHeight;
 
@@ -110,10 +106,6 @@ export function animateExpand(
         margin-bottom ${EXPAND_DURATION}ms ease
     `;
 
-
-    // ----------------------------------
-    // Запуск
-    // ----------------------------------
 
     requestAnimationFrame(()=>{
 
@@ -134,10 +126,6 @@ export function animateExpand(
 
     });
 
-
-    // ----------------------------------
-    // Завершение
-    // ----------------------------------
 
     const finish = ()=>{
 
@@ -178,7 +166,7 @@ export function animateExpand(
     element._sizeAnimationTimer =
         setTimeout(
             finish,
-            EXPAND_DURATION + 30
+            EXPAND_DURATION + 20
         );
 
 }
@@ -201,6 +189,9 @@ export function animateCollapse(
         element
     );
 
+
+    // Элемент должен быть в layout
+    // во время схлопывания.
 
     element.hidden = false;
 
@@ -231,10 +222,6 @@ export function animateCollapse(
         computed.marginBottom;
 
 
-    // ----------------------------------
-    // Фиксируем текущее состояние
-    // ----------------------------------
-
     element.style.overflow =
         "hidden";
 
@@ -254,6 +241,8 @@ export function animateCollapse(
         currentMarginBottom;
 
 
+    // Фиксируем текущее состояние.
+
     element.offsetHeight;
 
 
@@ -269,10 +258,6 @@ export function animateCollapse(
         margin-bottom ${COLLAPSE_DURATION}ms ease
     `;
 
-
-    // ----------------------------------
-    // Запуск
-    // ----------------------------------
 
     requestAnimationFrame(()=>{
 
@@ -293,10 +278,6 @@ export function animateCollapse(
 
     });
 
-
-    // ----------------------------------
-    // Завершение
-    // ----------------------------------
 
     const finish = ()=>{
 
@@ -340,7 +321,7 @@ export function animateCollapse(
     element._sizeAnimationTimer =
         setTimeout(
             finish,
-            COLLAPSE_DURATION + 30
+            COLLAPSE_DURATION + 20
         );
 
 }
@@ -348,6 +329,16 @@ export function animateCollapse(
 
 // ======================================
 // Resize
+// ======================================
+//
+// Для уже открытого блока.
+//
+// Контент изменился:
+// 2 строки → 8 строк
+// или
+// 8 строк → 2 строки
+//
+// Блок плавно меняет высоту.
 // ======================================
 
 export function animateResize(
@@ -367,16 +358,6 @@ export function animateResize(
         element.getBoundingClientRect().height;
 
 
-    element.style.height =
-        `${currentHeight}px`;
-
-    element.style.overflow =
-        "hidden";
-
-
-    element.offsetHeight;
-
-
     const targetHeight =
         element.scrollHeight;
 
@@ -388,20 +369,23 @@ export function animateResize(
         ) < 1
     ){
 
-        element.style.height =
-            "auto";
-
-        element.style.overflow =
-            "";
-
         return;
 
     }
 
 
-    element.style.transition = `
-        height ${EXPAND_DURATION}ms ease
-    `;
+    element.style.overflow =
+        "hidden";
+
+    element.style.height =
+        `${currentHeight}px`;
+
+
+    element.offsetHeight;
+
+
+    element.style.transition =
+        `height ${EXPAND_DURATION}ms ease`;
 
 
     requestAnimationFrame(()=>{
@@ -427,7 +411,7 @@ export function animateResize(
             element._sizeAnimationTimer =
                 null;
 
-        }, EXPAND_DURATION + 30);
+        }, EXPAND_DURATION + 20);
 
 }
 
@@ -454,6 +438,37 @@ export function cancelSizeAnimation(
 
         element._sizeAnimationTimer =
             null;
+
+    }
+
+
+    // Если элемент сейчас находится
+    // в середине height-transition,
+    // сначала сохраняем его фактическую
+    // текущую высоту.
+
+    const computed =
+        window.getComputedStyle(
+            element
+        );
+
+
+    if(
+        computed.height !== "auto" &&
+        element.offsetParent !== null
+    ){
+
+        const currentHeight =
+            element.getBoundingClientRect().height;
+
+
+        element.style.transition =
+            "none";
+
+        element.style.height =
+            `${currentHeight}px`;
+
+        element.offsetHeight;
 
     }
 
