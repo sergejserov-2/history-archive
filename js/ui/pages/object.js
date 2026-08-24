@@ -415,17 +415,17 @@ loadPage()
     .then(async()=>{
 
         onAdminStateChanged(
-            async admin=>{
+            admin=>{
 
                 pageAdminMode=admin;
 
-                await renderPage();
-
                 if(admin){
+
                     initAdmin(
                         page,
                         updates
                     );
+
                 }
 
             }
