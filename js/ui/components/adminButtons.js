@@ -444,6 +444,9 @@ export function hideAdminButton(
     // ==================================
 
     button.classList.remove(
+        "admin-button--hidden"
+    );
+        button.classList.remove(
         "admin-button--entering"
     );
 
@@ -457,30 +460,88 @@ export function hideAdminButton(
     // ==================================
 
     button._adminAnimationTimer =
-        setTimeout(()=>{
+    setTimeout(()=>{
 
-            if(
-                button._adminAnimationState !==
-                "exit"
-            ){
+        if(
+            button._adminAnimationState !==
+            "exit"
+        ){
 
-                return;
+            return;
 
-            }
-
-
-            button.classList.remove(
-                "admin-button--exiting"
-            );
+        }
 
 
-            // ==================================
-            // ФАЗА 2
-            // Зазор
-            // ==================================
+        button.classList.remove(
+            "admin-button--exiting"
+        );
 
-            button._adminAnimationTimer =
-                setTimeout(()=>{
+
+        // ==================================
+        // Фиксируем невидимость
+        // ==================================
+
+        button.classList.add(
+            "admin-button--hidden"
+        );
+
+
+        // ==================================
+        // ФАЗА 2
+        // Зазор
+        // ==================================
+
+        button._adminAnimationTimer =
+            setTimeout(()=>{
+
+                if(
+                    button._adminAnimationState !==
+                    "exit"
+                ){
+
+                    return;
+
+                }
+
+
+                // ==================================
+                // ФАЗА 3
+                // Сжатие
+                // ==================================
+
+                let collapsePromise;
+
+
+                if(
+                    isExpandableAdminBlock(
+                        button
+                    )
+                ){
+
+                    collapsePromise =
+                        animateCollapse(
+                            button
+                        );
+
+                }else if(
+                    isSmallAdminButton(
+                        button
+                    )){
+
+                    collapsePromise =
+                        animateSmallCollapse(
+                            button
+                        );
+
+                }else{
+
+                    collapsePromise =
+                        Promise.resolve();
+
+                }
+
+
+                collapsePromise.then(()=>{
 
                     if(
                         button._adminAnimationState !==
@@ -492,77 +553,26 @@ export function hideAdminButton(
                     }
 
 
-                    // ==================================
-                    // ФАЗА 3
-                    // Сжатие
-                    // ==================================
-
-                    let collapsePromise;
+                    button.hidden =
+                        true;
 
 
-                    if(
-                        isExpandableAdminBlock(
-                            button
-                        )
-                    ){
+                    button._adminAnimationState =
+                        null;
 
-                        collapsePromise =
-                            animateCollapse(
-                                button
-                            );
+                    button._adminAnimationTimer =
+                        null;
 
-                    }else if(
-                        isSmallAdminButton(
-                            button
-                        )){
+                });
 
-                        collapsePromise =
-                            animateSmallCollapse(
-                                button
-                            );
+            },
+            EXIT_DELAY
+        );
 
-                    }else{
-
-                        collapsePromise =
-                            Promise.resolve();
-
-                    }
-
-
-                    collapsePromise.then(()=>{
-
-                        if(
-                            button._adminAnimationState !==
-                            "exit"
-                        ){
-
-                            return;
-
-                        }
-
-
-                        button.hidden =
-                            true;
-
-
-                        button._adminAnimationState =
-                            null;
-
-                        button._adminAnimationTimer =
-                            null;
-
-                    });
-
-                },
-                EXIT_DELAY
-            );
-
-        },
-        EXIT_VISUAL_DURATION + 20
-    );
-
+    },
+    EXIT_VISUAL_DURATION + 20
+);
 }
-
 
 // ======================================
 // Update
