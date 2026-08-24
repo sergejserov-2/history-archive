@@ -354,7 +354,7 @@ button.admin-button {
 }
 
 .admin-button--disabled{
-    opacity:.35;
+    opacity:.35 !important;
     cursor:not-allowed !important;
 }
 
