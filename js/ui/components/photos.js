@@ -5,11 +5,25 @@
 import {openPhotoViewer} from "./photoViewer.js";
 import {renderLoadingPlaceholder}
     from "./loadingPlaceholder.js";
+import{
+    adminEdit,
+    adminDelete,
+    adminAdd
+}from"./adminButtons.js";
 
 
 export function renderPhotos(photos, ADMIN_MODE=false){
     const cards=[];
-    if(ADMIN_MODE) cards.push(`<div class="photo-card photo-card--add admin-button" data-action="add-photo">+ Добавить фото</div>`);
+if(ADMIN_MODE)
+    cards.push(
+        adminAdd(
+            "add-photo",
+            "Добавить фото",
+            {
+                className:"photo-card photo-card--add"
+            }
+        )
+    );
 
     const sortedPhotos=[...(photos??[])].sort((a,b)=>{
         const dateA=a.date||"",dateB=b.date||"";
@@ -57,7 +71,21 @@ else if(hasPreview){
             mediaHTML=`<div class="photo-card__placeholder">Фото отсутствует</div>`;
         }
 
-        cards.push(`<div class="photo-card${uploading?" photo-card--uploading":""}" data-photo-id="${photo.id}"><div class="photo-card__media" data-photo-id="${photo.id}" data-loading="${uploading}">${mediaHTML}</div><div class="photo-card__title">${photo.title??""}${ADMIN_MODE?`<button class="admin-button" data-action="edit-photo" data-id="${photo.id}"><img src="icons/edit.svg" class="admin-icon"></button><button class="admin-button" data-action="delete-photo" data-id="${photo.id}"><img src="icons/delete.svg" class="admin-icon"></button>`:""}</div><div class="photo-card__author">${photo.author??""}${photo.dateMode==="period"?(photo.dateStart||photo.dateEnd)?`, <span class="photo-card__date">${photo.dateStart&&photo.dateEnd?`${photo.dateStart} – ${photo.dateEnd}`:photo.dateStart?`с ${photo.dateStart}`:`до ${photo.dateEnd}`}</span>`:"":photo.date?`, <span class="photo-card__date">${photo.date}</span>`:""}</div></div>`);
+        cards.push(`<div class="photo-card${uploading?" photo-card--uploading":""}" data-photo-id="${photo.id}"><div class="photo-card__media" data-photo-id="${photo.id}" data-loading="${uploading}">${mediaHTML}</div><div class="photo-card__title">${photo.title??""}${ADMIN_MODE
+?
+`
+${adminEdit(
+    "photo",
+    photo.id
+)}
+
+${adminDelete(
+    "photo",
+    photo.id
+)}
+`
+:""}
+</div><div class="photo-card__author">${photo.author??""}${photo.dateMode==="period"?(photo.dateStart||photo.dateEnd)?`, <span class="photo-card__date">${photo.dateStart&&photo.dateEnd?`${photo.dateStart} – ${photo.dateEnd}`:photo.dateStart?`с ${photo.dateStart}`:`до ${photo.dateEnd}`}</span>`:"":photo.date?`, <span class="photo-card__date">${photo.date}</span>`:""}</div></div>`);
     });
 
     const html=`<div class="photos-list">${cards.join("")}</div>`;
