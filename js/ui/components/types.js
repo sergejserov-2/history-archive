@@ -4,7 +4,6 @@ import{getSubjectTypes}from"../../api/subjectTypes.js";
 import{getAllObjects}from"../../api/objects.js";
 import{getAllRecords}from"../../api/records.js";
 import{getSubjects}from"../../api/subjects.js";
-import{isAdmin}from"../../admin/adminMode.js";
 import{openEditor}from"../../admin/editorConfig.js";
 import{deleteEntity}from"../../admin/update.js";
 import{createModal}from"./modal.js";
@@ -30,7 +29,7 @@ export async function openTypesModal(){
     ]);
     const modal=createModal({
         title:"Типы",
-        content:renderTypesList(objectTypes,recordTypes,subjectTypes,objects,records,subjects,isAdmin()),
+        content:renderTypesList(objectTypes,recordTypes,subjectTypes,objects,records,subjects),
         width:420,
         admin: true
     });
@@ -147,8 +146,7 @@ export async function refreshTypesModal(){
             subjectTypes,
             objects,
             records,
-            subjects,
-            isAdmin()
+            subjects
         )
     );
 }
@@ -160,7 +158,6 @@ function renderTypesList(
     objects=[],
     records=[],
     subjects=[],
-    ADMIN_MODE=false
 ){
 
     const groups=[];
@@ -171,8 +168,7 @@ function renderTypesList(
             "objectType",
             objects,
             records,
-            subjects,
-            ADMIN_MODE
+            subjects
         ))
         .sort(sortItems);
 
@@ -182,8 +178,7 @@ function renderTypesList(
             "recordType",
             objects,
             records,
-            subjects,
-            ADMIN_MODE
+            subjects
         ))
         .sort(sortItems);
 
@@ -193,8 +188,7 @@ function renderTypesList(
             "subjectType",
             objects,
             records,
-            subjects,
-            ADMIN_MODE
+            subjects
         ))
         .sort(sortItems);
 
@@ -218,7 +212,7 @@ function renderTypesList(
 
     return renderEntityList({
         groups,
-        addButton:ADMIN_MODE
+        addButton:
             ?adminAdd(
                 "add-type",
                 "Добавить тип"
@@ -232,8 +226,7 @@ function createTypeItem(
     typeName,
     objects,
     records,
-    subjects,
-    ADMIN_MODE
+    subjects
 ){
 
     const used=isTypeUsed(
@@ -255,7 +248,7 @@ function createTypeItem(
         meta:formatLevels(
             type.levels??type.level
         ),
-        actions:ADMIN_MODE
+        actions:
             ?
             `
             ${adminEdit(
