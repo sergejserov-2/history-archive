@@ -40,24 +40,22 @@ onAuthStateChanged(
 
         currentUser = user;
 
-ADMIN_MODE = !!user;
+        ADMIN_MODE = !!user;
 
-authReady = true;
+        authReady = true;
 
-listeners.forEach(
+        // Сообщаем всем подписчикам
+        // об изменении состояния.
 
+        listeners.forEach(
             callback => {
 
                 callback(
-
                     ADMIN_MODE,
-
                     currentUser
-
                 );
 
             }
-
         );
 
     }
@@ -65,7 +63,7 @@ listeners.forEach(
 );
 
 // ======================================
-// Get current state
+// Get current admin state
 // ======================================
 
 export function isAdmin(){
@@ -104,24 +102,30 @@ export function onAdminStateChanged(
 
 ){
 
+    if(
+        typeof callback !==
+        "function"
+    ){
+
+        return ()=>{};
+
+    }
+
     listeners.push(callback);
 
-    // Если состояние уже известно —
-    // сразу передаём его.
+    // Если Firebase уже определил
+    // пользователя — сразу сообщаем.
 
     if(authReady){
 
         callback(
-
             ADMIN_MODE,
-
             currentUser
-
         );
 
     }
 
-    // Возвращаем функцию отписки
+    // Возвращаем функцию отписки.
 
     return ()=>{
 
@@ -130,7 +134,10 @@ export function onAdminStateChanged(
 
         if(index !== -1){
 
-            listeners.splice(index,1);
+            listeners.splice(
+                index,
+                1
+            );
 
         }
 
@@ -145,7 +152,6 @@ export function onAdminStateChanged(
 export async function login(
 
     email,
-
     password
 
 ){
@@ -153,9 +159,7 @@ export async function login(
     return await signInWithEmailAndPassword(
 
         auth,
-
         email,
-
         password
 
     );
