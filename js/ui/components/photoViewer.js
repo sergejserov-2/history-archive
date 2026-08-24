@@ -5,9 +5,6 @@ import {
     adminEdit,
     adminDelete
 } from "./adminButtons.js";
-import {
-    isAdmin
-} from "../../admin/adminMode.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,urlParams={}}={}){
     if(!photo)return;
@@ -53,8 +50,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,url
     const imageArea=root.querySelector(".photo-viewer__image-area");
     const image=root.querySelector("#photoViewerImage");
     const imageBackground=root.querySelector(".photo-viewer__image-bg");
-    if(isAdmin()){
-
     root.addEventListener("click",event=>{
 
         const button=event.target.closest(".admin-button");
@@ -79,8 +74,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,url
         );
 
     });
-
-}
     if(!imageArea||!image)return modal;
     image.style.visibility="hidden";
     let fitScale=1,zoom=1,scale=1,translateX=0,translateY=0;
@@ -130,14 +123,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,url
             title.textContent=nextPhoto.title??"";
         }        
         if(titleActions){
-            titleActions.innerHTML=isAdmin()
-                ?
+            titleActions.innerHTML=
                 `
                 ${adminEdit("photo",nextPhoto.id)}
                 ${adminDelete("photo",nextPhoto.id)}
-                `
-                :
-                "";
+                `;
         }
         if(description){
             description.textContent=nextPhoto.description??"";
