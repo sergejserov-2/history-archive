@@ -2,41 +2,8 @@
 // Admin buttons
 // ======================================
 
-let enabled=false;
-
 // ======================================
-// State
-// ======================================
-
-export function setAdminButtonsEnabled(value){
-
-    enabled=value;
-
-    refreshAdminButtons();
-
-}
-
-// ======================================
-// Refresh existing buttons
-// ======================================
-
-export function refreshAdminButtons(){
-
-    document
-        .querySelectorAll(".admin-button")
-        .forEach(button=>{
-
-            button.classList.toggle(
-                "admin-button--hidden",
-                !enabled
-            );
-
-        });
-
-}
-
-// ======================================
-// Button generator
+// Base button
 // ======================================
 
 export function adminButton(
@@ -51,12 +18,7 @@ export function adminButton(
         <button
             class="${[
                 "admin-button",
-                options.className||"",
-                !enabled
-                    ?
-                    "admin-button--hidden"
-                    :
-                    ""
+                options.className||""
             ]
             .filter(Boolean)
             .join(" ")}"
@@ -70,6 +32,7 @@ export function adminButton(
             >
         </button>
     `;
+
 }
 
 // ======================================
@@ -131,11 +94,6 @@ export function adminAdd(
                     ?
                     "admin-button--disabled"
                     :
-                    "",
-                !enabled
-                    ?
-                    "admin-button--hidden"
-                    :
                     ""
             ]
             .filter(Boolean)
@@ -150,7 +108,7 @@ export function adminAdd(
 }
 
 // ======================================
-// Header
+// Header buttons
 // ======================================
 
 export function adminHeaderButton(
@@ -163,7 +121,6 @@ export function adminHeaderButton(
         <button
             id="${id}"
             class="header__button header__button--admin"
-            hidden
             title="${title}"
         >
             <img
@@ -197,19 +154,8 @@ export function adminLoginButton(){
 }
 
 // ======================================
-// Header updates
+// Header login update
 // ======================================
-
-export function adminUpdateHeaderButton(
-    button,
-    admin
-){
-
-    if(!button)return;
-
-    button.hidden=!admin;
-
-}
 
 export function adminUpdateLogin(
     button,
@@ -218,7 +164,7 @@ export function adminUpdateLogin(
 
     if(!button)return;
 
-    button.innerHTML=
+    button.innerHTML =
         admin
         ?
         `
@@ -251,11 +197,11 @@ export function adminUpdateLogin(
 function getIcon(action){
 
     if(action.startsWith("edit"))
-        return"edit";
+        return "edit";
 
     if(action.startsWith("delete"))
-        return"delete";
+        return "delete";
 
-    return"edit";
+    return "edit";
 
 }
