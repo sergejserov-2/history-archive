@@ -14,6 +14,14 @@ import{renderChildren}from"../ui/components/children.js";
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
 import{getCurrentUser}from"./adminMode.js";
 import{createActivity,getActivities,getRecentActivities}from"../api/activity.js";
+import {
+    insertAnimated,
+    removeAnimated
+}
+from "../ui/components/animation.js";
+
+
+
 
 function getAdminEmail(){
     return getCurrentUser()?.email??"";
@@ -298,48 +306,310 @@ export function createPageUpdates(state){
             }
             if(state.admin||state.records.length)document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.admin));
         },
-        async updatePhotosBlock(savedPhoto=null,uploading=false){
-            if(!state.object)return;
-            state.photos=await getPhotos(state.object.id);
-            if(savedPhoto?.id&&!state.photos.some(photo=>photo.id===savedPhoto.id))state.photos.push(savedPhoto);
-            const photosForRender=state.photos.map(photo=>({...photo,isUploading:Boolean(uploading)&&photo.id===savedPhoto?.id}));
-            const gallery=document.querySelector("#gallery");
-            if(!gallery){
-                if(state.admin||photosForRender.length){
-                    const sources=document.querySelector("#sources");
-                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
-                    if(sources)sources.insertAdjacentHTML("beforebegin",html);
-                    else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
-                }
-            }else{
-                gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}`;
+async updatePhotosBlock(
+    savedPhoto=null,
+    uploading=false
+){
+
+    if(!state.object)return;
+
+    state.photos=
+        await getPhotos(
+            state.object.id
+        );
+
+    if(
+        savedPhoto?.id &&
+        !state.photos.some(
+            photo=>photo.id===savedPhoto.id
+        )
+    ){
+
+        state.photos.push(
+            savedPhoto
+        );
+
+    }
+
+    const photosForRender =
+        state.photos.map(
+            photo=>({
+
+                ...photo,
+
+                isUploading:
+                    Boolean(uploading) &&
+                    photo.id===savedPhoto?.id
+
+            })
+        );
+
+    const gallery =
+        document.querySelector(
+            "#gallery"
+        );
+
+    /*
+        Блока нет
+        Создаём только если нужно
+    */
+
+    if(!gallery){
+
+        if(
+            state.admin ||
+            photosForRender.length
+        ){
+
+            const html =
+            `
+            <section id="gallery">
+
+                <h2>
+                    Фотографии
+                </h2>
+
+                ${renderPhotos(
+                    photosForRender,
+                    state.admin
+                )}
+
+            </section>
+            `;
+
+            const page =
+                document.querySelector(
+                    ".page"
+                );
+
+            if(page){
+
+                insertAnimated(
+                    page,
+                    html
+                );
+
             }
-            await state.renderCoverState?.();
-        },
-        async updateSourcesBlock(savedSource=null){
-            if(!state.object)return;
-            state.sources=await getSources(state.object.id);
-            if(savedSource?.id&&!state.sources.some(source=>source.id===savedSource.id))state.sources.push(savedSource);
-            const block=document.querySelector("#sources");
-            if(!block){
-                if(state.admin||state.sources.length){
-                    const children=document.querySelector("#children");
-                    const html=`<section id="sources"><h2>Источники</h2>${renderSources(state.sources,state.admin,state.subjects)}</section>`;
-                    if(children)children.insertAdjacentHTML("beforebegin",html);
-                    else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
-                }
-                return;
+
+        }
+
+    }
+    else{
+
+        /*
+            Обновляем существующий блок
+        */
+
+        gallery.innerHTML =
+        `
+        <h2>
+            Фотографии
+        </h2>
+
+        ${renderPhotos(
+            photosForRender,
+            state.admin
+        )}
+
+        `;
+
+        /*
+            Если блок больше не нужен
+        */
+
+        if(
+            !state.admin &&
+            photosForRender.length===0
+        ){
+
+            removeAnimated(
+                gallery
+            );
+
+        }
+
+    }
+
+    await state.renderCoverState?.();
+
+}
+async updateSourcesBlock(
+    savedSource=null
+){
+
+    if(!state.object)return;
+
+    state.sources=
+        await getSources(
+            state.object.id
+        );
+
+    if(
+        savedSource?.id &&
+        !state.sources.some(
+            source=>source.id===savedSource.id
+        )
+    ){
+
+        state.sources.push(
+            savedSource
+        );
+
+    }
+
+    const block =
+        document.querySelector(
+            "#sources"
+        );
+
+    if(!block){
+
+        if(
+            state.admin ||
+            state.sources.length
+        ){
+
+            const html =
+            `
+            <section id="sources">
+
+                <h2>
+                    Источники
+                </h2>
+
+                ${renderSources(
+                    state.sources,
+                    state.admin,
+                    state.subjects
+                )}
+
+            </section>
+            `;
+
+            const page =
+                document.querySelector(
+                    ".page"
+                );
+
+            if(page){
+
+                insertAnimated(
+                    page,
+                    html
+                );
+
             }
-            block.innerHTML=`<h2>Источники</h2>${renderSources(state.sources,state.admin,state.subjects)}`;
-        },
-        async updateChildrenBlock(){
-            if(!state.object)return;
-            state.children=await state.getChildren();
-            const block=document.querySelector("#children");
-            const html=`<h2>Дочерние объекты</h2>${await renderChildren(state.children,state.admin,state.object,state.objects,state.types)}`;
-            if(block)block.innerHTML=html;
-            else if(state.admin||state.children.length)document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
-        },
+
+        }
+
+        return;
+
+    }
+
+    block.innerHTML =
+    `
+    <h2>
+        Источники
+    </h2>
+
+    ${renderSources(
+        state.sources,
+        state.admin,
+        state.subjects
+    )}
+
+    `;
+
+    if(
+        !state.admin &&
+        state.sources.length===0
+    ){
+
+        removeAnimated(
+            block
+        );
+
+    }
+
+}
+async updateChildrenBlock(){
+
+    if(!state.object)return;
+
+    state.children =
+        await state.getChildren();
+
+    const html =
+    `
+    <h2>
+        Дочерние объекты
+    </h2>
+
+    ${
+        await renderChildren(
+            state.children,
+            state.object,
+            state.objects,
+            state.types,
+            state.admin
+        )
+    }
+
+    `;
+
+    const block =
+        document.querySelector(
+            "#children"
+        );
+
+    if(!block){
+
+        if(
+            state.admin ||
+            state.children.length
+        ){
+
+            const page =
+                document.querySelector(
+                    ".page"
+                );
+
+            if(page){
+
+                insertAnimated(
+                    page,
+                    `
+                    <section id="children">
+
+                        ${html}
+
+                    </section>
+                    `
+                );
+
+            }
+
+        }
+
+        return;
+
+    }
+
+    block.innerHTML =
+        html;
+
+    if(
+        !state.admin &&
+        state.children.length===0
+    ){
+
+        removeAnimated(
+            block
+        );
+
+    }
+
+}
         async onObjectDeleted(){
             const parent=state.parents?.[0];
             window.location.href=parent?.id?`object.html?id=${parent.id}`:"index.html";
