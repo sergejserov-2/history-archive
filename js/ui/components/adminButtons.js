@@ -52,12 +52,12 @@ export function adminDelete(type,id,options={}){
     );
 }
 
-export function adminAdd(action,text){
+export function adminAdd(action,text,options={}){
     if(!enabled)return"";
 
     return`
         <div
-            class="entity-list__add admin-button"
+            class="${options.className||"entity-list__add"} admin-button"
             data-action="${action}"
         >
             + ${text}
