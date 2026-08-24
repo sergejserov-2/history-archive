@@ -59,10 +59,6 @@ export function animateExpand(
         computed.marginBottom;
 
 
-    // ==================================
-    // Начальное состояние
-    // ==================================
-
     element.style.overflow =
         "hidden";
 
@@ -82,16 +78,9 @@ export function animateExpand(
         "0px";
 
 
-    // ==================================
-    // Принудительно фиксируем layout
-    // ==================================
-
+    // Зафиксировать начальное состояние.
     element.offsetHeight;
 
-
-    // ==================================
-    // Transition
-    // ==================================
 
     element.style.transition = `
         height ${EXPAND_DURATION}ms ease,
@@ -102,37 +91,25 @@ export function animateExpand(
     `;
 
 
-    // ==================================
-    // Запуск через два кадра
-    // ==================================
-
     requestAnimationFrame(()=>{
 
-        requestAnimationFrame(()=>{
+        element.style.height =
+            `${targetHeight}px`;
 
-            element.style.height =
-                `${targetHeight}px`;
+        element.style.paddingTop =
+            targetPaddingTop;
 
-            element.style.paddingTop =
-                targetPaddingTop;
+        element.style.paddingBottom =
+            targetPaddingBottom;
 
-            element.style.paddingBottom =
-                targetPaddingBottom;
+        element.style.marginTop =
+            targetMarginTop;
 
-            element.style.marginTop =
-                targetMarginTop;
-
-            element.style.marginBottom =
-                targetMarginBottom;
-
-        });
+        element.style.marginBottom =
+            targetMarginBottom;
 
     });
 
-
-    // ==================================
-    // Завершение
-    // ==================================
 
     return new Promise(resolve=>{
 
@@ -166,9 +143,7 @@ export function animateExpand(
 
                 resolve();
 
-            },
-            EXPAND_DURATION + 40
-        );
+            }, EXPAND_DURATION + 30);
 
     });
 
@@ -192,6 +167,13 @@ export function animateCollapse(
     );
 
 
+    element.hidden = false;
+
+
+    // ==================================
+    // Сначала получаем реальные размеры
+    // ==================================
+
     const computed =
         window.getComputedStyle(
             element
@@ -199,7 +181,7 @@ export function animateCollapse(
 
 
     const currentHeight =
-        element.getBoundingClientRect().height;
+        element.scrollHeight;
 
 
     const currentPaddingTop =
@@ -216,15 +198,7 @@ export function animateCollapse(
 
 
     // ==================================
-    // Элемент должен оставаться видимым
-    // до конца анимации
-    // ==================================
-
-    element.hidden = false;
-
-
-    // ==================================
-    // Начальное состояние
+    // Фиксируем начальное состояние
     // ==================================
 
     element.style.overflow =
@@ -246,15 +220,14 @@ export function animateCollapse(
         currentMarginBottom;
 
 
-    // ==================================
-    // Фиксируем layout
-    // ==================================
-
+    // Критически важно:
+    // браузер должен один раз
+    // применить зафиксированное состояние.
     element.offsetHeight;
 
 
     // ==================================
-    // Transition
+    // Включаем переход
     // ==================================
 
     element.style.transition = `
@@ -267,36 +240,28 @@ export function animateCollapse(
 
 
     // ==================================
-    // Запуск через два кадра
+    // Запускаем схлопывание
     // ==================================
 
     requestAnimationFrame(()=>{
 
-        requestAnimationFrame(()=>{
+        element.style.height =
+            "0px";
 
-            element.style.height =
-                "0px";
+        element.style.paddingTop =
+            "0px";
 
-            element.style.paddingTop =
-                "0px";
+        element.style.paddingBottom =
+            "0px";
 
-            element.style.paddingBottom =
-                "0px";
+        element.style.marginTop =
+            "0px";
 
-            element.style.marginTop =
-                "0px";
-
-            element.style.marginBottom =
-                "0px";
-
-        });
+        element.style.marginBottom =
+            "0px";
 
     });
 
-
-    // ==================================
-    // Завершение
-    // ==================================
 
     return new Promise(resolve=>{
 
@@ -333,9 +298,7 @@ export function animateCollapse(
 
                 resolve();
 
-            },
-            COLLAPSE_DURATION + 40
-        );
+            }, COLLAPSE_DURATION + 30);
 
     });
 
@@ -359,17 +322,28 @@ export function animateResize(
     );
 
 
-    // ==================================
-    // Текущая высота
-    // ==================================
+    element.hidden = false;
+
 
     const currentHeight =
         element.getBoundingClientRect().height;
 
 
-    // ==================================
-    // Фиксируем текущее состояние
-    // ==================================
+    const targetHeight =
+        element.scrollHeight;
+
+
+    if(
+        Math.abs(
+            currentHeight -
+            targetHeight
+        ) < 1
+    ){
+
+        return;
+
+    }
+
 
     element.style.overflow =
         "hidden";
@@ -381,64 +355,18 @@ export function animateResize(
     element.offsetHeight;
 
 
-    // ==================================
-    // Получаем новую высоту
-    // ==================================
-
-    const targetHeight =
-        element.scrollHeight;
-
-
-    // ==================================
-    // Высота практически не изменилась
-    // ==================================
-
-    if(
-        Math.abs(
-            currentHeight -
-            targetHeight
-        ) < 1
-    ){
-
-        element.style.height =
-            "auto";
-
-        element.style.overflow =
-            "";
-
-        return;
-
-    }
-
-
-    // ==================================
-    // Transition
-    // ==================================
-
     element.style.transition = `
         height ${EXPAND_DURATION}ms ease
     `;
 
 
-    // ==================================
-    // Запуск через два кадра
-    // ==================================
-
     requestAnimationFrame(()=>{
 
-        requestAnimationFrame(()=>{
-
-            element.style.height =
-                `${targetHeight}px`;
-
-        });
+        element.style.height =
+            `${targetHeight}px`;
 
     });
 
-
-    // ==================================
-    // Завершение
-    // ==================================
 
     element._sizeAnimationTimer =
         setTimeout(()=>{
@@ -455,9 +383,7 @@ export function animateResize(
             element._sizeAnimationTimer =
                 null;
 
-        },
-        EXPAND_DURATION + 40
-    );
+        }, EXPAND_DURATION + 30);
 
 }
 
