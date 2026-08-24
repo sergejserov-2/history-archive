@@ -432,7 +432,7 @@ async updatePhotosBlock(
 
     await state.renderCoverState?.();
 
-}
+},
 async updateSourcesBlock(
     savedSource=null
 ){
@@ -531,7 +531,7 @@ async updateSourcesBlock(
 
     }
 
-}
+},
 async updateChildrenBlock(){
 
     if(!state.object)return;
@@ -609,7 +609,7 @@ async updateChildrenBlock(){
 
     }
 
-}
+},
         async onObjectDeleted(){
             const parent=state.parents?.[0];
             window.location.href=parent?.id?`object.html?id=${parent.id}`:"index.html";
