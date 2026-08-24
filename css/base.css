@@ -960,27 +960,4 @@ button.admin-button{
     transform-origin:
         center center;
 
-    transition:
-        max-height .32s ease,
-        padding .32s ease,
-        margin .32s ease;
-
-}
-
-.entity-list__add.admin-button--hidden,
-.photo-card--add.admin-button--hidden,
-.source--add.admin-button--hidden,
-.child-card--add.admin-button--hidden{
-
-    max-height:0;
-
-    padding-top:0;
-    padding-bottom:0;
-
-    margin-top:0;
-    margin-bottom:0;
-
-    transform:
-        scale(0);
-
 }
