@@ -1,3 +1,9 @@
+import {
+    adminHeaderButton,
+    adminLoginButton,
+    adminUpdateHeaderButton,
+    adminUpdateLogin
+} from "../../admin/adminButtons.js";
 import{isAdmin,onAdminStateChanged,logout}from"../../admin/adminMode.js";
 import{openLoginModal}from"./loginModal.js";
 import{openSubjectsModal}from"./subjects.js";
@@ -27,21 +33,31 @@ export function renderHeader(page=null,updates=null){
         <input type="text" id="searchInput" placeholder="Поиск...">
     </div>
     <div class="header__buttons">
+    
         <button id="subjectsButton" class="header__button">
             <img src="icons/subjects.svg" class="header-icon">
         </button>
-        <button id="typesButton" class="header__button header__button--admin" hidden>
-            <img src="icons/types.svg" class="header-icon">
-        </button>
-        <button id="feedbacksButton" class="header__button header__button--admin" hidden>
-            <img src="icons/feedbacks.svg" class="header-icon">
-        </button>
-        <button id="activityButton" class="header__button header__button--admin" hidden>
-            <img src="icons/activity.svg" class="header-icon">
-        </button>
-        <button id="loginButton" class="header__button">
-            <img src="icons/login.svg" class="header-icon"> Войти
-        </button>
+    
+        ${adminHeaderButton(
+            "typesButton",
+            "types",
+            "Типы"
+        )}
+    
+        ${adminHeaderButton(
+            "feedbacksButton",
+            "feedbacks",
+            "Обращения"
+        )}
+    
+        ${adminHeaderButton(
+            "activityButton",
+            "activity",
+            "История изменений"
+        )}
+    
+        ${adminLoginButton()}
+    
     </div>
 </header>
 `;
@@ -119,24 +135,27 @@ export function renderHeader(page=null,updates=null){
         if(!loginButton)return;
 
         const updateButtons=(ADMIN_MODE)=>{
-            if(typesButton)
-                typesButton.hidden=!ADMIN_MODE;
-
-            if(feedbacksButton)
-                feedbacksButton.hidden=!ADMIN_MODE;
-
-            if(activityButton)
-                activityButton.hidden=!ADMIN_MODE;
-
-            loginButton.innerHTML=
-                ADMIN_MODE
-                    ?'<img src="icons/logout.svg" class="header-icon"> Выйти'
-                    :'<img src="icons/login.svg" class="header-icon"> Войти';
-
-            loginButton.classList.toggle(
-                "header__button--admin",
+        
+            adminUpdateHeaderButton(
+                typesButton,
                 ADMIN_MODE
             );
+        
+            adminUpdateHeaderButton(
+                feedbacksButton,
+                ADMIN_MODE
+            );
+        
+            adminUpdateHeaderButton(
+                activityButton,
+                ADMIN_MODE
+            );
+        
+            adminUpdateLogin(
+                loginButton,
+                ADMIN_MODE
+            );
+        
         };
 
         updateButtons(isAdmin());
