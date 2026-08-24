@@ -1,6 +1,13 @@
 import{createModal}from"./modal.js";
 import{setModalUrl,replaceModalUrl}from"./modalReload.js";
 import{createViewerControls}from"./viewerControls.js";
+import {
+    adminEdit,
+    adminDelete
+} from "../../admin/adminButtons.js";
+import {
+    isAdmin
+} from "../../admin/adminMode.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,urlParams={}}={}){
     if(!photo)return;
@@ -24,7 +31,10 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,url
     </div>
     ${showInfo?`
     <div class="photo-viewer__info">
-        <div class="photo-viewer__title"></div>
+        <div class="photo-viewer__title">
+            <span class="photo-viewer__title-text"></span>
+            <span class="photo-viewer__title-actions"></span>
+        </div>
         <div class="photo-viewer__description" hidden></div>
         <div class="photo-viewer__field photo-viewer__author" hidden>
             <span class="photo-viewer__label">Автор</span>
@@ -43,6 +53,34 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,url
     const imageArea=root.querySelector(".photo-viewer__image-area");
     const image=root.querySelector("#photoViewerImage");
     const imageBackground=root.querySelector(".photo-viewer__image-bg");
+    if(isAdmin()){
+
+    root.addEventListener("click",event=>{
+
+        const button=event.target.closest(".admin-button");
+
+        if(!button)return;
+
+        const action=button.dataset.action;
+        const id=button.dataset.id;
+
+        root.dispatchEvent(
+            new CustomEvent(
+                "photo-admin-action",
+                {
+                    bubbles:true,
+                    detail:{
+                        action,
+                        id,
+                        photo
+                    }
+                }
+            )
+        );
+
+    });
+
+}
     if(!imageArea||!image)return modal;
     image.style.visibility="hidden";
     let fitScale=1,zoom=1,scale=1,translateX=0,translateY=0;
@@ -80,14 +118,27 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,url
     }
     function updateInfo(nextPhoto){
         if(!showInfo)return;
-        const title=root.querySelector(".photo-viewer__title");
         const description=root.querySelector(".photo-viewer__description");
         const author=root.querySelector(".photo-viewer__author");
         const authorValue=root.querySelector(".photo-viewer__author-value");
         const date=root.querySelector(".photo-viewer__date");
         const dateValue=root.querySelector(".photo-viewer__date-value");
         const download=root.querySelector(".photo-viewer__download");
-        if(title)title.textContent=nextPhoto.title??"";
+        const title=root.querySelector(".photo-viewer__title-text");
+        const titleActions=root.querySelector(".photo-viewer__title-actions");
+        if(title){
+            title.textContent=nextPhoto.title??"";
+        }        
+        if(titleActions){
+            titleActions.innerHTML=isAdmin()
+                ?
+                `
+                ${adminEdit("photo",nextPhoto.id)}
+                ${adminDelete("photo",nextPhoto.id)}
+                `
+                :
+                "";
+        }
         if(description){
             description.textContent=nextPhoto.description??"";
             description.hidden=!nextPhoto.description;
