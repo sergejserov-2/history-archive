@@ -224,6 +224,70 @@ admin
 
 }
 
+
+// ======================================
+// Update header admin button
+// ======================================
+
+export function adminUpdateHeaderButton(
+    button,
+    admin
+){
+
+    if(!button) return;
+
+    if(admin){
+
+        button.hidden = false;
+
+        // дать браузеру отрисовать
+        requestAnimationFrame(()=>{
+
+            button.classList.add(
+                "admin-button--visible"
+            );
+
+            button.classList.remove(
+                "admin-button--hidden"
+            );
+
+        });
+
+        return;
+
+    }
+
+    button.classList.remove(
+        "admin-button--visible"
+    );
+
+    button.classList.add(
+        "admin-button--hidden"
+    );
+
+    const hide = ()=>{
+
+        if(!admin){
+
+            button.hidden = true;
+
+        }
+
+        button.removeEventListener(
+            "transitionend",
+            hide
+        );
+
+    };
+
+    button.addEventListener(
+        "transitionend",
+        hide
+    );
+
+}
+
+
 function getIcon(action){
 
 if(action.startsWith("edit"))
