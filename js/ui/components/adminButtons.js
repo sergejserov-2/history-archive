@@ -1,6 +1,7 @@
 import {
     animateExpand,
-    animateCollapse
+    animateCollapse,
+    waitAnimationGap
 } from "./animations.js";
 
 
@@ -15,20 +16,6 @@ const EXIT_DURATION = 300;
 // ======================================
 // Large admin blocks
 // ======================================
-//
-// И большие блоки, и маленькие кнопки
-// теперь проходят через одну и ту же
-// систему.
-//
-// Геометрия:
-// animations.js
-//
-// Визуальное появление:
-// admin-button--entering
-//
-// Визуальное исчезновение:
-// admin-button--exiting
-//
 
 function isExpandableAdminBlock(
     element
@@ -60,34 +47,12 @@ function isExpandableAdminBlock(
 
 
 // ======================================
-// Get animation duration
+// State
 // ======================================
 
-function getEnterDuration(){
-
-    return ENTER_DURATION;
-
-}
-
-
-function getExitDuration(){
-
-    return EXIT_DURATION;
-
-}
-
-
-// ======================================
-// Is currently hidden
-// ======================================
-
-function isAdminButtonHidden(
+function isHidden(
     button
 ){
-
-    if(!button)
-        return true;
-
 
     return (
         button.hidden ||
@@ -99,17 +64,9 @@ function isAdminButtonHidden(
 }
 
 
-// ======================================
-// Is currently visible
-// ======================================
-
-function isAdminButtonVisible(
+function isVisible(
     button
 ){
-
-    if(!button)
-        return false;
-
 
     return (
         !button.hidden &&
@@ -128,7 +85,7 @@ function isAdminButtonVisible(
 // Show
 // ======================================
 
-export function showAdminButton(
+export async function showAdminButton(
     button
 ){
 
@@ -136,12 +93,11 @@ export function showAdminButton(
         return;
 
 
-    // ----------------------------------
-    // Если уже показывается / показана
-    // ----------------------------------
+    // Если уже полностью показана —
+    // ничего не делаем.
 
     if(
-        isAdminButtonVisible(button) &&
+        isVisible(button) &&
         !button.classList.contains(
             "admin-button--entering"
         )
@@ -152,19 +108,13 @@ export function showAdminButton(
     }
 
 
-    // Останавливаем только
-    // предыдущую анимацию этой кнопки.
-
     cancelAnimation(
         button
     );
 
 
-    // ==================================
-    // Подготовка
-    // ==================================
-
-    button.hidden = false;
+    button.hidden =
+        false;
 
 
     button.classList.add(
@@ -173,82 +123,54 @@ export function showAdminButton(
 
 
     // ==================================
-    // Следующий кадр
+    // Фаза 1
+    // РАСКРЫТИЕ
     // ==================================
 
-    requestAnimationFrame(()=>{
-
-        if(button.hidden)
-            return;
-
-
-        // --------------------------------
-        // Сначала геометрия
-        // --------------------------------
-
-        animateExpand(
-            button
-        );
+    await animateExpand(
+        button
+    );
 
 
-        // --------------------------------
-        // Затем визуальное появление
-        // --------------------------------
-        //
-        // Это НЕ запускается одновременно
-        // с geometry transition.
-        //
-        // Геометрия уже начала раскрываться,
-        // а opacity/scale начинают свою
-        // фазу после короткой паузы.
-
-        button.classList.remove(
-            "admin-button--hidden"
-        );
+    if(button.hidden)
+        return;
 
 
-        button.classList.add(
-            "admin-button--entering"
-        );
+    // ==================================
+    // 1ms пауза
+    // ==================================
+
+    await waitAnimationGap();
 
 
-        const finish = ()=>{
-
-            button.classList.remove(
-                "admin-button--entering"
-            );
-
-            button.classList.remove(
-                "admin-button--hidden"
-            );
-
-            button.removeEventListener(
-                "animationend",
-                finish
-            );
-
-            button._adminAnimationTimer =
-                null;
-
-        };
+    if(button.hidden)
+        return;
 
 
-        button.addEventListener(
-            "animationend",
-            finish,
-            {
-                once: true
-            }
-        );
+    // ==================================
+    // Фаза 2
+    // ПОЯВЛЕНИЕ
+    // ==================================
+
+    button.classList.remove(
+        "admin-button--hidden"
+    );
 
 
-        button._adminAnimationTimer =
-            setTimeout(
-                finish,
-                getEnterDuration() + 50
-            );
+    button.classList.add(
+        "admin-button--entering"
+    );
 
-    });
+
+    await waitVisualAnimation(
+        button,
+        ENTER_DURATION
+    );
+
+
+    button.classList.remove(
+        "admin-button--entering"
+    );
 
 }
 
@@ -257,7 +179,7 @@ export function showAdminButton(
 // Hide
 // ======================================
 
-export function hideAdminButton(
+export async function hideAdminButton(
     button
 ){
 
@@ -265,12 +187,11 @@ export function hideAdminButton(
         return;
 
 
-    // ----------------------------------
-    // Уже скрыта
-    // ----------------------------------
+    // Если уже скрыта —
+    // ничего не делаем.
 
     if(
-        isAdminButtonHidden(button) &&
+        isHidden(button) &&
         !button.classList.contains(
             "admin-button--entering"
         )
@@ -287,7 +208,8 @@ export function hideAdminButton(
 
 
     // ==================================
-    // Сначала визуально исчезаем
+    // Фаза 1
+    // РАЗВОПЛОЩЕНИЕ
     // ==================================
 
     button.classList.remove(
@@ -300,56 +222,127 @@ export function hideAdminButton(
     );
 
 
-    // ==================================
-    // НЕ схлопываем сразу
-    // ==================================
-    //
-    // Сначала полностью проходит
-    // opacity/scale animation.
-    //
-    // Только после неё начинается
-    // animateCollapse().
-    //
-
-    const startCollapse = ()=>{
-
-        button.classList.remove(
-            "admin-button--exiting"
-        );
+    await waitVisualAnimation(
+        button,
+        EXIT_DURATION
+    );
 
 
-        // --------------------------------
-        // Теперь геометрия
-        // --------------------------------
-
-        animateCollapse(
-            button
-        );
-
-    };
+    button.classList.remove(
+        "admin-button--exiting"
+    );
 
 
-    button._adminCollapseTimer =
-        setTimeout(
-            startCollapse,
-            getExitDuration()
-        );
+    if(button.hidden)
+        return;
 
 
     // ==================================
-    // Финальное состояние
+    // 1ms пауза
     // ==================================
-    //
-    // animateCollapse сам установит
-    // hidden=true после окончания
-    // геометрической анимации.
-    //
+
+    await waitAnimationGap();
+
+
+    if(button.hidden)
+        return;
+
+
+    // ==================================
+    // Фаза 2
+    // СХЛОПЫВАНИЕ
+    // ==================================
+
+    await animateCollapse(
+        button
+    );
 
 }
 
 
 // ======================================
-// Update one button
+// Visual animation helper
+// ======================================
+
+function waitVisualAnimation(
+    button,
+    duration
+){
+
+    return new Promise(
+        resolve => {
+
+            let finished = false;
+
+
+            const finish = ()=>{
+
+                if(finished)
+                    return;
+
+                finished = true;
+
+
+                button.removeEventListener(
+                    "animationend",
+                    onAnimationEnd
+                );
+
+
+                clearTimeout(
+                    timer
+                );
+
+
+                button._adminAnimationTimer =
+                    null;
+
+
+                resolve();
+
+            };
+
+
+            const onAnimationEnd = event =>{
+
+                if(
+                    event.target !== button
+                ){
+
+                    return;
+
+                }
+
+
+                finish();
+
+            };
+
+
+            button.addEventListener(
+                "animationend",
+                onAnimationEnd
+            );
+
+
+            const timer =
+                setTimeout(
+                    finish,
+                    duration + 50
+                );
+
+
+            button._adminAnimationTimer =
+                timer;
+
+        }
+    );
+
+}
+
+
+// ======================================
+// Update
 // ======================================
 
 export function updateAdminButton(
@@ -364,19 +357,10 @@ export function updateAdminButton(
     admin = !!admin;
 
 
-    // ==================================
-    // ADMIN ON
-    // ==================================
-
     if(admin){
 
-        // Если кнопка уже реально видна —
-        // ничего не делаем.
-
         if(
-            isAdminButtonVisible(
-                button
-            )
+            isVisible(button)
         ){
 
             return;
@@ -393,17 +377,8 @@ export function updateAdminButton(
     }
 
 
-    // ==================================
-    // ADMIN OFF
-    // ==================================
-
-    // Если кнопка уже скрыта —
-    // ничего не делаем.
-
     if(
-        isAdminButtonHidden(
-            button
-        )
+        isHidden(button)
     ){
 
         return;
@@ -422,14 +397,9 @@ export function updateAdminButton(
 // Set state immediately
 // ======================================
 //
-// Используется MutationObserver.
+// Для MutationObserver.
 //
-// НИКАКИХ анимаций.
-//
-// Это критически важно при:
-// innerHTML
-// outerHTML
-// insertAdjacentHTML
+// Никакой анимации.
 //
 
 export function setAdminButtonState(
@@ -439,9 +409,6 @@ export function setAdminButtonState(
 
     if(!button)
         return;
-
-
-    admin = !!admin;
 
 
     cancelAnimation(
@@ -460,7 +427,8 @@ export function setAdminButtonState(
 
     if(admin){
 
-        button.hidden = false;
+        button.hidden =
+            false;
 
         button.classList.remove(
             "admin-button--hidden"
@@ -468,7 +436,8 @@ export function setAdminButtonState(
 
     }else{
 
-        button.hidden = true;
+        button.hidden =
+            true;
 
         button.classList.add(
             "admin-button--hidden"
@@ -480,7 +449,7 @@ export function setAdminButtonState(
 
 
 // ======================================
-// Cancel animation
+// Cancel
 // ======================================
 
 function cancelAnimation(
@@ -491,9 +460,6 @@ function cancelAnimation(
         return;
 
 
-    // Таймер основной визуальной
-    // анимации.
-
     if(
         button._adminAnimationTimer
     ){
@@ -503,22 +469,6 @@ function cancelAnimation(
         );
 
         button._adminAnimationTimer =
-            null;
-
-    }
-
-
-    // Таймер начала схлопывания.
-
-    if(
-        button._adminCollapseTimer
-    ){
-
-        clearTimeout(
-            button._adminCollapseTimer
-        );
-
-        button._adminCollapseTimer =
             null;
 
     }
