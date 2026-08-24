@@ -2,6 +2,9 @@
 // Admin buttons
 // ======================================
 
+const ENTER_DURATION = 420;
+const EXIT_DURATION = 300;
+
 // ======================================
 // Show
 // ======================================
@@ -13,13 +16,78 @@ export function showAdminButton(
     if(!button)
         return;
 
+    // Отменяем предыдущую анимацию
+
+    cancelAnimation(button);
+
+    // Элемент должен существовать
+    // в layout перед запуском анимации.
+
     button.hidden = false;
 
+    // Состояние скрытого элемента
+
+    button.classList.add(
+        "admin-button--hidden"
+    );
+
+    // Первый кадр:
+    // scale(0), opacity(0)
+
     requestAnimationFrame(()=>{
+
+        if(
+            button.hidden
+        ){
+
+            return;
+
+        }
 
         button.classList.remove(
             "admin-button--hidden"
         );
+
+        button.classList.remove(
+            "admin-button--exiting"
+        );
+
+        button.classList.add(
+            "admin-button--entering"
+        );
+
+        const finish = ()=>{
+
+            button.classList.remove(
+                "admin-button--entering"
+            );
+
+            button.classList.remove(
+                "admin-button--hidden"
+            );
+
+            button.removeEventListener(
+                "animationend",
+                finish
+            );
+
+        };
+
+        button.addEventListener(
+            "animationend",
+            finish,
+            {
+                once:true
+            }
+        );
+
+        // Резерв
+
+        button._adminAnimationTimer =
+            setTimeout(
+                finish,
+                ENTER_DURATION + 50
+            );
 
     });
 
@@ -29,71 +97,69 @@ export function showAdminButton(
 // Hide
 // ======================================
 
-function hideAdminButton(button){
+export function hideAdminButton(
+    button
+){
 
     if(!button)
         return;
 
-    // Если кнопка уже скрыта —
-    // ничего не делаем.
+    cancelAnimation(button);
 
-    if(button.hidden)
+    // Уже полностью скрыта
+
+    if(button.hidden){
+
+        button.classList.add(
+            "admin-button--hidden"
+        );
+
         return;
 
-    button.classList.add(
-        "admin-button--hidden"
+    }
+
+    button.classList.remove(
+        "admin-button--entering"
     );
 
-    const hide = ()=>{
+    button.classList.add(
+        "admin-button--exiting"
+    );
 
-        if(
-            button.classList.contains(
-                "admin-button--hidden"
-            )
-        ){
+    const finish = ()=>{
 
-            button.hidden = true;
+        button.classList.remove(
+            "admin-button--exiting"
+        );
 
-        }
+        button.classList.add(
+            "admin-button--hidden"
+        );
 
-    };
-
-    // Основной вариант:
-    // ждём завершения анимации opacity.
-
-    const onTransitionEnd = event =>{
-
-        if(
-            event.propertyName !==
-            "opacity"
-        ){
-
-            return;
-
-        }
-
-        hide();
+        button.hidden = true;
 
         button.removeEventListener(
-            "transitionend",
-            onTransitionEnd
+            "animationend",
+            finish
         );
 
     };
 
     button.addEventListener(
-        "transitionend",
-        onTransitionEnd
+        "animationend",
+        finish,
+        {
+            once:true
+        }
     );
 
-    // Резервный вариант.
-    // Если transitionend по какой-либо причине
-    // не пришёл — всё равно полностью скрываем.
+    // Резерв
 
-    setTimeout(
-        hide,
-        300
-    );
+    button._adminAnimationTimer =
+        setTimeout(
+            finish,
+            EXIT_DURATION + 50
+        );
 
 }
 
@@ -126,6 +192,37 @@ export function updateAdminButton(
 }
 
 // ======================================
+// Cancel animation
+// ======================================
+
+function cancelAnimation(
+    button
+){
+
+    if(
+        button._adminAnimationTimer
+    ){
+
+        clearTimeout(
+            button._adminAnimationTimer
+        );
+
+        button._adminAnimationTimer =
+            null;
+
+    }
+
+    button.classList.remove(
+        "admin-button--entering"
+    );
+
+    button.classList.remove(
+        "admin-button--exiting"
+    );
+
+}
+
+// ======================================
 // Base button
 // ======================================
 
@@ -145,6 +242,7 @@ admin-button
 ${options.className||""}
 admin-button--hidden
 "
+hidden
 data-action="${action}"
 ${id?`data-id="${id}"`:""}
 ${title?`title="${title}"`:""}
@@ -224,7 +322,7 @@ export function adminAdd(
     options={}
 ){
 
-return`
+    return`
 
 <div
 class="
@@ -265,6 +363,7 @@ header__button--admin
 admin-button
 admin-button--hidden
 "
+hidden
 title="${title}"
 >
 
