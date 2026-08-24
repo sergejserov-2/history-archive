@@ -367,7 +367,6 @@ async function renderPage(){
 
                     ${renderSources(
                         pageSources,
-                        pageAdminMode,
                         pageSubjects
                     )}
 
