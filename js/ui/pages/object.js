@@ -288,7 +288,6 @@ function renderObjectBlock(){
                     renderRecords(
                         pageRecords,
                         pageRecordTypes,
-                        pageAdminMode,
                         pageSubjects
                     )
                     :
