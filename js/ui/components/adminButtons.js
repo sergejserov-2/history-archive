@@ -2,22 +2,6 @@
 // Admin buttons
 // ======================================
 
-let enabled = false;
-
-export function setAdminButtonsEnabled(value){
-
-    enabled = value;
-
-    refreshAdminButtons();
-
-}
-
-export function isAdminButtonsEnabled(){
-
-    return enabled;
-
-}
-
 // ======================================
 // Refresh
 // ======================================
