@@ -9,6 +9,12 @@ import{openSubjectModal}from"./subject.js";
 import{createModal}from"./modal.js";
 import{setModalUrl}from"./modalReload.js";
 import{renderEntityList}from"./entityList.js";
+import{
+    adminEdit,
+    adminDelete,
+    adminAdd
+}from"./adminButtons.js";
+
 let currentSubjectsModal=null;
 export async function openSubjectsModal({page=null,updates=null}={}){
     const[
@@ -135,30 +141,18 @@ function renderSubjectsList(
                     subject.title??"Без названия"
                 ),
                 meta:formatSubjectYears(subject),
-                actions:ADMIN_MODE
-                    ?`
-                        <button
-                            class="admin-button"
-                            data-action="edit-subject"
-                            data-id="${escapeHTML(subject.id)}"
-                            title="Редактировать"
-                        >
-                            <img
-                                src="icons/edit.svg"
-                                class="admin-icon"
-                            >
-                        </button>
-                        <button
-                            class="admin-button"
-                            data-action="delete-subject"
-                            data-id="${escapeHTML(subject.id)}"
-                            title="Удалить"
-                        >
-                            <img
-                                src="icons/delete.svg"
-                                class="admin-icon"
-                            >
-                        </button>
+               actions:ADMIN_MODE
+                    ?
+                    `
+                    ${adminEdit(
+                        "subject",
+                        escapeHTML(subject.id)
+                    )}
+                
+                    ${adminDelete(
+                        "subject",
+                        escapeHTML(subject.id)
+                    )}
                     `
                     :""
             }));
@@ -190,29 +184,17 @@ function renderSubjectsList(
             ),
             meta:formatSubjectYears(subject),
             actions:ADMIN_MODE
-                ?`
-                    <button
-                        class="admin-button"
-                        data-action="edit-subject"
-                        data-id="${escapeHTML(subject.id)}"
-                        title="Редактировать"
-                    >
-                        <img
-                            src="icons/edit.svg"
-                            class="admin-icon"
-                        >
-                    </button>
-                    <button
-                        class="admin-button"
-                        data-action="delete-subject"
-                        data-id="${escapeHTML(subject.id)}"
-                        title="Удалить"
-                    >
-                        <img
-                            src="icons/delete.svg"
-                            class="admin-icon"
-                        >
-                    </button>
+                ?
+                `
+                ${adminEdit(
+                    "subject",
+                    escapeHTML(subject.id)
+                )}
+            
+                ${adminDelete(
+                    "subject",
+                    escapeHTML(subject.id)
+                )}
                 `
                 :""
         }));
@@ -223,16 +205,13 @@ function renderSubjectsList(
             items:untypedItems
         });
     }
-
+    
     const addButton=ADMIN_MODE
-        ?`
-            <div
-                class="entity-list__add admin-button"
-                data-action="add-subject"
-            >
-                + Добавить субъект
-            </div>
-        `
+        ?
+        adminAdd(
+            "add-subject",
+            "Добавить субъект"
+        )
         :"";
 
     return renderEntityList({
