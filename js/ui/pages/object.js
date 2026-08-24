@@ -318,15 +318,9 @@ async function renderPage(){
 
             ${renderObjectBlock()}
 
-            ${
-                !pageAdminMode
-                ?
-                renderFeedbackPrompt(
+            ${renderFeedbackPrompt(
                     pageObject.id
-                )
-                :
-                ""
-            }
+                )}
 
             ${
                 `
