@@ -325,63 +325,6 @@ section h2 {
 
 
 /* ==========================================
-   COMMON ADMIN BUTTONS
-========================================== */
-
-button.admin-button,
-.admin-button {
-    background: var(--color-admin-bg) !important;
-    border: 1px solid var(--color-admin-border) !important;
-    color: var(--color-admin) !important;
-
-    cursor: pointer;
-    transition: var(--transition-fast);
-}
-
-button.admin-button:hover,
-.admin-button:hover {
-    background: var(--color-admin-bg-hover) !important;
-    border-color: var(--color-admin) !important;
-}
-
-
-.admin-button--disabled{
-    opacity:.35 !important;
-    cursor:not-allowed !important;
-}
-
-.admin-button--disabled:hover{
-    background:var(--color-admin-bg) !important;
-    border-color:var(--color-admin-border) !important;
-}
-
-/* ---------- Large add buttons ---------- */
-
-.record--add,
-.photo-card--add,
-.source--add,
-.child-card--add {
-    background: rgba(220, 170, 40, .18) !important;
-    border: 1px dashed var(--color-admin) !important;
-    border-radius: var(--radius-2xl);
-
-    color: var(--color-admin) !important;
-    cursor: pointer;
-
-    font-size: var(--font-size-lg);
-    transition: var(--transition-fast);
-}
-
-.record--add:hover,
-.photo-card--add:hover,
-.source--add:hover,
-.child-card--add:hover {
-    background: var(--color-admin-bg-hover) !important;
-    border-color: var(--color-admin) !important;
-}
-
-
-/* ==========================================
    MODAL
 ========================================== */
 
@@ -785,67 +728,37 @@ button.admin-button:hover,
 
 
 
+
+
+
+
 /* ==========================================
-   ADMIN BUTTON ANIMATION
+   ADMIN BUTTONS
 ========================================== */
+
+/* ---------- Small admin buttons ---------- */
 
 .admin-button{
 
+    display:inline-flex;
+
+    align-items:center;
+    justify-content:center;
+
     opacity:1;
 
-    transform:
-        scale(1);
+    transform:scale(1);
 
     transition:
         opacity .18s ease,
-        transform .25s cubic-bezier(.34,1.56,.64,1),
-        width .25s ease,
-        padding .25s ease,
-        margin .25s ease;
+        transform .22s cubic-bezier(.34,1.56,.64,1),
+        background .15s ease,
+        border-color .15s ease,
+        color .15s ease;
 
 }
 
-/* скрытое состояние */
-
-.admin-button--hidden{
-
-    opacity:0;
-
-    transform:
-        scale(.85);
-
-    pointer-events:none;
-
-}
-
-/* ==========================================
-   SMALL ICON BUTTONS
-========================================== */
-
-button.admin-button{
-
-    width:22px;
-    height:22px;
-    padding:2px !important;
-
-}
-
-button.admin-button.admin-button--hidden{
-
-    width:0;
-
-    padding-left:0 !important;
-    padding-right:0 !important;
-
-    margin-left:0;
-
-    border-width:0 !important;
-
-}
-
-/* ==========================================
-   ICON
-========================================== */
+/* ---------- Icons ---------- */
 
 .admin-icon{
 
@@ -856,40 +769,156 @@ button.admin-button.admin-button--hidden{
 
 }
 
+/* ---------- Buttons ---------- */
+
+button.admin-button,
+.admin-button{
+
+    background:var(--color-admin-bg) !important;
+
+    border:
+        1px solid
+        var(--color-admin-border)
+        !important;
+
+    color:var(--color-admin) !important;
+
+    cursor:pointer;
+
+}
+
+button.admin-button:hover,
+.admin-button:hover{
+
+    background:
+        var(--color-admin-bg-hover)
+        !important;
+
+    border-color:
+        var(--color-admin)
+        !important;
+
+}
+
+/* ---------- Small icon size ---------- */
+
+button.admin-button{
+
+    width:22px;
+    height:22px;
+
+    padding:2px !important;
+
+}
+
+/* ==========================================
+   ADMIN INSERT ANIMATION
+========================================== */
+
+.admin-layer--entering{
+
+    opacity:0;
+
+    transform:
+        scale(.85);
+
+}
+
+.admin-layer--visible{
+
+    opacity:1;
+
+    transform:
+        scale(1);
+
+}
+
+.admin-layer--leaving{
+
+    opacity:0;
+
+    transform:
+        scale(.85);
+
+}
+
 /* ==========================================
    LARGE ADD BUTTONS
 ========================================== */
 
-.entity-list__add.admin-button,
-.photo-card--add.admin-button,
-.source--add.admin-button,
-.child-card--add.admin-button{
+.record--add,
+.photo-card--add,
+.source--add,
+.child-card--add{
 
-    overflow:hidden;
+    background:
+        rgba(220,170,40,.18)
+        !important;
+
+    border:
+        1px dashed
+        var(--color-admin)
+        !important;
+
+    border-radius:
+        var(--radius-2xl);
+
+    color:
+        var(--color-admin)
+        !important;
+
+    cursor:pointer;
+
+    font-size:
+        var(--font-size-lg);
 
     transition:
+
         opacity .22s ease,
-        max-height .3s ease,
-        padding .3s ease,
-        margin .3s ease;
+
+        transform .25s cubic-bezier(.34,1.56,.64,1),
+
+        background .15s ease,
+
+        border-color .15s ease;
 
 }
 
-.entity-list__add.admin-button--hidden,
-.photo-card--add.admin-button--hidden,
-.source--add.admin-button--hidden,
-.child-card--add.admin-button--hidden{
+.record--add:hover,
+.photo-card--add:hover,
+.source--add:hover,
+.child-card--add:hover{
 
-    opacity:0;
+    background:
+        var(--color-admin-bg-hover)
+        !important;
 
-    max-height:0;
+    border-color:
+        var(--color-admin)
+        !important;
 
-    padding-top:0 !important;
-    padding-bottom:0 !important;
+}
 
-    margin-top:0;
-    margin-bottom:0;
+/* ==========================================
+   DISABLED ADMIN ADD
+========================================== */
 
-    border-width:0 !important;
+.admin-button--disabled{
+
+    opacity:.35 !important;
+
+    cursor:not-allowed !important;
+
+}
+
+.admin-button--disabled:hover{
+
+    background:
+        var(--color-admin-bg)
+        !important;
+
+    border-color:
+        var(--color-admin-border)
+        !important;
 
 }
