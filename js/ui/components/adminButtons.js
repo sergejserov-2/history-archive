@@ -5,15 +5,57 @@ import {
 
 
 // ======================================
-// Admin buttons
+// Visual animation duration
 // ======================================
 
-const ENTER_DURATION = 180;
-const EXIT_DURATION = 160;
+const ENTER_DURATION = 140;
+const EXIT_DURATION = 120;
+
+
+// ======================================
+// Large admin blocks
+// ======================================
+
+function isExpandableAdminBlock(
+    element
+){
+
+    if(!element)
+        return false;
+
+
+    return (
+        element.classList.contains(
+            "entity-list__add"
+        )
+        ||
+        element.classList.contains(
+            "photo-card--add"
+        )
+        ||
+        element.classList.contains(
+            "source--add"
+        )
+        ||
+        element.classList.contains(
+            "child-card--add"
+        )
+    );
+
+}
 
 
 // ======================================
 // Show
+// ======================================
+//
+// Всегда:
+//
+// 1. появляется место
+// 2. раскрывается геометрия
+// 3. после этого появляется содержимое
+//
+// Никакого наложения.
 // ======================================
 
 export function showAdminButton(
@@ -29,62 +71,32 @@ export function showAdminButton(
     );
 
 
-    // ----------------------------------
-    // Уже видима
-    // ----------------------------------
-
-    if(!button.hidden){
-
-        return;
-
-    }
-
-
-    // ----------------------------------
-    // Подготавливаем элемент
-    // ----------------------------------
-
     button.hidden = false;
 
 
-    // Пока геометрически закрыта.
+    // ----------------------------------
+    // Начальное визуальное состояние
+    // ----------------------------------
 
     button.classList.add(
         "admin-button--hidden"
     );
 
 
-    // Начальное визуальное состояние
-    // для последующего появления.
-
-    button.classList.remove(
-        "admin-button--entering"
-    );
-
-    button.classList.remove(
-        "admin-button--exiting"
-    );
-
-
     // ----------------------------------
-    // Сначала раскрываем геометрию
+    // Сначала геометрия
     // ----------------------------------
 
-    requestAnimationFrame(()=>{
+    animateExpand(
+        button,
+        ()=>{
 
-        if(button.hidden)
-            return;
+            // Геометрия закончилась.
+            //
+            // Только теперь разрешаем
+            // визуальную анимацию.
 
-
-        animateExpand(
-            button,
-            ()=>{
-
-                // ----------------------------------
-                // Геометрия закончилась.
-                //
-                // Теперь запускаем opacity/scale.
-                // ----------------------------------
+            requestAnimationFrame(()=>{
 
                 if(button.hidden)
                     return;
@@ -94,51 +106,49 @@ export function showAdminButton(
                     "admin-button--hidden"
                 );
 
+                button.classList.remove(
+                    "admin-button--exiting"
+                );
 
                 button.classList.add(
                     "admin-button--entering"
                 );
 
 
-                const finish = ()=>{
-
-                    button.classList.remove(
-                        "admin-button--entering"
-                    );
-
-                    button.removeEventListener(
-                        "animationend",
-                        finish
-                    );
-
-                };
-
-
-                button.addEventListener(
-                    "animationend",
-                    finish,
-                    {
-                        once:true
-                    }
-                );
-
-
                 button._adminAnimationTimer =
-                    setTimeout(
-                        finish,
-                        ENTER_DURATION + 30
-                    );
+                    setTimeout(()=>{
 
-            }
-        );
+                        button.classList.remove(
+                            "admin-button--entering"
+                        );
 
-    });
+                        button.classList.remove(
+                            "admin-button--hidden"
+                        );
+
+                        button._adminAnimationTimer =
+                            null;
+
+                    }, ENTER_DURATION);
+
+            });
+
+        }
+    );
 
 }
 
 
 // ======================================
 // Hide
+// ======================================
+//
+// Всегда:
+//
+// 1. исчезает визуально
+// 2. после этого схлопывается геометрия
+//
+// Никакого наложения.
 // ======================================
 
 export function hideAdminButton(
@@ -154,8 +164,15 @@ export function hideAdminButton(
     );
 
 
-    if(button.hidden)
+    if(button.hidden){
+
+        button.classList.add(
+            "admin-button--hidden"
+        );
+
         return;
+
+    }
 
 
     // ----------------------------------
@@ -163,11 +180,11 @@ export function hideAdminButton(
     // ----------------------------------
 
     button.classList.remove(
-        "admin-button--hidden"
+        "admin-button--entering"
     );
 
     button.classList.remove(
-        "admin-button--entering"
+        "admin-button--hidden"
     );
 
     button.classList.add(
@@ -175,51 +192,28 @@ export function hideAdminButton(
     );
 
 
-    const finishVisual = ()=>{
-
-        button.classList.remove(
-            "admin-button--exiting"
-        );
-
-
-        // ----------------------------------
-        // Только теперь схлопываем геометрию
-        // ----------------------------------
-
-        animateCollapse(
-            button,
-            ()=>{
-
-                button.classList.add(
-                    "admin-button--hidden"
-                );
-
-            }
-        );
-
-
-        button.removeEventListener(
-            "animationend",
-            finishVisual
-        );
-
-    };
-
-
-    button.addEventListener(
-        "animationend",
-        finishVisual,
-        {
-            once:true
-        }
-    );
-
-
     button._adminAnimationTimer =
-        setTimeout(
-            finishVisual,
-            EXIT_DURATION + 30
-        );
+        setTimeout(()=>{
+
+            button.classList.remove(
+                "admin-button--exiting"
+            );
+
+
+            // ----------------------------------
+            // Только теперь схлопываем
+            // геометрию.
+            // ----------------------------------
+
+            animateCollapse(
+                button
+            );
+
+
+            button._adminAnimationTimer =
+                null;
+
+        }, EXIT_DURATION);
 
 }
 
@@ -282,6 +276,10 @@ function cancelAnimation(
 
     button.classList.remove(
         "admin-button--exiting"
+    );
+
+    button.classList.remove(
+        "admin-button--hidden"
     );
 
 }
