@@ -1,3 +1,7 @@
+import{
+    adminEdit,
+    adminDelete
+}from"./adminButtons.js";
 import{isAdmin}from"../../admin/adminMode.js";
 import{renderMentions,getSubjectHref}from"./mentionLink.js";
 import{renderMentionList}from"./mentionList.js";
