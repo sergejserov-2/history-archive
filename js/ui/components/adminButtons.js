@@ -8,14 +8,18 @@ export function adminButton(
     action,
     id="",
     icon=null,
-    title=""
+    title="",
+    options={}
 ){
 
     if(!enabled)return"";
 
     return`
         <button
-            class="admin-button"
+            class="${[
+                "admin-button",
+                options.className||""
+            ].filter(Boolean).join(" ")}"
             data-action="${action}"
             ${id?`data-id="${id}"`:""}
             ${title?`title="${title}"`:""}
@@ -28,39 +32,27 @@ export function adminButton(
     `;
 }
 
-export function adminEdit(
-    type,
-    id
-){
-
+export function adminEdit(type,id,options={}){
     return adminButton(
         `edit-${type}`,
         id,
         "edit",
-        "Редактировать"
+        options.title||"Редактировать",
+        options
     );
-
 }
 
-export function adminDelete(
-    type,
-    id
-){
-
+export function adminDelete(type,id,options={}){
     return adminButton(
         `delete-${type}`,
         id,
         "delete",
-        "Удалить"
+        options.title||"Удалить",
+        options
     );
-
 }
 
-export function adminAdd(
-    action,
-    text
-){
-
+export function adminAdd(action,text){
     if(!enabled)return"";
 
     return`
@@ -71,15 +63,9 @@ export function adminAdd(
             + ${text}
         </div>
     `;
-
 }
 
-export function adminHeaderButton(
-    id,
-    icon,
-    title=""
-){
-
+export function adminHeaderButton(id,icon,title=""){
     if(!enabled)return"";
 
     return`
@@ -95,11 +81,9 @@ export function adminHeaderButton(
             >
         </button>
     `;
-
 }
 
 export function adminLoginButton(){
-
     return`
         <button
             id="loginButton"
@@ -112,25 +96,14 @@ export function adminLoginButton(){
             Войти
         </button>
     `;
-
 }
 
-export function adminUpdateHeaderButton(
-    button,
-    admin
-){
-
+export function adminUpdateHeaderButton(button,admin){
     if(!button)return;
-
     button.hidden=!admin;
-
 }
 
-export function adminUpdateLogin(
-    button,
-    admin
-){
-
+export function adminUpdateLogin(button,admin){
     if(!button)return;
 
     button.innerHTML=admin
@@ -155,17 +128,10 @@ export function adminUpdateLogin(
         "header__button--admin",
         admin
     );
-
 }
 
 function getIcon(action){
-
-    if(action.startsWith("edit"))
-        return"edit";
-
-    if(action.startsWith("delete"))
-        return"delete";
-
+    if(action.startsWith("edit"))return"edit";
+    if(action.startsWith("delete"))return"delete";
     return"edit";
-
 }
