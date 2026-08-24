@@ -1,4 +1,3 @@
-
 // ======================================
 // Admin UI controller
 // ======================================
@@ -9,9 +8,11 @@ import {
 from "./adminMode.js";
 
 import {
-    updateAdminButton
+    updateAdminButton,
+    setAdminButtonState
 }
 from "../ui/components/adminButtons.js";
+
 
 // ======================================
 // State
@@ -23,6 +24,7 @@ let initialized = false;
 
 let observer = null;
 
+
 // ======================================
 // Get current UI state
 // ======================================
@@ -32,6 +34,7 @@ export function isAdminUIEnabled(){
     return currentAdminState;
 
 }
+
 
 // ======================================
 // Find all admin buttons
@@ -45,9 +48,16 @@ function getAdminButtons(){
 
 }
 
+
 // ======================================
-// Synchronize all buttons
+// Synchronize all existing buttons
 // ======================================
+//
+// Используется ТОЛЬКО при реальном
+// изменении admin-состояния.
+//
+// Здесь анимация разрешена.
+//
 
 export function syncAdminButtons(){
 
@@ -64,6 +74,91 @@ export function syncAdminButtons(){
 
 }
 
+
+// ======================================
+// Synchronize newly inserted buttons
+// ======================================
+//
+// Важно:
+//
+// новые кнопки появляются после
+// innerHTML / outerHTML.
+//
+// Они НЕ должны проигрывать
+// entrance-анимацию заново.
+//
+// Просто сразу получают текущее
+// состояние admin UI.
+//
+
+function syncNewAdminButtons(
+    root
+){
+
+    if(!root)
+        return;
+
+
+    const buttons = [];
+
+
+    // Сам добавленный элемент.
+
+    if(
+        root.nodeType ===
+        Node.ELEMENT_NODE
+    ){
+
+        if(
+            root.matches?.(
+                ".admin-button"
+            )
+        ){
+
+            buttons.push(
+                root
+            );
+
+        }
+
+
+        // Кнопки внутри добавленного
+        // элемента.
+
+        root
+            .querySelectorAll?.(
+                ".admin-button"
+            )
+            .forEach(
+                button => {
+
+                    buttons.push(
+                        button
+                    );
+
+                }
+            );
+
+    }
+
+
+    // Устанавливаем состояние
+    // без анимации.
+
+    buttons.forEach(
+        button => {
+
+            setAdminButtonState(
+                button,
+                currentAdminState
+            );
+
+        }
+    );
+
+}
+
+
 // ======================================
 // Auth state changed
 // ======================================
@@ -72,29 +167,71 @@ function handleAdminStateChanged(
     admin
 ){
 
-    currentAdminState = !!admin;
+    admin = !!admin;
+
+
+    // ==================================
+    // Ничего не изменилось
+    // ==================================
+    //
+    // Firebase / другие подписчики могут
+    // повторно сообщить то же состояние.
+    //
+    // В этом случае вообще ничего
+    // не трогаем.
+
+    if(
+        admin === currentAdminState
+    ){
+
+        return;
+
+    }
+
+
+    // ==================================
+    // Реальное изменение состояния
+    // ==================================
+
+    currentAdminState =
+        admin;
+
+
+    // Только здесь запускается
+    // анимация существующих кнопок.
 
     syncAdminButtons();
 
 }
 
+
 // ======================================
 // Observe dynamically inserted HTML
 // ======================================
+//
+// Observer НЕ вызывает syncAdminButtons().
+//
+// Иначе любой innerHTML / outerHTML
+// повторно запускал бы анимацию всех
+// кнопок на странице.
+//
+// Observer только мгновенно выставляет
+// состояние новым кнопкам.
+//
 
 function observeAdminButtons(){
 
     if(observer)
         return;
 
+
     if(!document.body)
         return;
+
 
     observer =
         new MutationObserver(
             mutations => {
-
-                let hasNewButtons = false;
 
                 mutations.forEach(
                     mutation => {
@@ -103,38 +240,9 @@ function observeAdminButtons(){
                             .forEach(
                                 node => {
 
-                                    if(
-                                        node.nodeType !==
-                                        Node.ELEMENT_NODE
-                                    ){
-
-                                        return;
-
-                                    }
-
-                                    if(
-                                        node.matches?.(
-                                            ".admin-button"
-                                        )
-                                    ){
-
-                                        hasNewButtons =
-                                            true;
-
-                                        return;
-
-                                    }
-
-                                    if(
-                                        node.querySelector?.(
-                                            ".admin-button"
-                                        )
-                                    ){
-
-                                        hasNewButtons =
-                                            true;
-
-                                    }
+                                    syncNewAdminButtons(
+                                        node
+                                    );
 
                                 }
                             );
@@ -142,29 +250,23 @@ function observeAdminButtons(){
                     }
                 );
 
-                if(
-                    hasNewButtons
-                ){
-
-                    syncAdminButtons();
-
-                }
-
             }
         );
+
 
     observer.observe(
 
         document.body,
 
         {
-            childList:true,
-            subtree:true
+            childList: true,
+            subtree: true
         }
 
     );
 
 }
+
 
 // ======================================
 // Initialize
@@ -175,20 +277,27 @@ export function initAdminController(){
     if(initialized)
         return;
 
+
     initialized = true;
 
-    // Слушаем Firebase auth state.
+
+    // ==================================
+    // Firebase auth state
+    // ==================================
 
     onAdminStateChanged(
         handleAdminStateChanged
     );
 
-    // Следим за динамическим появлением
-    // новых .admin-button.
+
+    // ==================================
+    // Dynamic buttons
+    // ==================================
 
     observeAdminButtons();
 
 }
+
 
 // ======================================
 // Automatic initialization
@@ -200,10 +309,10 @@ if(
 ){
 
     document.addEventListener(
-      "DOMContentLoaded",
+        "DOMContentLoaded",
         initAdminController,
         {
-            once:true
+            once: true
         }
     );
 
