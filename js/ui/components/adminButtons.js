@@ -1,4 +1,4 @@
-let enabled=true;
+let enabled=false;
 
 export function setAdminButtonsEnabled(value){
     enabled=value;
