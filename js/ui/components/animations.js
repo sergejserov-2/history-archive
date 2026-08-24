@@ -2,20 +2,99 @@
 // Universal block animations
 // ======================================
 //
-// Отвечает только за геометрию:
+// Отвечает только за геометрию.
 //
-// height
-// padding
+// Анимируем ТОЛЬКО height.
 //
-// margin НЕ анимируется.
+// Высоты можно подготовить заранее,
+// чтобы во время анимации не выполнять
+// дополнительные измерения layout.
 //
 // Никакого opacity.
 // Никакого scale.
+// Никакого margin.
+// Никакого padding.
 // ======================================
 
 
 const EXPAND_DURATION = 320;
 const COLLAPSE_DURATION = 300;
+
+
+// ======================================
+// Prepare size
+// ======================================
+//
+// Вызывается ДО начала анимации.
+//
+// Запоминаем текущую и естественную высоту.
+// Во время самой анимации layout больше
+// не измеряем.
+//
+
+export function prepareSize(
+    element
+){
+
+    if(!element)
+        return;
+
+
+    cancelSizeAnimation(
+        element
+    );
+
+
+    const wasHidden =
+        element.hidden;
+
+
+    // Для получения scrollHeight
+    // элемент должен быть видимым.
+
+    if(wasHidden)
+        element.hidden = false;
+
+
+    const height =
+        element.scrollHeight;
+
+
+    element._preparedHeight =
+        height;
+
+
+    if(wasHidden)
+        element.hidden = true;
+
+}
+
+
+// ======================================
+// Get prepared height
+// ======================================
+
+function getPreparedHeight(
+    element
+){
+
+    if(
+        Number.isFinite(
+            element?._preparedHeight
+        )
+    ){
+
+        return element._preparedHeight;
+
+    }
+
+
+    // Fallback только если размер
+    // заранее не подготовили.
+
+    return element?.scrollHeight ?? 0;
+
+}
 
 
 // ======================================
@@ -38,21 +117,19 @@ export function animateExpand(
     element.hidden = false;
 
 
-    const computed =
-        window.getComputedStyle(
+    // ==================================
+    // Берём заранее рассчитанную высоту
+    // ==================================
+
+    const targetHeight =
+        getPreparedHeight(
             element
         );
 
 
-    const targetHeight =
-        element.scrollHeight;
-
-    const targetPaddingTop =
-        computed.paddingTop;
-
-    const targetPaddingBottom =
-        computed.paddingBottom;
-
+    // ==================================
+    // Начальное состояние
+    // ==================================
 
     element.style.overflow =
         "hidden";
@@ -60,36 +137,35 @@ export function animateExpand(
     element.style.height =
         "0px";
 
-    element.style.paddingTop =
-        "0px";
 
-    element.style.paddingBottom =
-        "0px";
-
+    // Применяем начальное состояние.
 
     element.offsetHeight;
 
 
-    element.style.transition = `
-        height ${EXPAND_DURATION}ms ease,
-        padding-top ${EXPAND_DURATION}ms ease,
-        padding-bottom ${EXPAND_DURATION}ms ease
-    `;
+    // ==================================
+    // Transition
+    // ==================================
 
+    element.style.transition =
+        `height ${EXPAND_DURATION}ms ease`;
+
+
+    // ==================================
+    // Фаза раскрытия
+    // ==================================
 
     requestAnimationFrame(()=>{
 
         element.style.height =
             `${targetHeight}px`;
 
-        element.style.paddingTop =
-            targetPaddingTop;
-
-        element.style.paddingBottom =
-            targetPaddingBottom;
-
     });
 
+
+    // ==================================
+    // Завершение
+    // ==================================
 
     return new Promise(resolve=>{
 
@@ -97,12 +173,6 @@ export function animateExpand(
             setTimeout(()=>{
 
                 element.style.height =
-                    "auto";
-
-                element.style.paddingTop =
-                    "";
-
-                element.style.paddingBottom =
                     "";
 
                 element.style.transition =
@@ -110,6 +180,9 @@ export function animateExpand(
 
                 element.style.overflow =
                     "";
+
+                element._preparedHeight =
+                    null;
 
                 element._sizeAnimationTimer =
                     null;
@@ -141,24 +214,23 @@ export function animateCollapse(
     );
 
 
-    const computed =
-        window.getComputedStyle(
+    element.hidden = false;
+
+
+    // ==================================
+    // Используем заранее рассчитанную
+    // высоту.
+    // ==================================
+
+    const currentHeight =
+        getPreparedHeight(
             element
         );
 
 
-    const currentHeight =
-        element.getBoundingClientRect().height;
-
-    const currentPaddingTop =
-        computed.paddingTop;
-
-    const currentPaddingBottom =
-        computed.paddingBottom;
-
-
-    element.hidden = false;
-
+    // ==================================
+    // Начальное состояние
+    // ==================================
 
     element.style.overflow =
         "hidden";
@@ -166,36 +238,37 @@ export function animateCollapse(
     element.style.height =
         `${currentHeight}px`;
 
-    element.style.paddingTop =
-        currentPaddingTop;
 
-    element.style.paddingBottom =
-        currentPaddingBottom;
-
+    // ==================================
+    // Фиксируем стартовую высоту
+    // ==================================
 
     element.offsetHeight;
 
 
-    element.style.transition = `
-        height ${COLLAPSE_DURATION}ms ease,
-        padding-top ${COLLAPSE_DURATION}ms ease,
-        padding-bottom ${COLLAPSE_DURATION}ms ease
-    `;
+    // ==================================
+    // Transition
+    // ==================================
 
+    element.style.transition =
+        `height ${COLLAPSE_DURATION}ms ease`;
+
+
+    // ==================================
+    // Фаза схлопывания
+    // ==================================
 
     requestAnimationFrame(()=>{
 
         element.style.height =
             "0px";
 
-        element.style.paddingTop =
-            "0px";
-
-        element.style.paddingBottom =
-            "0px";
-
     });
 
+
+    // ==================================
+    // Завершение
+    // ==================================
 
     return new Promise(resolve=>{
 
@@ -203,12 +276,6 @@ export function animateCollapse(
             setTimeout(()=>{
 
                 element.style.height =
-                    "";
-
-                element.style.paddingTop =
-                    "";
-
-                element.style.paddingBottom =
                     "";
 
                 element.style.transition =
@@ -219,6 +286,9 @@ export function animateCollapse(
 
                 element.hidden =
                     true;
+
+                element._preparedHeight =
+                    null;
 
                 element._sizeAnimationTimer =
                     null;
@@ -250,9 +320,49 @@ export function animateResize(
     );
 
 
+    // ==================================
+    // Здесь измеряем только один раз.
+    // ==================================
+
     const currentHeight =
         element.getBoundingClientRect().height;
 
+
+    const targetHeight =
+        element.scrollHeight;
+
+
+    // Сохраняем новый размер.
+
+    element._preparedHeight =
+        targetHeight;
+
+
+    // ==================================
+    // Размер практически не изменился
+    // ==================================
+
+    if(
+        Math.abs(
+            currentHeight -
+            targetHeight
+        ) < 1
+    ){
+
+        element.style.height =
+            "";
+
+        element.style.overflow =
+            "";
+
+        return;
+
+    }
+
+
+    // ==================================
+    // Фиксируем текущую высоту
+    // ==================================
 
     element.style.height =
         `${currentHeight}px`;
@@ -264,32 +374,17 @@ export function animateResize(
     element.offsetHeight;
 
 
-    const targetHeight =
-        element.scrollHeight;
+    // ==================================
+    // Transition
+    // ==================================
+
+    element.style.transition =
+        `height ${EXPAND_DURATION}ms ease`;
 
 
-    if(
-        Math.abs(
-            currentHeight -
-            targetHeight
-        ) < 1
-    ){
-
-        element.style.height =
-            "auto";
-
-        element.style.overflow =
-            "";
-
-        return;
-
-    }
-
-
-    element.style.transition = `
-        height ${EXPAND_DURATION}ms ease
-    `;
-
+    // ==================================
+    // Resize
+    // ==================================
 
     requestAnimationFrame(()=>{
 
@@ -299,11 +394,15 @@ export function animateResize(
     });
 
 
+    // ==================================
+    // Завершение
+    // ==================================
+
     element._sizeAnimationTimer =
         setTimeout(()=>{
 
             element.style.height =
-                "auto";
+                "";
 
             element.style.transition =
                 "";
@@ -311,10 +410,45 @@ export function animateResize(
             element.style.overflow =
                 "";
 
+            element._preparedHeight =
+                null;
+
             element._sizeAnimationTimer =
                 null;
 
         }, EXPAND_DURATION + 20);
+
+}
+
+
+// ======================================
+// Prepare all elements
+// ======================================
+//
+// Удобный helper для контроллера.
+//
+// Перед входом в админку:
+//
+// prepareAdminButtonSizes(buttons);
+//
+
+export function prepareSizes(
+    elements
+){
+
+    if(!elements)
+        return;
+
+
+    elements.forEach?.(
+        element => {
+
+            prepareSize(
+                element
+            );
+
+        }
+    );
 
 }
 
