@@ -345,14 +345,6 @@ button.admin-button:hover,
 }
 
 
-/* ---------- Small admin icon buttons ---------- */
-
-button.admin-button {
-    padding: 2px 2px !important;
-    border-radius: var(--radius-md) !important;
-    font-size: var(--font-size-lg);
-}
-
 .admin-button--disabled{
     opacity:.35 !important;
     cursor:not-allowed !important;
@@ -388,19 +380,6 @@ button.admin-button {
     border-color: var(--color-admin) !important;
 }
 
-
-/* ==========================================
-   ADMIN ICON
-========================================== */
-
-.admin-icon {
-    width: 16px;
-    height: 16px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
 /* ==========================================
    MODAL
