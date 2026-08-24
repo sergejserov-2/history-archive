@@ -1,131 +1,274 @@
-import{renderMentions, getSubjectHref}from"./mentionLink.js";
 import{
     adminEdit,
     adminDelete,
     adminAdd
 }from"./adminButtons.js";
 
-export function renderSources(sources,ADMIN_MODE=false,subjects=[]){
+import{
+    renderMentions,
+    getSubjectHref
+}from"./mentionLink.js";
+
+// ======================================
+// Render sources
+// ======================================
+
+export function renderSources(
+    sources,
+    subjects=[]
+){
+
     const rows=[];
-if(ADMIN_MODE){
+
     rows.push(
         adminAdd(
             "add-source",
             "Добавить источник"
         )
     );
-}
-    const sortedSources=[...(sources??[])].sort((a,b)=>{
-        const dateA=a.date||"";
-        const dateB=b.date||"";
-        if(!dateA&&!dateB){
-            const authorCompare=(a.author??"").localeCompare(b.author??"","ru");
-            if(authorCompare!==0)return authorCompare;
-            return(a.title??"").localeCompare(b.title??"","ru");
-        }
-        if(!dateA)return 1;
-        if(!dateB)return-1;
-        const dateCompare=String(dateB).localeCompare(String(dateA));
-        if(dateCompare!==0)return dateCompare;
-        const authorCompare=(a.author??"").localeCompare(b.author??"","ru");
-        if(authorCompare!==0)return authorCompare;
-        return(a.title??"").localeCompare(b.title??"","ru");
-    });
+
+    const sortedSources=
+        [...(sources??[])]
+        .sort((a,b)=>{
+
+            const dateA=
+                a.date||"";
+
+            const dateB=
+                b.date||"";
+
+            if(!dateA&&!dateB){
+
+                const authorCompare=
+                    (a.author??"")
+                    .localeCompare(
+                        b.author??"",
+                        "ru"
+                    );
+
+                if(authorCompare!==0)
+                    return authorCompare;
+
+                return(
+                    a.title??""
+                )
+                .localeCompare(
+                    b.title??"",
+                    "ru"
+                );
+
+            }
+
+            if(!dateA)
+                return 1;
+
+            if(!dateB)
+                return -1;
+
+            const dateCompare=
+                String(dateB)
+                .localeCompare(
+                    String(dateA)
+                );
+
+            if(dateCompare!==0)
+                return dateCompare;
+
+            const authorCompare=
+                (a.author??"")
+                .localeCompare(
+                    b.author??"",
+                    "ru"
+                );
+
+            if(authorCompare!==0)
+                return authorCompare;
+
+            return(
+                a.title??""
+            )
+            .localeCompare(
+                b.title??"",
+                "ru"
+            );
+
+        });
+
     sortedSources.forEach(source=>{
+
         rows.push(`
-            <div class="source">
-                <div class="source__header">
-                    <div class="source__title">
-                        ${
-                            source.author
-                            ?
-                            `<span class="source__author">${source.author},</span>`
-                            :
-                            ""
-                        }
-                        <strong class="source__title-text">${source.title??""}</strong>
-                        ${
-                            ADMIN_MODE
-                            ?
-                            `
-                            ${adminEdit(
-                                "source",
-                                source.id
-                            )}
-                        
-                            ${adminDelete(
-                                "source",
-                                source.id
-                            )}
-                            `
-                            :
-                            ""
-                        }
-                    </div>
+
+        <div class="source">
+
+            <div class="source__header">
+
+                <div class="source__title">
+
                     ${
-                        source.dateMode==="period"
+                        source.author
+
                         ?
-                        (
-                            source.dateStart||source.dateEnd
-                            ?
-                            `
-                            <span class="source__date">
-                                ${
-                                    source.dateStart&&source.dateEnd
-                                    ?
-                                    `${source.dateStart} – ${source.dateEnd}`
-                                    :
-                                    source.dateStart
-                                    ?
-                                    `с ${source.dateStart}`
-                                    :
-                                    `до ${source.dateEnd}`
-                                }
-                            </span>
-                            `
-                            :
-                            ""
-                        )
+
+                        `
+                        <span class="source__author">
+                            ${source.author},
+                        </span>
+                        `
+
                         :
-                        (
-                            source.date
-                            ?
-                            `<span class="source__date">${source.date}</span>`
-                            :
-                            ""
-                        )
+
+                        ""
                     }
+
+                    <strong class="source__title-text">
+
+                        ${source.title??""}
+
+                    </strong>
+
+                    ${adminEdit(
+                        "source",
+                        source.id
+                    )}
+
+                    ${adminDelete(
+                        "source",
+                        source.id
+                    )}
+
                 </div>
+
                 ${
-                    source.description?.trim()
+                    source.dateMode==="period"
+
                     ?
-                    `<div class="source__description">${renderMentions(
-    source.description.trim(),
-    subjects,
-    getSubjectHref
-)}</div>`
+
+                    (
+
+                        source.dateStart||
+                        source.dateEnd
+
+                        ?
+
+                        `
+                        <span class="source__date">
+
+                            ${
+                                source.dateStart&&source.dateEnd
+
+                                ?
+
+                                `${source.dateStart} – ${source.dateEnd}`
+
+                                :
+
+                                source.dateStart
+
+                                ?
+
+                                `с ${source.dateStart}`
+
+                                :
+
+                                `до ${source.dateEnd}`
+
+                            }
+
+                        </span>
+                        `
+
+                        :
+
+                        ""
+
+                    )
+
                     :
-                    ""
+
+                    (
+
+                        source.date
+
+                        ?
+
+                        `
+                        <span class="source__date">${source.date}
+                        </span>
+                        `
+
+                        :
+
+                        ""
+
+                    )
+
                 }
-                ${
-                    source.storagePath
-                    ?
-                    `
-                    <div class="source__download">
-                        <a class="source__download-button" href="${source.storagePath}" target="_blank" rel="noopener">
-                            Скачать
-                        </a>
-                    </div>
-                    `
-                    :
-                    ""
-                }
+
             </div>
-        `);
-    });
-    return`
-        <div class="sources-list">
-            ${rows.join("")}
+
+            ${
+                source.description?.trim()
+
+                ?
+
+                `
+                <div class="source__description">
+
+                    ${renderMentions(
+                        source.description.trim(),
+                        subjects,
+                        getSubjectHref
+                    )}
+
+                </div>
+                `
+
+                :
+
+                ""
+
+            }
+
+            ${
+                source.storagePath
+
+                ?
+
+                `
+                <div class="source__download">
+
+                    <a
+                        class="source__download-button"
+                        href="${source.storagePath}"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        Скачать
+                    </a>
+
+                </div>
+                `
+
+                :
+
+                ""
+
+            }
+
         </div>
+
+        `);
+
+    });
+
+    return`
+
+        <div class="sources-list">
+
+            ${rows.join("")}
+
+        </div>
+
     `;
+
 }
