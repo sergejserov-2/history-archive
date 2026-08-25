@@ -54,6 +54,140 @@ function layoutState(el) {
 }
 
 // ======================================
+// Animation axis
+// ======================================
+
+function getAxis(el, size) {
+    return (
+        el.parentElement?.dataset?.animationAxis ||
+        (size.width > size.height * 1.5
+            ? "width"
+            : "height")
+    );
+}
+
+// ======================================
+// Box extras
+// ======================================
+
+function getBoxExtras(el, axis) {
+    const style = getComputedStyle(el);
+
+    if (axis === "width") {
+        return {
+            paddingStart: parseFloat(style.paddingLeft) || 0,
+            paddingEnd: parseFloat(style.paddingRight) || 0,
+            borderStart: parseFloat(style.borderLeftWidth) || 0,
+            borderEnd: parseFloat(style.borderRightWidth) || 0
+        };
+    }
+
+    return {
+        paddingStart: parseFloat(style.paddingTop) || 0,
+        paddingEnd: parseFloat(style.paddingBottom) || 0,
+        borderStart: parseFloat(style.borderTopWidth) || 0,
+        borderEnd: parseFloat(style.borderBottomWidth) || 0
+    };
+}
+
+// ======================================
+// Parent gap compensation
+// ======================================
+
+function getParentGap(el, axis) {
+    const parent = el.parentElement;
+
+    if (!parent)
+        return 0;
+
+    const style = getComputedStyle(parent);
+
+    const display = style.display;
+
+    if (
+        display !== "flex" &&
+        display !== "grid" &&
+        display !== "inline-flex"
+    )
+        return 0;
+
+    if (axis === "width")
+        return parseFloat(style.columnGap) || 0;
+
+    return parseFloat(style.rowGap) || 0;
+}
+
+// ======================================
+// Save / restore animation styles
+// ======================================
+
+function prepareAnimation(el, axis) {
+    const extras = getBoxExtras(el, axis);
+    const gap = getParentGap(el, axis);
+
+    const style = el.style;
+
+    style.overflow = "hidden";
+
+    if (axis === "width") {
+        style.paddingLeft = `${extras.paddingStart}px`;
+        style.paddingRight = `${extras.paddingEnd}px`;
+        style.borderLeftWidth = `${extras.borderStart}px`;
+        style.borderRightWidth = `${extras.borderEnd}px`;
+    } else {
+        style.paddingTop = `${extras.paddingStart}px`;
+        style.paddingBottom = `${extras.paddingEnd}px`;
+        style.borderTopWidth = `${extras.borderStart}px`;
+        style.borderBottomWidth = `${extras.borderEnd}px`;
+    }
+
+    return {
+        extras,
+        gap
+    };
+}
+
+function collapseExtras(el, axis) {
+    const style = el.style;
+
+    if (axis === "width") {
+        style.paddingLeft = "0px";
+        style.paddingRight = "0px";
+        style.borderLeftWidth = "0px";
+        style.borderRightWidth = "0px";
+    } else {
+        style.paddingTop = "0px";
+        style.paddingBottom = "0px";
+        style.borderTopWidth = "0px";
+        style.borderBottomWidth = "0px";
+    }
+}
+
+function restoreAnimationStyles(el, axis, gap) {
+    const style = el.style;
+
+    style.width = "";
+    style.height = "";
+
+    style.paddingLeft = "";
+    style.paddingRight = "";
+    style.paddingTop = "";
+    style.paddingBottom = "";
+
+    style.borderLeftWidth = "";
+    style.borderRightWidth = "";
+    style.borderTopWidth = "";
+    style.borderBottomWidth = "";
+
+    style.overflow = "";
+
+    if (axis === "width")
+        style.marginRight = "";
+    else
+        style.marginBottom = "";
+}
+
+// ======================================
 // Cancel
 // ======================================
 
@@ -85,27 +219,47 @@ function animateGeometry(
     target,
     axis,
     duration,
-    complete
+    complete,
+    mode = "normal"
 ) {
-    if (!el) return Promise.resolve();
+    if (!el)
+        return Promise.resolve();
 
     cancelSizeAnimation(el);
 
-    el.style.overflow = "hidden";
+    const { gap } = prepareAnimation(el, axis);
+
     el.style.width = `${start.width}px`;
     el.style.height = `${start.height}px`;
+
+    // The collapsed state must contain no padding/border.
+    if (mode === "collapse")
+        collapseExtras(el, axis);
+
+    // Cancel the parent's gap visually while the element is zero-sized.
+    if (gap > 0) {
+        if (axis === "width")
+            el.style.marginRight = `${-gap}px`;
+        else
+            el.style.marginBottom = `${-gap}px`;
+    }
 
     el.offsetWidth;
 
     const startTime = performance.now();
-    let lastParent = geometry(el.parentElement);
+
+    let lastParent = el.parentElement
+        ? geometry(el.parentElement)
+        : null;
+
     let lastPage = layoutState(el);
 
     log("START", name(el), {
         axis,
         start,
         target,
-        duration
+        duration,
+        gap
     });
 
     return new Promise(resolve => {
@@ -113,6 +267,7 @@ function animateGeometry(
         function frame(now) {
 
             const elapsed = now - startTime;
+
             const progress = Math.min(
                 1,
                 Math.max(0, elapsed / duration)
@@ -128,9 +283,56 @@ function animateGeometry(
             else
                 el.style.height = `${value}px`;
 
-            // ------------------------------
+            // Animate padding/border together with the size.
+            const extras = getBoxExtras(el, axis);
+
+            const extraProgress =
+                mode === "collapse"
+                    ? 1 - progress
+                    : progress;
+
+            if (axis === "width") {
+                el.style.paddingLeft =
+                    `${extras.paddingStart * extraProgress}px`;
+
+                el.style.paddingRight =
+                    `${extras.paddingEnd * extraProgress}px`;
+
+                el.style.borderLeftWidth =
+                    `${extras.borderStart * extraProgress}px`;
+
+                el.style.borderRightWidth =
+                    `${extras.borderEnd * extraProgress}px`;
+            } else {
+                el.style.paddingTop =
+                    `${extras.paddingStart * extraProgress}px`;
+
+                el.style.paddingBottom =
+                    `${extras.paddingEnd * extraProgress}px`;
+
+                el.style.borderTopWidth =
+                    `${extras.borderStart * extraProgress}px`;
+
+                el.style.borderBottomWidth =
+                    `${extras.borderEnd * extraProgress}px`;
+            }
+
+            // Animate the gap compensation away.
+            if (gap > 0) {
+                const compensation =
+                    gap * (1 - progress);
+
+                if (axis === "width")
+                    el.style.marginRight =
+                        `${-compensation}px`;
+                else
+                    el.style.marginBottom =
+                        `${-compensation}px`;
+            }
+
+            // ----------------------------------
             // Diagnostics
-            // ------------------------------
+            // ----------------------------------
 
             if (DEBUG_ANIMATIONS) {
 
@@ -144,35 +346,48 @@ function animateGeometry(
 
                 const parentMoved =
                     parent &&
+                    lastParent &&
                     (
-                        Math.abs(parent.x - lastParent.x) > 0.5 ||
-                        Math.abs(parent.y - lastParent.y) > 0.5 ||
-                        Math.abs(parent.width - lastParent.width) > 0.5 ||
-                        Math.abs(parent.height - lastParent.height) > 0.5
+                        Math.abs(
+                            parent.x - lastParent.x
+                        ) > 0.5 ||
+
+                        Math.abs(
+                            parent.y - lastParent.y
+                        ) > 0.5 ||
+
+                        Math.abs(
+                            parent.width -
+                            lastParent.width
+                        ) > 0.5 ||
+
+                        Math.abs(
+                            parent.height -
+                            lastParent.height
+                        ) > 0.5
                     );
 
                 const pageChanged =
                     page.viewport.clientWidth !==
                         lastPage.viewport.clientWidth ||
+
                     page.viewport.clientHeight !==
                         lastPage.viewport.clientHeight ||
+
                     page.page.scrollWidth !==
-                    lastPage.page.scrollWidth ||
+                        lastPage.page.scrollWidth ||
+
                     page.page.scrollHeight !==
                         lastPage.page.scrollHeight;
 
-                if (
-                    parentMoved
-                )
+                if (parentMoved)
                     log("PARENT MOVED", name(el), {
                         axis,
                         previous: lastParent,
                         current: parent
                     });
 
-                if (
-                    pageChanged
-                )
+                if (pageChanged)
                     log("PAGE GEOMETRY CHANGED", name(el), {
                         axis,
                         previous: lastPage,
@@ -184,24 +399,20 @@ function animateGeometry(
                     Math.floor(elapsed / 50) !==
                     Math.floor((elapsed - 16) / 50)
                 ) {
+                    const g = geometry(el);
+
                     log("FRAME", name(el), {
                         axis,
                         elapsed: Math.round(elapsed),
-                        progress: Number(progress.toFixed(3)),
+                        progress: Number(
+                            progress.toFixed(3)
+                        ),
                         width: Number(
-                            geometry(el).width.toFixed(2)
+                            g.width.toFixed(2)
                         ),
                         height: Number(
-                            geometry(el).height.toFixed(2)
-                        ),
-                        viewportWidth:
-                            page.viewport.innerWidth,
-                        clientWidth:
-                            page.viewport.clientWidth,
-                        scrollWidth:
-                            page.page.scrollWidth,
-                        scrollHeight:
-                            page.page.scrollHeight
+                            g.height.toFixed(2)
+                        )
                     });
                 }
 
@@ -209,9 +420,9 @@ function animateGeometry(
                 lastPage = page;
             }
 
-            // ------------------------------
+            // ----------------------------------
             // Next frame
-            // ------------------------------
+            // ----------------------------------
 
             if (progress < 1) {
 
@@ -241,7 +452,8 @@ function animateGeometry(
 // ======================================
 
 export function animateExpand(el) {
-    if (!el) return Promise.resolve();
+    if (!el)
+        return Promise.resolve();
 
     cancelSizeAnimation(el);
 
@@ -249,21 +461,17 @@ export function animateExpand(el) {
 
     const natural = geometry(el);
 
-    const axis =
-        el.parentElement?.dataset?.animationAxis ||
-        (
-            natural.width > natural.height * 1.5
-                ? "width"
-                : "height"
-        );
+    const axis = getAxis(el, natural);
 
     const target = {
         width: natural.width,
-        height: el.scrollHeight
+        height: natural.height
     };
 
     if (axis === "width")
         target.width = el.scrollWidth;
+    else
+        target.height = el.scrollHeight;
 
     const start = {
         width: natural.width,
@@ -274,10 +482,7 @@ export function animateExpand(el) {
 
     log("EXPAND", name(el), {
         axis,
-        parentLayout:
-            el.parentElement
-                ? geometry(el.parentElement)
-                : null
+        target
     });
 
     return animateGeometry(
@@ -287,10 +492,12 @@ export function animateExpand(el) {
         axis,
         EXPAND_DURATION,
         () => {
-            el.style.width = "";
-            el.style.height = "";
-            el.style.overflow = "";
-        }
+            restoreAnimationStyles(
+                el,
+                axis
+            );
+        },
+        "expand"
     );
 }
 
@@ -299,7 +506,8 @@ export function animateExpand(el) {
 // ======================================
 
 export function animateCollapse(el) {
-    if (!el) return Promise.resolve();
+    if (!el)
+        return Promise.resolve();
 
     cancelSizeAnimation(el);
 
@@ -307,16 +515,11 @@ export function animateCollapse(el) {
 
     const current = geometry(el);
 
-    const axis =
-        el.parentElement?.dataset?.animationAxis ||
-        (
-            current.width > current.height * 1.5
-                ? "width"
-                : "height"
-        );
+    const axis = getAxis(el, current);
 
     const start = {
-        width: current.width,height: current.height
+        width: current.width,
+        height: current.height
     };
 
     const target = {
@@ -339,11 +542,14 @@ export function animateCollapse(el) {
         axis,
         COLLAPSE_DURATION,
         () => {
-            el.style.width = "";
-            el.style.height = "";
-            el.style.overflow = "";
+            restoreAnimationStyles(
+                el,
+                axis
+            );
+
             el.hidden = true;
-        }
+        },
+        "collapse"
     );
 }
 
@@ -352,7 +558,8 @@ export function animateCollapse(el) {
 // ======================================
 
 export function animateResize(el) {
-    if (!el) return;
+    if (!el)
+        return;
 
     cancelSizeAnimation(el);
 
@@ -369,15 +576,20 @@ export function animateResize(el) {
         height: el.scrollHeight
     };
 
-    const dx = Math.abs(
-        current.width - target.width
-    );
+    const dx =
+        Math.abs(
+            current.width -
+            target.width
+        );
 
-    const dy = Math.abs(
-        current.height - target.height
-    );
+    const dy =
+        Math.abs(
+            current.height -
+            target.height
+        );
 
     if (dx < 1 && dy < 1) {
+
         log("RESIZE SKIPPED", name(el), {
             current,
             target
@@ -392,7 +604,9 @@ export function animateResize(el) {
 
     const axis =
         el.parentElement?.dataset?.animationAxis ||
-        (dx > dy ? "width" : "height");
+        (dx > dy
+            ? "width"
+            : "height");
 
     log("RESIZE", name(el), {
         axis,
@@ -407,9 +621,11 @@ export function animateResize(el) {
         axis,
         EXPAND_DURATION,
         () => {
-            el.style.width = "";
-            el.style.height = "";
-            el.style.overflow = "";
-        }
+            restoreAnimationStyles(
+                el,
+                axis
+            );
+        },
+        "expand"
     );
 }
