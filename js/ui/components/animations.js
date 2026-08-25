@@ -2,11 +2,16 @@
 // Universal block animations
 // ======================================
 //
-// Только геометрия.
+// Геометрическая анимация.
 //
-// Анимируем:
-//   width
-//   height
+// Главный принцип:
+//
+//   horizontal layout → только width
+//   vertical layout   → только height
+//
+// Для horizontal flex-item используем
+// flex-basis, чтобы не конфликтовать
+// с flex: 0 0 ...
 //
 // Не анимируем:
 //   opacity
@@ -14,10 +19,7 @@
 //   margin
 //   padding
 //
-// Геометрия меняется покадрово через
-// requestAnimationFrame.
-//
-// Временно включено расширенное логирование.
+// Временно включено подробное логирование.
 // ======================================
 
 // ======================================
@@ -33,471 +35,207 @@ const COLLAPSE_DURATION = 300;
 
 const DEBUG_ANIMATIONS = true;
 
-// Логировать приблизительно раз в 50ms.
-const DEBUG_FRAME_INTERVAL = 50;
+function animationLog(...args) {
 
-// ======================================
-// Logging
-// ======================================
-
-function animationLog(
-    ...args
-){
-
-    if(!DEBUG_ANIMATIONS)
+    if (!DEBUG_ANIMATIONS)
         return;
 
     console.log(
         "[animations]",
         ...args
     );
-
 }
 
 // ======================================
 // Get element name
 // ======================================
 
-function getElementName(
-    element
-){
+function getElementName(element) {
 
-    if(!element)
+    if (!element)
         return "null";
 
     return (
-        element.id
-        ||
-        element.className
-        ||
-        element.tagName
-        ||
+        element.id ||
+        (
+            typeof element.className === "string"
+                ? element.className
+                : ""
+        ) ||
+        element.tagName ||
         "element"
     );
-
 }
 
 // ======================================
-// Read full debug geometry
-// ======================================
-
-function readDebugGeometry(
-    element
-){
-
-    if(!element){
-
-        return null;
-
-    }
-
-    const rect =
-        element.getBoundingClientRect();
-
-    const parent =
-        element.parentElement;
-
-    const parentRect =
-        parent
-            ? parent.getBoundingClientRect()
-            : null;
-
-    const bodyRect =
-        document.body
-            ? document.body.getBoundingClientRect()
-            : null;
-
-    const documentElement =
-        document.documentElement;
-
-    return {
-
-        // ------------------------------
-        // Element
-        // ------------------------------
-
-        element: {
-
-            x:
-                Number(
-                    rect.x.toFixed(2)
-                ),
-
-            y:
-                Number(
-                    rect.y.toFixed(2)
-                ),
-
-            top:
-                Number(
-                    rect.top.toFixed(2)
-                ),
-
-            left:
-                Number(
-                    rect.left.toFixed(2)
-                ),
-
-            right:
-                Number(
-                    rect.right.toFixed(2)
-                ),
-
-            bottom:
-                Number(
-                    rect.bottom.toFixed(2)
-                ),
-
-            width:
-                Number(
-                    rect.width.toFixed(2)
-                ),
-
-            height:
-                Number(
-                    rect.height.toFixed(2)
-                )
-
-        },
-
-        // ------------------------------
-        // CSS/layout dimensions
-        // ------------------------------
-
-        layout: {
-
-            offsetWidth:
-                element.offsetWidth,
-
-            offsetHeight:
-                element.offsetHeight,
-
-            clientWidth:
-                element.clientWidth,
-
-            clientHeight:
-                element.clientHeight,
-
-            scrollWidth:
-                element.scrollWidth,
-
-            scrollHeight:
-                element.scrollHeight
-
-        },
-
-        // ------------------------------
-        // Parent
-        // ------------------------------
-
-        parent: parent
-            ? {
-
-                name:
-                    getElementName(parent),
-
-                x:
-                    Number(
-                        parentRect.x.toFixed(2)
-                    ),
-
-                y:
-                    Number(
-                        parentRect.y.toFixed(2)
-                    ),
-
-                width:
-                    Number(
-                        parentRect.width.toFixed(2)
-                    ),
-
-                height:
-                    Number(
-                        parentRect.height.toFixed(2)
-                    ),
-
-                offsetWidth:
-                    parent.offsetWidth,
-
-                offsetHeight:
-                    parent.offsetHeight,
-
-                clientWidth:
-                    parent.clientWidth,
-
-                clientHeight:
-                    parent.clientHeight,
-
-                scrollWidth:
-                    parent.scrollWidth,
-
-                scrollHeight:
-                    parent.scrollHeight
-
-            }
-            : null,
-
-        // ------------------------------
-        // Body
-        // ------------------------------
-
-        body: bodyRect
-            ? {
-
-                width:
-                    Number(
-                        bodyRect.width.toFixed(2)
-                    ),
-
-                height:
-                    Number(
-                        bodyRect.height.toFixed(2)
-                    ),
-
-                scrollWidth:
-                    document.body.scrollWidth,
-
-                scrollHeight:
-                    document.body.scrollHeight,
-
-                clientWidth:
-                    document.body.clientWidth,
-
-                clientHeight:
-                    document.body.clientHeight
-
-            }
-            : null,
-
-        // ------------------------------
-        // Document
-        // ------------------------------
-
-        document: documentElement
-            ? {
-
-                clientWidth:
-                    documentElement.clientWidth,
-
-                clientHeight:
-                    documentElement.clientHeight,
-
-                scrollWidth:
-                    documentElement.scrollWidth,
-
-                scrollHeight:
-                    documentElement.scrollHeight
-
-            }
-            : null,
-
-        // ------------------------------
-        // Viewport
-        // ------------------------------
-
-        viewport: {
-
-            width:
-                window.innerWidth,
-
-            height:
-                window.innerHeight
-
-        },
-
-        // ------------------------------
-        // Horizontal page overflow
-        // ------------------------------
-
-        horizontalOverflow:
-            documentElement
-                ? documentElement.scrollWidth >
-                  documentElement.clientWidth
-                : false
-
-    };
-
-}
-
-// ======================================
-// Geometry delta
-// ======================================
-
-function geometryDelta(
-    previous,
-    current
-){
-
-    if(!previous || !current)
-        return null;
-
-    return {
-
-        element: {
-
-            x:
-                Number(
-                    (
-                        current.element.x -
-                        previous.element.x
-                    ).toFixed(2)
-                ),
-
-            y:
-                Number(
-                    (
-                        current.element.y -
-                        previous.element.y
-                    ).toFixed(2)
-                ),
-
-            width:
-                Number(
-                    (
-                        current.element.width -
-                        previous.element.width
-                    ).toFixed(2)
-                ),
-
-            height:
-                Number(
-                    (
-                        current.element.height -
-                        previous.element.height
-                    ).toFixed(2)
-                )
-
-        },
-
-        parent:
-            current.parent &&
-            previous.parent
-                ? {
-
-                    x:
-                        Number(
-                            (
-                                current.parent.x -
-                                previous.parent.x
-                            ).toFixed(2)
-                        ),
-
-                    y:
-                        Number(
-                            (
-                                current.parent.y -
-                                previous.parent.y
-                            ).toFixed(2)
-                        ),
-
-                    width:
-                        Number(
-                            (
-                                current.parent.width -
-                                previous.parent.width
-                            ).toFixed(2)
-                        ),
-
-                    height:
-                        Number(
-                            (
-                                current.parent.height -
-                                previous.parent.height
-                            ).toFixed(2)
-                        )
-
-                }
-                : null,
-
-        body:
-            current.body &&
-            previous.body
-                ? {
-
-                    width:
-                        Number(
-                            (
-                                current.body.width -
-                                previous.body.width
-                            ).toFixed(2)
-                        ),
-
-                    height:
-                        Number(
-                            (
-                                current.body.height -
-                                previous.body.height
-                            ).toFixed(2)
-                        ),
-
-                    scrollWidth:
-                        current.body.scrollWidth -
-                        previous.body.scrollWidth,
-
-                    scrollHeight:
-                        current.body.scrollHeight -
-                        previous.body.scrollHeight
-
-                }
-                : null,
-
-        document:
-            current.document &&
-            previous.document
-                ? {
-
-                    clientWidth:
-                        current.document.clientWidth -
-                        previous.document.clientWidth,
-
-                    scrollWidth:
-                        current.document.scrollWidth -
-                        previous.document.scrollWidth,
-
-                    scrollHeight:
-                        current.document.scrollHeight -
-                        previous.document.scrollHeight
-
-                }
-                : null
-
-    };
-
-}
-
-// ======================================
-// Easing
+// Linear easing
 // ======================================
 //
-// Сейчас deliberately linear.
+// Пока намеренно linear.
 //
-// Это важно для диагностики:
-// каждая геометрическая единица проходит
-// одинаковое расстояние за одинаковое время.
+// Это позволяет проверить именно
+// геометрию без влияния easing.
 // ======================================
 
-function linear(
-    progress
-){
+function linear(progress) {
 
     return progress;
-
 }
 
 // ======================================
-// Cancel
+// Get parent layout
+// ======================================
+
+function getParentLayout(element) {
+
+    if (!element || !element.parentElement)
+        return {
+            display: "unknown",
+            direction: null
+        };
+
+    const style =
+        getComputedStyle(
+            element.parentElement
+        );
+
+    return {
+        display:
+            style.display,
+
+        direction:
+            style.flexDirection
+    };
+}
+
+// ======================================
+// Determine animation axis
+// ======================================
+//
+// Возможные значения:
+//
+//   "width"
+//   "height"
+//   "both"
+//
+// Приоритет:
+//
+//   flex row      → width
+//   flex column   → height
+//   grid          → height
+//   block         → height
+//   unknown       → both
+// ======================================
+
+function getAnimationAxis(element) {
+
+    const layout =
+        getParentLayout(element);
+
+    // ==================================
+    // FLEX
+    // ==================================
+
+    if (layout.display === "flex") {
+
+        if (
+            layout.direction === "row" ||
+            layout.direction === "row-reverse"
+        ) {
+
+            return "width";
+        }
+
+        if (
+            layout.direction === "column" ||
+            layout.direction === "column-reverse"
+        ) {
+
+            return "height";
+        }
+    }
+
+    // ==================================
+    // GRID
+    // ==================================
+
+    if (layout.display === "grid")
+        return "height";
+
+    // ==================================
+    // BLOCK
+    // ==================================
+
+    if (layout.display === "block")
+        return "height";
+
+    // ==================================
+    // UNKNOWN
+    // ==================================
+
+    return "both";
+}
+
+// ======================================
+// Determine actual property
+// ======================================
+//
+// Для horizontal flex-item:
+//
+//   flex-basis
+//
+// Для остальных:
+//
+//   width
+//
+// Vertical:
+//
+//   height
+// ======================================
+
+function getAnimationProperty(
+    element,
+    axis
+) {
+
+    const layout =
+        getParentLayout(element);
+
+    if (
+        axis === "width" &&
+        layout.display === "flex" &&
+        (
+            layout.direction === "row" ||
+            layout.direction === "row-reverse"
+        )
+    ) {
+
+        return "flex-basis";
+    }
+
+    if (axis === "width")
+        return "width";
+
+    if (axis === "height")
+        return "height";
+
+    return null;
+}
+
+// ======================================
+// Cancel animation
 // ======================================
 
 export function cancelSizeAnimation(
     element
-){
+) {
 
-    if(!element)
+    if (!element)
         return;
 
-    if(
+    if (
         element._sizeAnimationFrame
-    ){
+    ) {
 
         cancelAnimationFrame(
             element._sizeAnimationFrame
@@ -505,12 +243,11 @@ export function cancelSizeAnimation(
 
         element._sizeAnimationFrame =
             null;
-
     }
 
-    if(
+    if (
         element._sizeAnimationTimer
-    ){
+    ) {
 
         clearTimeout(
             element._sizeAnimationTimer
@@ -518,7 +255,6 @@ export function cancelSizeAnimation(
 
         element._sizeAnimationTimer =
             null;
-
     }
 
     element.style.transition =
@@ -528,7 +264,6 @@ export function cancelSizeAnimation(
         "cancel",
         getElementName(element)
     );
-
 }
 
 // ======================================
@@ -537,7 +272,7 @@ export function cancelSizeAnimation(
 
 function readGeometry(
     element
-){
+) {
 
     const rect =
         element.getBoundingClientRect();
@@ -549,9 +284,125 @@ function readGeometry(
 
         height:
             rect.height
+    };
+}
 
+// ======================================
+// Read target geometry
+// ======================================
+//
+// Важно:
+//
+// width:
+//   scrollWidth
+//
+// height:
+//   scrollHeight
+//
+// Но только если соответствующая
+// ось реально используется.
+// ======================================
+
+function readTargetGeometry(
+    element,
+    axis
+) {
+
+    const current =
+        readGeometry(element);
+
+    const target = {
+
+        width:
+            current.width,
+
+        height:
+            current.height
     };
 
+    if (
+        axis === "width" ||
+        axis === "both"
+    ) {
+
+        target.width =
+            element.scrollWidth;
+    }
+
+    if (
+        axis === "height" ||
+        axis === "both"
+    ) {
+
+        target.height =
+            element.scrollHeight;
+    }
+
+    return target;
+}
+
+// ======================================
+// Freeze geometry
+// ======================================
+
+function freezeGeometry(
+    element,
+    geometry,
+    axis
+) {
+
+    if (
+        axis === "width" ||
+        axis === "both"
+    ) {
+
+        const property =
+            getAnimationProperty(
+                element,
+                "width"
+            );
+
+        if (property === "flex-basis") {
+
+            element.style.flexBasis =
+                `${geometry.width}px`;
+
+        } else {
+
+            element.style.width =
+                `${geometry.width}px`;
+        }
+    }
+
+    if (
+        axis === "height" ||
+        axis === "both"
+    ) {
+
+        element.style.height =
+            `${geometry.height}px`;
+    }
+}
+
+// ======================================
+// Clear geometry
+// ======================================
+
+function clearGeometry(
+    element
+) {
+
+    element.style.width =
+        "";
+
+    element.style.height =
+        "";
+
+    element.style.flexBasis =
+        "";
+
+    element.style.overflow =
+        "";
 }
 
 // ======================================
@@ -563,10 +414,11 @@ function animateGeometry(
     start,
     target,
     duration,
+    axis,
     onComplete
-){
+) {
 
-    if(!element)
+    if (!element)
         return Promise.resolve();
 
     cancelSizeAnimation(
@@ -577,6 +429,7 @@ function animateGeometry(
         "START",
         getElementName(element),
         {
+            axis,
             start,
             target,
             duration
@@ -586,14 +439,50 @@ function animateGeometry(
     element.style.overflow =
         "hidden";
 
-    element.style.width =
-        `${start.width}px`;
+    // ==================================
+    // Initial width
+    // ==================================
 
-    element.style.height =
-        `${start.height}px`;
+    if (
+        axis === "width" ||
+        axis === "both"
+    ) {
+
+        const property =
+            getAnimationProperty(
+                element,
+                "width"
+            );
+
+        if (
+            property === "flex-basis"
+        ) {
+
+            element.style.flexBasis =
+                `${start.width}px`;
+
+        } else {
+
+            element.style.width =
+                `${start.width}px`;
+        }
+    }
 
     // ==================================
-    // Force initial layout
+    // Initial height
+    // ==================================
+
+    if (
+        axis === "height" ||
+        axis === "both"
+    ) {
+
+        element.style.height =
+            `${start.height}px`;
+    }
+
+    // ==================================
+    // Force layout
     // ==================================
 
     element.offsetWidth;
@@ -604,19 +493,12 @@ function animateGeometry(
     let lastProgress =
         0;
 
-    let lastDebugTime =
-        -DEBUG_FRAME_INTERVAL;
+    let lastGeometry =
+        readGeometry(element);
 
-    let previousDebugGeometry =
-        readDebugGeometry(
-            element
-        );
+    return new Promise(resolve => {
 
-    return new Promise(resolve=>{
-
-        function frame(
-            now
-        ){
+        function frame(now) {
 
             const elapsed =
                 now -
@@ -626,94 +508,147 @@ function animateGeometry(
                 elapsed /
                 duration;
 
-            if(progress > 1)
+            if (progress > 1)
                 progress = 1;
 
-            if(progress < 0)
+            if (progress < 0)
                 progress = 0;
 
             const eased =
                 linear(progress);
 
-            const width =
-                start.width +
-                (
-                    target.width -
-                    start.width
-                ) *
-                eased;
-
-            const height =
-                start.height +
-                (
-                    target.height -
-                    start.height
-                ) *
-                eased;
-
-            element.style.width =
-                `${width}px`;
-
-            element.style.height =
-                `${height}px`;
-
             // ==================================
-            // Debug geometry
+            // Width
             // ==================================
 
-            if(
-                DEBUG_ANIMATIONS
-                &&
+            let width =
+                start.width;
+
+            if (
+                axis === "width" ||
+                axis === "both"
+            ) {
+
+                width =
+                    start.width +
+                    (
+                        target.width -
+                        start.width
+                    ) *
+                    eased;
+
+                const property =
+                    getAnimationProperty(
+                        element,
+                        "width"
+                    );
+
+                if (
+                    property === "flex-basis"
+                ) {
+
+                    element.style.flexBasis =
+                        `${width}px`;
+
+                } else {
+
+                    element.style.width =
+                        `${width}px`;
+                }
+            }
+
+            // ==================================
+            // Height
+            // ==================================
+
+            let height =
+                start.height;
+
+            if (
+                axis === "height" ||
+                axis === "both"
+            ) {
+
+                height =
+                    start.height +
+                    (
+                        target.height -
+                        start.height
+                    ) *
+                    eased;
+
+                element.style.height =
+                    `${height}px`;
+            }
+
+            // ==================================
+            // Actual geometry
+            // ==================================
+
+            const actual =
+                readGeometry(element);
+
+            const parent =
+                element.parentElement;
+
+            const parentGeometry =
+                parent
+                    ? readGeometry(parent)
+                    : null;
+
+            const parentMoved =
+                lastGeometry &&
                 (
-                    now -
-                    lastDebugTime
-                    >=
-                    DEBUG_FRAME_INTERVAL
+                    Math.abs(
+                        actual.width -
+                        lastGeometry.width
+                    ) > 0.1
                     ||
-                    progress === 1
-                )
-            ){
+                    Math.abs(
+                        actual.height -
+                        lastGeometry.height
+                    ) > 0.1
+                );
 
-                const currentDebugGeometry =
-                    readDebugGeometry(
-                        element
-                    );
+            // ==================================
+            // Debug
+            // ==================================
 
-                const delta =
-                    geometryDelta(
-                        previousDebugGeometry,
-                        currentDebugGeometry
-                    );
+            if (DEBUG_ANIMATIONS) {
 
                 const progressDelta =
                     progress -
                     lastProgress;
 
-                animationLog(
-                    "FRAME",
-                    getElementName(element),
-                    {
+                if (
+                    progress === 1
+                    ||
+                    Math.floor(
+                        elapsed / 50
+                    )
+                    !==
+                    Math.floor((
+                            elapsed -
+                            16
+                        ) / 50
+                    )
+                ) {
 
-                        elapsed:
-                            Math.round(
-                                elapsed
-                            ),
+                    animationLog(
+                        "FRAME",
+                        getElementName(element),
+                        {
+                            axis,
 
-                        progress:
-                            Number(
-                                progress.toFixed(3)
-                            ),
+                            elapsed:
+                                Math.round(
+                                    elapsed
+                                ),
 
-                        progressDelta:
-                            Number(
-                                progressDelta.toFixed(4)
-                            ),
-
-                        // ----------------------
-                        // Requested animation
-                        // ----------------------
-
-                        animation: {
+                            progress:
+                                Number(
+                                    progress.toFixed(3)
+                                ),
 
                             width:
                                 Number(
@@ -723,147 +658,138 @@ function animateGeometry(
                             height:
                                 Number(
                                     height.toFixed(2)
+                                ),
+
+                            actualWidth:
+                                Number(
+                                    actual.width.toFixed(2)
+                                ),
+
+                            actualHeight:
+                                Number(
+                                    actual.height.toFixed(2)
+                                ),
+
+                            progressDelta:
+                                Number(
+                                    progressDelta.toFixed(4)
                                 )
-
-                        },
-
-                        // ----------------------
-                        // Actual geometry
-                        // ----------------------
-
-                        geometry:
-                            currentDebugGeometry,
-
-                        // ----------------------
-                        // Geometry change
-                        // ----------------------
-
-                        delta
-
-                    }
-                );
+                        }
+                    );
+                }
 
                 // ==================================
-                // Explicit warning
+                // Detect parent movement
                 // ==================================
 
-                if(
-                    delta
-                    &&
-                    delta.parent
-                    &&
-                    (
-                        Math.abs(
-                            delta.parent.width
-                        ) > 0.5
-                        ||
-                        Math.abs(
-                            delta.parent.height
-                        ) > 0.5
-                        ||
-                        Math.abs(
-                            delta.parent.x
-                        ) > 0.5
-                        ||
-                        Math.abs(
-                            delta.parent.y
-                        ) > 0.5
-                    )
-                ){
+                if (
+                    parentMoved
+                ) {
 
                     animationLog(
                         "PARENT MOVED",
                         getElementName(element),
                         {
-                            parent:
-                                currentDebugGeometry.parent,
+                            axis,
 
-                            delta:
-                                delta.parent
-                        }
-                    );
+                            previous: {
+                                width:
+                                    Number(
+                                        lastGeometry.width
+                                            .toFixed(2)
+                                    ),
 
-                }
+                                height:
+                                    Number(
+                                        lastGeometry.height
+                                            .toFixed(2)
+                                    )
+                            },
 
-                if(
-                    delta
-                    &&
-                    delta.body
-                    &&
-                    (
-                        delta.body.width !== 0
-                        ||
-                        delta.body.scrollWidth !== 0
-                        ||
-                        delta.body.height !== 0
-                        ||
-                        delta.body.scrollHeight !== 0
-                    )
-                ){
+                            current: {
+                                width:
+                                    Number(
+                                        actual.width
+                                            .toFixed(2)
+                                    ),
 
-                    animationLog(
-                        "PAGE GEOMETRY CHANGED",
-                        getElementName(element),
-                        {
-                            body:
-                                currentDebugGeometry.body,
-
-                            document:
-                                currentDebugGeometry.document,
-
-                            delta: {
-
-                                body:
-                                    delta.body,
-
-                                document:
-                                    delta.document
-
+                                height:
+                                    Number(
+                                        actual.height
+                                            .toFixed(2)
+                                    )
                             }
-
                         }
                     );
-
                 }
 
-                if(
-                    currentDebugGeometry
-                    &&
-                    currentDebugGeometry.horizontalOverflow
-                ){
+                // ==================================
+                // Detect page geometry changes
+                // ==================================
 
-                    animationLog(
-                        "HORIZONTAL OVERFLOW",
-                        getElementName(element),
-                        {
-                            document:
-                                currentDebugGeometry.document,
+                if (
+                    parent &&
+                    parentGeometry
+                ) {
 
-                            body:
-                                currentDebugGeometry.body,
+                    const previousParent =
+                        element._lastParentGeometry;
 
-                            viewport:
-                                currentDebugGeometry.viewport
-                        }
-                    );
+                    if (
+                        previousParent
+                        &&
+                        (
+                            Math.abs(
+                                parentGeometry.width -
+                                previousParent.width
+                            ) > 0.5
+                            ||
+                            Math.abs(
+                                parentGeometry.height -
+                                previousParent.height
+                            ) > 0.5
+                            )
+                    ) {
 
+                        animationLog(
+                            "PAGE GEOMETRY CHANGED",
+                            getElementName(element),
+                            {
+                                axis,
+
+                                previous:
+                                    previousParent,
+
+                                current:
+                                    parentGeometry
+                            }
+                        );
+                    }
+
+                    element._lastParentGeometry = {
+
+                        width:
+                            parentGeometry.width,
+
+                        height:
+                            parentGeometry.height
+                    };
                 }
-
-                previousDebugGeometry =
-                    currentDebugGeometry;
-
-                lastDebugTime =
-                    now;
-
             }
+
+            lastGeometry =
+                actual;
 
             lastProgress =
                 progress;
 
-            if(
-                progress <
-                1
-            ){
+            // ==================================
+            // Continue
+            // ==================================
+
+            if (
+                progress < 1
+            ) {
 
                 element._sizeAnimationFrame =
                     requestAnimationFrame(
@@ -871,7 +797,6 @@ function animateGeometry(
                     );
 
                 return;
-
             }
 
             element._sizeAnimationFrame =
@@ -881,37 +806,30 @@ function animateGeometry(
             // Complete
             // ==================================
 
-            if(
+            if (
                 typeof onComplete ===
                 "function"
-            ){
+            ) {
 
                 onComplete();
-
             }
 
             animationLog(
                 "END",
                 getElementName(element),
                 {
-                    finalGeometry:
-                        readDebugGeometry(
-                            element
-                        )
+                    axis
                 }
             );
 
             resolve();
-
         }
 
         element._sizeAnimationFrame =
             requestAnimationFrame(
                 frame
             );
-
     });
-
 }
 
 // ======================================
@@ -920,17 +838,30 @@ function animateGeometry(
 
 export function animateExpand(
     element
-){
+) {
 
-    if(!element)
+    if (!element)
         return Promise.resolve();
 
     cancelSizeAnimation(
         element
     );
 
+    const axis =
+        getAnimationAxis(element);
+
+    animationLog(
+        "EXPAND",
+        getElementName(element),
+        {
+            axis,
+            parentLayout:
+                getParentLayout(element)
+        }
+    );
+
     // ==================================
-    // Make visible for measurement
+    // Make visible
     // ==================================
 
     element.hidden =
@@ -941,19 +872,13 @@ export function animateExpand(
     // ==================================
 
     const natural =
-        readGeometry(
-            element
+        readGeometry(element);
+
+    const target =
+        readTargetGeometry(
+            element,
+            axis
         );
-
-    const target = {
-
-        width:
-            natural.width,
-
-        height:
-            element.scrollHeight
-
-    };
 
     const start = {
 
@@ -961,36 +886,49 @@ export function animateExpand(
             natural.width,
 
         height:
-            0
-
+            natural.height
     };
 
-    animationLog(
-        "EXPAND",
-        getElementName(element),
-        {
-            start,
-            target,
+    // ==================================
+    // Collapse only selected axis
+    // ==================================
 
-            before:
-                readDebugGeometry(
-                    element
-                )
-        }
+    if (
+        axis === "width"
+    ) {
+
+        start.width =
+            0;
+    }
+
+    if (
+        axis === "height"
+    ) {
+
+        start.height =
+            0;
+    }
+
+    if (
+        axis === "both"
+    ) {
+
+        start.width =
+            0;
+
+        start.height =
+            0;
+    }
+
+    // ==================================
+    // Prepare geometry
+    // ==================================
+
+    freezeGeometry(
+        element,
+        start,
+        axis
     );
-
-    // ==================================
-    // Prepare
-    // ==================================
-
-    element.style.width =
-        `${start.width}px`;
-
-    element.style.height =
-        "0px";
-
-    element.style.overflow =
-        "hidden";
 
     element.offsetWidth;
 
@@ -1003,20 +941,12 @@ export function animateExpand(
         start,
         target,
         EXPAND_DURATION,
-        ()=>{
+        axis,
+        () => {
 
-            element.style.width =
-                "";
-
-            element.style.height =
-                "";
-
-            element.style.overflow =
-                "";
-
+            clearGeometry(element);
         }
     );
-
 }
 
 // ======================================
@@ -1025,14 +955,17 @@ export function animateExpand(
 
 export function animateCollapse(
     element
-){
+) {
 
-    if(!element)
+    if (!element)
         return Promise.resolve();
 
     cancelSizeAnimation(
         element
     );
+
+    const axis =
+        getAnimationAxis(element);
 
     element.hidden =
         false;
@@ -1042,9 +975,7 @@ export function animateCollapse(
     // ==================================
 
     const current =
-        readGeometry(
-            element
-        );
+        readGeometry(element);
 
     const start = {
 
@@ -1053,30 +984,55 @@ export function animateCollapse(
 
         height:
             current.height
-
     };
 
     const target = {
 
         width:
-            0,
+            current.width,
 
         height:
-            0
-
+            current.height
     };
+
+    // ==================================
+    // Collapse selected axis only
+    // ==================================
+
+    if (
+        axis === "width"
+    ) {
+
+        target.width =
+            0;
+    }
+
+    if (
+        axis === "height"
+    ) {
+
+        target.height =
+            0;
+    }
+
+    if (
+        axis === "both"
+    ) {
+
+        target.width =
+            0;
+
+        target.height =
+            0;
+    }
 
     animationLog(
         "COLLAPSE",
         getElementName(element),
         {
+            axis,
             start,
-            target,
-
-            before:
-                readDebugGeometry(
-                    element
-                )
+            target
         }
     );
 
@@ -1089,23 +1045,15 @@ export function animateCollapse(
         start,
         target,
         COLLAPSE_DURATION,
-        ()=>{
+        axis,
+        () => {
 
-            element.style.width =
-                "";
-
-            element.style.height =
-                "";
-
-            element.style.overflow =
-                "";
+            clearGeometry(element);
 
             element.hidden =
                 true;
-
         }
     );
-
 }
 
 // ======================================
@@ -1114,33 +1062,34 @@ export function animateCollapse(
 
 export function animateResize(
     element
-){
+) {
 
-    if(!element)
+    if (!element)
         return;
 
     cancelSizeAnimation(
         element
     );
 
+    const axis =
+        getAnimationAxis(element);
+
     // ==================================
-    // Read current geometry
+    // Current
     // ==================================
 
     const current =
-        readGeometry(
-            element
-        );
+        readGeometry(element);
 
     // ==================================
     // Freeze current geometry
     // ==================================
 
-    element.style.width =
-        `${current.width}px`;
-
-    element.style.height =
-        `${current.height}px`;
+    freezeGeometry(
+        element,
+        current,
+        axis
+    );
 
     element.style.overflow =
         "hidden";
@@ -1148,55 +1097,73 @@ export function animateResize(
     element.offsetWidth;
 
     // ==================================
-    // Read target geometry
+    // Target
     // ==================================
 
-    const target = {
+    const target =
+        readTargetGeometry(
+            element,
+            axis
+        );
 
-        width:
-            element.scrollWidth,
+    // ==================================
+    // Compare only active axis
+    // ==================================
 
-        height:
-            element.scrollHeight
+    let changed =
+        false;
 
-    };
+    if (
+        axis === "width" ||
+        axis === "both"
+    ) {
+
+        if (
+            Math.abs(
+                current.width -
+                target.width
+            ) >= 1
+        ) {
+
+            changed = true;
+        }
+    }
+
+    if (
+        axis === "height" ||
+        axis === "both"
+    ) {
+
+        if (
+            Math.abs(
+                current.height -
+                target.height
+            ) >= 1
+        ) {
+
+            changed = true;
+        }
+    }
 
     // ==================================
     // Nothing changed
     // ==================================
 
-    if(
-        Math.abs(
-            current.width -
-            target.width
-        ) < 1
-        &&
-        Math.abs(
-            current.height -
-            target.height
-        ) < 1
-    ){
+    if (!changed) {
 
         animationLog(
             "RESIZE SKIPPED",
             getElementName(element),
             {
+                axis,
                 current,
                 target
             }
         );
 
-        element.style.width =
-            "";
-
-        element.style.height =
-            "";
-
-        element.style.overflow =
-            "";
+        clearGeometry(element);
 
         return;
-
     }
 
     // ==================================
@@ -1207,13 +1174,9 @@ export function animateResize(
         "RESIZE",
         getElementName(element),
         {
+            axis,
             start: current,
-            target,
-
-            before:
-                readDebugGeometry(
-                    element
-                )
+            target
         }
     );
 
@@ -1222,18 +1185,10 @@ export function animateResize(
         current,
         target,
         EXPAND_DURATION,
-        ()=>{
+        axis,
+        () => {
 
-            element.style.width =
-                "";
-
-            element.style.height =
-                "";
-
-            element.style.overflow =
-                "";
-
+            clearGeometry(element);
         }
     );
-
 }
