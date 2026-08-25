@@ -371,7 +371,7 @@ export function renderFileEditorHTML(
 
                     <div
                         id="entityFileSelect"
-                        class="entity-file__select admin-button"
+                        class="entity-file__select"
                     >
                         Выбрать файл
                     </div>
@@ -395,7 +395,7 @@ export function renderFileEditorHTML(
 
                 <div
                     id="entityFileSelect"
-                    class="entity-file__select admin-button"
+                    class="entity-file__select"
                 >
                     Выбрать файл
                 </div>
