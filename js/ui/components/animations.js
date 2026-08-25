@@ -1,179 +1,47 @@
 // ======================================
-// Universal layout animations — MARGIN
-// ======================================
-//
-// Принцип:
-//
-//  EXPAND:
-//      margin = отрицательный размер элемента
-//          ↓
-//      margin плавно идёт к 0
-//
-//  COLLAPSE:
-//      margin = 0
-//          ↓
-//      margin плавно становится отрицательным
-//
-// Сам элемент НЕ скрывается.
-// hidden НЕ трогаем.
-// Родители перестраиваются естественным layout.
-//
-// Работает с flex / grid / обычным block layout.
+// Universal geometry animations
+// Margin-based version
 // ======================================
 
-const EXPAND_DURATION = 1800;
-const COLLAPSE_DURATION = 1800;
-
-const EASING = "cubic-bezier(.16, 1, .3, 1)";
-
-const DEBUG_ANIMATIONS = true;
+const EXPAND_DURATION = 1500;
+const COLLAPSE_DURATION = 1500;
 
 // ======================================
-// Debug
+// Helpers
 // ======================================
-
-function log(...args) {
-    if (DEBUG_ANIMATIONS)
-        console.log("[animations]", ...args);
-}
 
 function getName(el) {
-    return el?.id ||
-        el?.className ||
-        el?.tagName ||
-        "element";
+    return el?.id || el?.className || el?.tagName || "element";
 }
-
-// ======================================
-// Geometry
-// ======================================
-
-function getRect(el) {
-
-    if (!el)
-        return {
-            width: 0,
-            height: 0,
-            x: 0,
-            y: 0
-        };
-
-    const r = el.getBoundingClientRect();
-
-    return {
-        width: r.width,
-        height: r.height,
-        x: r.x,
-        y: r.y
-    };
-}
-
-// ======================================
-// Force layout
-// ======================================
-
-function forceLayout() {
-    document.documentElement.offsetHeight;
-}
-
-// ======================================
-// Axis
-// ======================================
 
 function getAxis(el) {
+    return (
+        el?.parentElement?.dataset?.animationAxis ||
+        (() => {
+            const r = el.getBoundingClientRect();
 
-    if (el?.parentElement?.dataset?.animationAxis)
-        return el.parentElement.dataset.animationAxis;
-
-    const r = getRect(el);
-
-    return r.width > r.height * 1.5
-        ? "width"
-        : "height";
+            return r.width > r.height * 1.5
+                ? "width"
+                : "height";
+        })()
+    );
 }
 
-// ======================================
-// Margin helpers
-// ======================================
-
-function getMargins(el) {
-
-    const style = getComputedStyle(el);
-
-    return {
-        top: parseFloat(style.marginTop) || 0,
-        right: parseFloat(style.marginRight) || 0,
-        bottom: parseFloat(style.marginBottom) || 0,
-        left: parseFloat(style.marginLeft) || 0
-    };
+function getMarginProperty(axis) {
+    return axis === "width"
+        ? "margin-right"
+        : "margin-bottom";
 }
-
-function getGap(el, axis) {
-
-    const parent = el?.parentElement;
-
-    if (!parent)
-        return 0;
-
-    const style = getComputedStyle(parent);
-
-    if (axis === "height")
-        return parseFloat(style.rowGap) || 0;
-
-    return parseFloat(style.columnGap) || 0;
-}
-
-// ======================================
-// Animation margin
-// ======================================
-
-function getMarginProperty(el, axis) {
-
-    /*
-        We deliberately use the trailing margin.
-
-        Vertical:
-
-            margin-bottom
-
-        Horizontal:
-
-            margin-right
-
-        This makes the element itself stay in place
-        while its contribution to the parent layout
-        changes.
-    */
-
-    return axis === "height"
-        ? "marginBottom"
-        : "marginRight";
-}
-
-// ======================================
-// Current animated margin
-// ======================================
 
 function getCurrentMargin(el, property) {
+    return parseFloat(
+        getComputedStyle(el)[property]
+    ) || 0;
+}
 
-    const inline = parseFloat(el.style[property]);
-
-    if (Number.isFinite(inline))
-        return inline;
-
-    const computed =
-        parseFloat(
-            getComputedStyle(el)[
-                property.replace(
-                    /[A-Z]/g,
-                    m => "-" + m.toLowerCase()
-                )
-            ]
-        );
-
-    return Number.isFinite(computed)
-        ? computed
-        : 0;
+function forceLayout(el) {
+    void el.offsetHeight;
+    void el.parentElement?.offsetHeight;
 }
 
 // ======================================
@@ -181,18 +49,34 @@ function getCurrentMargin(el, property) {
 // ======================================
 
 export function cancelSizeAnimation(el) {
+    if (!el) return;
 
-    if (!el)
-        return;
+    if (el._marginAnimationFrame) {
+        cancelAnimationFrame(
+            el._marginAnimationFrame
+        );
 
-    if (el._layoutAnimation)
-        el._layoutAnimation.cancel();
+        el._marginAnimationFrame = null;
+    }
 
-    el._layoutAnimation = null;
+    if (el._marginAnimationTimer) {
+        clearTimeout(
+            el._marginAnimationTimer
+        );
 
-    el.style.transition = "";
+        el._marginAnimationTimer = null;
+    }
 
-    log("CANCEL", getName(el));
+    el.style.setProperty(
+        "transition",
+        "",
+        "important"
+    );
+
+    console.log(
+        "[animations] CANCEL",
+        getName(el)
+    );
 }
 
 // ======================================
@@ -207,141 +91,82 @@ function animateMargin(
     duration,
     complete
 ) {
+    if (!el)
+        return Promise.resolve();
 
     cancelSizeAnimation(el);
 
-    el.style.transition = "none";
-    el.style[property] = `${from}px`;
-
-    /*
-        Force browser to acknowledge the starting
-        layout before changing the margin.
-    */
-    forceLayout();
-
-    let finished = false;
-
-    const finish = () => {
-
-        if (finished)
-            return;
-
-        finished = true;
-
-        if (el._layoutAnimation?.timer)
-            clearTimeout(
-                el._layoutAnimation.timer
-            );
-
-        el._layoutAnimation = null;
-
-        el.style.transition = "";
-        el.style[property] = "";
-
-        if (typeof complete === "function")
-            complete();
-
-        log("END", getName(el), {
-            property
-        });
-    };
-
-    /*
-        CSS transition is used here intentionally.
-
-        The browser itself recalculates flex/grid layout
-        on every interpolated margin value.
-    */
-
-    requestAnimationFrame(() => {
-
-        if (finished)
-            return;
-
-        el.style.transition =
-            `${property} ${duration}ms ${EASING}`;
-
-        /*
-            Second frame guarantees that the transition
-            starts from the already-established layout.
-        */
-
-        requestAnimationFrame(() => {
-
-            if (finished)
-                return;
-
-            el.style[property] = `${to}px`;
-        });
-    });
-
-    const timer = setTimeout(
-        finish,
-        duration + 80
-    );
-
-    el._layoutAnimation = {
-        timer,
-
-        cancel() {
-
-            if (finished)
-                return;
-
-            finished = true;
-
-            clearTimeout(timer);
-
-            el.style.transition = "";
-            el.style[property] = "";
-
-            el._layoutAnimation = null;
+    console.log(
+        "[animations] START",
+        getName(el),
+        {
+            property,
+            from,
+            to,
+            duration
         }
-    };
-}
-
-// ======================================
-// Calculate collapsed margin
-// ======================================
-
-function getCollapsedMargin(el, axis) {
-
-    const rect = getRect(el);
-    const margins = getMargins(el);
-    const gap = getGap(el, axis);
-
-    /*
-        Current margin is part of the layout.
-
-        We only add the amount necessary to remove
-        the element's occupied contribution.
-
-        Existing margin is preserved.
-    */
-
-    const currentMargin =
-        axis === "height"
-            ? margins.bottom
-            : margins.right;
-
-    const size =
-        axis === "height"
-            ? rect.height
-            : rect.width;
-
-    /*
-        gap is included because flex/grid gap
-        is independent of margin.
-
-        Without this correction a visible "empty slot"
-        can remain after the element visually reaches
-        zero contribution.
-    */
-
-    return -(
-        size +
-        gap
     );
+
+    // Start value
+    el.style.setProperty(
+        property,
+        `${from}px`,
+        "important"
+    );
+
+    // Force browser to commit start state
+    forceLayout(el);
+
+    return new Promise(resolve => {
+
+        // Start transition on next frame
+        el._marginAnimationFrame =
+            requestAnimationFrame(() => {
+
+                el._marginAnimationFrame = null;
+
+                el.style.setProperty(
+                    "transition",
+                    `${property} ${duration}ms cubic-bezier(.25,.8,.25,1)`,
+                    "important"
+                );
+
+                // Target value
+                el.style.setProperty(
+                    property,
+                    `${to}px`,
+                    "important"
+                );
+            });
+
+        // Finish after transition
+        el._marginAnimationTimer =
+            setTimeout(() => {
+
+                el._marginAnimationTimer = null;
+
+                el.style.setProperty(
+                    "transition",
+                    "",
+                    "important"
+                );
+
+                if (typeof complete === "function")
+                    complete();
+
+                console.log(
+                    "[animations] END",
+                    getName(el),
+                    {
+                        property,
+                        value: to
+                    }
+                );
+
+                resolve();
+
+            }, duration + 50);
+    });
 }
 
 // ======================================
@@ -349,52 +174,58 @@ function getCollapsedMargin(el, axis) {
 // ======================================
 
 export function animateExpand(el) {
-
     if (!el)
         return Promise.resolve();
 
     cancelSizeAnimation(el);
 
     const axis = getAxis(el);
-    const property = getMarginProperty(
-        el,
-        axis
+    const property = getMarginProperty(axis);
+
+    const current =
+        getCurrentMargin(el, property);
+
+    console.log(
+        "[animations] EXPAND",
+        getName(el),
+        {
+            axis,
+            property,
+            current
+        }
     );
 
     /*
-        Measure the real element while it is fully visible.
+        Expand = restore normal margin.
+
+        We do NOT touch:
+        - hidden
+        - width
+        - height
+        - display
+        - overflow
+
+        The element remains fully present.
     */
 
-    forceLayout();
-
-    const collapsedMargin =
-        getCollapsedMargin(
-            el,
-            axis
-        );
-
-    log("EXPAND", getName(el), {
-        axis,
+    return animateMargin(
+        el,
         property,
-        from: collapsedMargin,
-        to: 0,
-        element: getRect(el),
-        parent: getRect(el.parentElement),
-        gap: getGap(el, axis)
-    });
+        current,
+        0,
+        EXPAND_DURATION,
+        () => {
 
-    return new Promise(resolve => {
+            // Return control to CSS
+            el.style.removeProperty(
+                property
+            );
 
-        animateMargin(
-            el,
-            property,
-            collapsedMargin,
-            0,
-            EXPAND_DURATION,
-            resolve
-        );
-
-    });
+            el.style.removeProperty(
+                "transition"
+            );
+        }
+    );
 }
 
 // ======================================
@@ -402,204 +233,124 @@ export function animateExpand(el) {
 // ======================================
 
 export function animateCollapse(el) {
-
     if (!el)
         return Promise.resolve();
 
     cancelSizeAnimation(el);
 
     const axis = getAxis(el);
-    const property = getMarginProperty(
-        el,
-        axis
-    );
+    const property = getMarginProperty(axis);
+
+    const current =
+        getCurrentMargin(el, property);
 
     /*
-        Important:
+        IMPORTANT:
 
-        We DO NOT set hidden.
-        We DO NOT set display:none.
-        We DO NOT set width:0.
-        We DO NOT set height:0.
+        We don't calculate height.
+        We don't set height: 0.
+        We don't set hidden.
+        We don't remove the element.
 
-        The element remains completely rendered.
+        We simply move its layout contribution
+        in the negative direction.
 
-        Only its contribution to the parent layout
-        is gradually removed through negative margin.
+        The actual target is based on the
+        element's current rendered size.
     */
 
-    forceLayout();
+    const rect =
+        el.getBoundingClientRect();
 
-    const margins = getMargins(el);
+    const amount =
+        axis === "width"
+            ? rect.width
+            : rect.height;
 
-    const currentMargin =
-        axis === "height"
-            ? margins.bottom
-            : margins.right;
+    const target =
+        current - amount;
 
-    const collapsedMargin =
-        getCollapsedMargin(
-            el,
-            axis
-        );
-
-    log("COLLAPSE", getName(el), {
-        axis,
-        property,
-        from: currentMargin,
-        to: collapsedMargin,
-        element: getRect(el),
-        parent: getRect(el.parentElement),
-        gap: getGap(el, axis)
-    });
-
-    return new Promise(resolve => {
-
-        animateMargin(
-            el,
+    console.log(
+        "[animations] COLLAPSE",
+        getName(el),
+        {
+            axis,
             property,
-            currentMargin,
-            collapsedMargin,
-            COLLAPSE_DURATION,
-            resolve
-        );
+            current,
+            amount,
+            target
+        }
+    );
 
-    });
+    return animateMargin(
+        el,
+        property,
+        current,
+        target,
+        COLLAPSE_DURATION,
+        () => {
+
+            /*
+                Leave the final margin in place.
+
+                We intentionally do NOT:
+                - hidden = true
+                - width = 0
+                - height = 0
+
+                The caller/admin-buttons can decide
+                when the element should actually disappear.
+            */
+
+            el.style.removeProperty(
+                "transition"
+            );
+        }
+    );
 }
 
 // ======================================
 // Resize
 // ======================================
-//
-// Resize теперь тоже работает через margin.
-//
-// Это особенно полезно, если изменение размера
-// одного блока заставляет перестраиваться flex/grid.
-// ======================================
 
 export function animateResize(el) {
-
     if (!el)
         return Promise.resolve();
 
     cancelSizeAnimation(el);
 
+    /*
+        Margin animation is not a true resize
+        animation.
+
+        Therefore Resize simply restores
+        normal layout contribution.
+
+        The actual content dimensions remain
+        untouched.
+    */
+
     const axis = getAxis(el);
-    const property = getMarginProperty(
+    const property = getMarginProperty(axis);
+
+    const current =
+        getCurrentMargin(el, property);
+
+    return animateMargin(
         el,
-        axis
-    );
-
-    /*
-        Для resize сначала фиксируем текущий
-        contribution через отрицательный margin,
-        затем возвращаем его к нормальному значению.
-
-        Это позволяет родителю плавно перестроиться.
-    */
-
-    forceLayout();
-
-    const rect = getRect(el);
-    const margins = getMargins(el);
-
-    const currentMargin =
-        axis === "height"
-            ? margins.bottom
-            : margins.right;
-
-    const size =
-        axis === "height"
-            ? rect.height
-            : rect.width;
-
-    /*
-        Величина текущего layout contribution.
-    */
-
-    const currentContribution =
-        size +
-        currentMargin;
-
-    /*
-        После изменения содержимого браузер уже
-        должен был получить новый natural size.
-    */
-
-    el.style[property] = "0px";
-
-    forceLayout();
-
-    const newRect = getRect(el);
-
-    const newSize =
-        axis === "height"
-            ? newRect.height
-            : newRect.width;
-
-    /*
-        Возвращаем начальное состояние.
-    */
-
-    const newContribution =
-        newSize +
-        currentMargin;
-
-    el.style[property] =
-        `${currentMargin}px`;
-
-    forceLayout();
-
-    /*
-        Если реального изменения нет —
-        ничего не анимируем.
-    */
-
-    if (
-        Math.abs(
-            currentContribution -
-            newContribution
-        ) < 1
-    ) {
-
-        el.style[property] = "";
-
-        return Promise.resolve();
-    }
-
-    /*
-        Анимируем изменение layout contribution
-        через margin.
-
-        Это намеренно очень простой механизм:
-        браузер сам занимается flex/grid layout.
-    */
-
-    const delta =
-        newSize - size;
-
-    const targetMargin =
-        currentMargin - delta;
-
-    log("RESIZE", getName(el), {
-        axis,
         property,
-        currentContribution,
-        newContribution,
-        from: currentMargin,
-        to: targetMargin
-    });
+        current,
+        0,
+        EXPAND_DURATION,
+        () => {
 
-    return new Promise(resolve => {
+            el.style.removeProperty(
+                property
+            );
 
-        animateMargin(
-            el,
-            property,
-            currentMargin,
-            targetMargin,
-            EXPAND_DURATION,
-            resolve
-        );
-
-    });
+            el.style.removeProperty(
+                "transition"
+            );
+        }
+    );
 }
