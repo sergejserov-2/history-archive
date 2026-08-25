@@ -2,22 +2,371 @@
 // Universal block animations
 // ======================================
 //
-// Универсальная визуальная анимация.
+// Только геометрия.
 //
-// Не изменяет:
-// height
-// width
-// padding
-// margin
+// Анимируем:
+//   width
+//   height
 //
-// Геометрия блока не пересчитывается
-// во время анимации.
+// Не анимируем:
+//   opacity
+//   transform
+//   margin
+//   padding
 //
-// Используется clip-path.
+// Геометрия меняется покадрово через
+// requestAnimationFrame.
+//
+// Временно включено логирование.
+// ======================================
+
+// ======================================
+// Durations
 // ======================================
 
 const EXPAND_DURATION = 320;
 const COLLAPSE_DURATION = 300;
+
+// ======================================
+// Debug
+// ======================================
+
+const DEBUG_ANIMATIONS = true;
+
+function animationLog(
+    ...args
+){
+
+    if(!DEBUG_ANIMATIONS)
+        return;
+
+    console.log(
+        "[animations]",
+        ...args
+    );
+
+}
+
+// ======================================
+// Get element name
+// ======================================
+
+function getElementName(
+    element
+){
+
+    if(!element)
+        return "null";
+
+    return (
+        element.id
+        ||
+        element.className
+        ||
+        element.tagName
+        ||
+        "element"
+    );
+
+}
+
+// ======================================
+// Easing
+// ======================================
+//
+// Сейчас deliberately linear.
+//
+// Это важно для диагностики:
+// каждая геометрическая единица проходит
+// одинаковое расстояние за одинаковое время.
+//
+// Позже можем вернуть нужную кривую,
+// когда найдём источник рывка.
+// ======================================
+
+function linear(
+    progress
+){
+
+    return progress;
+
+}
+
+// ======================================
+// Cancel
+// ======================================
+
+export function cancelSizeAnimation(
+    element
+){
+
+    if(!element)
+        return;
+
+    if(
+        element._sizeAnimationFrame
+    ){
+
+        cancelAnimationFrame(
+            element._sizeAnimationFrame
+        );
+
+        element._sizeAnimationFrame =
+            null;
+
+    }
+
+    if(
+        element._sizeAnimationTimer
+    ){
+
+        clearTimeout(
+            element._sizeAnimationTimer
+        );
+
+        element._sizeAnimationTimer =
+            null;
+
+    }
+
+    element.style.transition =
+        "";
+
+    animationLog(
+        "cancel",
+        getElementName(element)
+    );
+
+}
+
+// ======================================
+// Read geometry
+// ======================================
+
+function readGeometry(
+    element
+){
+
+    const rect =
+        element.getBoundingClientRect();
+
+    return {
+
+        width:
+            rect.width,
+
+        height:
+            rect.height
+
+    };
+
+}
+
+// ======================================
+// Animate geometry
+// ======================================
+
+function animateGeometry(
+    element,
+    start,
+    target,
+    duration,
+    onComplete
+){
+
+    if(!element)
+        return Promise.resolve();
+
+    cancelSizeAnimation(
+        element
+    );
+
+    animationLog(
+        "START",
+        getElementName(element),
+        {
+            start,
+            target,
+            duration
+        }
+    );
+
+    element.style.overflow =
+        "hidden";
+
+    element.style.width =
+        `${start.width}px`;
+
+    element.style.height =
+        `${start.height}px`;
+
+    // ==================================
+    // Force initial layout
+    // ==================================
+
+    element.offsetWidth;
+
+    const startTime =
+        performance.now();
+
+    let lastProgress =
+        0;
+
+    return new Promise(resolve=>{
+
+        function frame(
+            now
+        ){
+
+            const elapsed =
+                now -
+                startTime;
+
+            let progress =
+                elapsed /
+                duration;
+
+            if(progress > 1)
+                progress = 1;
+
+            if(progress < 0)
+                progress = 0;
+
+            const eased =
+                linear(progress);
+
+            const width =
+                start.width +
+                (
+                    target.width -
+                    start.width
+                ) *
+                eased;
+
+            const height =
+                start.height +
+                (
+                    target.height -
+                    start.height
+                ) *
+                eased;
+
+            element.style.width =
+                `${width}px`;
+
+            element.style.height =
+                `${height}px`;
+
+            // ==================================
+            // Debug
+            // ==================================
+
+            if(DEBUG_ANIMATIONS){
+
+                const progressDelta =
+                    progress -
+                    lastProgress;
+
+                // Логируем не каждый кадр,
+                // а примерно каждые 50ms.
+                if(
+                    progress === 1
+                    ||
+                    Math.floor(
+                        elapsed / 50
+                    )
+                    !==
+                    Math.floor(
+                        (
+                            elapsed -
+                            16
+                        ) / 50
+                    )
+                ){
+
+                    animationLog(
+                        "FRAME",
+                        getElementName(element),
+                        {
+                            elapsed:
+                                Math.round(elapsed),
+
+                            progress:
+                                Number(
+                                    progress.toFixed(3)
+                                ),
+
+                            width:
+                                Number(
+                                    width.toFixed(2)
+                                ),
+
+                            height:
+                                Number(
+                                    height.toFixed(2)
+                                ),
+
+                            progressDelta:
+                                Number(
+                                    progressDelta.toFixed(4)
+                                )
+                        }
+                    );
+
+                }
+
+            }
+
+            lastProgress =
+                progress;
+
+            if(
+                progress <
+                1
+            ){
+
+                element._sizeAnimationFrame =
+                    requestAnimationFrame(
+                        frame
+                    );
+
+                return;
+
+            }
+
+            element._sizeAnimationFrame =
+                null;
+
+            // ==================================
+            // Complete
+            // ==================================
+
+            if(
+                typeof onComplete ===
+                "function"
+            ){
+
+                onComplete();
+
+            }
+
+            animationLog(
+                "END",
+                getElementName(element)
+            );
+
+            resolve();
+
+        }
+
+        element._sizeAnimationFrame =
+            requestAnimationFrame(
+                frame
+            );
+
+    });
+
+}
 
 // ======================================
 // Expand
@@ -34,59 +383,88 @@ export function animateExpand(
         element
     );
 
-    element.hidden = false;
+    // ==================================
+    // Make visible for measurement
+    // ==================================
 
-    // Блок должен быть полностью
-    // отрисован перед началом анимации.
+    element.hidden =
+        false;
 
-    element.style.clipPath =
-        "inset(100% 0 0 0)";
+    // ==================================
+    // Read natural geometry
+    // ==================================
 
-    element.style.webkitClipPath =
-        "inset(100% 0 0 0)";
+    const natural =
+        readGeometry(
+            element
+        );
 
-    element.style.transition = `
-        clip-path ${EXPAND_DURATION}ms ease,
-        -webkit-clip-path ${EXPAND_DURATION}ms ease
-    `;
+    const target = {
 
-    // Принудительно фиксируем
-    // начальное состояние.
+        width:
+            natural.width,
 
-    element.offsetHeight;
+        height:
+            element.scrollHeight
 
-    requestAnimationFrame(()=>{
+    };
 
-        element.style.clipPath =
-            "inset(0 0 0 0)";
+    const start = {
 
-        element.style.webkitClipPath =
-            "inset(0 0 0 0)";
+        width:
+            natural.width,
 
-    });
+        height:
+            0
 
-    return new Promise(resolve=>{
+    };
 
-        element._sizeAnimationTimer =
-            setTimeout(()=>{
+    animationLog(
+        "EXPAND",
+        getElementName(element),
+        {
+            start,
+            target
+        }
+    );
 
-                element.style.clipPath =
-                    "";
+    // ==================================
+    // Prepare
+    // ==================================
 
-                element.style.webkitClipPath =
-                    "";
+    element.style.width =
+        `${start.width}px`;
 
-                element.style.transition =
-                    "";
+    element.style.height =
+        "0px";
 
-                element._sizeAnimationTimer =
-                    null;
+    element.style.overflow =
+        "hidden";
 
-                resolve();
+    element.offsetWidth;
 
-            }, EXPAND_DURATION + 20);
+    // ==================================
+    // Animate
+    // ==================================
 
-    });
+    return animateGeometry(
+        element,
+        start,
+        target,
+        EXPAND_DURATION,
+        ()=>{
+
+            element.style.width =
+                "";
+
+            element.style.height =
+                "";
+
+            element.style.overflow =
+                "";
+
+        }
+    );
 
 }
 
@@ -105,74 +483,77 @@ export function animateCollapse(
         element
     );
 
-    element.hidden = false;
+    element.hidden =
+        false;
 
-    // Начальное состояние — полностью видимое.
+    // ==================================
+    // Read current geometry
+    // ==================================
 
-    element.style.clipPath =
-        "inset(0 0 0 0)";
+    const current =
+        readGeometry(
+            element
+        );
 
-    element.style.webkitClipPath =
-        "inset(0 0 0 0)";
+    const start = {
 
-    element.style.transition = `
-        clip-path ${COLLAPSE_DURATION}ms ease,
-        -webkit-clip-path ${COLLAPSE_DURATION}ms ease
-    `;
+        width:
+            current.width,
 
-    // Фиксируем начальное состояние.
+        height:
+            current.height
 
-    element.offsetHeight;
+    };
 
-    requestAnimationFrame(()=>{
+    const target = {
 
-        element.style.clipPath =
-            "inset(100% 0 0 0)";
+        width:
+            0,
 
-        element.style.webkitClipPath =
-            "inset(100% 0 0 0)";
+        height:
+            0
 
-    });
+    };
 
-    return new Promise(resolve=>{
+    animationLog(
+        "COLLAPSE",
+        getElementName(element),
+        {
+            start,
+            target
+        }
+    );
 
-        element._sizeAnimationTimer =
-            setTimeout(()=>{
+    // ==================================
+    // Animate
+    // ==================================
 
-                element.style.clipPath =
-                    "";
+    return animateGeometry(
+        element,
+        start,
+        target,
+        COLLAPSE_DURATION,
+        ()=>{
 
-                element.style.webkitClipPath =
-                    "";
+            element.style.width =
+                "";
 
-                element.style.transition =
-                    "";
+            element.style.height =
+                "";
 
-                element.hidden =
-                    true;
+            element.style.overflow =
+                "";
 
-                element._sizeAnimationTimer =
-                    null;
+            element.hidden =
+                true;
 
-                resolve();
-
-            }, COLLAPSE_DURATION + 20);
-
-    });
+        }
+    );
 
 }
 
 // ======================================
 // Resize
-// ======================================
-//
-// Пока оставляем простой вариант.
-//
-// Он нужен, если существующий код проекта
-// вызывает animateResize().
-//
-// Но сам по себе clip-path не требует
-// resize-анимации.
 // ======================================
 
 export function animateResize(
@@ -186,33 +567,111 @@ export function animateResize(
         element
     );
 
-}
+    // ==================================
+    // Read current geometry
+    // ==================================
 
-// ======================================
-// Cancel
-// ======================================
-
-export function cancelSizeAnimation(
-    element
-){
-
-    if(!element)
-        return;
-
-    if(
-        element._sizeAnimationTimer
-    ){
-
-        clearTimeout(
-            element._sizeAnimationTimer
+    const current =
+        readGeometry(
+            element
         );
 
-        element._sizeAnimationTimer =
-            null;
+    // ==================================
+    // Freeze current geometry
+    // ==================================
+
+    element.style.width =
+        `${current.width}px`;
+
+    element.style.height =
+        `${current.height}px`;
+
+    element.style.overflow =
+        "hidden";
+
+    element.offsetWidth;
+
+    // ==================================
+    // Read target geometry
+    // ==================================
+
+    const target = {
+
+        width:
+            element.scrollWidth,
+
+        height:
+            element.scrollHeight
+
+    };
+
+    // ==================================
+    // Nothing changed
+    // ==================================
+
+    if(
+        Math.abs(
+            current.width -
+            target.width
+        ) < 1
+        &&
+        Math.abs(
+            current.height -
+            target.height
+        ) < 1
+    ){
+
+        animationLog(
+            "RESIZE SKIPPED",
+            getElementName(element),
+            {
+                current,
+                target
+            }
+        );
+
+        element.style.width =
+            "";
+
+        element.style.height =
+            "";
+
+        element.style.overflow =
+            "";
+
+        return;
 
     }
 
-    element.style.transition =
-        "";
+    // ==================================
+    // Animate
+    // ==================================
+
+    animationLog(
+        "RESIZE",
+        getElementName(element),
+        {
+            start: current,
+            target
+        }
+    );
+
+    animateGeometry(
+        element,
+        current,
+        target,
+        EXPAND_DURATION,
+        ()=>{
+
+            element.style.width ="";
+
+            element.style.height =
+                "";
+
+            element.style.overflow =
+                "";
+
+        }
+    );
 
 }
