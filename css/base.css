@@ -866,6 +866,21 @@ section h2 {
    SMALL ADMIN BUTTONS
 ========================================== */
 
+div.admin-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    margin-bottom: var(--space-8);
+    padding: 0 var(--space-8);
+    background: rgba(220, 170, 40, .18);
+    border: 1px dashed var(--color-admin) !important;
+    border-radius: var(--radius-2xl);
+    color: var(--color-admin);
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+}
+
 button.admin-button {
     width: 22px;
     height: 22px;
