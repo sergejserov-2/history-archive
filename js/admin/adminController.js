@@ -53,6 +53,9 @@ function getAdminButtons(){
 // ======================================
 
 export function syncAdminButtons(){
+    console.log(
+    "[ADMIN SYNC]"
+);
 
     getAdminButtons().forEach(
         button => {
@@ -61,7 +64,12 @@ export function syncAdminButtons(){
                 button,
                 currentAdminState
             );
-
+console.log(
+    "[ADMIN UPDATE]",
+    button,
+    admin,
+    button._adminAnimationState
+);
         }
     );
 
