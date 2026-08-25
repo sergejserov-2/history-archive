@@ -6,6 +6,8 @@
 const EXPAND_DURATION = 420;
 const COLLAPSE_DURATION = 420;
 
+const VERTICAL_OVERSHOOT = 3;
+
 const DEBUG_ANIMATIONS = false;
 
 
@@ -141,16 +143,18 @@ function getHiddenOffset(el) {
     // ----------------------------------
 
     /*
-     * Уводим элемент вверх ровно до той
-     * точки, где его нижняя граница
-     * совпадает с верхней границей родителя.
+     * Уводим элемент чуть дальше верхней
+     * границы родителя.
      *
-     * Без дополнительного вылета.
+     * Небольшой запас убирает финальный
+     * визуальный рывок из-за субпиксельного
+     * позиционирования и пересчёта layout.
      */
 
     const top =
         parentRect.top -
-        elementRect.bottom;
+        elementRect.bottom -
+        VERTICAL_OVERSHOOT;
 
 
     // ----------------------------------
@@ -158,11 +162,9 @@ function getHiddenOffset(el) {
     // ----------------------------------
 
     /*
-     * Пока оставляем существующую
-     * экспериментальную логику.
-     *
-     * Горизонталь будем допиливать
-     * отдельно после фикса вертикали.
+     * Горизонтальная логика пока остаётся
+     * прежней. Позже будем отдельно
+     * подбирать направление и расстояние.
      */
 
     const distanceLeft =
@@ -209,14 +211,26 @@ function getHiddenOffset(el) {
 // Easing
 // ======================================
 
-function easeInOut(progress) {
+function easeInOutCubic(progress) {
+
+    if (progress < 0.5) {
+
+        return (
+            4 *
+            progress *
+            progress *
+            progress
+        );
+
+    }
 
     return (
         1 -
-        Math.cos(
-            progress * Math.PI
-        )
-    ) / 2;
+        Math.pow(
+            -2 * progress + 2,
+            3
+        ) / 2
+    );
 }
 
 
@@ -286,12 +300,14 @@ function animateMargins(
 
 
             /*
-             * Одна общая прогрессия
+             * Одна общая easing-кривая
              * для обеих осей.
              */
 
             const eased =
-                easeInOut(progress);
+                easeInOutCubic(
+                    progress
+                );
 
 
             const top =
@@ -331,7 +347,7 @@ function animateMargins(
             el._animationFrame = null;
 
 
-            // Final exact position
+            // Финальная точная позиция
             setMargin(
                 el,
                 to.top,
@@ -516,8 +532,6 @@ export function animateResize(el) {
      *
      * Layout самостоятельно пересчитывает
      * flex/grid после изменения контента.
-     *
-     * Функция оставлена для совместимости.
      */
 
     log(
