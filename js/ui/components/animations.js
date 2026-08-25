@@ -2,7 +2,7 @@
 // Universal geometry animations
 // ======================================
 
-const ANIMATION_DURATION = 1500;
+const ANIMATION_DURATION = 350;
 const EASING = "cubic-bezier(.25,.8,.25,1)";
 
 // ======================================
