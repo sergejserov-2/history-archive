@@ -1,28 +1,41 @@
 // ======================================
 // Universal geometry animations
-// Margin-based test version
+// Margin based
 // ======================================
 
-const ANIMATION_DURATION = 900;
+const EXPAND_DURATION = 420;
+const COLLAPSE_DURATION = 420;
 
-const EASING =
-    "cubic-bezier(.42, 0, .58, 1)";
+const DEBUG_ANIMATIONS = false;
 
 
 // ======================================
-// Helpers
+// Debug
 // ======================================
 
-function getName(el) {
-    return el?.id ||
-        el?.className ||
-        el?.tagName ||
-        "element";
+function log(...args) {
+    if (DEBUG_ANIMATIONS) {
+        console.log("[animations]", ...args);
+    }
 }
 
 
+function getName(el) {
+    return (
+        el?.id ||
+        el?.className ||
+        el?.tagName ||
+        "element"
+    );
+}
+
+
+// ======================================
+// Geometry
+// ======================================
+
 function getRect(el) {
-    return el.getBoundingClientRect();
+    return el?.getBoundingClientRect() || null;
 }
 
 
@@ -39,28 +52,39 @@ export function cancelSizeAnimation(el) {
     if (!el) return;
 
     if (el._animationFrame) {
-        cancelAnimationFrame(el._animationFrame);
+        cancelAnimationFrame(
+            el._animationFrame
+        );
+
         el._animationFrame = null;
     }
 
     if (el._animationTimer) {
-        clearTimeout(el._animationTimer);
+        clearTimeout(
+            el._animationTimer
+        );
+
         el._animationTimer = null;
     }
 
-    el.style.removeProperty("margin-top");
-    el.style.removeProperty("margin-left");
-    el.style.removeProperty("transition");
-
-    console.log(
-        "[animations] CANCEL",
-        getName(el)
+    el.style.removeProperty(
+        "margin-top"
     );
+
+    el.style.removeProperty(
+        "margin-left"
+    );
+
+    el.style.removeProperty(
+        "transition"
+    );
+
+    log("CANCEL", getName(el));
 }
 
 
 // ======================================
-// Margin setter
+// Margin
 // ======================================
 
 function setMargin(
@@ -83,28 +107,43 @@ function setMargin(
 
 
 // ======================================
-// Calculate hidden offset
+// Hidden position
 // ======================================
 
 function getHiddenOffset(el) {
-    const parent = el.parentElement;
+
+    const parent =
+        el?.parentElement;
 
     if (!parent) {
         return {
             top: -300,
-            left: -300
+            left: -100
         };
     }
 
-    const elementRect = getRect(el);
-    const parentRect = getRect(parent);
+    const elementRect =
+        getRect(el);
+
+    const parentRect =
+        getRect(parent);
+
+    if (!elementRect || !parentRect) {
+        return {
+            top: -300,
+            left: -100
+        };
+    }
+
 
     /*
-     * Уводим элемент полностью
-     * за верхнюю границу родителя.
+     * Уводим элемент вверх до тех пор,
+     * пока его нижняя граница не окажется
+     * выше верхней границы родителя.
      *
-     * + небольшой запас, чтобы
-     * граница гарантированно исчезла.
+     * Дополнительные 20px дают небольшой
+     * запас, чтобы край элемента гарантированно
+     * не оставался видимым.
      */
 
     const top =
@@ -112,16 +151,21 @@ function getHiddenOffset(el) {
         elementRect.bottom -
         20;
 
+
     /*
-     * Одновременно немного
-     * уводим его влево.
+     * Второе направление рассчитываем
+     * независимо.
      *
-     * Пока это фиксированная доля
-     * от высоты сдвига.
+     * Пока направление фиксировано:
+     * вверх + немного влево.
+     *
+     * Позже это можно заменить
+     * на direction.
      */
 
     const left =
-        top * 0.35;
+        -Math.abs(top) * 0.35;
+
 
     return {
         top,
@@ -131,87 +175,131 @@ function getHiddenOffset(el) {
 
 
 // ======================================
-// Animate margins
+// Easing
+// ======================================
+
+function easeInOut(progress) {
+
+    /*
+     * Симметричный плавный
+     * ease-in / ease-out.
+     */
+
+    return (
+        1 -
+        Math.cos(
+            progress * Math.PI
+        )
+    ) / 2;
+}
+
+
+// ======================================
+// Margin animation
 // ======================================
 
 function animateMargins(
     el,
     start,
-    target
+    target,
+    duration,
+    complete
 ) {
+    if (!el) {
+        return Promise.resolve();
+    }
+
     cancelSizeAnimation(el);
 
-    console.log(
-        "[animations] START",
-        getName(el),
-        {
-            start,
-            target
-        }
-    );
+
+    /*
+     * Фиксируем ВСЕ значения ДО начала.
+     *
+     * После этого геометрию больше
+     * вообще не измеряем.
+     */
+
+    const from = {
+        top: Number(start.top) || 0,
+        left: Number(start.left) || 0
+    };
+
+    const to = {
+        top: Number(target.top) || 0,
+        left: Number(target.left) || 0
+    };
+
+
+    log("START", getName(el), {
+        from,
+        to,
+        duration
+    });
+
+
+    /*
+     * Начальная позиция.
+     */
 
     setMargin(
         el,
-        start.top,
-        start.left
+        from.top,
+        from.left
     );
 
     forceLayout();
+
 
     return new Promise(resolve => {
 
         const startTime =
             performance.now();
 
+
         function frame(now) {
+
+            const elapsed =
+                now - startTime;
+
 
             const progress =
                 Math.min(
                     1,
-                    (now - startTime) /
-                    ANIMATION_DURATION
+                    elapsed / duration
                 );
 
+
             /*
-             * cubic ease-in-out
-             *
-             * 0 → 1:
-             * медленно стартуем,
-             * быстро двигаемся,
-             * медленно останавливаемся.
+             * ОДНА и та же прогрессия
+             * используется для обеих осей.
              */
 
             const eased =
-                progress < 0.5
-                    ? 4 *
-                      progress *
-                      progress *
-                      progress
-                    : 1 -
-                      Math.pow(
-                          -2 * progress + 2,
-                          3
-                      ) / 2;
+                easeInOut(progress);
+
 
             const top =
-                start.top +
+                from.top +
                 (
-                    target.top -
-                    start.top
+                    to.top -
+                    from.top
                 ) * eased;
 
+
             const left =
-                start.left +
+                from.left +
                 (
-                    target.left -
-                    start.left
+                    to.left -
+                    from.left
                 ) * eased;
+
 
             setMargin(
                 el,
                 top,
                 left
             );
+
 
             if (progress < 1) {
 
@@ -223,18 +311,37 @@ function animateMargins(
                 return;
             }
 
+
             el._animationFrame = null;
+
+
+            /*
+             * Гарантированно выставляем
+             * финальное значение.
+             */
 
             setMargin(
                 el,
-                target.top,
-                target.left
+                to.top,
+                to.left
             );
+
+
+            /*
+             * Даём браузеру применить
+             * последнее положение.
+             */
 
             el._animationTimer =
                 setTimeout(() => {
 
                     el._animationTimer = null;
+
+
+                    /*
+                     * Возвращаем CSS
+                     * в исходное состояние.
+                     */
 
                     el.style.removeProperty(
                         "margin-top"
@@ -244,18 +351,35 @@ function animateMargins(
                         "margin-left"
                     );
 
-                    console.log(
-                        "[animations] END",
+                    el.style.removeProperty(
+                        "transition"
+                    );
+
+
+                    if (
+                        typeof complete ===
+                        "function"
+                    ) {
+                        complete();
+                    }
+
+
+                    log(
+                        "END",
                         getName(el)
                     );
+
 
                     resolve();
 
                 }, 20);
         }
 
+
         el._animationFrame =
-            requestAnimationFrame(frame);
+            requestAnimationFrame(
+                frame
+            );
     });
 }
 
@@ -265,26 +389,31 @@ function animateMargins(
 // ======================================
 
 export function animateExpand(el) {
-    if (!el)
+
+    if (!el) {
         return Promise.resolve();
+    }
+
 
     cancelSizeAnimation(el);
 
+
     /*
-     * Показываем из текущей
-     * геометрической позиции.
+     * Для раскрытия рассчитываем,
+     * откуда элемент должен приехать.
      *
-     * Никакого hidden.
+     * hidden НЕ трогаем.
      */
 
-    const hiddenOffset =
+    const hidden =
         getHiddenOffset(el);
 
-    console.log(
-        "[animations] EXPAND",
+
+    log(
+        "EXPAND",
         getName(el),
         {
-            from: hiddenOffset,
+            from: hidden,
             to: {
                 top: 0,
                 left: 0
@@ -292,15 +421,20 @@ export function animateExpand(el) {
         }
     );
 
+
     return animateMargins(
+
         el,
 
-        hiddenOffset,
+        hidden,
 
         {
             top: 0,
             left: 0
-        }
+        },
+
+        EXPAND_DURATION
+
     );
 }
 
@@ -310,32 +444,39 @@ export function animateExpand(el) {
 // ======================================
 
 export function animateCollapse(el) {
-    if (!el)
+
+    if (!el) {
         return Promise.resolve();
+    }
+
 
     cancelSizeAnimation(el);
 
+
     /*
-     * Элемент сейчас находится
-     * в нормальном положении.
+     * Рассчитываем конечное положение
+     * только ОДИН раз перед стартом.
      */
 
-    const hiddenOffset =
+    const hidden =
         getHiddenOffset(el);
 
-    console.log(
-        "[animations] COLLAPSE",
+
+    log(
+        "COLLAPSE",
         getName(el),
         {
             from: {
                 top: 0,
                 left: 0
             },
-            to: hiddenOffset
+            to: hidden
         }
     );
 
+
     return animateMargins(
+
         el,
 
         {
@@ -343,7 +484,10 @@ export function animateCollapse(el) {
             left: 0
         },
 
-        hiddenOffset
+        hidden,
+
+        COLLAPSE_DURATION
+
     );
 }
 
@@ -353,16 +497,27 @@ export function animateCollapse(el) {
 // ======================================
 
 export function animateResize(el) {
-    if (!el)
+
+    if (!el) {
         return Promise.resolve();
+    }
+
 
     /*
-     * Пока ничего не меняем.
+     * Размеры больше не анимируем.
      *
-     * Наш эксперимент сейчас
-     * исключительно про движение
-     * через margin.
+     * Layout сам занимается своим
+     * изменением размера.
+     *
+     * Функция оставлена для совместимости
+     * с существующим кодом.
      */
+
+    log(
+        "RESIZE",
+        getName(el)
+    );
+
 
     return Promise.resolve();
 }
