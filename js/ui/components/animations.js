@@ -4,32 +4,52 @@
 
 const EXPAND_DURATION = 320;
 const COLLAPSE_DURATION = 300;
-const DEBUG_ANIMATIONS = true;
+
+const EASING = "cubic-bezier(.25,.8,.25,1)";
 
 // ======================================
-// Debug
+// Helpers
 // ======================================
 
-function log(...args) {
-    if (DEBUG_ANIMATIONS)
-        console.log("[animations]", ...args);
-}
-
-function name(el) {
+function getName(el) {
     return el?.id || el?.className || el?.tagName || "element";
 }
 
-function geometry(el) {
-    if (!el) return null;
+function getAxis(el) {
+    return (
+        el?.parentElement?.dataset?.animationAxis ||
+        (() => {
+            const r = el.getBoundingClientRect();
 
+            return r.width > r.height * 1.5
+                ? "width"
+                : "height";
+        })()
+    );
+}
+
+function getSize(el) {
     const r = el.getBoundingClientRect();
 
     return {
         width: r.width,
-        height: r.height,
-        x: r.x,
-        y: r.y
+        height: r.height
     };
+}
+
+function getPadding(el) {
+    const style = getComputedStyle(el);
+
+    return {
+        top: parseFloat(style.paddingTop) || 0,
+        right: parseFloat(style.paddingRight) || 0,
+        bottom: parseFloat(style.paddingBottom) || 0,
+        left: parseFloat(style.paddingLeft) || 0
+    };
+}
+
+function forceLayout(el) {
+    void el.offsetHeight;
 }
 
 // ======================================
@@ -39,247 +59,82 @@ function geometry(el) {
 export function cancelSizeAnimation(el) {
     if (!el) return;
 
-    if (el._sizeAnimationFrame) {
-        cancelAnimationFrame(el._sizeAnimationFrame);
-        el._sizeAnimationFrame = null;
+    if (el._animationFrame) {
+        cancelAnimationFrame(el._animationFrame);
+        el._animationFrame = null;
     }
 
-    if (el._sizeAnimationTimer) {
-        clearTimeout(el._sizeAnimationTimer);
-        el._sizeAnimationTimer = null;
+    if (el._animationTimer) {
+        clearTimeout(el._animationTimer);
+        el._animationTimer = null;
     }
 
     el.style.transition = "";
-
-    log("cancel", name(el));
 }
 
 // ======================================
-// Axis
+// Animate
 // ======================================
 
-function getAxis(el, start, target) {
-    return (
-        el.parentElement?.dataset?.animationAxis ||
-        (
-            Math.abs(target.width - start.width) >
-            Math.abs(target.height - start.height)
-                ? "width"
-                : "height"
-        )
-    );
-}
-
-// ======================================
-// Box model
-// ======================================
-
-function boxModel(el, axis) {
-    const s = getComputedStyle(el);
-
-    const paddingStart =
-        axis === "width"
-            ? parseFloat(s.paddingLeft) || 0
-            : parseFloat(s.paddingTop) || 0;
-
-    const paddingEnd =
-        axis === "width"
-            ? parseFloat(s.paddingRight) || 0
-            : parseFloat(s.paddingBottom) || 0;
-
-    const borderStart =
-        axis === "width"
-            ? parseFloat(s.borderLeftWidth) || 0
-            : parseFloat(s.borderTopWidth) || 0;
-
-    const borderEnd =
-        axis === "width"
-            ? parseFloat(s.borderRightWidth) || 0
-            : parseFloat(s.borderBottomWidth) || 0;
-
-    return {
-        paddingStart,
-        paddingEnd,
-        borderStart,
-        borderEnd,
-        extra:
-            paddingStart +
-            paddingEnd +
-            borderStart +
-            borderEnd,
-        boxSizing: s.boxSizing
-    };
-}
-
-// ======================================
-// Geometry animation
-// ======================================
-
-function animateGeometry(
+function animate(
     el,
     start,
     target,
     axis,
     duration,
-    complete
+    done
 ) {
-    if (!el) return Promise.resolve();
-
     cancelSizeAnimation(el);
-
-    const box = boxModel(el, axis);
-
-    /*
-     * В border-box width/height уже включают
-     * padding и border.
-     *
-     * В content-box они добавляются браузером.
-     */
-    const startContent =
-        box.boxSizing === "border-box"
-            ? start[axis]
-            : Math.max(0, start[axis] - box.extra);
-
-    const targetContent =
-        box.boxSizing === "border-box"
-            ? target[axis]
-            : Math.max(0, target[axis] - box.extra);
 
     el.style.overflow = "hidden";
 
-    const startTime = performance.now();
+    el.style.width = `${start.width}px`;
+    el.style.height = `${start.height}px`;
 
-    log("START", name(el), {
-        axis,
-        start,
-        target,
-        duration
+    el.style.paddingTop = `${start.paddingTop}px`;
+    el.style.paddingRight = `${start.paddingRight}px`;
+    el.style.paddingBottom = `${start.paddingBottom}px`;
+    el.style.paddingLeft = `${start.paddingLeft}px`;
+
+    forceLayout(el);
+
+    el.style.transition =
+        `${axis} ${duration}ms ${EASING}, ` +
+        `padding-top ${duration}ms ${EASING}, ` +
+        `padding-right ${duration}ms ${EASING}, ` +
+        `padding-bottom ${duration}ms ${EASING}, ` +
+        `padding-left ${duration}ms ${EASING}`;
+
+    requestAnimationFrame(() => {
+
+        el.style.width = `${target.width}px`;
+        el.style.height = `${target.height}px`;
+
+        el.style.paddingTop = `${target.paddingTop}px`;
+        el.style.paddingRight = `${target.paddingRight}px`;
+        el.style.paddingBottom = `${target.paddingBottom}px`;
+        el.style.paddingLeft = `${target.paddingLeft}px`;
     });
 
-    return new Promise(resolve => {
+    el._animationTimer = setTimeout(() => {
 
-        function frame(now) {
+        el._animationTimer = null;
 
-            const progress = Math.min(
-                1,
-                Math.max(
-                    0,
-                    (now - startTime) / duration
-                )
-            );
+        el.style.width = "";
+        el.style.height = "";
 
-            // ease-out cubic
-            const eased =
-                1 - Math.pow(1 - progress, 3);
+        el.style.paddingTop = "";
+        el.style.paddingRight = "";
+        el.style.paddingBottom = "";
+        el.style.paddingLeft = "";
 
-            const contentSize =
-                startContent +
-                (targetContent - startContent) *
-                eased;
+        el.style.overflow = "";
+        el.style.transition = "";
 
-            const paddingStart =
-                box.paddingStart * eased;
+        if (typeof done === "function")
+            done();
 
-            const paddingEnd =
-                box.paddingEnd * eased;
-
-            const borderStart =
-                box.borderStart * eased;
-
-            const borderEnd =
-                box.borderEnd * eased;
-
-            if (axis === "width") {
-
-                el.style.width =
-                    `${contentSize}px`;
-
-                el.style.paddingLeft =
-                    `${paddingStart}px`;
-
-                el.style.paddingRight =
-                    `${paddingEnd}px`;
-
-                el.style.borderLeftWidth =
-                    `${borderStart}px`;
-
-                el.style.borderRightWidth =
-                    `${borderEnd}px`;
-
-            } else {
-
-                el.style.height =
-                    `${contentSize}px`;
-
-                el.style.paddingTop =
-                    `${paddingStart}px`;
-
-                el.style.paddingBottom =
-                    `${paddingEnd}px`;
-
-                el.style.borderTopWidth =
-                    `${borderStart}px`;
-
-                el.style.borderBottomWidth =
-                    `${borderEnd}px`;
-            }
-
-            if (
-                DEBUG_ANIMATIONS &&
-                (
-                    progress === 1 ||
-                    Math.floor(now / 50) !==
-                    Math.floor((now - 16) / 50)
-                )
-            ) {
-                const g = geometry(el);
-
-                log("FRAME", name(el), {
-                    axis,
-                    progress:
-                        Number(progress.toFixed(3)),
-                    width:
-                        Number(g.width.toFixed(2)),
-                    height:
-                        Number(g.height.toFixed(2))
-                });
-            }
-
-            if (progress < 1) {
-
-                el._sizeAnimationFrame =
-                    requestAnimationFrame(frame);
-
-                return;
-            }
-
-            el._sizeAnimationFrame = null;
-
-            if (typeof complete === "function")
-                complete();
-
-            log("END", name(el), { axis });
-
-            resolve();
-        }
-
-        el._sizeAnimationFrame =
-            requestAnimationFrame(frame);
-    });
-}
-
-// ======================================
-// Natural size
-// ======================================
-
-function naturalGeometry(el) {
-    const width = el.scrollWidth;
-    const height = el.scrollHeight;
-
-    return {
-        width,
-        height
-    };
+    }, duration + 40);
 }
 
 // ======================================
@@ -293,52 +148,58 @@ export function animateExpand(el) {
 
     el.hidden = false;
 
-    /*
-     * Сначала полностью раскрываем элемент,
-     * чтобы получить настоящий natural size.
-     */
-    el.style.width = "";
-    el.style.height = "";
-    el.style.overflow = "";
+    // ----------------------------------
+    // Natural geometry
+    // ----------------------------------
 
-    const target = naturalGeometry(el);
-    const current = geometry(el);
+    const size = getSize(el);
+    const padding = getPadding(el);
 
-    const axis = getAxis(el, current, target);
+    const axis = getAxis(el);
+
+    const target = {
+        width: size.width,
+        height: size.height,
+
+        paddingTop: padding.top,
+        paddingRight: padding.right,
+        paddingBottom: padding.bottom,
+        paddingLeft: padding.left
+    };
+
+    // ----------------------------------
+    // Start from zero CONTENT + padding
+    // ----------------------------------
 
     const start = {
-        width: current.width,
-        height: current.height
+        width: size.width,
+        height: size.height,
+
+        paddingTop: padding.top,
+        paddingRight: padding.right,
+        paddingBottom: padding.bottom,
+        paddingLeft: padding.left
     };
 
     start[axis] = 0;
 
-    log("EXPAND", name(el), {
-        axis,
-        start,
-        target
-    });
+    start.paddingTop = 0;
+    start.paddingRight = 0;
+    start.paddingBottom = 0;
+    start.paddingLeft = 0;
 
-    return animateGeometry(
-        el,
-        start,
-        target,
-        axis,
-        EXPAND_DURATION,
-        () => {
-            el.style.width = "";
-            el.style.height = "";
-            el.style.paddingLeft = "";
-            el.style.paddingRight = "";
-            el.style.paddingTop = "";
-            el.style.paddingBottom = "";
-            el.style.borderLeftWidth = "";
-            el.style.borderRightWidth = "";
-            el.style.borderTopWidth = "";
-            el.style.borderBottomWidth = "";
-            el.style.overflow = "";
-        }
-    );
+    return new Promise(resolve => {
+
+        animate(
+            el,
+            start,
+            target,
+            axis,
+            EXPAND_DURATION,
+            resolve
+        );
+
+    });
 }
 
 // ======================================
@@ -352,47 +213,59 @@ export function animateCollapse(el) {
 
     el.hidden = false;
 
-    const current = geometry(el);
+    // ----------------------------------
+    // Current geometry
+    // ----------------------------------
 
-    const target = {
-        width: current.width,
-        height: current.height
+    const size = getSize(el);
+    const padding = getPadding(el);
+
+    const axis = getAxis(el);
+
+    const start = {
+        width: size.width,
+        height: size.height,
+
+        paddingTop: padding.top,
+        paddingRight: padding.right,
+        paddingBottom: padding.bottom,
+        paddingLeft: padding.left
     };
 
-    const axis = getAxis(el, current, {
-        width: 0,
-        height: 0
-    });
+    // ----------------------------------
+    // End
+    // ----------------------------------
+
+    const target = {
+        width: size.width,
+        height: size.height,
+
+        paddingTop: 0,
+        paddingRight: 0,
+        paddingBottom: 0,
+        paddingLeft: 0
+    };
 
     target[axis] = 0;
 
-    log("COLLAPSE", name(el), {
-        axis,
-        start: current,
-        target
-    });
+    return new Promise(resolve => {
 
-    return animateGeometry(
-        el,
-        current,
-        target,
-        axis,
-        COLLAPSE_DURATION,
-        () => {
-            el.style.width = "";
-            el.style.height = "";
-            el.style.paddingLeft = "";
-            el.style.paddingRight = "";
-            el.style.paddingTop = "";
-            el.style.paddingBottom = "";
-            el.style.borderLeftWidth = "";
-            el.style.borderRightWidth = "";
-            el.style.borderTopWidth = "";
-            el.style.borderBottomWidth = "";
-            el.style.overflow = "";
-            el.hidden = true;
-        }
-    );
+        animate(
+            el,
+            start,
+            target,
+            axis,
+            COLLAPSE_DURATION,
+            () => {
+
+                el.hidden = true;
+
+                resolve();
+
+            }
+        );
+
+    });
 }
 
 // ======================================
@@ -400,69 +273,102 @@ export function animateCollapse(el) {
 // ======================================
 
 export function animateResize(el) {
-    if (!el) return;
+    if (!el) return Promise.resolve();
 
     cancelSizeAnimation(el);
 
-    const current = geometry(el);
+    // ----------------------------------
+    // Current geometry
+    // ----------------------------------
 
-    el.style.width =
-        `${current.width}px`;
+    const currentSize = getSize(el);
 
-    el.style.height =
-        `${current.height}px`;
+    const currentPadding = getPadding(el);
 
-    el.style.overflow = "hidden";
+    // ----------------------------------
+    // Remove explicit geometry
+    // ----------------------------------
 
-    el.offsetWidth;
+    el.style.width = "";
+    el.style.height = "";
 
-    const target = naturalGeometry(el);
+    el.style.paddingTop = "";
+    el.style.paddingRight = "";
+    el.style.paddingBottom = "";
+    el.style.paddingLeft = "";
+
+    forceLayout(el);
+
+    // ----------------------------------
+    // Natural geometry
+    // ----------------------------------
+
+    const naturalSize = getSize(el);
+
+    const naturalPadding = getPadding(el);
+
+    // ----------------------------------
+    // Difference
+    // ----------------------------------
 
     const dx =
-        Math.abs(current.width - target.width);
+        Math.abs(
+            currentSize.width -
+            naturalSize.width
+        );
 
     const dy =
-        Math.abs(current.height - target.height);
+        Math.abs(
+            currentSize.height -
+            naturalSize.height
+        );
 
     if (dx < 1 && dy < 1) {
 
-        log("RESIZE SKIPPED", name(el));
-
-        el.style.width = "";
-        el.style.height = "";
         el.style.overflow = "";
 
-        return;
+        return Promise.resolve();
     }
 
-    const axis =
-        el.parentElement?.dataset?.animationAxis ||
-        (dx > dy ? "width" : "height");
+    const axis = getAxis(el);
 
-    log("RESIZE", name(el), {
-        axis,
-        start: current,
-        target
+    // ----------------------------------
+    // Start
+    // ----------------------------------
+
+    const start = {
+        width: currentSize.width,
+        height: currentSize.height,
+
+        paddingTop: currentPadding.top,
+        paddingRight: currentPadding.right,
+        paddingBottom: currentPadding.bottom,
+        paddingLeft: currentPadding.left
+    };
+
+    // ----------------------------------
+    // Target
+    // ----------------------------------
+
+    const target = {
+        width: naturalSize.width,
+        height: naturalSize.height,
+
+        paddingTop: naturalPadding.top,
+        paddingRight: naturalPadding.right,
+        paddingBottom: naturalPadding.bottom,
+        paddingLeft: naturalPadding.left
+    };
+
+    return new Promise(resolve => {
+        animate(
+            el,
+            start,
+            target,
+            axis,
+            EXPAND_DURATION,
+            resolve
+        );
+
     });
-
-    animateGeometry(
-        el,
-        current,
-        target,
-        axis,
-        EXPAND_DURATION,
-        () => {
-            el.style.width = "";
-            el.style.height = "";
-            el.style.paddingLeft = "";
-            el.style.paddingRight = "";
-            el.style.paddingTop = "";
-            el.style.paddingBottom = "";
-            el.style.borderLeftWidth = "";
-            el.style.borderRightWidth = "";
-            el.style.borderTopWidth = "";
-            el.style.borderBottomWidth = "";
-            el.style.overflow = "";
-        }
-    );
 }
