@@ -2,8 +2,8 @@
 // Universal geometry animations
 // ======================================
 
-const EXPAND_DURATION = 320;
-const COLLAPSE_DURATION = 300;
+const EXPAND_DURATION = 1320;
+const COLLAPSE_DURATION = 1300;
 
 const EASING = "cubic-bezier(.25,.8,.25,1)";
 
