@@ -870,8 +870,6 @@ div.admin-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 150px;
-    margin-bottom: var(--space-8);
     padding: 0 var(--space-8);
     background: rgba(220, 170, 40, .18);
     border: 1px dashed var(--color-admin) !important;
