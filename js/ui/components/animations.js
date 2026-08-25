@@ -37,15 +37,13 @@ function getSize(el) {
     };
 }
 
-function getPadding(el) {
-    const style = getComputedStyle(el);
+function getParentSize(el) {
+    const parent = el?.parentElement;
 
-    return {
-        top: parseFloat(style.paddingTop) || 0,
-        right: parseFloat(style.paddingRight) || 0,
-        bottom: parseFloat(style.paddingBottom) || 0,
-        left: parseFloat(style.paddingLeft) || 0
-    };
+    if (!parent)
+        return null;
+
+    return getSize(parent);
 }
 
 function forceLayout(el) {
@@ -70,64 +68,125 @@ export function cancelSizeAnimation(el) {
     }
 
     el.style.transition = "";
+
+    el.style.marginTop = "";
+    el.style.marginRight = "";
+    el.style.marginBottom = "";
+    el.style.marginLeft = "";
+
+    el.style.clipPath = "";
+    el.style.overflow = "";
 }
 
 // ======================================
-// Animate
+// Measure layout contribution
 // ======================================
 
-function animate(
+function measureContribution(el, axis) {
+    const parent = el?.parentElement;
+
+    if (!parent)
+        return 0;
+
+    const before = getParentSize(el);
+
+    const display = el.style.display;
+    const hidden = el.hidden;
+
+    // Temporarily remove element from layout.
+    el.style.display = "none";
+    el.hidden = false;
+
+    forceLayout(parent);
+
+    const without = getParentSize(el);
+
+    // Restore.
+    el.style.display = display;
+    el.hidden = hidden;
+
+    forceLayout(parent);
+
+    if (!before || !without)
+        return getSize(el)[axis];
+
+    return Math.max(
+        0,
+        Math.abs(
+            before[axis] -
+            without[axis]
+        )
+    );
+}
+
+// ======================================
+// Margin animation
+// ======================================
+
+function animateMargin(
     el,
-    start,
-    target,
     axis,
+    from,
+    to,
     duration,
     done
 ) {
     cancelSizeAnimation(el);
 
+    el.hidden = false;
+
     el.style.overflow = "hidden";
 
-    el.style.width = `${start.width}px`;
-    el.style.height = `${start.height}px`;
+    // ----------------------------------
+    // Select margin
+    // ----------------------------------
 
-    el.style.paddingTop = `${start.paddingTop}px`;
-    el.style.paddingRight = `${start.paddingRight}px`;
-    el.style.paddingBottom = `${start.paddingBottom}px`;
-    el.style.paddingLeft = `${start.paddingLeft}px`;
+    const marginProperty =
+        axis === "height"
+            ? "marginBottom"
+            : "marginRight";
+
+    // ----------------------------------
+    // Start
+    // ----------------------------------
+
+    el.style[marginProperty] =
+        `${from}px`;
+
+    // Hide the part outside the animated
+    // layout contribution.
+    el.style.clipPath =
+        axis === "height"
+            ? "inset(0 0 0 0)"
+            : "inset(0 0 0 0)";
 
     forceLayout(el);
 
+    // ----------------------------------
+    // Animate
+    // ----------------------------------
+
     el.style.transition =
-        `${axis} ${duration}ms ${EASING}, ` +
-        `padding-top ${duration}ms ${EASING}, ` +
-        `padding-right ${duration}ms ${EASING}, ` +
-        `padding-bottom ${duration}ms ${EASING}, ` +
-        `padding-left ${duration}ms ${EASING}`;
+        `${marginProperty} ${duration}ms ${EASING}`;
 
     requestAnimationFrame(() => {
 
-        el.style.width = `${target.width}px`;
-        el.style.height = `${target.height}px`;
+        el.style[marginProperty] =
+            `${to}px`;
 
-        el.style.paddingTop = `${target.paddingTop}px`;
-        el.style.paddingRight = `${target.paddingRight}px`;
-        el.style.paddingBottom = `${target.paddingBottom}px`;
-        el.style.paddingLeft = `${target.paddingLeft}px`;
     });
+
+    // ----------------------------------
+    // Finish
+    // ----------------------------------
 
     el._animationTimer = setTimeout(() => {
 
         el._animationTimer = null;
 
-        el.style.width = "";
-        el.style.height = "";
+        el.style[marginProperty] = "";
 
-        el.style.paddingTop = "";
-        el.style.paddingRight = "";
-        el.style.paddingBottom = "";
-        el.style.paddingLeft = "";
-
+        el.style.clipPath = "";
         el.style.overflow = "";
         el.style.transition = "";
 
@@ -142,59 +201,50 @@ function animate(
 // ======================================
 
 export function animateExpand(el) {
-    if (!el) return Promise.resolve();
+    if (!el)
+        return Promise.resolve();
 
     cancelSizeAnimation(el);
 
     el.hidden = false;
 
-    // ----------------------------------
-    // Natural geometry
-    // ----------------------------------
-
-    const size = getSize(el);
-    const padding = getPadding(el);
-
     const axis = getAxis(el);
 
-    const target = {
-        width: size.width,
-        height: size.height,
-
-        paddingTop: padding.top,
-        paddingRight: padding.right,
-        paddingBottom: padding.bottom,
-        paddingLeft: padding.left
-    };
-
     // ----------------------------------
-    // Start from zero CONTENT + padding
+    // Calculate actual layout contribution
     // ----------------------------------
 
-    const start = {
-        width: size.width,
-        height: size.height,
+    const contribution =
+        measureContribution(el, axis);
 
-        paddingTop: padding.top,
-        paddingRight: padding.right,
-        paddingBottom: padding.bottom,
-        paddingLeft: padding.left
-    };
+    if (contribution <= 0) {
 
-    start[axis] = 0;
+        el.style.marginBottom = "";
+        el.style.marginRight = "";
 
-    start.paddingTop = 0;
-    start.paddingRight = 0;
-    start.paddingBottom = 0;
-    start.paddingLeft = 0;
+        return Promise.resolve();
+    }
+
+    // ----------------------------------
+    // Start completely removed from layout
+    // ----------------------------------
+
+    const marginStart =
+        -contribution;
+
+    const marginTarget = 0;
+
+    // ----------------------------------
+    // Animate
+    // ----------------------------------
 
     return new Promise(resolve => {
 
-        animate(
+        animateMargin(
             el,
-            start,
-            target,
             axis,
+            marginStart,
+            marginTarget,
             EXPAND_DURATION,
             resolve
         );
@@ -207,54 +257,49 @@ export function animateExpand(el) {
 // ======================================
 
 export function animateCollapse(el) {
-    if (!el) return Promise.resolve();
+    if (!el)
+        return Promise.resolve();
 
     cancelSizeAnimation(el);
 
     el.hidden = false;
 
-    // ----------------------------------
-    // Current geometry
-    // ----------------------------------
-
-    const size = getSize(el);
-    const padding = getPadding(el);
-
     const axis = getAxis(el);
 
-    const start = {
-        width: size.width,
-        height: size.height,
-
-        paddingTop: padding.top,
-        paddingRight: padding.right,
-        paddingBottom: padding.bottom,
-        paddingLeft: padding.left
-    };
-
     // ----------------------------------
-    // End
+    // Calculate actual layout contribution
     // ----------------------------------
 
-    const target = {
-        width: size.width,
-        height: size.height,
+    const contribution =
+        measureContribution(el, axis);
 
-        paddingTop: 0,
-        paddingRight: 0,
-        paddingBottom: 0,
-        paddingLeft: 0
-    };
+    if (contribution <= 0) {
 
-    target[axis] = 0;
+        el.hidden = true;
+
+        return Promise.resolve();
+    }
+
+    // ----------------------------------
+    // Start normally
+    // ----------------------------------
+
+    const marginStart = 0;
+
+    const marginTarget =
+        -contribution;
+
+    // ----------------------------------
+    // Animate
+    // ----------------------------------
 
     return new Promise(resolve => {
 
-        animate(
+        animateMargin(
             el,
-            start,
-            target,
             axis,
+            marginStart,
+            marginTarget,
             COLLAPSE_DURATION,
             () => {
 
@@ -273,100 +318,75 @@ export function animateCollapse(el) {
 // ======================================
 
 export function animateResize(el) {
-    if (!el) return Promise.resolve();
+    if (!el)
+        return Promise.resolve();
 
     cancelSizeAnimation(el);
 
-    // ----------------------------------
-    // Current geometry
-    // ----------------------------------
+    const axis = getAxis(el);
 
-    const currentSize = getSize(el);
+    const before =
+        measureContribution(el, axis);
 
-    const currentPadding = getPadding(el);
-
-    // ----------------------------------
-    // Remove explicit geometry
-    // ----------------------------------
-
-    el.style.width = "";
-    el.style.height = "";
-
-    el.style.paddingTop = "";
-    el.style.paddingRight = "";
-    el.style.paddingBottom = "";
-    el.style.paddingLeft = "";
+    // Temporarily remove any explicit margin.
+    el.style.marginTop = "";
+    el.style.marginRight = "";
+    el.style.marginBottom = "";
+    el.style.marginLeft = "";
 
     forceLayout(el);
 
-    // ----------------------------------
-    // Natural geometry
-    // ----------------------------------
+    const after =
+        measureContribution(el, axis);
 
-    const naturalSize = getSize(el);
+    const difference =
+        Math.abs(after - before);
 
-    const naturalPadding = getPadding(el);
-
-    // ----------------------------------
-    // Difference
-    // ----------------------------------
-
-    const dx =
-        Math.abs(
-            currentSize.width -
-            naturalSize.width
-        );
-
-    const dy =
-        Math.abs(
-            currentSize.height -
-            naturalSize.height
-        );
-
-    if (dx < 1 && dy < 1) {
-
-        el.style.overflow = "";
-
+    if (difference < 1)
         return Promise.resolve();
+
+    /*
+     * Resize through the layout contribution.
+     *
+     * If the element became larger:
+     *
+     *     margin: 0 → negative
+     *
+     * If it became smaller:
+     *
+     *     negative → 0
+     *
+     * The element itself keeps its natural geometry.
+     */
+
+    const delta =
+        after - before;
+
+    if (delta > 0) {
+
+        return new Promise(resolve => {
+
+            animateMargin(
+                el,
+                axis,
+                -delta,
+                0,
+                EXPAND_DURATION,
+                resolve
+            );
+
+        });
+
     }
 
-    const axis = getAxis(el);
-
-    // ----------------------------------
-    // Start
-    // ----------------------------------
-
-    const start = {
-        width: currentSize.width,
-        height: currentSize.height,
-
-        paddingTop: currentPadding.top,
-        paddingRight: currentPadding.right,
-        paddingBottom: currentPadding.bottom,
-        paddingLeft: currentPadding.left
-    };
-
-    // ----------------------------------
-    // Target
-    // ----------------------------------
-
-    const target = {
-        width: naturalSize.width,
-        height: naturalSize.height,
-
-        paddingTop: naturalPadding.top,
-        paddingRight: naturalPadding.right,
-        paddingBottom: naturalPadding.bottom,
-        paddingLeft: naturalPadding.left
-    };
-
     return new Promise(resolve => {
-        animate(
+
+        animateMargin(
             el,
-            start,
-            target,
             axis,
-            EXPAND_DURATION,
+            0,
+            delta,
+            COLLAPSE_DURATION,
             resolve
         );
 
