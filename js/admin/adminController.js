@@ -64,12 +64,6 @@ export function syncAdminButtons(){
                 button,
                 currentAdminState
             );
-console.log(
-    "[ADMIN UPDATE]",
-    button,
-    admin,
-    button._adminAnimationState
-);
         }
     );
 
