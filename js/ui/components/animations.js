@@ -1,19 +1,16 @@
 // ======================================
 // Universal geometry animations
+// TEST VERSION — SLOW MARGIN ANIMATION
 // ======================================
 
-const EXPAND_DURATION = 1320;
-const COLLAPSE_DURATION = 1300;
+const EXPAND_DURATION = 1400;
+const COLLAPSE_DURATION = 1400;
 
 const EASING = "cubic-bezier(.25,.8,.25,1)";
 
 // ======================================
 // Helpers
 // ======================================
-
-function getName(el) {
-    return el?.id || el?.className || el?.tagName || "element";
-}
 
 function getAxis(el) {
     return (
@@ -37,17 +34,8 @@ function getSize(el) {
     };
 }
 
-function getParentSize(el) {
-    const parent = el?.parentElement;
-
-    if (!parent)
-        return null;
-
-    return getSize(parent);
-}
-
-function forceLayout(el) {
-    void el.offsetHeight;
+function forceLayout() {
+    document.documentElement.offsetHeight;
 }
 
 // ======================================
@@ -57,70 +45,17 @@ function forceLayout(el) {
 export function cancelSizeAnimation(el) {
     if (!el) return;
 
-    if (el._animationFrame) {
-        cancelAnimationFrame(el._animationFrame);
-        el._animationFrame = null;
-    }
-
-    if (el._animationTimer) {
-        clearTimeout(el._animationTimer);
-        el._animationTimer = null;
+    if (el._marginAnimation) {
+        el._marginAnimation.cancel();
+        el._marginAnimation = null;
     }
 
     el.style.transition = "";
-
-    el.style.marginTop = "";
-    el.style.marginRight = "";
-    el.style.marginBottom = "";
-    el.style.marginLeft = "";
-
-    el.style.clipPath = "";
     el.style.overflow = "";
 }
 
 // ======================================
-// Measure layout contribution
-// ======================================
-
-function measureContribution(el, axis) {
-    const parent = el?.parentElement;
-
-    if (!parent)
-        return 0;
-
-    const before = getParentSize(el);
-
-    const display = el.style.display;
-    const hidden = el.hidden;
-
-    // Temporarily remove element from layout.
-    el.style.display = "none";
-    el.hidden = false;
-
-    forceLayout(parent);
-
-    const without = getParentSize(el);
-
-    // Restore.
-    el.style.display = display;
-    el.hidden = hidden;
-
-    forceLayout(parent);
-
-    if (!before || !without)
-        return getSize(el)[axis];
-
-    return Math.max(
-        0,
-        Math.abs(
-            before[axis] -
-            without[axis]
-        )
-    );
-}
-
-// ======================================
-// Margin animation
+// Animate
 // ======================================
 
 function animateMargin(
@@ -129,71 +64,57 @@ function animateMargin(
     from,
     to,
     duration,
-    done
+    complete
 ) {
     cancelSizeAnimation(el);
 
-    el.hidden = false;
+    const margin = axis === "width"
+        ? "margin-right"
+        : "margin-bottom";
 
+    el.style.transition = "none";
     el.style.overflow = "hidden";
+    el.style[margin] = `${from}px`;
 
-    // ----------------------------------
-    // Select margin
-    // ----------------------------------
+    forceLayout();
 
-    const marginProperty =
-        axis === "height"
-            ? "marginBottom"
-            : "marginRight";
+    const animation =
+        el.animate(
+            [
+                {
+                    [margin]: `${from}px`
+                },
+                {
+                    [margin]: `${to}px`
+                }
+            ],
+            {
+                duration,
+                easing: EASING,
+                fill: "forwards"
+            }
+        );
 
-    // ----------------------------------
-    // Start
-    // ----------------------------------
+    el._marginAnimation = animation;
 
-    el.style[marginProperty] =
-        `${from}px`;
+    animation.finished
+        .then(() => {
+            if (el._marginAnimation !== animation)
+                return;
 
-    // Hide the part outside the animated
-    // layout contribution.
-    el.style.clipPath =
-        axis === "height"
-            ? "inset(0 0 0 0)"
-            : "inset(0 0 0 0)";
+            el._marginAnimation = null;
 
-    forceLayout(el);
+            el.style[margin] = "";
+            el.style.transition = "";
+            el.style.overflow = "";
 
-    // ----------------------------------
-    // Animate
-    // ----------------------------------
-
-    el.style.transition =
-        `${marginProperty} ${duration}ms ${EASING}`;
-
-    requestAnimationFrame(() => {
-
-        el.style[marginProperty] =
-            `${to}px`;
-
-    });
-
-    // ----------------------------------
-    // Finish
-    // ----------------------------------
-
-    el._animationTimer = setTimeout(() => {
-
-        el._animationTimer = null;
-
-        el.style[marginProperty] = "";
-
-        el.style.clipPath = "";
-        el.style.overflow = "";
-        el.style.transition = "";
-
-        if (typeof done === "function")
-            done();
-
-    }, duration + 40);
+            if (complete)
+                complete();
+        })
+        .catch(() => {
+            if (el._marginAnimation === animation)
+                el._marginAnimation = null;
+        });
 }
 
 // ======================================
@@ -210,45 +131,49 @@ export function animateExpand(el) {
 
     const axis = getAxis(el);
 
-    // ----------------------------------
-    // Calculate actual layout contribution
-    // ----------------------------------
+    const margin = axis === "width"
+        ? "margin-right"
+        : "margin-bottom";
 
-    const contribution =
-        measureContribution(el, axis);
+    /*
+     * Суть:
+     *
+     * Сам элемент НЕ уменьшаем.
+     * Он сразу остаётся нормального размера.
+     *
+     * Мы только создаём отрицательный margin,
+     * который временно "забирает" его место
+     * из родительского layout.
+     *
+     * Поэтому контент не появляется рывком
+     * из-за изменения width/height.
+     */
 
-    if (contribution <= 0) {
+    const size = getSize(el);
 
-        el.style.marginBottom = "";
-        el.style.marginRight = "";
-
-        return Promise.resolve();
-    }
-
-    // ----------------------------------
-    // Start completely removed from layout
-    // ----------------------------------
-
-    const marginStart =
-        -contribution;
-
-    const marginTarget = 0;
-
-    // ----------------------------------
-    // Animate
-    // ----------------------------------
+    const occupied = axis === "width"
+        ? size.width
+        : size.height;
 
     return new Promise(resolve => {
 
-        animateMargin(
-            el,
-            axis,
-            marginStart,
-            marginTarget,
-            EXPAND_DURATION,
-            resolve
-        );
+        // Сначала полностью убираем занимаемое место.
+        el.style[margin] = `${-occupied}px`;
 
+        forceLayout();
+
+        requestAnimationFrame(() => {
+
+            animateMargin(
+                el,
+                axis,
+                -occupied,
+                0,
+                EXPAND_DURATION,
+                resolve
+            );
+
+        });
     });
 }
 
@@ -266,50 +191,38 @@ export function animateCollapse(el) {
 
     const axis = getAxis(el);
 
-    // ----------------------------------
-    // Calculate actual layout contribution
-    // ----------------------------------
+    const margin = axis === "width" ? "margin-right"
+        : "margin-bottom";
 
-    const contribution =
-        measureContribution(el, axis);
+    const size = getSize(el);
 
-    if (contribution <= 0) {
-
-        el.hidden = true;
-
-        return Promise.resolve();
-    }
-
-    // ----------------------------------
-    // Start normally
-    // ----------------------------------
-
-    const marginStart = 0;
-
-    const marginTarget =
-        -contribution;
-
-    // ----------------------------------
-    // Animate
-    // ----------------------------------
+    const occupied = axis === "width"
+        ? size.width
+        : size.height;
 
     return new Promise(resolve => {
+
+        /*
+         * Элемент остаётся полностью видимым
+         * и НЕ уменьшается.
+         *
+         * Вместо этого отрицательный margin
+         * постепенно выталкивает его из layout.
+         */
 
         animateMargin(
             el,
             axis,
-            marginStart,
-            marginTarget,
+            0,
+            -occupied,
             COLLAPSE_DURATION,
             () => {
 
                 el.hidden = true;
 
                 resolve();
-
             }
         );
-
     });
 }
 
@@ -325,70 +238,70 @@ export function animateResize(el) {
 
     const axis = getAxis(el);
 
-    const before =
-        measureContribution(el, axis);
+    const margin = axis === "width"
+        ? "margin-right"
+        : "margin-bottom";
 
-    // Temporarily remove any explicit margin.
-    el.style.marginTop = "";
-    el.style.marginRight = "";
-    el.style.marginBottom = "";
-    el.style.marginLeft = "";
-
-    forceLayout(el);
-
-    const after =
-        measureContribution(el, axis);
-
-    const difference =
-        Math.abs(after - before);
-
-    if (difference < 1)
-        return Promise.resolve();
+    const current = getSize(el);
 
     /*
-     * Resize through the layout contribution.
+     * Для resize здесь ничего искусственно
+     * не уменьшаем.
      *
-     * If the element became larger:
-     *
-     *     margin: 0 → negative
-     *
-     * If it became smaller:
-     *
-     *     negative → 0
-     *
-     * The element itself keeps its natural geometry.
+     * Сначала получаем новую естественную геометрию,
+     * затем компенсируем изменение через margin.
      */
 
-    const delta =
-        after - before;
+    el.style[margin] = "0px";
 
-    if (delta > 0) {
+    forceLayout();
 
-        return new Promise(resolve => {
+    const target = getSize(el);
+
+    const currentSize = axis === "width"
+        ? current.width
+        : current.height;
+
+    const targetSize = axis === "width"
+        ? target.width
+        : target.height;
+
+    const difference =
+        targetSize - currentSize;
+
+    if (Math.abs(difference) < 1) {
+        el.style[margin] = "";
+        return Promise.resolve();
+    }
+
+    /*
+     * Если блок должен стать больше,
+     * временно забираем дополнительное место
+     * отрицательным margin.
+     *
+     * Если меньше — аналогично используем
+     * положительную компенсацию.
+     */
+
+    const compensation = -difference;
+
+    return new Promise(resolve => {
+
+        el.style[margin] = `${compensation}px`;
+
+        forceLayout();
+
+        requestAnimationFrame(() => {
 
             animateMargin(
                 el,
                 axis,
-                -delta,
+                compensation,
                 0,
                 EXPAND_DURATION,
                 resolve
             );
 
         });
-
-    }
-
-    return new Promise(resolve => {
-
-        animateMargin(
-            el,
-            axis,
-            0,
-            delta,
-            COLLAPSE_DURATION,
-            resolve
-        );
-
     });
 }
