@@ -148,9 +148,6 @@ function getHiddenOffset(el) {
      * END_GAP:
      *
      * дополнительно уводим элемент вверх.
-     *
-     * Это диагностический запас конца
-     * анимации.
      */
 
     const top =
@@ -223,14 +220,8 @@ function getStartOffset(hidden) {
 
     /*
      * START_GAP должен двигать стартовую
-     * точку В ТУ ЖЕ СТОРОНУ, куда элемент
+     * точку в ту же сторону, куда элемент
      * уже был спрятан.
-     *
-     * Если hidden.top < 0,
-     * двигаем ещё выше.
-     *
-     * Если hidden.top > 0,
-     * двигаем ещё ниже.
      */
 
     let top;
@@ -355,123 +346,132 @@ function animateMargins(
 
     return new Promise(resolve => {
 
-        const startTime =
-            performance.now();
+        /*
+         * Даём браузеру отдельный кадр,
+         * чтобы стартовая позиция была
+         * реально отрисована.
+         */
+
+        requestAnimationFrame(() => {
+
+            const startTime =
+                performance.now();
 
 
-        function frame(now) {
+            function frame(now) {
 
-            const elapsed =
-                now - startTime;
+                const elapsed =
+                    now - startTime;
 
 
-            const progress =
-                Math.min(
-                    1,
-                    elapsed / duration
+                const progress =
+                    Math.min(
+                        1,
+                        elapsed / duration
+                    );
+
+
+                const eased =
+                    easeInOut(progress);
+
+
+                const top =
+                    from.top +
+                    (
+                        to.top -
+                        from.top
+                    ) * eased;
+
+
+                const left =
+                    from.left +
+                    (
+                        to.left -
+                        from.left
+                    ) * eased;
+
+
+                setMargin(
+                    el,
+                    top,
+                    left
                 );
 
 
-            const eased =
-                easeInOut(progress);
+                if (progress < 1) {
+
+                    el._animationFrame =
+                        requestAnimationFrame(
+                            frame
+                        );
+
+                    return;
+                }
 
 
-            const top =
-                from.top +
-                (
-                    to.top -
-                    from.top
-                ) * eased;
+                el._animationFrame = null;
 
 
-            const left =
-                from.left +
-                (
-                    to.left -
-                    from.left
-                ) * eased;
+                // ----------------------------------
+                // Exact final position
+                // ----------------------------------
+
+                setMargin(
+                    el,
+                    to.top,
+                    to.left
+                );
 
 
-            setMargin(
-                el,
-                top,
-                left
-            );
+                /*
+                 * Даём браузеру применить последний
+                 * кадр перед очисткой inline-стилей.
+                 */
+
+                el._animationTimer =
+                    setTimeout(() => {
+
+                        el._animationTimer = null;
 
 
-            if (progress < 1) {
+                        el.style.removeProperty(
+                            "margin-top"
+                        );
 
-                el._animationFrame =
-                    requestAnimationFrame(
-                        frame
-                    );
+                        el.style.removeProperty(
+                            "margin-left"
+                        );
 
-                return;
+                        el.style.removeProperty(
+                            "transition"
+                        );
+
+
+                        if (
+                            typeof complete ===
+                            "function"
+                        ) {
+                            complete();
+                        }
+
+
+                        log(
+                            "END",
+                            getName(el)
+                        );
+
+
+                        resolve();
+
+                    }, 20);
             }
 
 
-            el._animationFrame = null;
-
-
-            // ----------------------------------
-            // Exact final position
-            // ----------------------------------
-
-            setMargin(
-                el,
-                to.top,
-                to.left
-            );
-
-
-            /*
-             * Даём браузеру применить последний
-             * кадр перед очисткой inline-стилей.
-             */
-
-            el._animationTimer =
-                setTimeout(() => {
-
-                    el._animationTimer = null;
-
-
-                    el.style.removeProperty(
-                        "margin-top"
-                    );
-
-                    el.style.removeProperty(
-                        "margin-left"
-                    );
-
-                    el.style.removeProperty(
-                        "transition"
-                    );
-
-
-                    if (
-                        typeof complete ===
-                        "function"
-                    ) {
-                        complete();
-                    }
-
-
-                    log(
-                        "END",
-                        getName(el)
-                    );
-
-
-                    resolve();
-
-                }, 20);
-        }
-
-
-        el._animationFrame =
-            requestAnimationFrame(
-                frame
-            );
+            el._animationFrame =
+                requestAnimationFrame(
+                    frame
+                );
+        });
     });
 }
 
@@ -506,9 +506,6 @@ export function animateExpand(el) {
      *
      * стартуем ещё дальше в той же стороне,
      * куда элемент должен быть спрятан.
-     *
-     * То есть если hidden.top = -200,
-     * старт будет -212.
      */
 
     const start =
