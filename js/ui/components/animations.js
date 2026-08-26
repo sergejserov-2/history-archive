@@ -6,12 +6,14 @@
 const EXPAND_DURATION = 1420;
 const COLLAPSE_DURATION = 1420;
 
-const DEBUG_ANIMATIONS = false;
+// ======================================
+// Diagnostic gaps
+// ======================================
 
-// Диагностические зазоры.
-// Можно менять независимо друг от друга.
-const VERTICAL_START_OFFSET = 64;
-const VERTICAL_END_OFFSET = 14;
+const END_GAP = 14;
+const START_GAP = 14;
+
+const DEBUG_ANIMATIONS = false;
 
 
 // ======================================
@@ -85,6 +87,7 @@ export function cancelSizeAnimation(el) {
 // ======================================
 
 function setMargin(el, top, left) {
+
     el.style.setProperty(
         "margin-top",
         `${top}px`,
@@ -109,8 +112,8 @@ function getHiddenOffset(el) {
 
     if (!parent) {
         return {
-            top: -300,
-            left: -100
+            top: -300 - END_GAP,
+            left: -100 - END_GAP
         };
     }
 
@@ -119,8 +122,8 @@ function getHiddenOffset(el) {
 
     if (!elementRect || !parentRect) {
         return {
-            top: -300,
-            left: -100
+            top: -300 - END_GAP,
+            left: -100 - END_GAP
         };
     }
 
@@ -130,18 +133,29 @@ function getHiddenOffset(el) {
     // ----------------------------------
 
     /*
-     * Уводим элемент вверх до тех пор,
-     * пока его нижняя граница не окажется
-     * выше верхней границы родителя.
+     * Базовая скрытая позиция:
      *
-     * VERTICAL_END_OFFSET — запас в конце
-     * скрытия.
+     * нижняя граница элемента должна
+     * оказаться выше верхней границы родителя.
+     */
+
+    const hiddenTop =
+        parentRect.top -
+        elementRect.bottom;
+
+
+    /*
+     * END_GAP:
+     *
+     * дополнительно уводим элемент вверх.
+     *
+     * Это диагностический запас конца
+     * анимации.
      */
 
     const top =
-        parentRect.top -
-        elementRect.bottom -
-        VERTICAL_END_OFFSET;
+        hiddenTop -
+        END_GAP;
 
 
     // ----------------------------------
@@ -160,23 +174,106 @@ function getHiddenOffset(el) {
             elementRect.right
         );
 
+
     let left;
 
 
     if (distanceLeft <= distanceRight) {
 
-        left =
+        /*
+         * Уводим влево.
+         */
+
+        const hiddenLeft =
             parentRect.left -
-            elementRect.right -
-            20;
+            elementRect.right;
+
+        left =
+            hiddenLeft -
+            END_GAP;
 
     } else {
 
-        left =
-            parentRect.right -
-            elementRect.left +
-            20;
+        /*
+         * Уводим вправо.
+         */
 
+        const hiddenLeft =
+            parentRect.right -
+            elementRect.left;
+
+        left =
+            hiddenLeft +
+            END_GAP;
+    }
+
+
+    return {
+        top,
+        left
+    };
+}
+
+
+// ======================================
+// Start offset
+// ======================================
+
+function getStartOffset(hidden) {
+
+    /*
+     * START_GAP должен двигать стартовую
+     * точку В ТУ ЖЕ СТОРОНУ, куда элемент
+     * уже был спрятан.
+     *
+     * Если hidden.top < 0,
+     * двигаем ещё выше.
+     *
+     * Если hidden.top > 0,
+     * двигаем ещё ниже.
+     */
+
+    let top;
+
+    if (hidden.top < 0) {
+
+        top =
+            hidden.top -
+            START_GAP;
+
+    } else if (hidden.top > 0) {
+
+        top =
+            hidden.top +
+            START_GAP;
+
+    } else {
+
+        top = hidden.top;
+    }
+
+
+    /*
+     * Аналогично для horizontal.
+     */
+
+    let left;
+
+    if (hidden.left < 0) {
+
+        left =
+            hidden.left -
+            START_GAP;
+
+    } else if (hidden.left > 0) {
+
+        left =
+            hidden.left +
+            START_GAP;
+
+    } else {
+
+        left = hidden.left;
     }
 
 
@@ -192,6 +289,10 @@ function getHiddenOffset(el) {
 // ======================================
 
 function easeInOut(progress) {
+
+    /*
+     * Мягкое начало и мягкий конец.
+     */
 
     return (
         1 -
@@ -213,6 +314,7 @@ function animateMargins(
     duration,
     complete
 ) {
+
     if (!el) {
         return Promise.resolve();
     }
@@ -262,15 +364,13 @@ function animateMargins(
             const elapsed =
                 now - startTime;
 
+
             const progress =
                 Math.min(
                     1,
                     elapsed / duration
                 );
 
-
-            // Одна общая прогрессия
-            // для обеих осей.
 
             const eased =
                 easeInOut(progress);
@@ -314,7 +414,7 @@ function animateMargins(
 
 
             // ----------------------------------
-            // Final exact position
+            // Exact final position
             // ----------------------------------
 
             setMargin(
@@ -325,8 +425,8 @@ function animateMargins(
 
 
             /*
-             * Небольшая задержка позволяет
-             * браузеру применить последний кадр.
+             * Даём браузеру применить последний
+             * кадр перед очисткой inline-стилей.
              */
 
             el._animationTimer =
@@ -334,8 +434,6 @@ function animateMargins(
 
                     el._animationTimer = null;
 
-
-                    // Возвращаем управление CSS.
 
                     el.style.removeProperty(
                         "margin-top"
@@ -395,40 +493,26 @@ export function animateExpand(el) {
     /*
      * hidden здесь НЕ трогаем.
      *
-     * Его состояние управляется
-     * внешней логикой / adminButtons.
+     * Его состояние контролирует внешняя
+     * логика / adminButtons.
      */
-
 
     const hidden =
         getHiddenOffset(el);
 
 
     /*
-     * Диагностический зазор начала.
+     * START_GAP:
      *
-     * Мы начинаем движение немного дальше
-     * конечной скрытой позиции.
+     * стартуем ещё дальше в той же стороне,
+     * куда элемент должен быть спрятан.
      *
-     * Это позволяет проверить, связан ли
-     * начальный микро-рывок с самой стартовой
-     * геометрией.
+     * То есть если hidden.top = -200,
+     * старт будет -212.
      */
 
-    const start = {
-        top:
-            hidden.top -
-            VERTICAL_START_OFFSET,
-
-        left:
-            hidden.left
-    };
-
-
-    const target = {
-        top: 0,
-        left: 0
-    };
+    const start =
+        getStartOffset(hidden);
 
 
     log(
@@ -436,11 +520,13 @@ export function animateExpand(el) {
         getName(el),
         {
             from: start,
-            to: target,
-            startOffset:
-                VERTICAL_START_OFFSET,
-            endOffset:
-                VERTICAL_END_OFFSET
+            calculatedHidden: hidden,
+            to: {
+                top: 0,
+                left: 0
+            },
+            startGap: START_GAP,
+            endGap: END_GAP
         }
     );
 
@@ -451,7 +537,10 @@ export function animateExpand(el) {
 
         start,
 
-        target,
+        {
+            top: 0,
+            left: 0
+        },
 
         EXPAND_DURATION
 
@@ -474,8 +563,8 @@ export function animateCollapse(el) {
 
 
     /*
-     * Рассчитываем конечную скрытую
-     * позицию до начала движения.
+     * Сначала вычисляем нормальную скрытую
+     * позицию.
      */
 
     const hidden =
@@ -490,14 +579,8 @@ export function animateCollapse(el) {
                 top: 0,
                 left: 0
             },
-
             to: hidden,
-
-            startOffset:
-                VERTICAL_START_OFFSET,
-
-            endOffset:
-                VERTICAL_END_OFFSET
+            endGap: END_GAP
         }
     );
 
@@ -531,14 +614,10 @@ export function animateResize(el) {
 
 
     /*
-     * Размеры элемента больше не
-     * анимируем вообще.
+     * Размеры больше не анимируем.
      *
-     * Layout самостоятельно пересчитывает
-     * flex/grid после изменения контента.
-     *
-     * Функция оставлена для совместимости
-     * с существующим кодом.
+     * Flex/Grid самостоятельно пересчитывают
+     * layout после изменения содержимого.
      */
 
     log(
