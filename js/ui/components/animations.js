@@ -6,9 +6,12 @@
 const EXPAND_DURATION = 420;
 const COLLAPSE_DURATION = 420;
 
-const VERTICAL_OVERSHOOT = 14;
-
 const DEBUG_ANIMATIONS = false;
+
+// Диагностические зазоры.
+// Можно менять независимо друг от друга.
+const VERTICAL_START_OFFSET = 14;
+const VERTICAL_END_OFFSET = 14;
 
 
 // ======================================
@@ -69,17 +72,9 @@ export function cancelSizeAnimation(el) {
         el._animationTimer = null;
     }
 
-    el.style.removeProperty(
-        "margin-top"
-    );
-
-    el.style.removeProperty(
-        "margin-left"
-    );
-
-    el.style.removeProperty(
-        "transition"
-    );
+    el.style.removeProperty("margin-top");
+    el.style.removeProperty("margin-left");
+    el.style.removeProperty("transition");
 
     log("CANCEL", getName(el));
 }
@@ -89,11 +84,7 @@ export function cancelSizeAnimation(el) {
 // Margin
 // ======================================
 
-function setMargin(
-    el,
-    top,
-    left
-) {
+function setMargin(el, top, left) {
     el.style.setProperty(
         "margin-top",
         `${top}px`,
@@ -114,8 +105,7 @@ function setMargin(
 
 function getHiddenOffset(el) {
 
-    const parent =
-        el?.parentElement;
+    const parent = el?.parentElement;
 
     if (!parent) {
         return {
@@ -124,11 +114,8 @@ function getHiddenOffset(el) {
         };
     }
 
-    const elementRect =
-        getRect(el);
-
-    const parentRect =
-        getRect(parent);
+    const elementRect = getRect(el);
+    const parentRect = getRect(parent);
 
     if (!elementRect || !parentRect) {
         return {
@@ -143,29 +130,23 @@ function getHiddenOffset(el) {
     // ----------------------------------
 
     /*
-     * Уводим элемент чуть дальше верхней
-     * границы родителя.
+     * Уводим элемент вверх до тех пор,
+     * пока его нижняя граница не окажется
+     * выше верхней границы родителя.
      *
-     * Небольшой запас убирает финальный
-     * визуальный рывок из-за субпиксельного
-     * позиционирования и пересчёта layout.
+     * VERTICAL_END_OFFSET — запас в конце
+     * скрытия.
      */
 
     const top =
         parentRect.top -
         elementRect.bottom -
-        VERTICAL_OVERSHOOT;
+        VERTICAL_END_OFFSET;
 
 
     // ----------------------------------
     // Horizontal
     // ----------------------------------
-
-    /*
-     * Горизонтальная логика пока остаётся
-     * прежней. Позже будем отдельно
-     * подбирать направление и расстояние.
-     */
 
     const distanceLeft =
         Math.abs(
@@ -178,7 +159,6 @@ function getHiddenOffset(el) {
             parentRect.right -
             elementRect.right
         );
-
 
     let left;
 
@@ -211,26 +191,14 @@ function getHiddenOffset(el) {
 // Easing
 // ======================================
 
-function easeInOutCubic(progress) {
-
-    if (progress < 0.5) {
-
-        return (
-            4 *
-            progress *
-            progress *
-            progress
-        );
-
-    }
+function easeInOut(progress) {
 
     return (
         1 -
-        Math.pow(
-            -2 * progress + 2,
-            3
-        ) / 2
-    );
+        Math.cos(
+            progress * Math.PI
+        )
+    ) / 2;
 }
 
 
@@ -270,7 +238,10 @@ function animateMargins(
     });
 
 
+    // ----------------------------------
     // Initial position
+    // ----------------------------------
+
     setMargin(
         el,
         from.top,
@@ -291,7 +262,6 @@ function animateMargins(
             const elapsed =
                 now - startTime;
 
-
             const progress =
                 Math.min(
                     1,
@@ -299,15 +269,11 @@ function animateMargins(
                 );
 
 
-            /*
-             * Одна общая easing-кривая
-             * для обеих осей.
-             */
+            // Одна общая прогрессия
+            // для обеих осей.
 
             const eased =
-                easeInOutCubic(
-                    progress
-                );
+                easeInOut(progress);
 
 
             const top =
@@ -347,7 +313,10 @@ function animateMargins(
             el._animationFrame = null;
 
 
-            // Финальная точная позиция
+            // ----------------------------------
+            // Final exact position
+            // ----------------------------------
+
             setMargin(
                 el,
                 to.top,
@@ -355,16 +324,18 @@ function animateMargins(
             );
 
 
+            /*
+             * Небольшая задержка позволяет
+             * браузеру применить последний кадр.
+             */
+
             el._animationTimer =
                 setTimeout(() => {
 
                     el._animationTimer = null;
 
 
-                    /*
-                     * Возвращаем управление
-                     * обычному CSS.
-                     */
+                    // Возвращаем управление CSS.
 
                     el.style.removeProperty(
                         "margin-top"
@@ -428,19 +399,48 @@ export function animateExpand(el) {
      * внешней логикой / adminButtons.
      */
 
+
     const hidden =
         getHiddenOffset(el);
+
+
+    /*
+     * Диагностический зазор начала.
+     *
+     * Мы начинаем движение немного дальше
+     * конечной скрытой позиции.
+     *
+     * Это позволяет проверить, связан ли
+     * начальный микро-рывок с самой стартовой
+     * геометрией.
+     */
+
+    const start = {
+        top:
+            hidden.top -
+            VERTICAL_START_OFFSET,
+
+        left:
+            hidden.left
+    };
+
+
+    const target = {
+        top: 0,
+        left: 0
+    };
 
 
     log(
         "EXPAND",
         getName(el),
         {
-            from: hidden,
-            to: {
-                top: 0,
-                left: 0
-            }
+            from: start,
+            to: target,
+            startOffset:
+                VERTICAL_START_OFFSET,
+            endOffset:
+                VERTICAL_END_OFFSET
         }
     );
 
@@ -449,12 +449,9 @@ export function animateExpand(el) {
 
         el,
 
-        hidden,
+        start,
 
-        {
-            top: 0,
-            left: 0
-        },
+        target,
 
         EXPAND_DURATION
 
@@ -477,8 +474,8 @@ export function animateCollapse(el) {
 
 
     /*
-     * Рассчитываем конечную позицию
-     * до начала движения.
+     * Рассчитываем конечную скрытую
+     * позицию до начала движения.
      */
 
     const hidden =
@@ -493,7 +490,14 @@ export function animateCollapse(el) {
                 top: 0,
                 left: 0
             },
-            to: hidden
+
+            to: hidden,
+
+            startOffset:
+                VERTICAL_START_OFFSET,
+
+            endOffset:
+                VERTICAL_END_OFFSET
         }
     );
 
@@ -532,6 +536,9 @@ export function animateResize(el) {
      *
      * Layout самостоятельно пересчитывает
      * flex/grid после изменения контента.
+     *
+     * Функция оставлена для совместимости
+     * с существующим кодом.
      */
 
     log(
