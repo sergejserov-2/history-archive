@@ -888,6 +888,7 @@ button.admin-button {
     border: 1px solid var(--color-admin-border) !important;
     border-radius: var(--radius-lg);
     cursor: pointer;
+    margin:-4px 0;
 }
 button.admin-button:hover {
     background: var(--color-admin-bg-hover) !important;
