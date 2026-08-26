@@ -261,6 +261,16 @@ export function animateExpand(el){
         margin:getCurrentMargin(el)
     });
 
+    const hidden=getHiddenOffset(el);
+
+    log("EXPAND HIDDEN",getName(el),{
+        top:fmt(hidden.top),
+        left:fmt(hidden.left)
+    });
+
+    setMargin(el,hidden.top,hidden.left);
+    forceLayout();
+
     return animateMargins(
         el,
         {
