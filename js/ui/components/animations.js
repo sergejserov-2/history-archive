@@ -1,14 +1,12 @@
 // ======================================
 // Universal geometry animations
-// Position based
+// Margin based
 // ======================================
 
-const EXPAND_DURATION = 10420;
-const COLLAPSE_DURATION = 10420;
-
-const END_GAP = 14;
-
-const DEBUG_ANIMATIONS = true;
+const EXPAND_DURATION=10420;
+const COLLAPSE_DURATION=10420;
+const END_GAP=14;
+const DEBUG_ANIMATIONS=false;
 
 // ======================================
 // Debug
@@ -23,35 +21,33 @@ function getName(el){
     return el?.id||el?.className||el?.tagName||"element";
 }
 
-function fmt(value){
-    return Number(value).toFixed(2);
+function fmt(n){
+    return Number(n||0).toFixed(2);
 }
 
-function pos(el){
-    const r=el?.getBoundingClientRect();
-    return r?{x:r.left,y:r.top}:null;
-}
-
-function size(el){
-    const r=el?.getBoundingClientRect();
-    return r?{w:r.width,h:r.height}:null;
-}
-
-function state(el){
-    const p=pos(el);
-    const s=size(el);
-    return {
-        pos:p?`${fmt(p.x)},${fmt(p.y)}`:"-",
-        size:s?`${fmt(s.w)}x${fmt(s.h)}`:"-"
-    };
+function logState(label,el,extra={}){
+    if(!DEBUG_ANIMATIONS)
+        return;
+    const rect=el?.getBoundingClientRect();
+    const margin=getCurrentMargin(el);
+    log(label,getName(el),{
+        margin:`${fmt(margin.top)},${fmt(margin.left)}`,
+        pos:rect?`${fmt(rect.top)},${fmt(rect.left)}`:"-",
+        size:rect?`${fmt(rect.width)}x${fmt(rect.height)}`:"-",
+        ...extra
+    });
 }
 
 // ======================================
-// Layout
+// Geometry
 // ======================================
+
+function getRect(el){
+    return el?.getBoundingClientRect()||null;
+}
 
 function forceLayout(){
-    document.documentElement.offsetHeight;
+    void document.documentElement.offsetHeight;
 }
 
 // ======================================
@@ -102,7 +98,7 @@ function clearSizeAnimationStyles(el){
 
     el.style.removeProperty("margin-top");
     el.style.removeProperty("margin-left");
-    el.style.removeProperty("transform");
+    el.style.removeProperty("transition");
 }
 
 // ======================================
@@ -120,17 +116,26 @@ export function cancelSizeAnimation(el){
 }
 
 // ======================================
-// Hidden position
+// Hidden offset
 // ======================================
 
 function getHiddenOffset(el){
     const parent=el?.parentElement;
 
     if(!parent)
-        return {top:-300-END_GAP,left:-100-END_GAP};
+        return {
+            top:-300-END_GAP,
+            left:-100-END_GAP
+        };
 
-    const elementRect=el.getBoundingClientRect();
-    const parentRect=parent.getBoundingClientRect();
+    const elementRect=getRect(el);
+    const parentRect=getRect(parent);
+
+    if(!elementRect||!parentRect)
+        return {
+            top:-300-END_GAP,
+            left:-100-END_GAP
+        };
 
     const hiddenTop=parentRect.top-elementRect.bottom;
     const top=hiddenTop-END_GAP;
@@ -152,62 +157,50 @@ function getHiddenOffset(el){
 }
 
 // ======================================
-// Easing
+// Margin animation
 // ======================================
 
-function ease(progress){
-    return 1-Math.pow(1-progress,3);
-}
-
-// ======================================
-// Position animation
-// ======================================
-
-function animatePosition(el,target,duration,complete){
+function animateMargins(el,target,duration,complete){
     if(!el)
         return Promise.resolve();
 
     stopSizeAnimation(el);
 
-    const start=pos(el);
+    const startRect=getRect(el);
+    const startMargin=getCurrentMargin(el);
 
-    if(!start)
+    if(!startRect)
         return Promise.resolve();
 
-    const targetMargin={
+    const to={
         top:Number(target.top)||0,
         left:Number(target.left)||0
     };
 
-    log("START",getName(el),{
-        pos:`${fmt(start.x)},${fmt(start.y)}`
-    });
+    logState("START",el);
 
-    setMargin(el,targetMargin.top,targetMargin.left);
+    // Сначала ставим текущее значение без изменения геометрии.
+    setMargin(el,startMargin.top,startMargin.left);
     forceLayout();
 
-    const end=pos(el);
+    const lockedRect=getRect(el);
 
-    if(!end){
-        clearSizeAnimationStyles(el);
+    if(!lockedRect)
         return Promise.resolve();
-    }
 
-    const dx=end.x-start.x;
-    const dy=end.y-start.y;
-
-    el.style.setProperty("transform","translate(0px,0px)","important");
-    forceLayout();
+    const start={
+        top:startMargin.top,
+        left:startMargin.left,
+        rectTop:lockedRect.top,
+        rectLeft:lockedRect.left
+    };
 
     log("TARGET",getName(el),{
-        pos:`${fmt(end.x)},${fmt(end.y)}`,
-        delta:`${fmt(dx)},${fmt(dy)}`,
+        margin:`${fmt(to.top)},${fmt(to.left)}`,
+        startPos:`${fmt(start.rectTop)},${fmt(start.rectLeft)}`,
+        delta:`${fmt(to.top-start.top)},${fmt(to.left-start.left)}`,
         duration
     });
-
-    // Return layout to the visual starting position.
-    el.style.setProperty("transform",`translate(${dx}px,${dy}px)`,"important");
-    forceLayout();
 
     const startTime=performance.now();
     let frameNumber=0;
@@ -218,19 +211,36 @@ function animatePosition(el,target,duration,complete){
 
             const elapsed=now-startTime;
             const progress=Math.min(1,elapsed/duration);
-            const eased=ease(progress);
 
-            const x=dx*(1-eased);
-            const y=dy*(1-eased);
+            const expectedTop=start.top+(to.top-start.top)*progress;
+            const expectedLeft=start.left+(to.left-start.left)*progress;
 
-            el.style.setProperty("transform",`translate(${x}px,${y}px)`,"important");
+            setMargin(el,expectedTop,expectedLeft);
+
+            forceLayout();
+
+            const rect=getRect(el);
+
+            if(rect){
+                const driftTop=rect.top-start.rectTop;
+                const driftLeft=rect.left-start.rectLeft;
+
+                if(Math.abs(driftTop)>0.01||Math.abs(driftLeft)>0.01){
+                    const correctedTop=expectedTop-driftTop;
+                    const correctedLeft=expectedLeft-driftLeft;
+
+                    setMargin(el,correctedTop,correctedLeft);
+                    forceLayout();
+                }
+            }
 
             if(DEBUG_ANIMATIONS&&(frameNumber<=3||progress>=1)){
-                const p=pos(el);
+                const current=getRect(el);
                 log("FRAME",getName(el),frameNumber,{
                     t:fmt(elapsed),
-                    p:p?`${fmt(p.x)},${fmt(p.y)}`:"-",
-                    move:`${fmt(x)},${fmt(y)}`
+                    p:current?`${fmt(current.top)},${fmt(current.left)}`:"-",
+                    move:current?`${fmt(current.top-start.rectTop)},${fmt(current.left-start.rectLeft)}`:"-",
+                    margin:current?`${fmt(getCurrentMargin(el).top)},${fmt(getCurrentMargin(el).left)}`:"-"
                 });
             }
 
@@ -241,16 +251,22 @@ function animatePosition(el,target,duration,complete){
 
             el._animationFrame=null;
 
-            setMargin(el,targetMargin.top,targetMargin.left);
-            el.style.removeProperty("transform");
+            setMargin(el,to.top,to.left);
             forceLayout();
 
-            log("END",getName(el),state(el));
+            logState("BEFORE CLEAR",el);
 
-            if(typeof complete==="function")
-                complete();
+            el._animationTimer=setTimeout(()=>{
+                el._animationTimer=null;
+                clearSizeAnimationStyles(el);
 
-            resolve();
+                if(typeof complete==="function")
+                    complete();
+
+                logState("END",el);
+
+                resolve();
+            },20);
         }
 
         el._animationFrame=requestAnimationFrame(frame);
@@ -265,11 +281,14 @@ export function animateExpand(el){
     if(!el)
         return Promise.resolve();
 
-    log("EXPAND CALL",getName(el),state(el));
+    logState("EXPAND CALL",el);
 
-    return animatePosition(
+    return animateMargins(
         el,
-        {top:0,left:0},
+        {
+            top:0,
+            left:0
+        },
         EXPAND_DURATION
     );
 }
@@ -282,13 +301,13 @@ export function animateCollapse(el){
     if(!el)
         return Promise.resolve();
 
-    log("COLLAPSE CALL",getName(el),state(el));
+    logState("COLLAPSE CALL",el);
 
     const hidden=getHiddenOffset(el);
 
     log("HIDDEN TARGET",getName(el),hidden);
 
-    return animatePosition(
+    return animateMargins(
         el,
         hidden,
         COLLAPSE_DURATION
