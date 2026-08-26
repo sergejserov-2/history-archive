@@ -5,14 +5,9 @@
 
 const EXPAND_DURATION = 10420;
 const COLLAPSE_DURATION = 10420;
-
 const END_GAP = 14;
 
 const DEBUG_ANIMATIONS = false;
-
-// ======================================
-// Debug
-// ======================================
 
 function log(...args){
     if(DEBUG_ANIMATIONS)
@@ -23,34 +18,17 @@ function getName(el){
     return el?.id||el?.className||el?.tagName||"element";
 }
 
-// ======================================
-// Geometry
-// ======================================
-
 function getRect(el){
     return el?.getBoundingClientRect()||null;
 }
 
-function forceLayout(){
-    document.documentElement.offsetHeight;
-}
-
-// ======================================
-// Current margin
-// ======================================
-
 function getCurrentMargin(el){
-    const computed=window.getComputedStyle(el);
-
+    const computed=getComputedStyle(el);
     return {
         top:parseFloat(computed.marginTop)||0,
         left:parseFloat(computed.marginLeft)||0
     };
 }
-
-// ======================================
-// Stop
-// ======================================
 
 function stopSizeAnimation(el){
     if(!el)
@@ -65,13 +43,7 @@ function stopSizeAnimation(el){
         clearTimeout(el._animationTimer);
         el._animationTimer=null;
     }
-
-    log("STOP",getName(el));
 }
-
-// ======================================
-// Clear
-// ======================================
 
 function clearSizeAnimationStyles(el){
     if(!el)
@@ -82,32 +54,18 @@ function clearSizeAnimationStyles(el){
     el.style.removeProperty("transition");
 }
 
-// ======================================
-// Cancel
-// ======================================
-
 export function cancelSizeAnimation(el){
     if(!el)
         return;
 
     stopSizeAnimation(el);
     clearSizeAnimationStyles(el);
-
-    log("CANCEL",getName(el));
 }
-
-// ======================================
-// Margin
-// ======================================
 
 function setMargin(el,top,left){
     el.style.setProperty("margin-top",`${top}px`,"important");
     el.style.setProperty("margin-left",`${left}px`,"important");
 }
-
-// ======================================
-// Hidden offset
-// ======================================
 
 function getHiddenOffset(el){
     const parent=el?.parentElement;
@@ -127,91 +85,41 @@ function getHiddenOffset(el){
             left:-100-END_GAP
         };
 
-    const hiddenTop=parentRect.top-elementRect.bottom;
-    const top=hiddenTop-END_GAP;
+    const top=parentRect.top-elementRect.bottom-END_GAP;
 
     const distanceLeft=Math.abs(elementRect.left-parentRect.left);
     const distanceRight=Math.abs(parentRect.right-elementRect.right);
 
     let left;
 
-    if(distanceLeft<=distanceRight){
-        const hiddenLeft=parentRect.left-elementRect.right;
-        left=hiddenLeft-END_GAP;
-    }else{
-        const hiddenLeft=parentRect.right-elementRect.left;
-        left=hiddenLeft+END_GAP;
-    }
+    if(distanceLeft<=distanceRight)
+        left=parentRect.left-elementRect.right-END_GAP;
+    else
+        left=parentRect.right-elementRect.left+END_GAP;
 
-    return {
-        top,
-        left
-    };
+    return {top,left};
 }
 
-// ======================================
-// Easing
-// ======================================
-
-function easeOutCubic(progress){
-    return 1-Math.pow(1-progress,3);
-}
-
-// ======================================
-// Margin animation
-// ======================================
-
-function animateMargins(el,target,duration,complete){
+function animateMargins(el,to,duration,complete){
     if(!el)
         return Promise.resolve();
 
     stopSizeAnimation(el);
 
     const from=getCurrentMargin(el);
-    const to={
-        top:Number(target.top)||0,
-        left:Number(target.left)||0
-    };
-
-    setMargin(el,from.top,from.left);
-    forceLayout();
-
     const startTime=performance.now();
 
-    log("ANIMATION START",getName(el),{
-        from,
-        to,
-        duration,
-        startTime
-    });
+    log("ANIMATION START",getName(el),{from,to,duration});
 
     return new Promise(resolve=>{
         function frame(now){
-            const elapsed=now-startTime;
-            const progress=Math.min(1,elapsed/duration);
+            const progress=Math.min(1,(now-startTime)/duration);
 
-            const top=from.top+(to.top-from.top)*progress;
-            const left=from.left+(to.left-from.left)*progress;
-
-            setMargin(el,top,left);
-
-            if(DEBUG_ANIMATIONS&&(
-                progress===0||
-                progress>=1||
-                Math.abs(progress-.25)<.01||
-                Math.abs(progress-.5)<.01||
-                Math.abs(progress-.75)<.01
-            )){
-                log("FRAME",getName(el),{
-                    elapsed,
-                    progress,
-                    margin:{
-                        top,
-                        left
-                    },
-                    rect:getRect(el)
-                });
-            }
+            setMargin(
+                el,
+                from.top+(to.top-from.top)*progress,
+                from.left+(to.left-from.left)*progress
+            );
 
             if(progress<1){
                 el._animationFrame=requestAnimationFrame(frame);
@@ -221,73 +129,35 @@ function animateMargins(el,target,duration,complete){
             el._animationFrame=null;
             setMargin(el,to.top,to.left);
 
-            el._animationTimer=setTimeout(()=>{
-                el._animationTimer=null;
-                clearSizeAnimationStyles(el);
+            clearSizeAnimationStyles(el);
 
-                if(typeof complete==="function")
-                    complete();
+            if(typeof complete==="function")
+                complete();
 
-                log("ANIMATION END",getName(el),{
-                    elapsed:performance.now()-startTime
-                });
-
-                resolve();
-            },20);
+            resolve();
         }
 
         el._animationFrame=requestAnimationFrame(frame);
     });
 }
 
-// ======================================
-// Expand
-// ======================================
-
 export function animateExpand(el){
     if(!el)
         return Promise.resolve();
 
-    stopSizeAnimation(el);
-
-    return animateMargins(
-        el,
-        {
-            top:0,
-            left:0
-        },
-        EXPAND_DURATION
-    );
+    return animateMargins(el,{top:0,left:0},EXPAND_DURATION);
 }
-
-// ======================================
-// Collapse
-// ======================================
 
 export function animateCollapse(el){
     if(!el)
         return Promise.resolve();
 
-    stopSizeAnimation(el);
-
-    const hidden=getHiddenOffset(el);
-
-    return animateMargins(
-        el,
-        hidden,
-        COLLAPSE_DURATION
-    );
+    return animateMargins(el,getHiddenOffset(el),COLLAPSE_DURATION);
 }
-
-// ======================================
-// Resize
-// ======================================
 
 export function animateResize(el){
     if(!el)
         return Promise.resolve();
-
-    log("RESIZE",getName(el));
 
     return Promise.resolve();
 }
