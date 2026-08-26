@@ -5,7 +5,6 @@
 
 const EXPAND_DURATION=420;
 const COLLAPSE_DURATION=420;
-const END_GAP=14;
 
 const DEBUG_ANIMATIONS=false;
 
@@ -59,6 +58,43 @@ function getCurrentMargin(el){
 function setMargin(el,top,left){
     el.style.setProperty("margin-top",`${top}px`,"important");
     el.style.setProperty("margin-left",`${left}px`,"important");
+}
+
+// ======================================
+// End gap
+// ======================================
+
+function getEndGap(el,axis){
+    const style=window.getComputedStyle(el);
+    const parent=el?.parentElement;
+
+    if(!parent)
+        return 0;
+
+    const parentStyle=window.getComputedStyle(parent);
+
+    const margin=axis==="vertical"
+        ?parseFloat(style.marginBottom)||0
+        :parseFloat(style.marginRight)||0;
+
+    const rowGap=parseFloat(parentStyle.rowGap)||0;
+    const columnGap=parseFloat(parentStyle.columnGap)||0;
+
+    const gap=axis==="vertical"?rowGap:columnGap;
+    const display=parentStyle.display;
+
+    const result=margin||gap;
+
+    log("GAP",getName(el),{
+        axis,
+        margin:fmt(margin),
+        rowGap:fmt(rowGap),
+        columnGap:fmt(columnGap),
+        display,
+        result:fmt(result)
+    });
+
+    return result;
 }
 
 // ======================================
@@ -118,8 +154,8 @@ function getHiddenOffset(el){
 
     if(!parent)
         return {
-            top:-300-END_GAP,
-            left:-100-END_GAP
+            top:-300,
+            left:-100
         };
 
     const elementRect=getRect(el);
@@ -127,12 +163,15 @@ function getHiddenOffset(el){
 
     if(!elementRect||!parentRect)
         return {
-            top:-300-END_GAP,
-            left:-100-END_GAP
+            top:-300,
+            left:-100
         };
 
+    const verticalGap=getEndGap(el,"vertical");
+    const horizontalGap=getEndGap(el,"horizontal");
+
     const hiddenTop=parentRect.top-elementRect.bottom;
-    const top=hiddenTop-END_GAP;
+    const top=hiddenTop-verticalGap;
 
     const distanceLeft=Math.abs(elementRect.left-parentRect.left);
     const distanceRight=Math.abs(parentRect.right-elementRect.right);
@@ -141,11 +180,16 @@ function getHiddenOffset(el){
 
     if(distanceLeft<=distanceRight){
         const hiddenLeft=parentRect.left-elementRect.right;
-        left=hiddenLeft-END_GAP;
+        left=hiddenLeft-horizontalGap;
     }else{
         const hiddenLeft=parentRect.right-elementRect.left;
-        left=hiddenLeft+END_GAP;
+        left=hiddenLeft+horizontalGap;
     }
+
+    log("HIDDEN OFFSET",getName(el),{
+        gap:`${fmt(verticalGap)},${fmt(horizontalGap)}`,
+        offset:`${fmt(top)},${fmt(left)}`
+    });
 
     return {
         top,
