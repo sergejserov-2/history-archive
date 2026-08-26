@@ -168,30 +168,50 @@ function animateMargins(el,target,duration,complete){
     stopSizeAnimation(el);
 
     const from=getCurrentMargin(el);
-
     const to={
         top:Number(target.top)||0,
         left:Number(target.left)||0
     };
 
-    log("START",getName(el),{
+    setMargin(el,from.top,from.left);
+    forceLayout();
+
+    const startTime=performance.now();
+
+    log("ANIMATION START",getName(el),{
         from,
         to,
-        duration
+        duration,
+        startTime
     });
 
     return new Promise(resolve=>{
-        const startTime=performance.now();
-
         function frame(now){
             const elapsed=now-startTime;
-            const progress=Math.min(1,Math.max(0,elapsed/duration));
-            const eased=easeOutCubic(progress);
+            const progress=Math.min(1,elapsed/duration);
 
-            const top=from.top+(to.top-from.top)*eased;
-            const left=from.left+(to.left-from.left)*eased;
+            const top=from.top+(to.top-from.top)*progress;
+            const left=from.left+(to.left-from.left)*progress;
 
             setMargin(el,top,left);
+
+            if(DEBUG_ANIMATIONS&&(
+                progress===0||
+                progress>=1||
+                Math.abs(progress-.25)<.01||
+                Math.abs(progress-.5)<.01||
+                Math.abs(progress-.75)<.01
+            )){
+                log("FRAME",getName(el),{
+                    elapsed,
+                    progress,
+                    margin:{
+                        top,
+                        left
+                    },
+                    rect:getRect(el)
+                });
+            }
 
             if(progress<1){
                 el._animationFrame=requestAnimationFrame(frame);
@@ -208,7 +228,9 @@ function animateMargins(el,target,duration,complete){
                 if(typeof complete==="function")
                     complete();
 
-                log("END",getName(el));
+                log("ANIMATION END",getName(el),{
+                    elapsed:performance.now()-startTime
+                });
 
                 resolve();
             },20);
