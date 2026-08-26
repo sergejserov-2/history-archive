@@ -6,7 +6,7 @@
 const EXPAND_DURATION = 6420;
 const COLLAPSE_DURATION = 6420;
 
-const START_GAP = 140;
+const START_GAP = 32;
 const END_GAP = 14;
 
 const DEBUG_ANIMATIONS = false;
