@@ -6,7 +6,7 @@
 const EXPAND_DURATION=420;
 const COLLAPSE_DURATION=420;
 
-const DEBUG_ANIMATIONS=false;
+const DEBUG_ANIMATIONS=true;
 
 // ======================================
 // Debug
