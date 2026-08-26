@@ -6,12 +6,7 @@
 const EXPAND_DURATION = 1420;
 const COLLAPSE_DURATION = 1420;
 
-// ======================================
-// Diagnostic gaps
-// ======================================
-
 const END_GAP = 14;
-const START_GAP = 14;
 
 const DEBUG_ANIMATIONS = false;
 
@@ -38,6 +33,19 @@ function getRect(el){
 
 function forceLayout(){
     document.documentElement.offsetHeight;
+}
+
+// ======================================
+// Current margin
+// ======================================
+
+function getCurrentMargin(el){
+    const computed=window.getComputedStyle(el);
+
+    return {
+        top:parseFloat(computed.marginTop)||0,
+        left:parseFloat(computed.marginLeft)||0
+    };
 }
 
 // ======================================
@@ -144,35 +152,6 @@ function getHiddenOffset(el){
 }
 
 // ======================================
-// Start offset
-// ======================================
-
-function getStartOffset(hidden){
-    let top;
-
-    if(hidden.top<0)
-        top=hidden.top-START_GAP;
-    else if(hidden.top>0)
-        top=hidden.top+START_GAP;
-    else
-        top=hidden.top;
-
-    let left;
-
-    if(hidden.left<0)
-        left=hidden.left-START_GAP;
-    else if(hidden.left>0)
-        left=hidden.left+START_GAP;
-    else
-        left=hidden.left;
-
-    return {
-        top,
-        left
-    };
-}
-
-// ======================================
 // Easing
 // ======================================
 
@@ -184,16 +163,13 @@ function easeInOut(progress){
 // Margin animation
 // ======================================
 
-function animateMargins(el,start,target,duration,complete){
+function animateMargins(el,target,duration,complete){
     if(!el)
         return Promise.resolve();
 
     stopSizeAnimation(el);
 
-    const from={
-        top:Number(start.top)||0,
-        left:Number(start.left)||0
-    };
+    const from=getCurrentMargin(el);
 
     const to={
         top:Number(target.top)||0,
@@ -205,9 +181,6 @@ function animateMargins(el,start,target,duration,complete){
         to,
         duration
     });
-
-    setMargin(el,from.top,from.left);
-    forceLayout();
 
     return new Promise(resolve=>{
         const startTime=performance.now();
@@ -264,23 +237,17 @@ export function animateExpand(el){
 
     stopSizeAnimation(el);
 
-    const hidden=getHiddenOffset(el);
-    const start=getStartOffset(hidden);
-
     log("EXPAND",getName(el),{
-        from:start,
-        calculatedHidden:hidden,
+        from:getCurrentMargin(el),
         to:{
             top:0,
             left:0
         },
-        startGap:START_GAP,
         endGap:END_GAP
     });
 
     return animateMargins(
         el,
-        start,
         {
             top:0,
             left:0
@@ -302,20 +269,13 @@ export function animateCollapse(el){
     const hidden=getHiddenOffset(el);
 
     log("COLLAPSE",getName(el),{
-        from:{
-            top:0,
-            left:0
-        },
+        from:getCurrentMargin(el),
         to:hidden,
         endGap:END_GAP
     });
 
     return animateMargins(
         el,
-        {
-            top:0,
-            left:0
-        },
         hidden,
         COLLAPSE_DURATION
     );
