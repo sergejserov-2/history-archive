@@ -3,10 +3,9 @@
 // Margin based
 // ======================================
 
-const EXPAND_DURATION = 6420;
-const COLLAPSE_DURATION = 6420;
+const EXPAND_DURATION = 10420;
+const COLLAPSE_DURATION = 10420;
 
-const START_GAP = 32;
 const END_GAP = 14;
 
 const DEBUG_ANIMATIONS = false;
@@ -113,22 +112,20 @@ function setMargin(el,top,left){
 function getHiddenOffset(el){
     const parent=el?.parentElement;
 
-    if(!parent){
+    if(!parent)
         return {
             top:-300-END_GAP,
             left:-100-END_GAP
         };
-    }
 
     const elementRect=getRect(el);
     const parentRect=getRect(parent);
 
-    if(!elementRect||!parentRect){
+    if(!elementRect||!parentRect)
         return {
             top:-300-END_GAP,
             left:-100-END_GAP
         };
-    }
 
     const hiddenTop=parentRect.top-elementRect.bottom;
     const top=hiddenTop-END_GAP;
@@ -156,8 +153,8 @@ function getHiddenOffset(el){
 // Easing
 // ======================================
 
-function easeInOut(progress){
-    return (1-Math.cos(progress*Math.PI))/2;
+function easeOutCubic(progress){
+    return 1-Math.pow(1-progress,3);
 }
 
 // ======================================
@@ -188,8 +185,8 @@ function animateMargins(el,target,duration,complete){
 
         function frame(now){
             const elapsed=now-startTime;
-            const progress=Math.min(1,elapsed/duration);
-            const eased=easeInOut(progress);
+            const progress=Math.min(1,Math.max(0,elapsed/duration));
+            const eased=easeOutCubic(progress);
 
             const top=from.top+(to.top-from.top)*eased;
             const left=from.left+(to.left-from.left)*eased;
@@ -202,12 +199,10 @@ function animateMargins(el,target,duration,complete){
             }
 
             el._animationFrame=null;
-
             setMargin(el,to.top,to.left);
 
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
-
                 clearSizeAnimationStyles(el);
 
                 if(typeof complete==="function")
@@ -233,8 +228,6 @@ export function animateExpand(el){
 
     stopSizeAnimation(el);
 
-    const current=getCurrentMargin(el);
-
     return animateMargins(
         el,
         {
@@ -254,11 +247,6 @@ export function animateCollapse(el){
         return Promise.resolve();
 
     stopSizeAnimation(el);
-
-    // Стартовая позиция: +14 px от обычной
-    setMargin(el,START_GAP,START_GAP);
-
-    forceLayout();
 
     const hidden=getHiddenOffset(el);
 
