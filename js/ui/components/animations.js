@@ -3,8 +3,8 @@
 // Margin based
 // ======================================
 
-const EXPAND_DURATION=10420;
-const COLLAPSE_DURATION=10420;
+const EXPAND_DURATION=420;
+const COLLAPSE_DURATION=420;
 const END_GAP=14;
 
 const DEBUG_ANIMATIONS=false;
