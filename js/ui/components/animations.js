@@ -184,8 +184,15 @@ function animateMargins(el,target,duration,complete){
 
     return new Promise(resolve=>{
         const startTime=performance.now();
+        let firstFrame=true;
 
         function frame(now){
+            if(firstFrame){
+                firstFrame=false;
+                el._animationFrame=requestAnimationFrame(frame);
+                return;
+            }
+
             const elapsed=now-startTime;
             const progress=Math.min(1,elapsed/duration);
             const eased=easeInOut(progress);
