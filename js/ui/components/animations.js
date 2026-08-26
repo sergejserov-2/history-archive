@@ -5,14 +5,9 @@
 
 const EXPAND_DURATION=1420;
 const COLLAPSE_DURATION=1420;
-
 const END_GAP=14;
-
 const DEBUG_ANIMATIONS=true;
-
-// ======================================
-// Debug
-// ======================================
+const GEOMETRY_EPSILON=1;
 
 function log(...args){
     if(DEBUG_ANIMATIONS)
@@ -23,43 +18,6 @@ function getName(el){
     return el?.id||el?.className||el?.tagName||"element";
 }
 
-function snapshot(el){
-    if(!el)
-        return null;
-
-    const rect=getRect(el);
-    const parent=el.parentElement;
-    const parentRect=getRect(parent);
-
-    return {
-        margin:getCurrentMargin(el),
-        elementRect:rect
-            ? {
-                top:rect.top,
-                bottom:rect.bottom,
-                left:rect.left,
-                right:rect.right,
-                width:rect.width,
-                height:rect.height
-            }
-            : null,
-        parentRect:parentRect
-            ? {
-                top:parentRect.top,
-                bottom:parentRect.bottom,
-                left:parentRect.left,
-                right:parentRect.right,
-                width:parentRect.width,
-                height:parentRect.height
-            }
-            : null
-    };
-}
-
-// ======================================
-// Geometry
-// ======================================
-
 function getRect(el){
     return el?.getBoundingClientRect()||null;
 }
@@ -68,448 +26,289 @@ function forceLayout(){
     document.documentElement.offsetHeight;
 }
 
-// ======================================
-// Current margin
-// ======================================
-
 function getCurrentMargin(el){
     const computed=window.getComputedStyle(el);
-
     return {
         top:parseFloat(computed.marginTop)||0,
         left:parseFloat(computed.marginLeft)||0
     };
 }
 
-// ======================================
-// Stop
-// ======================================
+function getGeometry(el){
+    const rect=getRect(el);
+    const parentRect=getRect(el?.parentElement);
+    if(!rect||!parentRect)
+        return null;
+    return {
+        margin:getCurrentMargin(el),
+        element:{
+            left:rect.left,
+            top:rect.top,
+            right:rect.right,
+            bottom:rect.bottom,
+            width:rect.width,
+            height:rect.height
+        },
+        parent:{
+            left:parentRect.left,
+            top:parentRect.top,
+            right:parentRect.right,
+            bottom:parentRect.bottom,
+            width:parentRect.width,
+            height:parentRect.height
+        }
+    };
+}
+
+function geometryDiff(a,b){
+    if(!a||!b)
+        return null;
+    return {
+        element:{
+            left:b.element.left-a.element.left,
+            top:b.element.top-a.element.top,
+            width:b.element.width-a.element.width,
+            height:b.element.height-a.element.height
+        },
+        parent:{
+            left:b.parent.left-a.parent.left,
+            top:b.parent.top-a.parent.top,
+            width:b.parent.width-a.parent.width,
+            height:b.parent.height-a.parent.height
+        }
+    };
+}
+
+function hasGeometryJump(diff){
+    if(!diff)
+        return false;
+    return Math.abs(diff.element.left)>GEOMETRY_EPSILON||
+        Math.abs(diff.element.top)>GEOMETRY_EPSILON||
+        Math.abs(diff.element.width)>GEOMETRY_EPSILON||
+        Math.abs(diff.element.height)>GEOMETRY_EPSILON||
+        Math.abs(diff.parent.left)>GEOMETRY_EPSILON||
+        Math.abs(diff.parent.top)>GEOMETRY_EPSILON||
+        Math.abs(diff.parent.width)>GEOMETRY_EPSILON||
+        Math.abs(diff.parent.height)>GEOMETRY_EPSILON;
+}
 
 function stopSizeAnimation(el){
     if(!el)
         return;
-
     if(el._animationFrame){
         cancelAnimationFrame(el._animationFrame);
         el._animationFrame=null;
     }
-
     if(el._animationTimer){
         clearTimeout(el._animationTimer);
         el._animationTimer=null;
     }
-
-    log("STOP",getName(el),snapshot(el));
+    log("STOP",getName(el),getGeometry(el));
 }
-
-// ======================================
-// Clear
-// ======================================
 
 function clearSizeAnimationStyles(el){
     if(!el)
         return;
-
     el.style.removeProperty("margin-top");
     el.style.removeProperty("margin-left");
     el.style.removeProperty("transition");
 }
 
-// ======================================
-// Cancel
-// ======================================
-
 export function cancelSizeAnimation(el){
     if(!el)
         return;
-
-    log("CANCEL BEFORE",getName(el),snapshot(el));
-
     stopSizeAnimation(el);
     clearSizeAnimationStyles(el);
-
-    log("CANCEL AFTER",getName(el),snapshot(el));
+    log("CANCEL",getName(el));
 }
-
-// ======================================
-// Margin
-// ======================================
 
 function setMargin(el,top,left){
-    el.style.setProperty(
-        "margin-top",
-        `${top}px`,
-        "important"
-    );
-
-    el.style.setProperty(
-        "margin-left",
-        `${left}px`,
-        "important"
-    );
+    el.style.setProperty("margin-top",`${top}px`,"important");
+    el.style.setProperty("margin-left",`${left}px`,"important");
 }
-
-// ======================================
-// Hidden offset
-// ======================================
 
 function getHiddenOffset(el){
     const parent=el?.parentElement;
 
     if(!parent){
-        const result={
+        return {
             top:-300-END_GAP,
             left:-100-END_GAP
         };
-
-        log(
-            "HIDDEN NO PARENT",
-            getName(el),
-            result
-        );
-
-        return result;
     }
 
     const elementRect=getRect(el);
     const parentRect=getRect(parent);
 
     if(!elementRect||!parentRect){
-        const result={
+        return {
             top:-300-END_GAP,
             left:-100-END_GAP
         };
-
-        log(
-            "HIDDEN NO RECT",
-            getName(el),
-            {
-                result,
-                elementRect,
-                parentRect
-            }
-        );
-
-        return result;
     }
 
-    const hiddenTop=
-        parentRect.top-
-        elementRect.bottom;
+    const hiddenTop=parentRect.top-elementRect.bottom;
+    const top=hiddenTop-END_GAP;
 
-    const top=
-        hiddenTop-
-        END_GAP;
-
-    const distanceLeft=
-        Math.abs(
-            elementRect.left-
-            parentRect.left
-        );
-
-    const distanceRight=
-        Math.abs(
-            parentRect.right-
-            elementRect.right
-        );
+    const distanceLeft=Math.abs(elementRect.left-parentRect.left);
+    const distanceRight=Math.abs(parentRect.right-elementRect.right);
 
     let left;
 
     if(distanceLeft<=distanceRight){
-        const hiddenLeft=
-            parentRect.left-
-            elementRect.right;
-
-        left=
-            hiddenLeft-
-            END_GAP;
+        const hiddenLeft=parentRect.left-elementRect.right;
+        left=hiddenLeft-END_GAP;
     }else{
-        const hiddenLeft=
-            parentRect.right-
-            elementRect.left;
-
-        left=
-            hiddenLeft+
-            END_GAP;
+        const hiddenLeft=parentRect.right-elementRect.left;
+        left=hiddenLeft+END_GAP;
     }
 
-    const result={
-        top,
-        left
-    };
-
-    log(
-        "HIDDEN CALCULATED",
-        getName(el),
-        {
-            elementRect:{
-                top:elementRect.top,
-                bottom:elementRect.bottom,
-                left:elementRect.left,
-                right:elementRect.right,
-                width:elementRect.width,
-                height:elementRect.height
-            },
-            parentRect:{
-                top:parentRect.top,
-                bottom:parentRect.bottom,
-                left:parentRect.left,
-                right:parentRect.right,
-                width:parentRect.width,
-                height:parentRect.height
-            },
-            hiddenTop,
-            distanceLeft,
-            distanceRight,
-            END_GAP,
-            result
-        }
-    );
-
-    return result;
+    return {top,left};
 }
-
-// ======================================
-// Easing
-// ======================================
 
 function easeInOut(progress){
     return (1-Math.cos(progress*Math.PI))/2;
 }
 
-// ======================================
-// Margin animation
-// ======================================
-
-function animateMargins(
-    el,
-    target,
-    duration,
-    complete
-){
+function animateMargins(el,target,duration,complete){
     if(!el)
         return Promise.resolve();
 
     stopSizeAnimation(el);
 
     const from=getCurrentMargin(el);
-
     const to={
         top:Number(target.top)||0,
         left:Number(target.left)||0
     };
 
-    log(
-        "========================================"
-    );
+    const initialGeometry=getGeometry(el);
 
-    log(
-        "ANIMATION START",
-        getName(el)
-    );
-
-    log(
-        "FROM",
-        from
-    );
-
-    log(
-        "TO",
-        to
-    );
-
-    log(
-        "DURATION",
-        duration
-    );
-
-    log(
-        "INITIAL SNAPSHOT",
-        snapshot(el)
-    );
+    log("========================================");
+    log("ANIMATION START",getName(el));
+    log("FROM",from);
+    log("TO",to);
+    log("DURATION",duration);
+    log("INITIAL GEOMETRY",initialGeometry);
 
     return new Promise(resolve=>{
-
         const startTime=performance.now();
         let frameNumber=0;
+        let previousGeometry=initialGeometry;
+        let previousElapsed=0;
+        let previousEased=0;
 
         function frame(now){
-
             frameNumber++;
 
-            const elapsed=
-                now-
-                startTime;
+            const elapsed=Math.max(0,now-startTime);
+            const progress=Math.min(1,elapsed/duration);
+            const eased=easeInOut(progress);
 
-            const progress=
-                Math.min(
-                    1,
-                    elapsed/duration
-                );
+            const top=from.top+(to.top-from.top)*eased;
+            const left=from.left+(to.left-from.left)*eased;
 
-            const eased=
-                easeInOut(progress);
+            setMargin(el,top,left);
+            forceLayout();
 
-            const top=
-                from.top+
-                (
-                    to.top-
-                    from.top
-                )*
-                eased;
-
-            const left=
-                from.left+
-                (
-                    to.left-
-                    from.left
-                )*
-                eased;
-
-            const before=snapshot(el);
-
-            setMargin(
-                el,
-                top,
-                left
-            );
-
-            const after=snapshot(el);
+            const geometry=getGeometry(el);
+            const diff=geometryDiff(previousGeometry,geometry);
 
             if(
-                DEBUG_ANIMATIONS &&
-                (
-                    frameNumber<=5||
-                    (
-                        progress>=.25&&
-                        progress<=.55
-                    )||
-                    progress>=.95
-                )
+                frameNumber<=3||
+                progress>=0.25&&progress<=0.4||
+                progress>=0.95||
+                hasGeometryJump(diff)
             ){
-
-                log(
-                    "FRAME",
-                    {
-                        frame:frameNumber,
-                        elapsed,
-                        progress,
-                        eased,
-                        calculatedMargin:{
-                            top,
-                            left
-                        },
-                        before,
-                        after
-                    }
-                );
-
+                log("FRAME",{
+                    frame:frameNumber,
+                    elapsed,
+                    elapsedDelta:elapsed-previousElapsed,
+                    progress,
+                    eased,
+                    easedDelta:eased-previousEased,
+                    margin:{
+                        top,
+                        left
+                    },
+                    geometry,
+                    diff
+                });
             }
 
+            if(hasGeometryJump(diff)){
+                log("******** GEOMETRY CHANGE ********",{
+                    frame:frameNumber,
+                    progress,
+                    diff,
+                    geometry
+                });
+            }
+
+            previousGeometry=geometry;
+            previousElapsed=elapsed;
+            previousEased=eased;
+
             if(progress<1){
-
-                el._animationFrame=
-                    requestAnimationFrame(
-                        frame
-                    );
-
+                el._animationFrame=requestAnimationFrame(frame);
                 return;
             }
 
             el._animationFrame=null;
 
-            setMargin(
-                el,
-                to.top,
-                to.left
-            );
+            setMargin(el,to.top,to.left);
+            forceLayout();
 
-            log(
-                "FINAL MARGIN SET",
-                getName(el),
-                {
+            const finalGeometry=getGeometry(el);
+
+            log("FINAL MARGIN SET",{
+                margin:getCurrentMargin(el),
+                geometry:finalGeometry
+            });
+
+            el._animationTimer=setTimeout(()=>{
+                el._animationTimer=null;
+
+                const beforeClear=getGeometry(el);
+
+                log("BEFORE CLEAR",{
                     margin:getCurrentMargin(el),
-                    snapshot:snapshot(el)
-                }
-            );
+                    geometry:beforeClear
+                });
 
-            el._animationTimer=
-                setTimeout(()=>{
+                clearSizeAnimationStyles(el);
+                forceLayout();
 
-                    el._animationTimer=null;
+                const afterClear=getGeometry(el);
 
-                    log(
-                        "BEFORE CLEAR",
-                        getName(el),
-                        snapshot(el)
-                    );
+                log("AFTER CLEAR",{
+                    margin:getCurrentMargin(el),
+                    geometry:afterClear,
+                    diff:geometryDiff(beforeClear,afterClear)
+                });
 
-                    clearSizeAnimationStyles(el);
+                if(typeof complete==="function")
+                    complete();
 
-                    log(
-                        "AFTER CLEAR",
-                        getName(el),
-                        snapshot(el)
-                    );
+                log("ANIMATION END",getName(el));
+                log("========================================");
 
-                    if(
-                        typeof complete===
-                        "function"
-                    )
-                        complete();
-
-                    log(
-                        "ANIMATION END",
-                        getName(el)
-                    );
-
-                    log(
-                        "========================================"
-                    );
-
-                    resolve();
-
-                },20);
+                resolve();
+            },20);
         }
 
-        log(
-            "FIRST RAF SCHEDULED",
-            getName(el)
-        );
-
-        el._animationFrame=
-            requestAnimationFrame(
-                frame
-            );
+        el._animationFrame=requestAnimationFrame(frame);
+        log("FIRST RAF SCHEDULED");
     });
 }
 
-// ======================================
-// Expand
-// ======================================
-
 export function animateExpand(el){
-
     if(!el)
         return Promise.resolve();
 
     stopSizeAnimation(el);
 
-    const current=
-        getCurrentMargin(el);
-
-    log(
-        "******** EXPAND ********",
-        getName(el)
-    );
-
-    log(
-        "EXPAND BEFORE",
-        {
-            current,
-            snapshot:snapshot(el)
-        }
-    );
+    log("******** EXPAND ********",getName(el));
 
     return animateMargins(
         el,
@@ -521,44 +320,27 @@ export function animateExpand(el){
     );
 }
 
-// ======================================
-// Collapse
-// ======================================
-
 export function animateCollapse(el){
-
     if(!el)
         return Promise.resolve();
 
     stopSizeAnimation(el);
 
-    const current=
-        getCurrentMargin(el);
+    log("******** COLLAPSE ********",getName(el));
 
-    log(
-        "******** COLLAPSE ********",
-        getName(el)
-    );
+    const before=getGeometry(el);
 
-    log(
-        "COLLAPSE BEFORE HIDDEN",
-        {
-            current,
-            snapshot:snapshot(el)
-        }
-    );
+    log("COLLAPSE BEFORE HIDDEN",before);
 
-    const hidden=
-        getHiddenOffset(el);
+    const hidden=getHiddenOffset(el);
 
-    log(
-        "COLLAPSE AFTER HIDDEN",
-        {
-            current:getCurrentMargin(el),
-            hidden,
-            snapshot:snapshot(el)
-        }
-    );
+    const after=getGeometry(el);
+
+    log("COLLAPSE AFTER HIDDEN",{
+        current:after,
+        hidden,
+        geometryDiff:geometryDiff(before,after)
+    });
 
     return animateMargins(
         el,
@@ -567,20 +349,11 @@ export function animateCollapse(el){
     );
 }
 
-// ======================================
-// Resize
-// ======================================
-
 export function animateResize(el){
-
     if(!el)
         return Promise.resolve();
 
-    log(
-        "RESIZE",
-        getName(el),
-        snapshot(el)
-    );
+    log("RESIZE",getName(el),getGeometry(el));
 
     return Promise.resolve();
 }
