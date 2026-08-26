@@ -3,14 +3,14 @@
 // Margin based
 // ======================================
 
-const EXPAND_DURATION = 420;
-const COLLAPSE_DURATION = 420;
+const EXPAND_DURATION = 1420;
+const COLLAPSE_DURATION = 1420;
 
 const DEBUG_ANIMATIONS = false;
 
 // Диагностические зазоры.
 // Можно менять независимо друг от друга.
-const VERTICAL_START_OFFSET = 14;
+const VERTICAL_START_OFFSET = 64;
 const VERTICAL_END_OFFSET = 14;
 
 
