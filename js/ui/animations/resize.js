@@ -190,13 +190,6 @@ function animateGroup(elements,mode,duration){
 
     const total=items.reduce((sum,item)=>sum+item.size,0);
 
-    console.log(`[resize] ${mode} group:`,items.map((item,index)=>({
-        index:index+1,
-        element:item.el,
-        size:item.size
-    })));
-    console.log(`[resize] ${mode} group total: ${total}px`);
-
     for(const item of items){
         stop(item.el);
         setMargins(item.el,item.visible);
