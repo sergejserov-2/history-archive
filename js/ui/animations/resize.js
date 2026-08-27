@@ -141,15 +141,28 @@ function ease(t){
     return 1-Math.pow(1-t,3);
 }
 
-function animate(el,from,to,duration){
-    if(!el)
+function interpolate(from,to,e){
+    return{
+        top:from.top+(to.top-from.top)*e,
+        right:from.right+(to.right-from.right)*e,
+        bottom:from.bottom+(to.bottom-from.bottom)*e,
+        left:from.left+(to.left-from.left)*e
+    };
+}
+
+function animateGroup(items,duration){
+    if(!items.length)
         return Promise.resolve();
 
-    stop(el);
-    setMargins(el,from);
+    for(const item of items){
+        stop(item.el);
+        setMargins(item.el,item.from);
+    }
+
     void document.documentElement.offsetHeight;
 
-    logSectionFrame(el,"START");
+    for(const item of items)
+        logSectionFrame(item.el,"START");
 
     const start=performance.now();
 
@@ -158,33 +171,41 @@ function animate(el,from,to,duration){
             const t=Math.min(1,(now-start)/duration);
             const e=ease(t);
 
-            setMargins(el,{
-                top:from.top+(to.top-from.top)*e,
-                right:from.right+(to.right-from.right)*e,
-                bottom:from.bottom+(to.bottom-from.bottom)*e,
-                left:from.left+(to.left-from.left)*e
-            });
-
-            if(isSection(el))
-                logSectionFrame(el,`FRAME ${Math.round(t*100)}%`);
+            for(const item of items)
+                setMargins(item.el,interpolate(item.from,item.to,e));
 
             if(t<1){
-                el._animationFrame=requestAnimationFrame(frame);
+                const frameId=requestAnimationFrame(frame);
+                for(const item of items)
+                    item.el._animationFrame=frameId;
                 return;
             }
 
-            el._animationFrame=null;
-            setMargins(el,to);
+            for(const item of items){
+                item.el._animationFrame=null;
+                setMargins(item.el,item.to);
+            }
 
-            el._animationTimer=setTimeout(()=>{
-                el._animationTimer=null;
-                logSectionFrame(el,"BEFORE RESOLVE");
+            const timer=setTimeout(()=>{
+                for(const item of items){
+                    item.el._animationTimer=null;
+                    logSectionFrame(item.el,"BEFORE RESOLVE");
+                }
                 resolve();
             },20);
+
+            for(const item of items)
+                item.el._animationTimer=timer;
         }
 
-        el._animationFrame=requestAnimationFrame(frame);
+        const frameId=requestAnimationFrame(frame);
+        for(const item of items)
+            item.el._animationFrame=frameId;
     });
+}
+
+function animate(el,from,to,duration){
+    return animateGroup([{el,from,to}],duration);
 }
 
 export function cancelSizeAnimation(el){
@@ -220,4 +241,30 @@ export function animateCollapse(el){
     const hidden=getHiddenMargins(el);
 
     return animate(el,visible,hidden,COLLAPSE_DURATION);
+}
+
+export function animateExpandGroup(elements){
+    if(!elements?.length)
+        return Promise.resolve();
+
+    const items=elements.map(el=>({
+        el,
+        from:getHiddenMargins(el),
+        to:getMargins(el)
+    }));
+
+    return animateGroup(items,EXPAND_DURATION);
+}
+
+export function animateCollapseGroup(elements){
+    if(!elements?.length)
+        return Promise.resolve();
+
+    const items=elements.map(el=>({
+        el,
+        from:getMargins(el),
+        to:getHiddenMargins(el)
+    }));
+
+    return animateGroup(items,COLLAPSE_DURATION);
 }
