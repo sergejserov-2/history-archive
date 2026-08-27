@@ -37,18 +37,14 @@ function forceLayout(){
     void document.documentElement.offsetHeight;
 }
 
-// ======================================
-// Computed geometry
-// ======================================
-
 function getGeometry(el){
-    const style=window.getComputedStyle(el);
     const rect=getRect(el);
+    const style=getComputedStyle(el);
 
     if(!rect)
         return null;
 
-    return {
+    return{
         width:rect.width,
         height:rect.height,
         marginTop:parseFloat(style.marginTop)||0,
@@ -66,33 +62,170 @@ function getLayout(el){
     const parent=el?.parentElement;
 
     if(!parent)
-        return {
+        return{
             axis:"vertical",
             direction:"forward"
         };
 
-    const style=window.getComputedStyle(parent);
+    const style=getComputedStyle(parent);
+    const display=style.display;
+
+    if(display==="flex")
+        return getFlexLayout(el,parent,style);
+
+    if(display==="grid")
+        return getGridLayout(el,parent,style);
+
+    return{
+        axis:"vertical",
+        direction:"forward"
+    };
+}
+
+// ======================================
+// Flex
+// ======================================
+
+function getFlexLayout(el,parent,style){
+    let axis=
+        style.flexDirection==="row"||
+        style.flexDirection==="row-reverse"
+            ?"horizontal"
+            :"vertical";
+
+    let direction=
+        style.flexDirection==="row-reverse"||
+        style.flexDirection==="column-reverse"
+            ?"reverse"
+            :"forward";
+
+    const justifyEnd=
+        style.justifyContent==="flex-end"||
+        style.justifyContent==="end";
+
+    if(justifyEnd)
+        direction=
+            direction==="forward"
+                ?"reverse"
+                :"forward";
 
     if(
-        style.display==="flex"&&
-        (
-            style.flexDirection==="row"||
-            style.flexDirection==="row-reverse"
-        )
-    ){
-        return {
+        axis==="horizontal"&&
+        style.direction==="rtl"
+    )
+        direction=
+            direction==="forward"
+                ?"reverse"
+                :"forward";
+
+    return{
+        axis,
+        direction
+    };
+}
+
+// ======================================
+// Grid
+// ======================================
+
+function getGridLayout(el,parent,style){
+    const children=[
+        ...parent.children
+    ].filter(child=>child!==el);
+
+    const rect=getRect(el);
+
+    if(!rect)
+        return{
+            axis:"vertical",
+            direction:"forward"
+        };
+
+    const before=children
+        .map(child=>({
+            element:child,
+            rect:getRect(child)
+        }))
+        .filter(item=>item.rect)
+        .filter(item=>{
+            return item.rect.bottom<=rect.top+1;
+        })
+        .sort((a,b)=>{
+            return b.rect.bottom-a.rect.bottom;
+        })[0];
+
+    const after=children
+        .map(child=>({
+            element:child,
+            rect:getRect(child)
+        }))
+        .filter(item=>item.rect)
+        .filter(item=>{
+            return item.rect.top>=rect.bottom-1;
+        })
+        .sort((a,b)=>{
+            return a.rect.top-b.rect.top;
+        })[0];
+
+    const left=children
+        .map(child=>({
+            element:child,
+            rect:getRect(child)
+        }))
+        .filter(item=>item.rect)
+        .filter(item=>{
+            return item.rect.right<=rect.left+1;
+        })
+        .sort((a,b)=>{
+            return b.rect.right-a.rect.right;
+        })[0];
+
+    const right=children
+        .map(child=>({
+            element:child,
+            rect:getRect(child)
+        }))
+        .filter(item=>item.rect)
+        .filter(item=>{
+            return item.rect.left>=rect.right-1;
+        })
+        .sort((a,b)=>{
+            return a.rect.left-b.rect.left;
+        })[0];
+
+    const verticalDistance=
+        Math.min(
+            before
+                ?Math.abs(rect.top-before.rect.bottom)
+                :Infinity,
+            after
+                ?Math.abs(after.rect.top-rect.bottom)
+                :Infinity
+        );
+
+    const horizontalDistance=
+        Math.min(
+            left
+                ?Math.abs(rect.left-left.rect.right)
+                :Infinity,
+            right
+                ?Math.abs(right.rect.left-rect.right)
+                :Infinity
+        );
+
+    if(horizontalDistance<verticalDistance)
+        return{
             axis:"horizontal",
             direction:
-                style.flexDirection==="row"
-                    ?"forward"
-                    :"reverse"
+                left&&!right
+                    ?"reverse"
+                    :"forward"
         };
-    }
 
-    return {
+    return{
         axis:"vertical",
         direction:
-            style.flexDirection==="column-reverse"
+            before&&!after
                 ?"reverse"
                 :"forward"
     };
@@ -108,7 +241,7 @@ function getGap(el,axis){
     if(!parent)
         return 0;
 
-    const style=window.getComputedStyle(parent);
+    const style=getComputedStyle(parent);
 
     return axis==="horizontal"
         ?parseFloat(style.columnGap)||0
@@ -116,46 +249,33 @@ function getGap(el,axis){
 }
 
 // ======================================
-// Compensation
+// Styles
 // ======================================
 
-function getCompensation(el,axis){
-    const style=window.getComputedStyle(el);
+function setSize(el,axis,value){
+    value=Math.max(0,value);
 
-    const gap=getGap(el,axis);
-
-    if(axis==="horizontal"){
-        return {
-            start:parseFloat(style.marginLeft)||0,
-            end:(parseFloat(style.marginRight)||0)+gap
-        };
-    }
-
-    return {
-        start:parseFloat(style.marginTop)||0,
-        end:(parseFloat(style.marginBottom)||0)+gap
-    };
+    if(axis==="horizontal")
+        el.style.setProperty(
+            "width",
+            `${value}px`,
+            "important"
+        );
+    else
+        el.style.setProperty(
+            "height",
+            `${value}px`,
+            "important"
+        );
 }
 
-// ======================================
-// Size
-// ======================================
-
-function setSize(el,width,height){
-    el.style.setProperty(
-        "width",
-        `${Math.max(0,width)}px`,
-        "important"
-    );
-
-    el.style.setProperty(
-        "height",
-        `${Math.max(0,height)}px`,
-        "important"
-    );
-}
-
-function setMargins(el,top,right,bottom,left){
+function setMargins(
+    el,
+    top,
+    right,
+    bottom,
+    left
+){
     el.style.setProperty(
         "margin-top",
         `${top}px`,
@@ -190,12 +310,16 @@ function stopSizeAnimation(el){
         return;
 
     if(el._animationFrame){
-        cancelAnimationFrame(el._animationFrame);
+        cancelAnimationFrame(
+            el._animationFrame
+        );
         el._animationFrame=null;
     }
 
     if(el._animationTimer){
-        clearTimeout(el._animationTimer);
+        clearTimeout(
+            el._animationTimer
+        );
         el._animationTimer=null;
     }
 }
@@ -214,7 +338,6 @@ function clearSizeAnimationStyles(el){
     el.style.removeProperty("margin-right");
     el.style.removeProperty("margin-bottom");
     el.style.removeProperty("margin-left");
-    el.style.removeProperty("transition");
 }
 
 // ======================================
@@ -250,129 +373,128 @@ function animateGeometry(
     expanding,
     duration
 ){
-    if(!el||!geometry)
-        return Promise.resolve();
-
     stopSizeAnimation(el);
 
     const axis=layout.axis;
+    const direction=layout.direction;
 
-    const startSize=expanding
-        ?0
-        :(axis==="horizontal"
+    const gap=getGap(el,axis);
+
+    const size=
+        axis==="horizontal"
             ?geometry.width
-            :geometry.height);
+            :geometry.height;
 
-    const endSize=expanding
-        ?(axis==="horizontal"
-            ?geometry.width
-            :geometry.height)
-        :0;
+    const marginStart=
+        axis==="horizontal"
+            ?geometry.marginLeft
+            :geometry.marginTop;
 
-    const compensation=getCompensation(
-        el,
-        axis
-    );
+    const marginEnd=
+        axis==="horizontal"
+            ?geometry.marginRight
+            :geometry.marginBottom;
 
-    const startMarginStart=expanding
-        ?compensation.start
-        :0;
+    const compensationStart=
+        marginStart+gap;
 
-    const endMarginStart=expanding
-        ?0
-        :compensation.start;
+    const compensationEnd=
+        marginEnd+gap;
 
-    const startMarginEnd=expanding
-        ?compensation.end
-        :0;
+    const fromSize=
+        expanding
+            ?0
+            :size;
 
-    const endMarginEnd=expanding
-        ?0
-        :compensation.end;
+    const toSize=
+        expanding
+            ?size
+            :0;
 
-    const margins={
-        top:geometry.marginTop,
-        right:geometry.marginRight,
-        bottom:geometry.marginBottom,
-        left:geometry.marginLeft
-    };
+    const fromCompensation=
+        expanding
+            ?1
+            :0;
+
+    const toCompensation=
+        expanding
+            ?0
+            :1;
+
+    const startTime=performance.now();
 
     function apply(progress){
         const eased=easeOutCubic(progress);
 
-        const size=
-            startSize+
-            (endSize-startSize)*eased;
+        const currentSize=
+            fromSize+
+            (toSize-fromSize)*eased;
 
-        const marginStart=
-            startMarginStart+
-            (endMarginStart-startMarginStart)*eased;
+        const compensation=
+            fromCompensation+
+            (toCompensation-fromCompensation)*eased;
 
-        const marginEnd=
-            startMarginEnd+
-            (endMarginEnd-startMarginEnd)*eased;
+        const start=
+            compensationStart*compensation;
+
+        const end=
+            compensationEnd*compensation;
+
+        setSize(
+            el,
+            axis,
+            currentSize
+        );
 
         if(axis==="horizontal"){
-            const left=
-                layout.direction==="forward"
-                    ?marginStart
-                    :marginEnd;
 
-            const right=
-                layout.direction==="forward"
-                    ?marginEnd
-                    :marginStart;
-
-            setSize(
-                el,
-                size,
-                geometry.height
-            );
-
-            setMargins(
-                el,
-                margins.top,
-                right,
-                margins.bottom,
-                left
-            );
+            if(direction==="forward"){
+                setMargins(
+                    el,
+                    geometry.marginTop,
+                    end,
+                    geometry.marginBottom,
+                    start
+                );
+            }else{
+                setMargins(
+                    el,
+                    geometry.marginTop,
+                    start,
+                    geometry.marginBottom,
+                    end
+                );
+            }
 
             return;
         }
 
-        const top=
-            layout.direction==="forward"
-                ?marginStart
-                :marginEnd;
-
-        const bottom=
-            layout.direction==="forward"
-                ?marginEnd
-                :marginStart;
-
-        setSize(
-            el,
-            geometry.width,
-            size
-        );
-
-        setMargins(
-            el,
-            top,
-            margins.right,
-            bottom,
-            margins.left
-        );
+        if(direction==="forward"){
+            setMargins(
+                el,
+                start,
+                geometry.marginRight,
+                end,
+                geometry.marginLeft
+            );
+        }else{
+            setMargins(
+                el,
+                end,
+                geometry.marginRight,
+                start,
+                geometry.marginLeft
+            );
+        }
     }
 
     apply(0);
     forceLayout();
 
-    const startTime=performance.now();
-
     return new Promise(resolve=>{
 
         function frame(now){
+
             const progress=Math.min(
                 1,
                 (now-startTime)/duration
@@ -426,7 +548,10 @@ export function animateExpand(el){
         "EXPAND",
         getName(el),
         layout,
-        geometry
+        {
+            width:fmt(geometry.width),
+            height:fmt(geometry.height)
+        }
     );
 
     return animateGeometry(
@@ -457,7 +582,10 @@ export function animateCollapse(el){
         "COLLAPSE",
         getName(el),
         layout,
-        geometry
+        {
+            width:fmt(geometry.width),
+            height:fmt(geometry.height)
+        }
     );
 
     return animateGeometry(
