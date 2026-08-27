@@ -48,7 +48,7 @@ export function cancelAnimation(element){
 
 export function show(element){
     if(!element)
-        return;
+        return Promise.resolve();
 
     cancelAnimation(element);
 
@@ -57,22 +57,29 @@ export function show(element){
 
     element.classList.add(HIDDEN_CLASS);
 
-    animateExpand(element).then(()=>{
+    return animateExpand(element).then(()=>{
         if(element._animationState!==ENTER_STATE)
             return;
 
-        element._animationTimer=setTimeout(()=>{
-            if(element._animationState!==ENTER_STATE)
-                return;
-
-            showVisibility(element).then(()=>{
-                if(element._animationState!==ENTER_STATE)
+        return new Promise(resolve=>{
+            element._animationTimer=setTimeout(()=>{
+                if(element._animationState!==ENTER_STATE){
+                    resolve();
                     return;
+                }
 
-                element._animationState=null;
-                element._animationTimer=null;
-            });
-        },ENTER_DELAY);
+                showVisibility(element).then(()=>{
+                    if(element._animationState!==ENTER_STATE){
+                        resolve();
+                        return;
+                    }
+
+                    element._animationState=null;
+                    element._animationTimer=null;
+                    resolve();
+                });
+            },ENTER_DELAY);
+        });
     });
 }
 
@@ -82,31 +89,38 @@ export function show(element){
 
 export function hide(element){
     if(!element)
-        return;
+        return Promise.resolve();
 
     cancelAnimation(element);
 
     if(element.hidden)
-        return;
+        return Promise.resolve();
 
     element._animationState=EXIT_STATE;
 
-    hideVisibility(element).then(()=>{
+    return hideVisibility(element).then(()=>{
         if(element._animationState!==EXIT_STATE)
             return;
 
-        element._animationTimer=setTimeout(()=>{
-            if(element._animationState!==EXIT_STATE)
-                return;
-
-            animateCollapse(element).then(()=>{
-                if(element._animationState!==EXIT_STATE)
+        return new Promise(resolve=>{
+            element._animationTimer=setTimeout(()=>{
+                if(element._animationState!==EXIT_STATE){
+                    resolve();
                     return;
+                }
 
-                element.hidden=true;
-                element._animationState=null;
-                element._animationTimer=null;
-            });
-        },EXIT_DELAY);
+                animateCollapse(element).then(()=>{
+                    if(element._animationState!==EXIT_STATE){
+                        resolve();
+                        return;
+                    }
+
+                    element.hidden=true;
+                    element._animationState=null;
+                    element._animationTimer=null;
+                    resolve();
+                });
+            },EXIT_DELAY);
+        });
     });
 }
