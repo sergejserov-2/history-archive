@@ -89,8 +89,6 @@ function runExpand(group){
     if(existing)
         return existing;
 
-    console.log("[animation] expand group:",group);
-
     for(const element of group){
         element.hidden=false;
         element.classList.add(HIDDEN_CLASS);
@@ -127,8 +125,6 @@ function runCollapse(group){
 
     if(existing)
         return existing;
-
-    console.log("[animation] collapse group:",group);
 
     const visibility=Promise.all(
         group.map(element=>hideVisibility(element))
