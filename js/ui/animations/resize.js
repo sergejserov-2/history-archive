@@ -3,8 +3,8 @@
 // Margin based
 // ======================================
 
-const EXPAND_DURATION=4420;
-const COLLAPSE_DURATION=4420;
+const EXPAND_DURATION=420;
+const COLLAPSE_DURATION=420;
 
 const DEBUG_ANIMATIONS=true;
 
@@ -79,115 +79,113 @@ function setMargins(el,margin){
 }
 
 // ======================================
-// Gap
+// Layout direction
 // ======================================
 
-function getGaps(el){
+function getLayoutAxis(el){
     const parent=el?.parentElement;
 
     if(!parent)
-        return{
-            row:0,
-            column:0
-        };
+        return"vertical";
 
     const style=window.getComputedStyle(parent);
 
-    return{
-        row:parseFloat(style.rowGap)||0,
-        column:parseFloat(style.columnGap)||0
-    };
+    if(
+        style.display==="grid"
+    ){
+        const columns=
+            style.gridTemplateColumns;
+
+        const rows=
+            style.gridTemplateRows;
+
+        if(
+            columns&&
+            columns!=="none"&&
+            rows==="none"
+        )
+            return"horizontal";
+    }
+
+    if(
+        style.flexDirection==="row"||
+        style.flexDirection==="row-reverse"
+    )
+        return"horizontal";
+
+    return"vertical";
 }
 
 // ======================================
-// Neighbours
+// Gap
 // ======================================
 
-function getNeighbours(el){
+function getGap(el,axis){
     const parent=el?.parentElement;
 
     if(!parent)
-        return{
-            top:null,
-            right:null,
-            bottom:null,
-            left:null
-        };
+        return 0;
 
+    const style=window.getComputedStyle(parent);
+
+    return axis==="horizontal"
+        ?parseFloat(style.columnGap)||0
+        :parseFloat(style.rowGap)||0;
+}
+
+// ======================================
+// Hidden margins
+// ======================================
+
+function getHiddenMargins(el){
     const rect=getRect(el);
 
     if(!rect)
-        return{
-            top:null,
-            right:null,
-            bottom:null,
-            left:null
-        };
+        return getMargins(el);
 
-    const children=[
-        ...parent.children
-    ].filter(child=>child!==el);
+    const margins=getMargins(el);
+    const axis=getLayoutAxis(el);
+    const gap=getGap(el,axis);
 
-    let top=null;
-    let right=null;
-    let bottom=null;
-    let left=null;
+    const size=
+        axis==="horizontal"
+            ?rect.width
+            :rect.height;
 
-    let topDistance=Infinity;
-    let rightDistance=Infinity;
-    let bottomDistance=Infinity;
-    let leftDistance=Infinity;
+    const total=
+        size+
+        (axis==="horizontal"
+            ?margins.left+margins.right
+            :margins.top+margins.bottom)+
+        gap*2;
 
-    for(const child of children){
+    const half=total/2;
 
-        const childRect=getRect(child);
+    const hidden={
+        ...margins
+    };
 
-        if(!childRect)
-            continue;
-
-        if(childRect.bottom<=rect.top){
-            const distance=rect.top-childRect.bottom;
-
-            if(distance<topDistance){
-                topDistance=distance;
-                top=child;
-            }
-        }
-
-        if(childRect.top>=rect.bottom){
-            const distance=childRect.top-rect.bottom;
-
-            if(distance<bottomDistance){
-                bottomDistance=distance;
-                bottom=child;
-            }
-        }
-
-        if(childRect.right<=rect.left){
-            const distance=rect.left-childRect.right;
-
-            if(distance<leftDistance){
-                leftDistance=distance;
-                left=child;
-            }
-        }
-
-        if(childRect.left>=rect.right){
-            const distance=childRect.left-rect.right;
-
-            if(distance<rightDistance){
-                rightDistance=distance;
-                right=child;
-            }
-        }
+    if(axis==="horizontal"){
+        hidden.left=margins.left-half;
+        hidden.right=margins.right-half;
+    }else{
+        hidden.top=margins.top-half;
+        hidden.bottom=margins.bottom-half;
     }
 
-    return{
-        top,
-        right,
-        bottom,
-        left
-    };
+    log(
+        "HIDDEN MARGINS",
+        getName(el),
+        {
+            axis,
+            size:fmt(size),
+            gap:fmt(gap),
+            total:fmt(total),
+            hidden
+        }
+    );
+
+    return hidden;
 }
 
 // ======================================
@@ -225,6 +223,7 @@ function clearSizeAnimationStyles(el){
     el.style.removeProperty("margin-right");
     el.style.removeProperty("margin-bottom");
     el.style.removeProperty("margin-left");
+    el.style.removeProperty("transition");
 }
 
 // ======================================
@@ -239,136 +238,6 @@ export function cancelSizeAnimation(el){
     clearSizeAnimationStyles(el);
 
     log("CANCEL",getName(el));
-}
-
-// ======================================
-// Hidden margins
-// ======================================
-
-function getHiddenMargins(el){
-    const rect=getRect(el);
-    const parent=el?.parentElement;
-
-    if(!rect||!parent)
-        return getMargins(el);
-
-    const parentRect=getRect(parent);
-    const margins=getMargins(el);
-    const gaps=getGaps(el);
-    const neighbours=getNeighbours(el);
-
-    if(!parentRect)
-        return margins;
-
-    const hidden={
-        ...margins
-    };
-
-    const hasTop=!!neighbours.top;
-    const hasBottom=!!neighbours.bottom;
-    const hasLeft=!!neighbours.left;
-    const hasRight=!!neighbours.right;
-
-    // Horizontal neighbours
-    if(hasLeft||hasRight){
-
-        const leftDistance=
-            hasLeft
-                ?rect.left-
-                 getRect(neighbours.left).right+
-                 gaps.column+
-                 margins.left
-                :0;
-
-        const rightDistance=
-            hasRight
-                ?getRect(neighbours.right).left-
-                 rect.right+
-                 gaps.column+
-                 margins.right
-                :0;
-
-        if(hasLeft&&hasRight){
-
-            const half=
-                (leftDistance+rightDistance)/2;
-
-            hidden.left=
-                margins.left-half;
-
-            hidden.right=
-                margins.right-half;
-
-        }else if(hasLeft){
-
-            hidden.left=
-                margins.left-leftDistance;
-
-        }else{
-
-            hidden.right=
-                margins.right-rightDistance;
-        }
-    }
-
-    // Vertical neighbours
-    if(hasTop||hasBottom){
-
-        const topDistance=
-            hasTop
-                ?rect.top-
-                 getRect(neighbours.top).bottom+
-                 gaps.row+
-                 margins.top
-                :0;
-
-        const bottomDistance=
-            hasBottom
-                ?getRect(neighbours.bottom).top-
-                 rect.bottom+
-                 gaps.row+
-                 margins.bottom
-                :0;
-
-        if(hasTop&&hasBottom){
-
-            const half=
-                (topDistance+bottomDistance)/2;
-
-            hidden.top=
-                margins.top-half;
-
-            hidden.bottom=
-                margins.bottom-half;
-
-        }else if(hasTop){
-
-            hidden.top=
-                margins.top-topDistance;
-
-        }else{
-
-            hidden.bottom=
-                margins.bottom-bottomDistance;
-        }
-    }
-
-    log(
-        "HIDDEN MARGINS",
-        getName(el),
-        {
-            neighbours:{
-                top:!!neighbours.top,
-                right:!!neighbours.right,
-                bottom:!!neighbours.bottom,
-                left:!!neighbours.left
-            },
-            margins,
-            hidden
-        }
-    );
-
-    return hidden;
 }
 
 // ======================================
