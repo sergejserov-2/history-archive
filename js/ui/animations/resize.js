@@ -3,8 +3,8 @@
 // Margin based
 // ======================================
 
-const EXPAND_DURATION=4420;
-const COLLAPSE_DURATION=4420;
+const EXPAND_DURATION=420;
+const COLLAPSE_DURATION=420;
 
 const DEBUG_ANIMATIONS=true;
 
@@ -79,67 +79,9 @@ function getEndGap(el,axis){
 
     const rowGap=parseFloat(parentStyle.rowGap)||0;
     const columnGap=parseFloat(parentStyle.columnGap)||0;
-
     const gap=axis==="vertical"?rowGap:columnGap;
 
     return margin||gap;
-}
-
-// ======================================
-// Direction
-// ======================================
-
-function getAnimationDirection(el){
-    const parent=el?.parentElement;
-
-    if(!parent)
-        return{
-            axis:"vertical",
-            sign:-1
-        };
-
-    const style=window.getComputedStyle(parent);
-    const direction=style.direction||"ltr";
-    const flexDirection=style.flexDirection||"row";
-
-    const children=[
-        ...parent.children
-    ];
-
-    const index=children.indexOf(el);
-
-    const isColumn=
-        flexDirection==="column"||
-        flexDirection==="column-reverse";
-
-    const isReverse=
-        flexDirection==="row-reverse"||
-        flexDirection==="column-reverse";
-
-    if(isColumn){
-        let sign=index>=children.length/2?1:-1;
-
-        if(isReverse)
-            sign*=-1;
-
-        return{
-            axis:"vertical",
-            sign
-        };
-    }
-
-    let sign=index>=children.length/2?1:-1;
-
-    if(direction==="rtl")
-        sign*=-1;
-
-    if(isReverse)
-        sign*=-1;
-
-    return{
-        axis:"horizontal",
-        sign
-    };
 }
 
 // ======================================
@@ -196,43 +138,42 @@ function getHiddenOffset(el){
     const parent=el?.parentElement;
 
     if(!parent)
-        return{
+        return {
             top:-300,
-            left:0
+            left:-100
         };
 
     const elementRect=getRect(el);
     const parentRect=getRect(parent);
 
     if(!elementRect||!parentRect)
-        return{
+        return {
             top:-300,
-            left:0
+            left:-100
         };
-
-    const direction=getAnimationDirection(el);
 
     const verticalGap=getEndGap(el,"vertical");
     const horizontalGap=getEndGap(el,"horizontal");
 
-    if(direction.axis==="vertical"){
-        const distance=elementRect.height+verticalGap;
+    const hiddenTop=parentRect.top-elementRect.bottom;
+    const top=hiddenTop-verticalGap;
 
-        return{
-            top:direction.sign<0
-                ?-distance
-                :distance,
-            left:0
-        };
+    const distanceLeft=Math.abs(elementRect.left-parentRect.left);
+    const distanceRight=Math.abs(parentRect.right-elementRect.right);
+
+    let left;
+
+    if(distanceLeft<=distanceRight){
+        const hiddenLeft=parentRect.left-elementRect.right;
+        left=hiddenLeft-horizontalGap;
+    }else{
+        const hiddenLeft=parentRect.right-elementRect.left;
+        left=hiddenLeft+horizontalGap;
     }
 
-    const distance=elementRect.width+horizontalGap;
-
-    return{
-        top:0,
-        left:direction.sign<0
-            ?-distance
-            :distance
+    return {
+        top,
+        left
     };
 }
 
@@ -248,13 +189,11 @@ function easeOutCubic(progress){
 // Margin animation
 // ======================================
 
-function animateMargins(el,target,duration){
+function animateMargins(el,from,target,duration){
     if(!el)
         return Promise.resolve();
 
     stopSizeAnimation(el);
-
-    const from=getCurrentMargin(el);
 
     const to={
         top:Number(target.top)||0,
@@ -266,35 +205,23 @@ function animateMargins(el,target,duration){
 
     const startTime=performance.now();
 
-    log("START",getName(el),{
-        margin:`${fmt(from.top)},${fmt(from.left)}`,
-        pos:getPosition(el)
-    });
-
     return new Promise(resolve=>{
         function frame(now){
             const elapsed=now-startTime;
             const progress=Math.min(1,elapsed/duration);
             const eased=easeOutCubic(progress);
 
-            const top=
-                from.top+
-                (to.top-from.top)*eased;
-
-            const left=
-                from.left+
-                (to.left-from.left)*eased;
+            const top=from.top+(to.top-from.top)*eased;
+            const left=from.left+(to.left-from.left)*eased;
 
             setMargin(el,top,left);
 
             if(progress<1){
-                el._animationFrame=
-                    requestAnimationFrame(frame);
+                el._animationFrame=requestAnimationFrame(frame);
                 return;
             }
 
             el._animationFrame=null;
-
             setMargin(el,to.top,to.left);
             forceLayout();
 
@@ -305,8 +232,7 @@ function animateMargins(el,target,duration){
             },20);
         }
 
-        el._animationFrame=
-            requestAnimationFrame(frame);
+        el._animationFrame=requestAnimationFrame(frame);
     });
 }
 
@@ -318,26 +244,15 @@ export function animateExpand(el){
     if(!el)
         return Promise.resolve();
 
-    const current=getCurrentMargin(el);
-
     const hidden=getHiddenOffset(el);
-
-    setMargin(
-        el,
-        hidden.top,
-        hidden.left
-    );
-
-    forceLayout();
-
-    log("EXPAND",getName(el),{
-        from:`${fmt(hidden.top)},${fmt(hidden.left)}`,
-        to:`${fmt(current.top)},${fmt(current.left)}`
-    });
 
     return animateMargins(
         el,
-        current,
+        hidden,
+        {
+            top:0,
+            left:0
+        },
         EXPAND_DURATION
     );
 }
@@ -350,15 +265,12 @@ export function animateCollapse(el){
     if(!el)
         return Promise.resolve();
 
+    const from=getCurrentMargin(el);
     const hidden=getHiddenOffset(el);
-
-    log("COLLAPSE",getName(el),{
-        from:getCurrentMargin(el),
-        to:hidden
-    });
 
     return animateMargins(
         el,
+        from,
         hidden,
         COLLAPSE_DURATION
     );
