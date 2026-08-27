@@ -131,6 +131,76 @@ export function cancelSizeAnimation(el){
 }
 
 // ======================================
+// Layout direction
+// ======================================
+
+function getLayoutDirection(el){
+    const parent=el?.parentElement;
+
+    if(!parent)
+        return {
+            axis:"vertical",
+            direction:"forward"
+        };
+
+    const style=window.getComputedStyle(parent);
+    const flexDirection=style.flexDirection;
+    const justifyContent=style.justifyContent;
+
+    if(
+        flexDirection==="row"||
+        flexDirection==="row-reverse"
+    ){
+        let direction=
+            flexDirection==="row"
+                ?"forward"
+                :"reverse";
+
+        if(
+            justifyContent==="flex-end"||
+            justifyContent==="end"
+        ){
+            direction=
+                direction==="forward"
+                    ?"reverse"
+                    :"forward";
+        }
+
+        if(style.direction==="rtl"){
+            direction=
+                direction==="forward"
+                    ?"reverse"
+                    :"forward";
+        }
+
+        return {
+            axis:"horizontal",
+            direction
+        };
+    }
+
+    let direction=
+        flexDirection==="column-reverse"
+            ?"reverse"
+            :"forward";
+
+    if(
+        justifyContent==="flex-end"||
+        justifyContent==="end"
+    ){
+        direction=
+            direction==="forward"
+                ?"reverse"
+                :"forward";
+    }
+
+    return {
+        axis:"vertical",
+        direction
+    };
+}
+
+// ======================================
 // Hidden offset
 // ======================================
 
@@ -155,21 +225,76 @@ function getHiddenOffset(el){
     const verticalGap=getEndGap(el,"vertical");
     const horizontalGap=getEndGap(el,"horizontal");
 
-    const hiddenTop=parentRect.top-elementRect.bottom;
-    const top=hiddenTop-verticalGap;
+    const layout=getLayoutDirection(el);
 
-    const distanceLeft=Math.abs(elementRect.left-parentRect.left);
-    const distanceRight=Math.abs(parentRect.right-elementRect.right);
+    let top=0;
+    let left=0;
 
-    let left;
+    if(layout.axis==="horizontal"){
 
-    if(distanceLeft<=distanceRight){
-        const hiddenLeft=parentRect.left-elementRect.right;
-        left=hiddenLeft-horizontalGap;
+        if(layout.direction==="forward"){
+            const hiddenLeft=
+                parentRect.left-elementRect.right;
+
+            left=
+                hiddenLeft-horizontalGap;
+        }else{
+            const hiddenLeft=
+                parentRect.right-elementRect.left;
+
+            left=
+                hiddenLeft+horizontalGap;
+        }
+
+        const hiddenTop=
+            parentRect.top-elementRect.bottom;
+
+        top=
+            hiddenTop-verticalGap;
+
     }else{
-        const hiddenLeft=parentRect.right-elementRect.left;
-        left=hiddenLeft+horizontalGap;
+
+        if(layout.direction==="forward"){
+            const hiddenTop=
+                parentRect.top-elementRect.bottom;
+
+            top=
+                hiddenTop-verticalGap;
+        }else{
+            const hiddenTop=
+                parentRect.bottom-elementRect.top;
+
+            top=
+                hiddenTop+verticalGap;
+        }
+
+        const distanceLeft=
+            Math.abs(elementRect.left-parentRect.left);
+
+        const distanceRight=
+            Math.abs(parentRect.right-elementRect.right);
+
+        if(distanceLeft<=distanceRight){
+            const hiddenLeft=
+                parentRect.left-elementRect.right;
+
+            left=
+                hiddenLeft-horizontalGap;
+        }else{
+            const hiddenLeft=
+                parentRect.right-elementRect.left;
+
+            left=
+                hiddenLeft+horizontalGap;
+        }
     }
+
+    log("HIDDEN OFFSET",getName(el),{
+        axis:layout.axis,
+        direction:layout.direction,
+        top:fmt(top),
+        left:fmt(left)
+    });
 
     return {
         top,
@@ -211,13 +336,19 @@ function animateMargins(el,from,target,duration){
             const progress=Math.min(1,elapsed/duration);
             const eased=easeOutCubic(progress);
 
-            const top=from.top+(to.top-from.top)*eased;
-            const left=from.left+(to.left-from.left)*eased;
+            const top=
+                from.top+
+                (to.top-from.top)*eased;
+
+            const left=
+                from.left+
+                (to.left-from.left)*eased;
 
             setMargin(el,top,left);
 
             if(progress<1){
-                el._animationFrame=requestAnimationFrame(frame);
+                el._animationFrame=
+                    requestAnimationFrame(frame);
                 return;
             }
 
@@ -233,7 +364,8 @@ function animateMargins(el,from,target,duration){
             },20);
         }
 
-        el._animationFrame=requestAnimationFrame(frame);
+        el._animationFrame=
+            requestAnimationFrame(frame);
     });
 }
 
