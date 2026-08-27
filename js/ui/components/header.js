@@ -1,92 +1,43 @@
-import {
+import{
     adminHeaderButton,
     adminLoginButton,
     adminUpdateHeaderButton,
     adminUpdateLogin
-} from "./adminButtons.js";
-
-import {
+}from"./adminButtons.js";
+import{
     isAdmin,
     onAdminStateChanged,
     logout
-} from "../../admin/adminMode.js";
-
-import {
-    openLoginModal
-} from "./loginModal.js";
-
-import {
-    openSubjectsModal
-} from "./subjects.js";
-
-import {
-    openTypesModal
-} from "./types.js";
-
-import {
-    openActivityModal
-} from "./activity.js";
-
-import {
-    openFeedbacksModal
-} from "./feedbacks.js";
-
-import {
-    setModalUrl
-} from "./modalReload.js";
-
-import {
-    getHighestLevelObject
-} from "../../api/objects.js";
+}from"../../admin/adminMode.js";
+import{openModal}from"./modalReload.js";
+import{getHighestLevelObject}from"../../api/objects.js";
 
 // ======================================
 // Favicon
 // ======================================
 
-const favicon =
-    document.getElementById("favicon");
+const favicon=document.getElementById("favicon");
 
 if(favicon){
-
-    const dark =
-        window.matchMedia(
-            "(prefers-color-scheme: dark)"
-        );
-
-    const update = ()=>{
-
-        favicon.href =
-            dark.matches
-            ?
-            "icons/logoDark.svg"
-            :
-            "icons/logoLight.svg";
-
+    const dark=window.matchMedia("(prefers-color-scheme: dark)");
+    const update=()=>{
+        favicon.href=dark.matches?"icons/logoDark.svg":"icons/logoLight.svg";
     };
-
     update();
-
-    dark.addEventListener(
-        "change",
-        update
-    );
-
+    dark.addEventListener("change",update);
 }
 
 // ======================================
 // Header render
 // ======================================
 
-export function renderHeader(
-    page=null,
-    updates=null
-){
+export function renderHeader(page=null,updates=null){
 
-    const html = `
+    const html=`
 
 <header class="header">
 
-    <a 
+    <a
         class="header__logo"
         id="headerLogo"
         href="index.html"
@@ -160,27 +111,19 @@ export function renderHeader(
             // Logo
             // ==============================
 
-            const headerLogo =
-                document.querySelector(
-                    "#headerLogo"
-                );
+            const headerLogo=document.querySelector("#headerLogo");
 
             if(headerLogo){
 
                 try{
 
-                    const object =
-                        await getHighestLevelObject(
-                            page?.objects,
-                            page?.types
-                        );
+                    const object=await getHighestLevelObject(
+                        page?.objects,
+                        page?.types
+                    );
 
-                    if(object?.id){
-
-                        headerLogo.href =
-                            `object.html?id=${object.id}`;
-
-                    }
+                    if(object?.id)
+                        headerLogo.href=`object.html?id=${object.id}`;
 
                 }catch(error){
 
@@ -197,41 +140,30 @@ export function renderHeader(
             // Subjects
             // ==============================
 
-            const subjectsButton =
-                document.querySelector(
-                    "#subjectsButton"
-                );
+            const subjectsButton=document.querySelector("#subjectsButton");
 
             if(subjectsButton){
 
-                subjectsButton.onclick =
-                    async()=>{
+                subjectsButton.onclick=async()=>{
 
-                        setModalUrl(
-                            "subjects"
+                    try{
+
+                        await openModal("subjects");
+
+                    }catch(error){
+
+                        console.error(
+                            "Ошибка открытия списка субъектов:",
+                            error
                         );
 
-                        try{
+                        alert(
+                            "Не удалось загрузить субъекты"
+                        );
 
-                            await openSubjectsModal({
-                                page,
-                                updates
-                            });
+                    }
 
-                        }catch(error){
-
-                            console.error(
-                                "Ошибка открытия списка субъектов:",
-                                error
-                            );
-
-                            alert(
-                                "Не удалось загрузить субъекты"
-                            );
-
-                        }
-
-                    };
+                };
 
             }
 
@@ -239,38 +171,30 @@ export function renderHeader(
             // Types
             // ==============================
 
-            const typesButton =
-                document.querySelector(
-                    "#typesButton"
-                );
+            const typesButton=document.querySelector("#typesButton");
 
             if(typesButton){
 
-                typesButton.onclick =
-                    async()=>{
+                typesButton.onclick=async()=>{
 
-                        setModalUrl(
-                            "types"
+                    try{
+
+                        await openModal("types");
+
+                    }catch(error){
+
+                        console.error(
+                            "Ошибка открытия списка типов:",
+                            error
                         );
 
-                        try{
+                        alert(
+                            "Не удалось загрузить типы"
+                        );
 
-                            await openTypesModal();
+                    }
 
-                        }catch(error){
-
-                            console.error(
-                                "Ошибка открытия списка типов:",
-                                error
-                            );
-
-                            alert(
-                                "Не удалось загрузить типы"
-                            );
-
-                        }
-
-                    };
+                };
 
             }
 
@@ -278,38 +202,30 @@ export function renderHeader(
             // Feedbacks
             // ==============================
 
-            const feedbacksButton =
-                document.querySelector(
-                    "#feedbacksButton"
-                );
+            const feedbacksButton=document.querySelector("#feedbacksButton");
 
             if(feedbacksButton){
 
-                feedbacksButton.onclick =
-                    async()=>{
+                feedbacksButton.onclick=async()=>{
 
-                        setModalUrl(
-                            "feedbacks"
+                    try{
+
+                        await openModal("feedbacks");
+
+                    }catch(error){
+
+                        console.error(
+                            "Ошибка открытия списка обращений:",
+                            error
                         );
 
-                        try{
+                        alert(
+                            "Не удалось загрузить обращения"
+                        );
 
-                            await openFeedbacksModal();
+                    }
 
-                        }catch(error){
-
-                            console.error(
-                                "Ошибка открытия списка обращений:",
-                                error
-                            );
-
-                            alert(
-                                "Не удалось загрузить обращения"
-                            );
-
-                        }
-
-                    };
+                };
 
             }
 
@@ -317,38 +233,30 @@ export function renderHeader(
             // Activity
             // ==============================
 
-            const activityButton =
-                document.querySelector(
-                    "#activityButton"
-                );
+            const activityButton=document.querySelector("#activityButton");
 
             if(activityButton){
 
-                activityButton.onclick =
-                    async()=>{
+                activityButton.onclick=async()=>{
 
-                        setModalUrl(
-                            "activity"
+                    try{
+
+                        await openModal("activity");
+
+                    }catch(error){
+
+                        console.error(
+                            "Ошибка открытия истории изменений:",
+                            error
                         );
 
-                        try{
+                        alert(
+                            "Не удалось загрузить историю изменений"
+                        );
 
-                            await openActivityModal();
+                    }
 
-                        }catch(error){
-
-                            console.error(
-                                "Ошибка открытия истории изменений:",
-                                error
-                            );
-
-                            alert(
-                                "Не удалось загрузить историю изменений"
-                            );
-
-                        }
-
-                    };
+                };
 
             }
 
@@ -356,76 +264,82 @@ export function renderHeader(
             // Login / Logout
             // ==============================
 
-            const loginButton =
-                document.querySelector(
-                    "#loginButton"
-                );
+            const loginButton=document.querySelector("#loginButton");
 
             if(!loginButton)
                 return;
 
-            const updateButtons =
-                (admin)=>{
+            const updateButtons=admin=>{
 
-                    adminUpdateHeaderButton(
-                        typesButton,
-                        admin
-                    );
+                adminUpdateHeaderButton(
+                    typesButton,
+                    admin
+                );
 
-                    adminUpdateHeaderButton(
-                        feedbacksButton,
-                        admin
-                    );
+                adminUpdateHeaderButton(
+                    feedbacksButton,
+                    admin
+                );
 
-                    adminUpdateHeaderButton(
-                        activityButton,
-                        admin
-                    );
+                adminUpdateHeaderButton(
+                    activityButton,
+                    admin
+                );
 
-                    adminUpdateLogin(
-                        loginButton,
-                        admin
-                    );
+                adminUpdateLogin(
+                    loginButton,
+                    admin
+                );
 
-                };
+            };
 
-            updateButtons(
-                isAdmin()
-            );
+            updateButtons(isAdmin());
 
-            onAdminStateChanged(
-                updateButtons
-            );
+            onAdminStateChanged(updateButtons);
 
-            loginButton.onclick =
-                async()=>{
+            loginButton.onclick=async()=>{
 
-                    if(isAdmin()){
+                if(isAdmin()){
 
-                        try{
+                    try{
 
-                            await logout();
+                        await logout();
 
-                        }catch(error){
+                    }catch(error){
 
-                            console.error(
-                                "Не удалось выйти:",
-                                error
-                            );
+                        console.error(
+                            "Не удалось выйти:",
+                            error
+                        );
 
-                            alert(
-                                "Не удалось выйти"
-                            );
-
-                        }
-
-                        return;
+                        alert(
+                            "Не удалось выйти"
+                        );
 
                     }
 
-                    openLoginModal();
+                    return;
 
-                };
+                }
+
+                try{
+
+                    await openModal("login");
+
+                }catch(error){
+
+                    console.error(
+                        "Ошибка открытия окна входа:",
+                        error
+                    );
+
+                    alert(
+                        "Не удалось открыть окно входа"
+                    );
+
+                }
+
+            };
 
         },
         0
