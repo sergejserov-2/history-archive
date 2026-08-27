@@ -8,16 +8,6 @@ import{
     cancelSizeAnimation
 }from"./resize.js";
 
-import{
-    showVisibility,
-    hideVisibility
-}from"./visibility.js";
-
-const ENTER_DELAY=10;
-const EXIT_DELAY=10;
-
-const HIDDEN_CLASS="animation--hidden";
-
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
 
@@ -55,24 +45,13 @@ export function show(element){
     element._animationState=ENTER_STATE;
     element.hidden=false;
 
-    element.classList.add(HIDDEN_CLASS);
-
     animateExpand(element).then(()=>{
+
         if(element._animationState!==ENTER_STATE)
             return;
 
-        element._animationTimer=setTimeout(()=>{
-            if(element._animationState!==ENTER_STATE)
-                return;
+        element._animationState=null;
 
-            showVisibility(element).then(()=>{
-                if(element._animationState!==ENTER_STATE)
-                    return;
-
-                element._animationState=null;
-                element._animationTimer=null;
-            });
-        },ENTER_DELAY);
     });
 }
 
@@ -91,22 +70,13 @@ export function hide(element){
 
     element._animationState=EXIT_STATE;
 
-    hideVisibility(element).then(()=>{
+    animateCollapse(element).then(()=>{
+
         if(element._animationState!==EXIT_STATE)
             return;
 
-        element._animationTimer=setTimeout(()=>{
-            if(element._animationState!==EXIT_STATE)
-                return;
+        element.hidden=true;
+        element._animationState=null;
 
-            animateCollapse(element).then(()=>{
-                if(element._animationState!==EXIT_STATE)
-                    return;
-
-                element.hidden=true;
-                element._animationState=null;
-                element._animationTimer=null;
-            });
-        },EXIT_DELAY);
     });
 }
