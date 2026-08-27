@@ -237,7 +237,6 @@
 }
 
 .child-card__name > span:first-child {
-    flex: 1 1 auto;
     min-width: 0;
 
     overflow: hidden;
