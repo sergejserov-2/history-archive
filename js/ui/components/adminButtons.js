@@ -1,6 +1,7 @@
 import{
-    updateAdminButton
-}from"../animations/visibility.js";
+    show,
+    hide
+}from"../animations/controller.js";
 
 
 // ======================================
@@ -51,18 +52,12 @@ export function adminEdit(
 ){
 
     return adminButton(
-
         `edit-${type}`,
-
         id,
-
         "edit",
-
-        options.title ||
+        options.title||
         "Редактировать",
-
         options
-
     );
 
 }
@@ -79,18 +74,12 @@ export function adminDelete(
 ){
 
     return adminButton(
-
         `delete-${type}`,
-
         id,
-
         "delete",
-
-        options.title ||
+        options.title||
         "Удалить",
-
         options
-
     );
 
 }
@@ -201,10 +190,7 @@ export function adminUpdateLogin(
     if(!button)
         return;
 
-
-    button.innerHTML =
-
-        admin
+    button.innerHTML=admin
 
         ?
 
@@ -225,7 +211,6 @@ class="header-icon">
 
 Войти
 `;
-
 
     button.classList.toggle(
         "header__button--admin",
@@ -253,6 +238,46 @@ export function adminUpdateHeaderButton(
 
 
 // ======================================
+// Admin button update
+// ======================================
+
+export function updateAdminButton(
+    button,
+    admin
+){
+
+    if(!button)
+        return;
+
+    const shouldShow=!!admin;
+    const state=button._adminAnimationState;
+
+    if(
+        shouldShow&&
+        !button.hidden&&
+        state!=="exit"&&
+        !button.classList.contains(
+            "admin-button--hidden"
+        )
+    )
+        return;
+
+    if(
+        !shouldShow&&
+        button.hidden&&
+        state!=="enter"
+    )
+        return;
+
+    if(shouldShow)
+        show(button);
+    else
+        hide(button);
+
+}
+
+
+// ======================================
 // Icons
 // ======================================
 
@@ -262,22 +287,14 @@ function getIcon(
 
     if(
         action.startsWith("edit")
-    ){
-
-        return "edit";
-
-    }
-
+    )
+        return"edit";
 
     if(
         action.startsWith("delete")
-    ){
+    )
+        return"delete";
 
-        return "delete";
-
-    }
-
-
-    return "edit";
+    return"edit";
 
 }
