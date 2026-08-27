@@ -65,10 +65,10 @@ const page={
     getChildren:()=>getChildren(pageObject.id,pageObjects),
     renderCoverState:async()=>{
         const block=document.querySelector(".object");
-        if(block){
-            block.outerHTML=renderObjectBlock();
-            initCoverDrag(block.parentElement);
-        }
+        if(!block)return;
+        block.outerHTML=renderObjectBlock();
+        const newBlock=document.querySelector(".object");
+        if(newBlock)initCoverDrag(newBlock);
     }
 };
 
