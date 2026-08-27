@@ -317,16 +317,3 @@ export function animateCollapse(el){
         COLLAPSE_DURATION
     );
 }
-
-// ======================================
-// Resize
-// ======================================
-
-export function animateResize(el){
-    if(!el)
-        return Promise.resolve();
-
-    log("RESIZE",getName(el));
-
-    return Promise.resolve();
-}
