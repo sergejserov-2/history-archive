@@ -4,8 +4,7 @@
 // ======================================
 
 const EXPAND_DURATION=420;
-const COLLAPSE_DURATION=5420;
-
+const COLLAPSE_DURATION=420;
 const DEBUG_ANIMATIONS=true;
 
 // ======================================
@@ -43,7 +42,6 @@ function forceLayout(){
 
 function getMargins(el){
     const style=window.getComputedStyle(el);
-
     return{
         top:parseFloat(style.marginTop)||0,
         right:parseFloat(style.marginRight)||0,
@@ -78,8 +76,7 @@ function getLayoutAxis(el){
 
     if(style.display==="grid"){
         const rect=getRect(el);
-        const siblings=[...parent.children]
-            .filter(child=>child!==el);
+        const siblings=[...parent.children].filter(child=>child!==el);
 
         if(rect){
             const sameRow=siblings
@@ -138,10 +135,12 @@ function getHiddenMargins(el){
     const margins=getMargins(el);
     const axis=getLayoutAxis(el);
     const gap=getGap(el,axis);
+
     const size=axis==="horizontal"?rect.width:rect.height;
+
     const half=axis==="horizontal"
         ?(size+gap)/2
-        :(size+margins.top+margins.bottom+gap*2+16.5)/2;
+        :(size+margins.top+margins.bottom+gap*2)/2;
 
     const hidden={...margins};
 
@@ -159,7 +158,6 @@ function getHiddenMargins(el){
         marginTop:fmt(margins.top),
         marginBottom:fmt(margins.bottom),
         gap:fmt(gap),
-        endGap:"16.50",
         half:fmt(half),
         hiddenTop:fmt(hidden.top),
         hiddenBottom:fmt(hidden.bottom)
@@ -228,7 +226,7 @@ function easeOutCubic(progress){
 // Margin animation
 // ======================================
 
-function animateMargins(el,from,target,duration){
+function animateMargins(el,from,target,duration,clearAfter=true){
     if(!el)
         return Promise.resolve();
 
@@ -247,9 +245,7 @@ function animateMargins(el,from,target,duration){
     const startTime=performance.now();
 
     return new Promise(resolve=>{
-
         function frame(now){
-
             const elapsed=now-startTime;
             const progress=Math.min(1,elapsed/duration);
             const eased=easeOutCubic(progress);
@@ -269,47 +265,18 @@ function animateMargins(el,from,target,duration){
             }
 
             el._animationFrame=null;
-
             setMargins(el,to);
             forceLayout();
 
-            const beforeElement=getRect(el);
-            const beforeParent=getRect(el.parentElement);
-            const beforeMargins=getMargins(el);
-
-            log("BEFORE CLEAR",getName(el),{
-                elementTop:fmt(beforeElement?.top),
-                elementBottom:fmt(beforeElement?.bottom),
-                parentTop:fmt(beforeParent?.top),
-                parentBottom:fmt(beforeParent?.bottom),
-                marginTop:fmt(beforeMargins.top),
-                marginBottom:fmt(beforeMargins.bottom)
-            });
-
             el._animationTimer=setTimeout(()=>{
-
                 el._animationTimer=null;
 
-                clearSizeAnimationStyles(el);
-                forceLayout();
-
-                const afterElement=getRect(el);
-                const afterParent=getRect(el.parentElement);
-                const afterMargins=getMargins(el);
-
-                log("AFTER CLEAR",getName(el),{
-                    elementTop:fmt(afterElement?.top),
-                    elementBottom:fmt(afterElement?.bottom),
-                    parentTop:fmt(afterParent?.top),
-                    parentBottom:fmt(afterParent?.bottom),
-                    marginTop:fmt(afterMargins.top),
-                    marginBottom:fmt(afterMargins.bottom),
-                    deltaTop:fmt((afterElement?.top||0)-(beforeElement?.top||0)),
-                    deltaBottom:fmt((afterElement?.bottom||0)-(beforeElement?.bottom||0))
-                });
+                if(clearAfter)
+                    clearSizeAnimationStyles(el);
+                else
+                    el.style.removeProperty("transition");
 
                 resolve();
-
             },20);
         }
 
@@ -332,7 +299,8 @@ export function animateExpand(el){
         el,
         hidden,
         visible,
-        EXPAND_DURATION
+        EXPAND_DURATION,
+        true
     );
 }
 
@@ -351,6 +319,7 @@ export function animateCollapse(el){
         el,
         visible,
         hidden,
-        COLLAPSE_DURATION
+        COLLAPSE_DURATION,
+        false
     );
 }
