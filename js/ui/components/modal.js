@@ -30,16 +30,19 @@ function createModalElement({title="",content="",width=null,admin=false}={}){
 export function createModal({title="",content="",width=null,admin=false}={}){
     const previous=currentModal;
     let overlay=previous?.overlay??null;
+
     if(!overlay){
         overlay=document.createElement("div");
         overlay.className="modal-overlay";
         document.body.appendChild(overlay);
     }
 
-    const modal=createModalElement({title,content,width,admin});
-    const isReplacement=Boolean(previous);
+    if(previous?.element?.isConnected){
+        previous.element.classList.add("modal--replaced");
+    }
 
-    if(isReplacement)modal.classList.add("modal--replacement");
+    const modal=createModalElement({title,content,width,admin});
+    if(previous)modal.classList.add("modal--replacement");
     overlay.appendChild(modal);
 
     let closing=false;
@@ -73,30 +76,28 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         await waitForTransition(modal,()=>{});
         modal.remove();
 
-        if(currentModal?.element===modal)currentModal=null;
-
-        const handler=closeHandler;
-        if(typeof handler==="function"){
-            try{
-                await handler();
-            }catch(error){
-                console.error("Ошибка обработчика закрытия модалки:",error);
-            }
-        }
-
-        if(!currentModal&&overlay.isConnected){
+        if(previous?.element?.isConnected){
+            previous.element.classList.remove("modal--replaced");
+            previous.element.classList.add("modal--visible");
+            currentModal=previous;
+        }else{
+            currentModal=null;
             overlay.classList.remove("modal-overlay--visible");
             await waitForTransition(overlay,()=>{});
             if(!currentModal)overlay.remove();
+        }
+
+        if(typeof closeHandler==="function"){
+            try{
+                await closeHandler();
+            }catch(error){
+                console.error("Ошибка обработчика закрытия модалки:",error);
+            }
         }
     }
 
     const closeButton=modal.querySelector(".modal__close");
     if(closeButton)closeButton.onclick=close;
-
-    if(previous?.element?.isConnected){
-        previous.element.remove();
-    }
 
     currentModal={
         overlay,
