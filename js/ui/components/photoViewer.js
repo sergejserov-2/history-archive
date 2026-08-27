@@ -2,10 +2,12 @@ import{createModal}from"./modal.js";
 import{createViewerControls}from"./viewerControls.js";
 import{adminEdit,adminDelete}from"./adminButtons.js";
 
-export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onPhotoChange=null}={}){
+export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}){
     if(!photo)return;
+
     const gallery=[...(photos??[])];
     let currentIndex=gallery.findIndex(item=>item.id===photo.id);
+
     if(currentIndex<0){
         gallery.unshift(photo);
         currentIndex=0;
@@ -38,7 +40,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
 
     const modal=createModal({title:"Фотография",content:form,width:showInfo?840:640});
     const root=modal.root;
+
     root.querySelector(".modal")?.classList.add("modal--photo-viewer");
+
     const imageArea=root.querySelector(".photo-viewer__image-area");
     const image=root.querySelector("#photoViewerImage");
     const imageBackground=root.querySelector(".photo-viewer__image-bg");
@@ -46,9 +50,14 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
     root.addEventListener("click",event=>{
         const button=event.target.closest(".admin-button");
         if(!button)return;
+
         root.dispatchEvent(new CustomEvent("photo-admin-action",{
             bubbles:true,
-            detail:{action:button.dataset.action,id:button.dataset.id,photo}
+            detail:{
+                action:button.dataset.action,
+                id:button.dataset.id,
+                photo
+            }
         }));
     });
 
@@ -104,6 +113,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
 
     function updateInfo(nextPhoto){
         if(!showInfo)return;
+
         const description=root.querySelector(".photo-viewer__description");
         const author=root.querySelector(".photo-viewer__author");
         const authorValue=root.querySelector(".photo-viewer__author-value");
@@ -116,10 +126,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
         if(title)title.textContent=nextPhoto.title??"";
 
         if(titleActions){
-            titleActions.innerHTML=`
-                ${adminEdit("photo",nextPhoto.id)}
-                ${adminDelete("photo",nextPhoto.id)}
-            `;
+            titleActions.innerHTML=`${adminEdit("photo",nextPhoto.id)}${adminDelete("photo",nextPhoto.id)}`;
         }
 
         if(description){
@@ -160,11 +167,12 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
     async function loadPhotoImage(nextPhoto){
         resetView();
 
-        imageBackground.style.backgroundImage=
-            nextPhoto.previewPath?`url('${nextPhoto.previewPath}')`:"";
+        if(nextPhoto.previewPath)imageBackground.style.backgroundImage=`url('${nextPhoto.previewPath}')`;
+        else imageBackground.style.backgroundImage="";
 
         if(!nextPhoto.previewPath){
             if(!nextPhoto.storagePath)return;
+
             try{
                 await loadImage(nextPhoto.storagePath);
                 image.src=nextPhoto.storagePath;
@@ -172,6 +180,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
             }catch(error){
                 console.error("Ошибка загрузки изображения:",error);
             }
+
             return;
         }
 
@@ -200,12 +209,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
         }
     }
 
-    async function showPhoto(nextPhoto,nextIndex,{notify=true}={}){
+    async function showPhoto(nextPhoto,nextIndex){
         if(!nextPhoto)return;
         currentIndex=nextIndex;
         controls.update(currentIndex);
         updateInfo(nextPhoto);
-        if(notify&&typeof onPhotoChange==="function")await onPhotoChange(nextPhoto);
         await loadPhotoImage(nextPhoto);
     }
 
@@ -246,16 +254,21 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
 
     imageArea.addEventListener("wheel",event=>{
         event.preventDefault();
+
         const oldScale=fitScale*zoom;
         const factor=Math.exp(-event.deltaY*0.001);
+
         zoom=Math.max(1,Math.min(zoom*factor,5));
+
         const newScale=fitScale*zoom;
         const rect=imageArea.getBoundingClientRect();
         const mouseX=event.clientX-rect.left-rect.width/2;
         const mouseY=event.clientY-rect.top-rect.height/2;
         const ratio=newScale/oldScale;
+
         translateX=mouseX-(mouseX-translateX)*ratio;
         translateY=mouseY-(mouseY-translateY)*ratio;
+
         updateTransform();
     },{passive:false});
 
@@ -289,6 +302,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
         if(event.touches.length===2){
             const distance=getTouchDistance(event.touches[0],event.touches[1]);
             if(!pinchStartDistance)return;
+
             zoom=pinchStartZoom*(distance/pinchStartDistance);
             zoom=Math.max(1,Math.min(zoom,5));
             updateTransform();
@@ -315,7 +329,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
 
     root.appendChild(controls.element);
 
-    void showPhoto(gallery[currentIndex],currentIndex,{notify:false});
+    void showPhoto(gallery[currentIndex],currentIndex);
 
     const originalClose=modal.close;
 
@@ -323,7 +337,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true,onP
         controls.destroy();
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
-        originalClose();
+        return originalClose();
     };
 
     return modal;
