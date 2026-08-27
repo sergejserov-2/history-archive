@@ -1,7 +1,7 @@
 const EXPAND_DURATION=420;
-const COLLAPSE_DURATION=5420;
-const DEBUG_ANIMATIONS=true;
+const COLLAPSE_DURATION=420;
 const COLLAPSE_END_GAP=16.5;
+const DEBUG_ANIMATIONS=true;
 
 function log(...args){
     if(DEBUG_ANIMATIONS)
@@ -56,8 +56,7 @@ function getLayoutAxis(el){
 
     if(style.display==="grid"){
         const rect=getRect(el);
-        const siblings=[...parent.children]
-            .filter(child=>child!==el);
+        const siblings=[...parent.children].filter(child=>child!==el);
 
         if(rect){
             const sameRow=siblings
@@ -108,28 +107,30 @@ function getHiddenMargins(el){
     const margins=getMargins(el);
     const axis=getLayoutAxis(el);
     const gap=getGap(el,axis);
-
     const size=axis==="horizontal"?rect.width:rect.height;
+
     const half=axis==="horizontal"
         ?(size+gap)/2
         :(size+margins.top+margins.bottom+gap*2)/2;
 
     const hidden={...margins};
 
-if(axis==="horizontal"){
-    hidden.left=margins.left-half;
-    hidden.right=margins.right-half;
-}else{
-    hidden.top=margins.top-half-COLLAPSE_END_GAP;
-    hidden.bottom=margins.bottom-half-COLLAPSE_END_GAP;
-}
+    if(axis==="horizontal"){
+        hidden.left=margins.left-half;
+        hidden.right=margins.right-half;
+    }else{
+        hidden.top=margins.top-half-COLLAPSE_END_GAP;
+        hidden.bottom=margins.bottom-half-COLLAPSE_END_GAP;
+    }
 
-    log("HIDDEN MARGINS",getName(el),{
+    log("HIDDEN",getName(el),{
         axis,
         size:fmt(size),
+        marginTop:fmt(margins.top),
+        marginBottom:fmt(margins.bottom),
         gap:fmt(gap),
         half:fmt(half),
-        hidden
+        endGap:fmt(COLLAPSE_END_GAP)
     });
 
     return hidden;
@@ -167,15 +168,13 @@ export function cancelSizeAnimation(el){
 
     stopSizeAnimation(el);
     clearSizeAnimationStyles(el);
-
-    log("CANCEL",getName(el));
 }
 
 function easeOutCubic(progress){
     return 1-Math.pow(1-progress,3);
 }
 
-function animateMargins(el,from,target,duration,clearOnFinish=true){
+function animateMargins(el,from,target,duration){
     if(!el)
         return Promise.resolve();
 
@@ -219,10 +218,7 @@ function animateMargins(el,from,target,duration,clearOnFinish=true){
 
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
-
-                if(clearOnFinish)
-                    clearSizeAnimationStyles(el);
-
+                clearSizeAnimationStyles(el);
                 resolve();
             },20);
         }
@@ -238,13 +234,7 @@ export function animateExpand(el){
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
 
-    return animateMargins(
-        el,
-        hidden,
-        visible,
-        EXPAND_DURATION,
-        true
-    );
+    return animateMargins(el,hidden,visible,EXPAND_DURATION);
 }
 
 export function animateCollapse(el){
@@ -254,11 +244,5 @@ export function animateCollapse(el){
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
 
-    return animateMargins(
-        el,
-        visible,
-        hidden,
-        COLLAPSE_DURATION,
-        false
-    );
+    return animateMargins(el,visible,hidden,COLLAPSE_DURATION);
 }
