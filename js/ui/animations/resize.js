@@ -1,7 +1,7 @@
 const EXPAND_DURATION=420;
 const COLLAPSE_DURATION=5420;
 const DEBUG_ANIMATIONS=true;
-const COLLAPSE_END_GAP=20;
+const COLLAPSE_END_GAP=18;
 
 function log(...args){
     if(DEBUG_ANIMATIONS)
