@@ -15,6 +15,13 @@ function getMargins(el){
     };
 }
 
+function setMargins(el,m){
+    el.style.setProperty("margin-top",`${m.top}px`,"important");
+    el.style.setProperty("margin-right",`${m.right}px`,"important");
+    el.style.setProperty("margin-bottom",`${m.bottom}px`,"important");
+    el.style.setProperty("margin-left",`${m.left}px`,"important");
+}
+
 function getAxis(el){
     const parent=el?.parentElement;
     if(!parent)
@@ -237,7 +244,6 @@ function animate(el,from,to,duration){
                 logLayout("JUST BEFORE RESOLVE",el);
 
                 resolve();
-
             },20);
         }
 
