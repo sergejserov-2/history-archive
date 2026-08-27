@@ -67,18 +67,47 @@ function syncEmptySectionButtons(section){
 }
 
 // ======================================
+// Empty section update
+// ======================================
+
+function updateEmptySection(section){
+    if(!section)
+        return;
+
+    const shouldShow=currentAdminState;
+    const state=section._animationState;
+
+    if(
+        shouldShow&&
+        !section.hidden&&
+        state!=="exit"&&
+        !section.classList.contains(
+            "animation--hidden"
+        )
+    )
+        return;
+
+    if(
+        !shouldShow&&
+        section.hidden&&
+        state!=="enter"
+    )
+        return;
+
+    if(shouldShow)
+        show(section);
+    else
+        hide(section);
+}
+
+// ======================================
 // Synchronize empty sections
 // ======================================
 
 function syncEmptySections(){
     getEmptySections().forEach(section=>{
         syncEmptySectionButtons(section);
-
-        if(currentAdminState){
-            show(section);
-        }else{
-            hide(section);
-        }
+        updateEmptySection(section);
     });
 }
 
