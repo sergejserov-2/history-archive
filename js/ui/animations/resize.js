@@ -70,34 +70,24 @@ function getGap(el,axis){
         :parseFloat(s.rowGap)||0;
 }
 
-function getSnapshot(el){
-    const rect=getRect(el);
-    const margins=getMargins(el);
-    const parent=el?.parentElement;
-    const parentRect=getRect(parent);
-
-    if(!rect)
-        return null;
-
-    return{
-        top:Number(rect.top.toFixed(3)),
-        bottom:Number(rect.bottom.toFixed(3)),
-        height:Number(rect.height.toFixed(3)),
-        left:Number(rect.left.toFixed(3)),
-        right:Number(rect.right.toFixed(3)),
-        width:Number(rect.width.toFixed(3)),
-        marginTop:Number(margins.top.toFixed(3)),
-        marginBottom:Number(margins.bottom.toFixed(3)),
-        marginLeft:Number(margins.left.toFixed(3)),
-        marginRight:Number(margins.right.toFixed(3)),
-        parentTop:parentRect?Number(parentRect.top.toFixed(3)):null,
-        parentBottom:parentRect?Number(parentRect.bottom.toFixed(3)):null,
-        parentHeight:parentRect?Number(parentRect.height.toFixed(3)):null
-    };
+function isSection(el){
+    return el?.tagName==="SECTION";
 }
 
-function log(label,el){
-    console.log(`[animations] ${label}`,el.id||el.className,getSnapshot(el));
+function logParent(label,el){
+    if(!isSection(el))
+        return;
+
+    const parent=el.parentElement;
+    const rect=getRect(parent);
+    if(!rect)
+        return;
+
+    console.log(`[animations] ${label} parent ${el.id||el.className}`,{
+        top:+rect.top.toFixed(3),
+        bottom:+rect.bottom.toFixed(3),
+        height:+rect.height.toFixed(3)
+    });
 }
 
 function getHiddenMargins(el){
@@ -112,33 +102,11 @@ function getHiddenMargins(el){
     const hidden={...margins};
 
     if(axis==="vertical"){
-        const total=rect.height+margins.top+margins.bottom+gap;
-        const shift=total/2;
-
-        console.log(`[animations] HIDDEN CALC ${el.id||el.className}`,{
-            height:Number(rect.height.toFixed(3)),
-            marginTop:Number(margins.top.toFixed(3)),
-            marginBottom:Number(margins.bottom.toFixed(3)),
-            gap:Number(gap.toFixed(3)),
-            total:Number(total.toFixed(3)),
-            shift:Number(shift.toFixed(3))
-        });
-
+        const shift=(rect.height+margins.top+margins.bottom+gap)/2;
         hidden.top-=shift;
         hidden.bottom-=shift;
     }else{
-        const total=rect.width+margins.left+margins.right+gap;
-        const shift=total/2;
-
-        console.log(`[animations] HIDDEN CALC ${el.id||el.className}`,{
-            width:Number(rect.width.toFixed(3)),
-            marginLeft:Number(margins.left.toFixed(3)),
-            marginRight:Number(margins.right.toFixed(3)),
-            gap:Number(gap.toFixed(3)),
-            total:Number(total.toFixed(3)),
-            shift:Number(shift.toFixed(3))
-        });
-
+        const shift=(rect.width+margins.left+margins.right+gap)/2;
         hidden.left-=shift;
         hidden.right-=shift;
     }
@@ -173,13 +141,10 @@ function animate(el,from,to,duration){
         return Promise.resolve();
 
     stop(el);
-
-    log("START",el);
-
     setMargins(el,from);
     void document.documentElement.offsetHeight;
 
-    log("AFTER SET FROM",el);
+    logParent("START",el);
 
     const start=performance.now();
 
@@ -203,10 +168,9 @@ function animate(el,from,to,duration){
             el._animationFrame=null;
             setMargins(el,to);
 
-            log("JUST BEFORE RESOLVE",el);
-
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
+                logParent("BEFORE RESOLVE",el);
                 resolve();
             },20);
         }
@@ -220,7 +184,6 @@ export function cancelSizeAnimation(el){
         return;
 
     stop(el);
-    console.log(`[animations] CANCEL ${el.id||el.className}`);
     clear(el);
 }
 
@@ -228,21 +191,12 @@ export function clearSizeAnimation(el){
     if(!el)
         return;
 
-    console.log(`[animations] BEFORE EXTERNAL CLEAR ${el.id||el.className}`);
-    log("EXTERNAL BEFORE",el);
-
     clear(el);
-    void document.documentElement.offsetHeight;
-
-    log("EXTERNAL AFTER",el);
-    console.log(`[animations] AFTER EXTERNAL CLEAR ${el.id||el.className}`);
 }
 
 export function animateExpand(el){
     if(!el)
         return Promise.resolve();
-
-    console.log(`[animations] EXPAND ${el.id||el.className}`);
 
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
@@ -253,8 +207,6 @@ export function animateExpand(el){
 export function animateCollapse(el){
     if(!el)
         return Promise.resolve();
-
-    console.log(`[animations] COLLAPSE ${el.id||el.className}`);
 
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
