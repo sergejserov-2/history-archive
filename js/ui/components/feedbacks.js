@@ -1,112 +1,64 @@
-import{getRecentActivities}from"../../api/activity.js";
+import{getRecentFeedbacks}from"../../api/feedback.js";
 import{createModal}from"./modal.js";
 import{openModal}from"./modalReload.js";
 import{renderEntityList}from"./entityList.js";
-import{getSubject}from"../../api/subjects.js";
 import{renderDateTime}from"./date.js";
 
-let currentActivityModal=null;
+let currentFeedbacksModal=null;
 
-export async function openActivityModal(){
-    const activities=await getRecentActivities(100);
+export async function openFeedbacksModal(){
+    const feedbacks=await getRecentFeedbacks(100);
 
     const modal=createModal({
-        title:"История изменений",
-        content:renderActivityList(activities),
+        title:"Обращения",
+        content:renderFeedbackList(feedbacks),
         width:630,
         admin:true
     });
 
-    currentActivityModal=modal;
-    modal.activities=activities;
+    currentFeedbacksModal=modal;
+    modal.feedbacks=feedbacks;
 
-    modal.root.addEventListener("click",async event=>{
+    modal.root.onclick=event=>{
         const row=event.target.closest(".entity-list-row");
         if(!row)return;
 
-        const id=row.dataset.id;
-        if(!id)return;
+        const feedback=modal.feedbacks.find(
+            item=>item.id===row.dataset.id
+        );
 
-        const activity=activities.find(item=>item.id===id);
-        if(!activity)return;
+        if(!feedback)return;
 
-        event.preventDefault();
-
-        await openActivityTarget(activity);
-    });
+        void openModal("feedback-view",{
+            entityId:feedback.id
+        });
+    };
 
     return modal;
 }
 
-export async function refreshActivityModal(){
-    if(!currentActivityModal?.root?.isConnected){
-        currentActivityModal=null;
+export async function refreshFeedbacksModal(){
+    if(!currentFeedbacksModal?.root?.isConnected){
+        currentFeedbacksModal=null;
         return;
     }
 
-    const activities=await getRecentActivities(100);
+    const feedbacks=await getRecentFeedbacks(100);
 
-    currentActivityModal.activities=activities;
+    currentFeedbacksModal.feedbacks=feedbacks;
 
-    currentActivityModal.setContent(
-        renderActivityList(activities)
+    currentFeedbacksModal.setContent(
+        renderFeedbackList(feedbacks)
     );
 }
 
-async function openActivityTarget(activity){
-    const{action,entityType,entityId,parentId}=activity;
-
-    if(entityType==="object"){
-        if(action==="delete"){
-            window.location.href=parentId?`object.html?id=${parentId}`:"index.html";
-            return;
-        }
-
-        if(entityId){
-            window.location.href=`object.html?id=${entityId}`;
-        }
-
-        return;
-    }
-
-    if(entityType==="photo"||entityType==="source"||entityType==="record"){
-        if(parentId){
-            window.location.href=`object.html?id=${parentId}`;
-        }
-
-        return;
-    }
-
-    if(entityType==="subject"){
-        if(action==="delete"){
-            await openModal("subjects");
-            return;
-        }
-
-        const subject=await getSubject(entityId);
-        if(!subject)return;
-
-        await openModal("subject",{entityId});
-
-        return;
-    }
-
-    if(
-        entityType==="objectType"||
-        entityType==="recordType"||
-        entityType==="subjectType"
-    ){
-        await openModal("types");
-    }
-}
-
-function renderActivityList(activities=[]){
+function renderFeedbackList(feedbacks=[]){
     const groups=new Map();
 
-    [...activities]
+    [...feedbacks]
         .sort((a,b)=>Number(b.createdAt??0)-Number(a.createdAt??0))
-        .forEach(activity=>{
-            const date=new Date(Number(activity.createdAt??0));
+        .forEach(feedback=>{
+            const date=new Date(Number(feedback.createdAt??0));
             const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 
             if(!groups.has(key)){
@@ -114,23 +66,19 @@ function renderActivityList(activities=[]){
             }
 
             groups.get(key).items.push({
-                id:activity.id,
+                id:feedback.id,
                 clickable:true,
-                sortValue:Number(activity.createdAt??0),
-                title:escapeHTML(
-                    activity.adminName||
-                    activity.adminEmail||
-                    "Неизвестный администратор"
-                ),
-                description:formatActivityDescription(activity),
-                meta:renderDateTime(activity.createdAt)
+                sortValue:Number(feedback.createdAt??0),
+                title:escapeHTML(feedback.name||"Без имени"),
+                description:escapeHTML(feedback.title||"Без заголовка"),
+                meta:renderDateTime(feedback.createdAt)
             });
         });
 
     return renderEntityList({
         groups:[
             ...groups.values().map(group=>({
-                title:formatActivityGroupDate(group.date),
+                title:formatFeedbackGroupDate(group.date),
                 items:group.items,
                 sortDirection:"desc"
             }))
@@ -138,7 +86,7 @@ function renderActivityList(activities=[]){
     });
 }
 
-function formatActivityGroupDate(date){
+function formatFeedbackGroupDate(date){
     const now=new Date();
     const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const target=new Date(date.getFullYear(),date.getMonth(),date.getDate());
@@ -155,37 +103,6 @@ function formatActivityGroupDate(date){
             year:"numeric"
         }
     );
-}
-
-function formatActivityDescription(activity){
-    const title=activity.title||"Без названия";
-    const name=escapeHTML(title);
-
-    if(activity.action==="create")
-        return`Создание ${formatEntityName(activity.entityType)} "${name}"`;
-
-    if(activity.action==="update")
-        return`Изменение ${formatEntityName(activity.entityType)} "${name}"`;
-
-    if(activity.action==="delete")
-        return`Удаление ${formatEntityName(activity.entityType)} "${name}"`;
-
-    return`${formatEntityName(activity.entityType)} "${name}"`;
-}
-
-function formatEntityName(type){
-    const names={
-        object:"объекта",
-        photo:"фотографии",
-        source:"источника",
-        record:"записи",
-        subject:"субъекта",
-        objectType:"типа объектов",
-        recordType:"типа записей",
-        subjectType:"типа субъектов"
-    };
-
-    return names[type]??"сущности";
 }
 
 function escapeHTML(value=""){
