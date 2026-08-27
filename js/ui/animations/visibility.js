@@ -5,76 +5,46 @@
 const ENTER_VISUAL_DURATION=300;
 const EXIT_VISUAL_DURATION=300;
 
+const HIDDEN_CLASS="animation--hidden";
+const ENTERING_CLASS="animation--entering";
+const EXITING_CLASS="animation--exiting";
+
 // ======================================
-// Show visibility
+// Show
 // ======================================
 
 export function showVisibility(element){
-
     if(!element)
         return Promise.resolve();
 
-    element.classList.remove(
-        "admin-button--hidden"
-    );
-
-    element.classList.add(
-        "admin-button--entering"
-    );
+    element.classList.remove(HIDDEN_CLASS);
+    element.classList.add(ENTERING_CLASS);
 
     return new Promise(resolve=>{
-
         setTimeout(()=>{
-
-            element.classList.remove(
-                "admin-button--entering"
-            );
-
+            element.classList.remove(ENTERING_CLASS);
             resolve();
-
         },ENTER_VISUAL_DURATION+20);
-
     });
-
 }
 
 // ======================================
-// Hide visibility
+// Hide
 // ======================================
 
 export function hideVisibility(element){
-
     if(!element)
         return Promise.resolve();
 
-    element.classList.remove(
-        "admin-button--hidden"
-    );
-
-    element.classList.remove(
-        "admin-button--entering"
-    );
-
-    element.classList.add(
-        "admin-button--exiting"
-    );
+    element.classList.remove(HIDDEN_CLASS);
+    element.classList.remove(ENTERING_CLASS);
+    element.classList.add(EXITING_CLASS);
 
     return new Promise(resolve=>{
-
         setTimeout(()=>{
-
-            element.classList.remove(
-                "admin-button--exiting"
-            );
-
-            element.classList.add(
-                "admin-button--hidden"
-            );
-
+            element.classList.remove(EXITING_CLASS);
+            element.classList.add(HIDDEN_CLASS);
             resolve();
-
         },EXIT_VISUAL_DURATION+20);
-
     });
-
 }
