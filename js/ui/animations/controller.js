@@ -1,7 +1,3 @@
-// ======================================
-// Animation controller
-// ======================================
-
 import{
     animateExpand,
     animateCollapse,
@@ -21,10 +17,6 @@ const HIDDEN_CLASS="animation--hidden";
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
 
-// ======================================
-// Cancel
-// ======================================
-
 export function cancelAnimation(element){
     if(!element)
         return;
@@ -41,10 +33,6 @@ export function cancelAnimation(element){
 
     element._animationState=null;
 }
-
-// ======================================
-// Show
-// ======================================
 
 export function show(element){
     if(!element)
@@ -82,10 +70,6 @@ export function show(element){
         });
     });
 }
-
-// ======================================
-// Hide
-// ======================================
 
 export function hide(element){
     if(!element)
