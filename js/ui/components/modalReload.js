@@ -2,171 +2,269 @@ import{modalRegistry}from"./modalRegistry.js";
 import{isAdmin}from"../../admin/adminMode.js";
 import{getCurrentModal}from"./modal.js";
 
-let restoring=false;
-let closingFromHistory=false;
+let reconciling=false;
+let suppressCloseNavigation=false;
 
 function getRegistration(type){
-    return modalRegistry.find(modal=>modal.type===type)??null;
+    return modalRegistry.find(item=>item.type===type)??null;
 }
 
-function getUrlParams(registration,url){
+function getModalParams(registration,url){
     const params={};
-    for(const key of registration.params??[])params[key]=url.searchParams.get(key);
+    for(const key of registration?.params??[]){
+        params[key]=url.searchParams.get(key);
+    }
     return params;
 }
 
-function getModalState(){
+function getState(){
     const url=new URL(window.location.href);
     const type=url.searchParams.get("modal");
     return{
         url,
         type,
-        registration:type?getRegistration(type):null
+        registration:getRegistration(type)
     };
+}
+
+function getAllModalParameterNames(){
+    const names=new Set();
+
+    for(const registration of modalRegistry){
+        for(const key of registration.params??[]){
+            if(key!=="id")names.add(key);
+        }
+    }
+
+    return names;
+}
+
+function cleanModalParams(url){
+    const names=getAllModalParameterNames();
+
+    for(const key of names){
+        if(key!=="id")url.searchParams.delete(key);
+    }
+
+    return url;
+}
+
+function applyModalUrl(url,type,params={}){
+    cleanModalParams(url);
+    url.searchParams.set("modal",type);
+
+    const registration=getRegistration(type);
+
+    for(const key of registration?.params??[]){
+        if(key==="id")continue;
+
+        const value=params[key];
+
+        if(value===null||value===undefined||value===""){
+            url.searchParams.delete(key);
+        }else{
+            url.searchParams.set(key,String(value));
+        }
+    }
+
+    return url;
+}
+
+async function closeCurrentModalSilently(){
+    const modal=getCurrentModal();
+
+    if(!modal)return;
+
+    suppressCloseNavigation=true;
+
+    try{
+        await modal.close({silent:true});
+    }finally{
+        suppressCloseNavigation=false;
+    }
+}
+
+async function openState(){
+    const{url,type,registration}=getState();
+
+    if(!type){
+        await closeCurrentModalSilently();
+        return;
+    }
+
+    if(!registration){
+        console.error("Unknown modal:",type);
+
+        const cleanUrl=cleanModalParams(url);
+        cleanUrl.searchParams.delete("modal");
+
+        window.history.replaceState(
+            window.history.state,
+            "",
+            cleanUrl
+        );
+
+        await closeCurrentModalSilently();
+        return;
+    }
+
+    if(registration.admin&&!isAdmin()){
+        const cleanUrl=cleanModalParams(url);
+        cleanUrl.searchParams.delete("modal");
+
+        window.history.replaceState(
+            window.history.state,
+            "",
+            cleanUrl
+        );
+
+        await closeCurrentModalSilently();
+        return;
+    }
+
+    const params=getModalParams(registration,url);
+
+    const data=registration.load
+        ?await registration.load(params)
+        :null;
+
+    if(registration.load&&!data){
+        console.error("Modal data not found:",type,params);
+
+        const cleanUrl=cleanModalParams(url);
+        cleanUrl.searchParams.delete("modal");
+
+        window.history.replaceState(
+            window.history.state,
+            "",
+            cleanUrl
+        );
+
+        await closeCurrentModalSilently();
+        return;
+    }
+
+    if(reconciling)return;
+
+    reconciling=true;
+
+    try{
+        await closeCurrentModalSilently();
+        await registration.open?.(data);
+    }finally{
+        reconciling=false;
+    }
+
+    const modal=getCurrentModal();
+
+    if(!modal)return;
+
+    modal.element.dataset.modalType=type;
+
+    modal.setCloseHandler(()=>{
+        if(suppressCloseNavigation)return;
+        if(reconciling)return;
+
+        const current=new URL(window.location.href);
+
+        if(!current.searchParams.has("modal"))return;
+
+        window.history.back();
+    });
 }
 
 export function setModalUrl(type,params={}){
     const url=new URL(window.location.href);
-    url.searchParams.set("modal",type);
+    applyModalUrl(url,type,params);
 
-    const registration=getRegistration(type);
-    const allowed=new Set(registration?.params??[]);
-
-    for(const key of [...url.searchParams.keys()]){
-        if(key==="modal")continue;
-        if(!allowed.has(key)&&key!=="id")url.searchParams.delete(key);
-    }
-
-    Object.entries(params).forEach(([key,value])=>{
-        if(value===null||value===undefined||value==="")url.searchParams.delete(key);
-        else url.searchParams.set(key,String(value));
-    });
-
-    window.history.pushState({modal:type},"",url);
-}
-
-export function replaceModalUrl(params={}){
-    const url=new URL(window.location.href);
-
-    Object.entries(params).forEach(([key,value])=>{
-        if(value===null||value===undefined||value==="")url.searchParams.delete(key);
-        else url.searchParams.set(key,String(value));
-    });
-
-    window.history.replaceState(
+    window.history.pushState(
         {
-            ...window.history.state,
-            modal:url.searchParams.get("modal")
+            ...(window.history.state??{}),
+            modal:type
         },
         "",
         url
     );
 }
 
-function removeModalParams(url,registration){
-    url.searchParams.delete("modal");
-    for(const key of registration?.params??[]){
-        if(key!=="id")url.searchParams.delete(key);
-    }
-    return url;
-}
+export function replaceModalUrl(params={}){
+    const url=new URL(window.location.href);
+    const type=url.searchParams.get("modal");
 
-async function closeCurrentModalFromHistory(){
-    const modal=getCurrentModal();
-    if(!modal)return;
-    closingFromHistory=true;
-    try{
-        await modal.close();
-    }finally{
-        closingFromHistory=false;
-    }
-}
+    if(!type)return;
 
-async function openFromUrl(){
-    const{url,type,registration}=getModalState();
+    const registration=getRegistration(type);
 
-    if(!type){
-        await closeCurrentModalFromHistory();
-        return;
-    }
+    for(const[key,value]of Object.entries(params)){
+        if(key==="id")continue;
 
-    if(!registration){
-        console.error("Unknown modal:",type);
-        const cleanUrl=removeModalParams(url,null);
-        window.history.replaceState({}, "", cleanUrl);
-        await closeCurrentModalFromHistory();
-        return;
-    }
-
-    if(registration.admin&&!isAdmin()){
-        const cleanUrl=removeModalParams(url,registration);
-        window.history.replaceState({}, "", cleanUrl);
-        await closeCurrentModalFromHistory();
-        return;
-    }
-
-    const params=getUrlParams(registration,url);
-    const data=registration.load?await registration.load(params):null;
-
-    if(registration.load&&!data){
-        console.error("Modal data not found:",type,params);
-        const cleanUrl=removeModalParams(url,registration);
-        window.history.replaceState({}, "", cleanUrl);
-        await closeCurrentModalFromHistory();
-        return;
-    }
-
-    const current=getCurrentModal();
-
-    if(current){
-        const currentType=current.element?.dataset?.modalType;
-        if(currentType===type)return;
-        await closeCurrentModalFromHistory();
-    }
-
-    restoring=true;
-    try{
-        await registration.open?.(data);
-    }finally{
-        restoring=false;
-    }
-
-    const modal=getCurrentModal();
-    if(!modal)return;
-
-    modal.element.dataset.modalType=type;
-
-    modal.setCloseHandler(async()=>{
-        if(closingFromHistory||restoring)return;
-        if(window.location.search.includes("modal=")){
-            window.history.back();
+        if(value===null||value===undefined||value===""){
+            url.searchParams.delete(key);
+        }else{
+            url.searchParams.set(key,String(value));
         }
-    });
+    }
+
+    const allowed=new Set(registration?.params??[]);
+
+    for(const key of [...url.searchParams.keys()]){
+        if(key==="modal"||key==="id")continue;
+        if(!allowed.has(key))url.searchParams.delete(key);
+    }
+
+    window.history.replaceState(
+        {
+            ...(window.history.state??{}),
+            modal:type
+        },
+        "",
+        url
+    );
+}
+
+export function clearModalUrl(){
+    const url=new URL(window.location.href);
+
+    if(!url.searchParams.has("modal"))return;
+
+    cleanModalParams(url);
+    url.searchParams.delete("modal");
+
+    window.history.replaceState(
+        window.history.state,
+        "",
+        url
+    );
 }
 
 export async function restoreModalFromUrl(){
-    await openFromUrl();
+    await openState();
 }
 
-window.addEventListener("popstate",async()=>{
-    await openFromUrl();
+window.addEventListener("popstate",()=>{
+    void openState();
 });
 
-document.addEventListener("click",async event=>{
+document.addEventListener("click",event=>{
     const link=event.target.closest(".subject-mention");
+
     if(!link)return;
 
     const href=link.getAttribute("href");
+
     if(!href)return;
 
     const url=new URL(href,window.location.href);
+
     if(url.searchParams.get("modal")!=="subject")return;
+
+    const entityId=url.searchParams.get("entityId");
+
+    if(!entityId)return;
 
     event.preventDefault();
 
-    const entityId=url.searchParams.get("entityId");
-    if(!entityId)return;
-
     setModalUrl("subject",{entityId});
-    await openFromUrl();
+
+    void openState();
 });
