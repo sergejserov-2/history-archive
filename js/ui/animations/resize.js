@@ -1,6 +1,6 @@
-const EXPAND_DURATION=420;
-const COLLAPSE_DURATION=420;
-const SECTION_END_GAP=16.5;
+const EXPAND_DURATION=5420;
+const COLLAPSE_DURATION=5420;
+const SECTION_END_GAP=24;
 
 function getRect(el){
     return el?.getBoundingClientRect()||null;
