@@ -8,7 +8,6 @@ import{renderDateTime}from"./date.js";
 let currentActivityModal=null;
 
 export async function openActivityModal(){
-
     const activities=await getRecentActivities(100);
 
     const modal=createModal({
@@ -32,6 +31,7 @@ export async function openActivityModal(){
         if(!activity)return;
 
         event.preventDefault();
+
         await openActivityTarget(activity);
     });
 
@@ -39,7 +39,6 @@ export async function openActivityModal(){
 }
 
 export async function refreshActivityModal(){
-
     if(!currentActivityModal?.root?.isConnected){
         currentActivityModal=null;
         return;
@@ -55,15 +54,11 @@ export async function refreshActivityModal(){
 }
 
 async function openActivityTarget(activity){
-
     const{action,entityType,entityId,parentId}=activity;
 
     if(entityType==="object"){
-
         if(action==="delete"){
-            window.location.href=parentId
-                ?`object.html?id=${parentId}`
-                :"index.html";
+            window.location.href=parentId?`object.html?id=${parentId}`:"index.html";
             return;
         }
 
@@ -74,12 +69,7 @@ async function openActivityTarget(activity){
         return;
     }
 
-    if(
-        entityType==="photo"||
-        entityType==="source"||
-        entityType==="record"
-    ){
-
+    if(entityType==="photo"||entityType==="source"||entityType==="record"){
         if(parentId){
             window.location.href=`object.html?id=${parentId}`;
         }
@@ -88,7 +78,6 @@ async function openActivityTarget(activity){
     }
 
     if(entityType==="subject"){
-
         if(action==="delete"){
             await openModal("subjects");
             return;
@@ -97,9 +86,7 @@ async function openActivityTarget(activity){
         const subject=await getSubject(entityId);
         if(!subject)return;
 
-        await openModal("subject",{
-            entityId
-        });
+        await openModal("subject",{entityId});
 
         return;
     }
@@ -109,28 +96,21 @@ async function openActivityTarget(activity){
         entityType==="recordType"||
         entityType==="subjectType"
     ){
-
         await openModal("types");
-        return;
     }
 }
 
 function renderActivityList(activities=[]){
-
     const groups=new Map();
 
     [...activities]
         .sort((a,b)=>Number(b.createdAt??0)-Number(a.createdAt??0))
         .forEach(activity=>{
-
             const date=new Date(Number(activity.createdAt??0));
             const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 
             if(!groups.has(key)){
-                groups.set(key,{
-                    date,
-                    items:[]
-                });
+                groups.set(key,{date,items:[]});
             }
 
             groups.get(key).items.push({
@@ -159,21 +139,9 @@ function renderActivityList(activities=[]){
 }
 
 function formatActivityGroupDate(date){
-
     const now=new Date();
-
-    const today=new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate()
-    );
-
-    const target=new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate()
-    );
-
+    const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const target=new Date(date.getFullYear(),date.getMonth(),date.getDate());
     const diff=Math.round((today-target)/86400000);
 
     if(diff===0)return"Сегодня";
@@ -190,7 +158,6 @@ function formatActivityGroupDate(date){
 }
 
 function formatActivityDescription(activity){
-
     const title=activity.title||"Без названия";
     const name=escapeHTML(title);
 
@@ -207,7 +174,6 @@ function formatActivityDescription(activity){
 }
 
 function formatEntityName(type){
-
     const names={
         object:"объекта",
         photo:"фотографии",
@@ -223,7 +189,6 @@ function formatEntityName(type){
 }
 
 function escapeHTML(value=""){
-
     return String(value)
         .replaceAll("&","&amp;")
         .replaceAll("<","&lt;")
