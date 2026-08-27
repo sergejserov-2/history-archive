@@ -616,3 +616,7 @@
     transition:
         transform 420ms cubic-bezier(.12, .82, .25, 1);
 }
+
+.child-card--add.admin-button {
+    height: 110px;
+}
