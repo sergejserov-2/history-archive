@@ -70,6 +70,21 @@ function getGap(el,axis){
         :parseFloat(s.rowGap)||0;
 }
 
+function getSize(el){
+    const rect=getRect(el);
+    const margins=getMargins(el);
+
+    if(!rect)
+        return 0;
+
+    const axis=getAxis(el);
+    const gap=getGap(el,axis);
+
+    return axis==="vertical"
+        ?rect.height+margins.top+margins.bottom+gap
+        :rect.width+margins.left+margins.right+gap;
+}
+
 function getHiddenMargins(el){
     const rect=getRect(el);
     const margins=getMargins(el);
@@ -80,32 +95,20 @@ function getHiddenMargins(el){
     const axis=getAxis(el);
     const gap=getGap(el,axis);
     const hidden={...margins};
+    const size=axis==="vertical"
+        ?rect.height+margins.top+margins.bottom+gap
+        :rect.width+margins.left+margins.right+gap;
+    const shift=size/2;
 
     if(axis==="vertical"){
-        const shift=(rect.height+margins.top+margins.bottom+gap)/2;
         hidden.top-=shift;
         hidden.bottom-=shift;
     }else{
-        const shift=(rect.width+margins.left+margins.right+gap)/2;
         hidden.left-=shift;
         hidden.right-=shift;
     }
 
     return hidden;
-}
-
-function getSize(el){
-    const rect=getRect(el);
-    const margins=getMargins(el);
-
-    if(!rect)
-        return 0;
-
-    const axis=getAxis(el);
-
-    return axis==="vertical"
-        ?rect.height+margins.top+margins.bottom
-        :rect.width+margins.left+margins.right;
 }
 
 function stop(el){
