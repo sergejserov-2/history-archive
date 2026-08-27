@@ -69,15 +69,14 @@ export const photoPreviewModal={
 export const editorModal={
     type:"editor",
     admin:true,
-    params:["id","entityId","entityType"],
+    params:["entityId","entityType"],
     load:async params=>{
-        if(!params.entityType)return null;
+        if(!params.entityId||!params.entityType)return null;
 
+        const pageId=new URL(window.location.href).searchParams.get("id");
         const objects=await getAllObjects();
 
         if(["objectType","recordType","subjectType"].includes(params.entityType)){
-            if(!params.entityId)return null;
-
             let entity=null,context={};
 
             if(params.entityType==="objectType"){
@@ -102,159 +101,42 @@ export const editorModal={
         }
 
         if(params.entityType==="subject"){
-            if(params.entityId){
-                const[subject,subjects,subjectTypes]=await Promise.all([
-                    getSubject(params.entityId),
-                    getSubjects(),
-                    getSubjectTypes()
-                ]);
-
-                if(!subject)return null;
-
-                return{
-                    entity:subject,
-                    type:"subject",
-                    objects,
-                    subjects,
-                    subjectTypes,
-                    context:{
-                        objects,
-                        subjects,
-                        subjectTypes,
-                        parentId:params.id
-                    }
-                };
-            }
-
-            if(!params.id)return null;
-
-            const[subjects,subjectTypes]=await Promise.all([
-                getSubjects(),
-                getSubjectTypes()
-            ]);
-
-            return{
-                entity:null,
-                type:"subject",
-                objects,
-                subjects,
-                subjectTypes,
-                context:{
-                    objects,
-                    subjects,
-                    subjectTypes,
-                    parentId:params.id
-                }
-            };
+            const[subject,subjects,subjectTypes]=await Promise.all([getSubject(params.entityId),getSubjects(),getSubjectTypes()]);
+            if(!subject)return null;
+            return{entity:subject,type:"subject",objects,subjects,subjectTypes,context:{objects,subjects,subjectTypes}};
         }
 
-        if(!["object","photo","source","record"].includes(params.entityType))return null;
+        if(!pageId)return null;
 
         if(params.entityType==="object"){
-            if(params.entityId){
-                const object=await getObject(params.entityId);
-                if(!object)return null;
-
-                const[type,types,children,photos]=await Promise.all([
-                    getType(object.typeId),
-                    getTypes(),
-                    getChildren(object.id,objects),
-                    getPhotos(object.id)
-                ]);
-
-                return{
-                    entity:object,
-                    type:"object",
-                    objects,
-                    children,
-                    photos,
-                    types,
-                    context:{
-                        objects,
-                        children,
-                        photos,
-                        types,
-                        parentId:params.id
-                    }
-                };
-            }
-
-            if(!params.id)return null;
-
-            const types=await getTypes();
-
-            return{
-                entity:null,
-                type:"object",
-                objects,
-                children:[],
-                photos:[],
-                types,
-                context:{
-                    objects,
-                    children:[],
-                    photos:[],
-                    types,
-                    parentId:params.id
-                }
-            };
+            const object=await getObject(params.entityId);
+            if(!object)return null;
+            const[type,types,children,photos]=await Promise.all([getType(object.typeId),getTypes(),getChildren(object.id),getPhotos(object.id)]);
+            return{entity:object,type:"object",objects,children,photos,types,context:{objects,parentId:pageId}};
         }
 
-        if(!params.id)return null;
+        if(!["photo","source","record"].includes(params.entityType))return null;
 
         let entities=[];
-        if(params.entityType==="photo")entities=await getPhotos(params.id);
-        if(params.entityType==="source")entities=await getSources(params.id);
-        if(params.entityType==="record")entities=await getRecords(params.id);
 
-        if(!params.entityId){
-            const context={parentId:params.id,objects};
-
-            if(params.entityType==="photo")return{entity:null,type:"photo",objects,context:{...context,photos:entities}};
-            if(params.entityType==="source")return{entity:null,type:"source",objects,context:{...context,sources:entities}};
-            if(params.entityType==="record")return{entity:null,type:"record",objects,context:{...context,records:entities}};
-        }
+        if(params.entityType==="photo")entities=await getPhotos(pageId);
+        if(params.entityType==="source")entities=await getSources(pageId);
+        if(params.entityType==="record")entities=await getRecords(pageId);
 
         const entity=entities.find(item=>item.id===params.entityId);
 
         if(!entity)return null;
 
-        return{
-            entity,
-            type:params.entityType,
-            objects,
-            context:{
-                parentId:params.id,
-                objects,
-                [params.entityType+"s"]:entities
-            }
-        };
+        return{entity,type:params.entityType,objects,context:{parentId:pageId,objects}};
     },
     open:async data=>{
         if(!data)return;
 
-        if(["objectType","recordType","subjectType"].includes(data.type)){
-            return openEditor(data.type,data.entity,data.context);
-        }
+        if(["objectType","recordType","subjectType"].includes(data.type))return openEditor(data.type,data.entity,data.context);
 
-        if(data.type==="object"){
-            return openEditor("object",data.entity,{
-                ...data.context,
-                types:data.types,
-                objects:data.objects,
-                children:data.children,
-                photos:data.photos
-            });
-        }
+        if(data.type==="object")return openEditor("object",data.entity,{...data.context,types:data.types,objects:data.objects,children:data.children,photos:data.photos});
 
-        if(data.type==="subject"){
-            return openEditor("subject",data.entity,{
-                ...data.context,
-                objects:data.objects,
-                subjects:data.subjects,
-                subjectTypes:data.subjectTypes
-            });
-        }
+        if(data.type==="subject")return openEditor("subject",data.entity,{...data.context,objects:data.objects,subjects:data.subjects,subjectTypes:data.subjectTypes});
 
         return openEditor(data.type,data.entity,data.context);
     }
