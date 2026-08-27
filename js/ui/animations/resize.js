@@ -185,19 +185,14 @@ function animateGroup(elements,mode,duration){
     if(!items.length)
         return Promise.resolve();
 
-    console.groupCollapsed(`resize group: ${mode}`);
+    const total=items.reduce((sum,item)=>sum+item.size,0);
 
-    console.table(items.map((item,index)=>({
+    console.log(`[resize] ${mode} group:`,items.map((item,index)=>({
         index:index+1,
         element:item.el,
-        size:item.size,
-        marginTop:item.visible.top,
-        marginBottom:item.visible.bottom
+        size:item.size
     })));
-
-    console.log("total:",items.reduce((sum,item)=>sum+item.size,0));
-
-    console.groupEnd();
+    console.log(`[resize] ${mode} group total: ${total}px`);
 
     for(const item of items){
         stop(item.el);
@@ -207,7 +202,6 @@ function animateGroup(elements,mode,duration){
     void document.documentElement.offsetHeight;
 
     const first=items[0];
-    const total=items.reduce((sum,item)=>sum+item.size,0);
     const axis=getAxis(first.el);
     const shift=total/2;
 
