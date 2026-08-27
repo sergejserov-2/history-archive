@@ -1,46 +1,198 @@
-import{getRecentFeedbacks}from"../../api/feedback.js";
+import{getRecentActivities}from"../../api/activity.js";
 import{createModal}from"./modal.js";
+import{openModal}from"./modalReload.js";
 import{renderEntityList}from"./entityList.js";
+import{getSubject}from"../../api/subjects.js";
 import{renderDateTime}from"./date.js";
-import{openFeedbackModal}from"./feedback.js";
-let currentFeedbacksModal=null;
-export async function openFeedbacksModal(){
-    const feedbacks=await getRecentFeedbacks(100);
-    const modal=createModal({title:"Обращения",content:renderFeedbackList(feedbacks),width:630, admin: true});
-    currentFeedbacksModal=modal;
-    modal.feedbacks=feedbacks;
-    modal.root.onclick=event=>{
+
+let currentActivityModal=null;
+
+export async function openActivityModal(){
+    const activities=await getRecentActivities(100);
+
+    const modal=createModal({
+        title:"История изменений",
+        content:renderActivityList(activities),
+        width:630,
+        admin:true
+    });
+
+    currentActivityModal=modal;
+    modal.activities=activities;
+
+    modal.root.addEventListener("click",async event=>{
         const row=event.target.closest(".entity-list-row");
         if(!row)return;
-        const feedback=modal.feedbacks.find(item=>item.id===row.dataset.id);
-        if(!feedback)return;
-        openFeedbackModal(feedback);
-    };
+
+        const id=row.dataset.id;
+        if(!id)return;
+
+        const activity=activities.find(item=>item.id===id);
+        if(!activity)return;
+
+        event.preventDefault();
+
+        await openActivityTarget(activity);
+    });
+
     return modal;
 }
-export async function refreshFeedbacksModal(){
-    if(!currentFeedbacksModal?.root?.isConnected){currentFeedbacksModal=null;return;}
-    const feedbacks=await getRecentFeedbacks(100);
-    currentFeedbacksModal.feedbacks=feedbacks;
-    currentFeedbacksModal.setContent(renderFeedbackList(feedbacks));
+
+export async function refreshActivityModal(){
+    if(!currentActivityModal?.root?.isConnected){
+        currentActivityModal=null;
+        return;
+    }
+
+    const activities=await getRecentActivities(100);
+
+    currentActivityModal.activities=activities;
+
+    currentActivityModal.setContent(
+        renderActivityList(activities)
+    );
 }
-function renderFeedbackList(feedbacks=[]){
+
+async function openActivityTarget(activity){
+    const{action,entityType,entityId,parentId}=activity;
+
+    if(entityType==="object"){
+        if(action==="delete"){
+            window.location.href=parentId?`object.html?id=${parentId}`:"index.html";
+            return;
+        }
+
+        if(entityId){
+            window.location.href=`object.html?id=${entityId}`;
+        }
+
+        return;
+    }
+
+    if(entityType==="photo"||entityType==="source"||entityType==="record"){
+        if(parentId){
+            window.location.href=`object.html?id=${parentId}`;
+        }
+
+        return;
+    }
+
+    if(entityType==="subject"){
+        if(action==="delete"){
+            await openModal("subjects");
+            return;
+        }
+
+        const subject=await getSubject(entityId);
+        if(!subject)return;
+
+        await openModal("subject",{entityId});
+
+        return;
+    }
+
+    if(
+        entityType==="objectType"||
+        entityType==="recordType"||
+        entityType==="subjectType"
+    ){
+        await openModal("types");
+    }
+}
+
+function renderActivityList(activities=[]){
     const groups=new Map();
-    [...feedbacks].sort((a,b)=>Number(b.createdAt??0)-Number(a.createdAt??0)).forEach(feedback=>{
-        const date=new Date(Number(feedback.createdAt??0));
-        const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-        if(!groups.has(key))groups.set(key,{date,items:[]});
-        groups.get(key).items.push({id:feedback.id,clickable:true,sortValue:Number(feedback.createdAt??0),title:escapeHTML(feedback.name||"Без имени"),description:escapeHTML(feedback.title||"Без заголовка"),meta:renderDateTime(feedback.createdAt)});
+
+    [...activities]
+        .sort((a,b)=>Number(b.createdAt??0)-Number(a.createdAt??0))
+        .forEach(activity=>{
+            const date=new Date(Number(activity.createdAt??0));
+            const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+
+            if(!groups.has(key)){
+                groups.set(key,{date,items:[]});
+            }
+
+            groups.get(key).items.push({
+                id:activity.id,
+                clickable:true,
+                sortValue:Number(activity.createdAt??0),
+                title:escapeHTML(
+                    activity.adminName||
+                    activity.adminEmail||
+                    "Неизвестный администратор"
+                ),
+                description:formatActivityDescription(activity),
+                meta:renderDateTime(activity.createdAt)
+            });
+        });
+
+    return renderEntityList({
+        groups:[
+            ...groups.values().map(group=>({
+                title:formatActivityGroupDate(group.date),
+                items:group.items,
+                sortDirection:"desc"
+            }))
+        ]
     });
-    return renderEntityList({groups:[...groups.values()].map(group=>({title:formatFeedbackGroupDate(group.date),items:group.items,sortDirection:"desc"}))});
 }
-function formatFeedbackGroupDate(date){
+
+function formatActivityGroupDate(date){
     const now=new Date();
     const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const target=new Date(date.getFullYear(),date.getMonth(),date.getDate());
     const diff=Math.round((today-target)/86400000);
+
     if(diff===0)return"Сегодня";
     if(diff===1)return"Вчера";
-    return date.toLocaleDateString("ru-RU",{day:"numeric",month:"long",year:"numeric"});
+
+    return date.toLocaleDateString(
+        "ru-RU",
+        {
+            day:"numeric",
+            month:"long",
+            year:"numeric"
+        }
+    );
 }
-function escapeHTML(value=""){return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","'");}
+
+function formatActivityDescription(activity){
+    const title=activity.title||"Без названия";
+    const name=escapeHTML(title);
+
+    if(activity.action==="create")
+        return`Создание ${formatEntityName(activity.entityType)} "${name}"`;
+
+    if(activity.action==="update")
+        return`Изменение ${formatEntityName(activity.entityType)} "${name}"`;
+
+    if(activity.action==="delete")
+        return`Удаление ${formatEntityName(activity.entityType)} "${name}"`;
+
+    return`${formatEntityName(activity.entityType)} "${name}"`;
+}
+
+function formatEntityName(type){
+    const names={
+        object:"объекта",
+        photo:"фотографии",
+        source:"источника",
+        record:"записи",
+        subject:"субъекта",
+        objectType:"типа объектов",
+        recordType:"типа записей",
+        subjectType:"типа субъектов"
+    };
+
+    return names[type]??"сущности";
+}
+
+function escapeHTML(value=""){
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","'");
+}
