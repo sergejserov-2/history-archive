@@ -79,22 +79,9 @@ function getEndGap(el,axis){
 
     const rowGap=parseFloat(parentStyle.rowGap)||0;
     const columnGap=parseFloat(parentStyle.columnGap)||0;
-
     const gap=axis==="vertical"?rowGap:columnGap;
-    const display=parentStyle.display;
 
-    const result=margin||gap;
-
-    log("GAP",getName(el),{
-        axis,
-        margin:fmt(margin),
-        rowGap:fmt(rowGap),
-        columnGap:fmt(columnGap),
-        display,
-        result:fmt(result)
-    });
-
-    return result;
+    return margin||gap;
 }
 
 // ======================================
@@ -114,8 +101,6 @@ function stopSizeAnimation(el){
         clearTimeout(el._animationTimer);
         el._animationTimer=null;
     }
-
-    log("STOP",getName(el));
 }
 
 // ======================================
@@ -187,8 +172,8 @@ function getHiddenOffset(el){
     }
 
     log("HIDDEN OFFSET",getName(el),{
-        gap:`${fmt(verticalGap)},${fmt(horizontalGap)}`,
-        offset:`${fmt(top)},${fmt(left)}`
+        top:fmt(top),
+        left:fmt(left)
     });
 
     return {
@@ -209,7 +194,7 @@ function easeOutCubic(progress){
 // Margin animation
 // ======================================
 
-function animateMargins(el,target,duration,complete){
+function animateMargins(el,target,duration){
     if(!el)
         return Promise.resolve();
 
@@ -224,26 +209,15 @@ function animateMargins(el,target,duration,complete){
     setMargin(el,from.top,from.left);
     forceLayout();
 
-    const startPosition=getPosition(el);
     const startTime=performance.now();
 
     log("START",getName(el),{
         margin:`${fmt(from.top)},${fmt(from.left)}`,
-        pos:startPosition
-    });
-
-    log("TARGET",getName(el),{
-        margin:`${fmt(to.top)},${fmt(to.left)}`,
-        delta:`${fmt(to.top-from.top)},${fmt(to.left-from.left)}`,
-        duration
+        pos:getPosition(el)
     });
 
     return new Promise(resolve=>{
-        let frameNumber=0;
-
         function frame(now){
-            frameNumber++;
-
             const elapsed=now-startTime;
             const progress=Math.min(1,elapsed/duration);
             const eased=easeOutCubic(progress);
@@ -252,15 +226,6 @@ function animateMargins(el,target,duration,complete){
             const left=from.left+(to.left-from.left)*eased;
 
             setMargin(el,top,left);
-
-            if(DEBUG_ANIMATIONS&&frameNumber<=3){
-                log("FRAME",getName(el),frameNumber,{
-                    t:fmt(elapsed),
-                    p:fmt(progress),
-                    pos:getPosition(el),
-                    margin:`${fmt(top)},${fmt(left)}`
-                });
-            }
 
             if(progress<1){
                 el._animationFrame=requestAnimationFrame(frame);
@@ -272,18 +237,9 @@ function animateMargins(el,target,duration,complete){
             setMargin(el,to.top,to.left);
             forceLayout();
 
-            log("END",getName(el),{
-                t:fmt(performance.now()-startTime),
-                pos:getPosition(el)
-            });
-
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
                 clearSizeAnimationStyles(el);
-
-                if(typeof complete==="function")
-                    complete();
-
                 resolve();
             },20);
         }
@@ -300,17 +256,7 @@ export function animateExpand(el){
     if(!el)
         return Promise.resolve();
 
-    log("EXPAND",getName(el),{
-        pos:getPosition(el),
-        margin:getCurrentMargin(el)
-    });
-
     const hidden=getHiddenOffset(el);
-
-    log("EXPAND HIDDEN",getName(el),{
-        top:fmt(hidden.top),
-        left:fmt(hidden.left)
-    });
 
     setMargin(el,hidden.top,hidden.left);
     forceLayout();
@@ -333,17 +279,7 @@ export function animateCollapse(el){
     if(!el)
         return Promise.resolve();
 
-    log("COLLAPSE",getName(el),{
-        pos:getPosition(el),
-        margin:getCurrentMargin(el)
-    });
-
     const hidden=getHiddenOffset(el);
-
-    log("HIDDEN",getName(el),{
-        top:fmt(hidden.top),
-        left:fmt(hidden.left)
-    });
 
     return animateMargins(
         el,
