@@ -1,16 +1,15 @@
 import{createModal}from"./modal.js";
+import{replaceModalUrl}from"./modalReload.js";
 import{createViewerControls}from"./viewerControls.js";
 import{adminEdit,adminDelete}from"./adminButtons.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}){
     if(!photo)return;
-
     const gallery=[...(photos??[])];
-    let currentIndex=gallery.findIndex(item=>item.id===photo.id);
-
+    let currentIndex=gallery.findIndex(item=>String(item.id)===String(photo.id));
     if(currentIndex<0){
-        gallery.unshift(photo);
-        currentIndex=0;
+        gallery.push(photo);
+        currentIndex=gallery.length-1;
     }
 
     const form=`
@@ -40,7 +39,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     const modal=createModal({title:"Фотография",content:form,width:showInfo?840:640});
     const root=modal.root;
-
     root.querySelector(".modal")?.classList.add("modal--photo-viewer");
 
     const imageArea=root.querySelector(".photo-viewer__image-area");
@@ -50,7 +48,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     root.addEventListener("click",event=>{
         const button=event.target.closest(".admin-button");
         if(!button)return;
-
         root.dispatchEvent(new CustomEvent("photo-admin-action",{
             bubbles:true,
             detail:{
@@ -171,17 +168,16 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         else imageBackground.style.backgroundImage="";
 
         if(!nextPhoto.previewPath){
-            if(!nextPhoto.storagePath)return;
-
+            if(!nextPhoto.storagePath)return false;
             try{
                 await loadImage(nextPhoto.storagePath);
                 image.src=nextPhoto.storagePath;
                 if(calculateFitScale())image.style.visibility="visible";
+                return true;
             }catch(error){
                 console.error("Ошибка загрузки изображения:",error);
+                return false;
             }
-
-            return;
         }
 
         try{
@@ -191,40 +187,64 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             image.style.visibility="visible";
         }catch(error){
             console.error("Ошибка загрузки preview:",error);
-            return;
+            return false;
         }
 
-        if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath)return;
+        if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath)return true;
 
         try{
             const original=await loadImage(nextPhoto.storagePath);
             saveRelativePosition();
             image.src=original.src;
-            await new Promise(resolve=>{image.onload=resolve;});
+            await new Promise(resolve=>{
+                if(image.complete)resolve();
+                else image.onload=resolve;
+            });
             calculateFitScale();
             restoreRelativePosition();
             updateTransform();
         }catch(error){
             console.error("Ошибка загрузки оригинала:",error);
         }
+
+        return true;
     }
 
-    async function showPhoto(nextPhoto,nextIndex){
+    async function showPhoto(nextPhoto,nextIndex,{updateUrl=true,showControls=false}={}){
         if(!nextPhoto)return;
         currentIndex=nextIndex;
         controls.update(currentIndex);
         updateInfo(nextPhoto);
-        await loadPhotoImage(nextPhoto);
+
+        if(updateUrl&&nextPhoto.id){
+            replaceModalUrl({
+                entityId:nextPhoto.id
+            });
+        }
+
+        const loaded=await loadPhotoImage(nextPhoto);
+
+        if(loaded&&showControls){
+            requestAnimationFrame(()=>{
+                controls.element.classList.remove("viewer-controls--loading");
+            });
+        }
     }
 
     function showPrevious(){
         if(currentIndex<=0)return;
-        void showPhoto(gallery[currentIndex-1],currentIndex-1);
+        void showPhoto(
+            gallery[currentIndex-1],
+            currentIndex-1
+        );
     }
 
     function showNext(){
         if(currentIndex>=gallery.length-1)return;
-        void showPhoto(gallery[currentIndex+1],currentIndex+1);
+        void showPhoto(
+            gallery[currentIndex+1],
+            currentIndex+1
+        );
     }
 
     imageArea.addEventListener("mousedown",event=>{
@@ -284,7 +304,10 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         if(event.touches.length===2){
             dragging=false;
-            pinchStartDistance=getTouchDistance(event.touches[0],event.touches[1]);
+            pinchStartDistance=getTouchDistance(
+                event.touches[0],
+                event.touches[1]
+            );
             pinchStartZoom=zoom;
         }
     },{passive:true});
@@ -300,7 +323,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         }
 
         if(event.touches.length===2){
-            const distance=getTouchDistance(event.touches[0],event.touches[1]);
+            const distance=getTouchDistance(
+                event.touches[0],
+                event.touches[1]
+            );
+
             if(!pinchStartDistance)return;
 
             zoom=pinchStartZoom*(distance/pinchStartDistance);
@@ -327,9 +354,17 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         onNext:showNext
     });
 
+    controls.element.classList.add("viewer-controls--loading");
     root.appendChild(controls.element);
 
-    void showPhoto(gallery[currentIndex],currentIndex);
+    void showPhoto(
+        gallery[currentIndex],
+        currentIndex,
+        {
+            updateUrl:false,
+            showControls:true
+        }
+    );
 
     const originalClose=modal.close;
 
