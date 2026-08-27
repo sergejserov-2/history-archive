@@ -1,5 +1,5 @@
 const EXPAND_DURATION=420;
-const COLLAPSE_DURATION=5420;
+const COLLAPSE_DURATION=420;
 const COLLAPSE_END_GAP=16.5;
 const DEBUG_ANIMATIONS=true;
 
@@ -130,7 +130,9 @@ function getHiddenMargins(el){
         marginBottom:fmt(margins.bottom),
         gap:fmt(gap),
         half:fmt(half),
-        endGap:fmt(COLLAPSE_END_GAP)
+        endGap:fmt(COLLAPSE_END_GAP),
+        hiddenTop:fmt(hidden.top),
+        hiddenBottom:fmt(hidden.bottom)
     });
 
     return hidden;
