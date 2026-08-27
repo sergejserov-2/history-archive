@@ -1,5 +1,6 @@
-const EXPAND_DURATION=3420;
-const COLLAPSE_DURATION=3420;
+const EXPAND_DURATION=420;
+const COLLAPSE_DURATION=420;
+const SECTION_END_GAP=16.5;
 
 function getRect(el){
     return el?.getBoundingClientRect()||null;
@@ -34,7 +35,6 @@ function getAxis(el){
 
     if(s.display==="grid"){
         const rect=getRect(el);
-
         if(rect){
             for(const sibling of parent.children){
                 if(sibling===el)
@@ -64,25 +64,28 @@ function getGap(el,axis){
         return 0;
 
     const s=getComputedStyle(parent);
-
     return axis==="horizontal"
         ?parseFloat(s.columnGap)||0
         :parseFloat(s.rowGap)||0;
 }
 
+function isSection(el){
+    return el?.tagName==="SECTION";
+}
+
 function getHiddenMargins(el){
     const rect=getRect(el);
     const margins=getMargins(el);
-
     if(!rect)
         return margins;
 
     const axis=getAxis(el);
     const gap=getGap(el,axis);
     const hidden={...margins};
+    const endGap=isSection(el)&&axis==="vertical"?SECTION_END_GAP:0;
 
     if(axis==="vertical"){
-        const shift=(rect.height+margins.top+margins.bottom+gap)/2;
+        const shift=(rect.height+margins.top+margins.bottom+gap+endGap)/2;
         hidden.top-=shift;
         hidden.bottom-=shift;
     }else{
