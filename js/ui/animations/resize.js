@@ -71,22 +71,38 @@ function getLayoutAxis(el){
 
     const style=window.getComputedStyle(parent);
 
-    if(
-        style.flexDirection==="row"||
-        style.flexDirection==="row-reverse"
-    )
-        return"horizontal";
+    if(style.display==="flex")
+        return style.flexDirection==="row"||style.flexDirection==="row-reverse"
+            ?"horizontal"
+            :"vertical";
 
     if(style.display==="grid"){
-        const columns=style.gridTemplateColumns;
-        const rows=style.gridTemplateRows;
+        const rect=getRect(el);
+        const siblings=[...parent.children]
+            .filter(child=>child!==el);
 
-        if(
-            columns&&
-            columns!=="none"&&
-            rows==="none"
-        )
+        if(rect){
+            const sameRow=siblings
+                .map(getRect)
+                .filter(r=>r&&Math.abs(r.top-rect.top)<2)
+                .sort((a,b)=>Math.abs(a.left-rect.left)-Math.abs(b.left-rect.left));
+
+            if(sameRow.length)
+                return"horizontal";
+
+            const sameColumn=siblings
+                .map(getRect)
+                .filter(r=>r&&Math.abs(r.left-rect.left)<2)
+                .sort((a,b)=>Math.abs(a.top-rect.top)-Math.abs(b.top-rect.top));
+
+            if(sameColumn.length)
+                return"vertical";
+        }
+
+        if(style.gridAutoFlow.includes("column"))
             return"horizontal";
+
+        return"vertical";
     }
 
     return"vertical";
