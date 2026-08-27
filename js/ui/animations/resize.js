@@ -53,33 +53,14 @@ function getMargins(el){
 }
 
 function setMargins(el,margin){
-    el.style.setProperty(
-        "margin-top",
-        `${margin.top}px`,
-        "important"
-    );
-
-    el.style.setProperty(
-        "margin-right",
-        `${margin.right}px`,
-        "important"
-    );
-
-    el.style.setProperty(
-        "margin-bottom",
-        `${margin.bottom}px`,
-        "important"
-    );
-
-    el.style.setProperty(
-        "margin-left",
-        `${margin.left}px`,
-        "important"
-    );
+    el.style.setProperty("margin-top",`${margin.top}px`,"important");
+    el.style.setProperty("margin-right",`${margin.right}px`,"important");
+    el.style.setProperty("margin-bottom",`${margin.bottom}px`,"important");
+    el.style.setProperty("margin-left",`${margin.left}px`,"important");
 }
 
 // ======================================
-// Layout direction
+// Layout axis
 // ======================================
 
 function getLayoutAxis(el){
@@ -91,13 +72,14 @@ function getLayoutAxis(el){
     const style=window.getComputedStyle(parent);
 
     if(
-        style.display==="grid"
-    ){
-        const columns=
-            style.gridTemplateColumns;
+        style.flexDirection==="row"||
+        style.flexDirection==="row-reverse"
+    )
+        return"horizontal";
 
-        const rows=
-            style.gridTemplateRows;
+    if(style.display==="grid"){
+        const columns=style.gridTemplateColumns;
+        const rows=style.gridTemplateRows;
 
         if(
             columns&&
@@ -106,12 +88,6 @@ function getLayoutAxis(el){
         )
             return"horizontal";
     }
-
-    if(
-        style.flexDirection==="row"||
-        style.flexDirection==="row-reverse"
-    )
-        return"horizontal";
 
     return"vertical";
 }
@@ -152,14 +128,8 @@ function getHiddenMargins(el){
             ?rect.width
             :rect.height;
 
-    const total=
-        size+
-        (axis==="horizontal"
-            ?margins.left+margins.right
-            :margins.top+margins.bottom)+
-        gap*2;
-
-    const half=total/2;
+    const half=
+        (size+gap)/2;
 
     const hidden={
         ...margins
@@ -180,7 +150,7 @@ function getHiddenMargins(el){
             axis,
             size:fmt(size),
             gap:fmt(gap),
-            total:fmt(total),
+            half:fmt(half),
             hidden
         }
     );
@@ -197,16 +167,12 @@ function stopSizeAnimation(el){
         return;
 
     if(el._animationFrame){
-        cancelAnimationFrame(
-            el._animationFrame
-        );
+        cancelAnimationFrame(el._animationFrame);
         el._animationFrame=null;
     }
 
     if(el._animationTimer){
-        clearTimeout(
-            el._animationTimer
-        );
+        clearTimeout(el._animationTimer);
         el._animationTimer=null;
     }
 }
@@ -252,12 +218,7 @@ function easeOutCubic(progress){
 // Margin animation
 // ======================================
 
-function animateMargins(
-    el,
-    from,
-    target,
-    duration
-){
+function animateMargins(el,from,target,duration){
     if(!el)
         return Promise.resolve();
 
@@ -279,43 +240,21 @@ function animateMargins(
 
         function frame(now){
 
-            const elapsed=
-                now-startTime;
-
-            const progress=
-                Math.min(
-                    1,
-                    elapsed/duration
-                );
-
-            const eased=
-                easeOutCubic(progress);
+            const elapsed=now-startTime;
+            const progress=Math.min(1,elapsed/duration);
+            const eased=easeOutCubic(progress);
 
             const margin={
-                top:
-                    from.top+
-                    (to.top-from.top)*eased,
-
-                right:
-                    from.right+
-                    (to.right-from.right)*eased,
-
-                bottom:
-                    from.bottom+
-                    (to.bottom-from.bottom)*eased,
-
-                left:
-                    from.left+
-                    (to.left-from.left)*eased
+                top:from.top+(to.top-from.top)*eased,
+                right:from.right+(to.right-from.right)*eased,
+                bottom:from.bottom+(to.bottom-from.bottom)*eased,
+                left:from.left+(to.left-from.left)*eased
             };
 
             setMargins(el,margin);
 
             if(progress<1){
-
-                el._animationFrame=
-                    requestAnimationFrame(frame);
-
+                el._animationFrame=requestAnimationFrame(frame);
                 return;
             }
 
@@ -324,20 +263,18 @@ function animateMargins(
             setMargins(el,to);
             forceLayout();
 
-            el._animationTimer=
-                setTimeout(()=>{
+            el._animationTimer=setTimeout(()=>{
 
-                    el._animationTimer=null;
+                el._animationTimer=null;
 
-                    clearSizeAnimationStyles(el);
+                clearSizeAnimationStyles(el);
 
-                    resolve();
+                resolve();
 
-                },20);
+            },20);
         }
 
-        el._animationFrame=
-            requestAnimationFrame(frame);
+        el._animationFrame=requestAnimationFrame(frame);
     });
 }
 
