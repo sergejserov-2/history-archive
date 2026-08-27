@@ -80,7 +80,6 @@ export function initAdmin(page,updates={}){
 
         if(action==="add-object"){
             setModalUrl("editor",{
-                entityId:null,
                 entityType:"object"
             });
             await openEditor(
@@ -96,7 +95,6 @@ export function initAdmin(page,updates={}){
 
         if(action==="add-photo"){
             setModalUrl("editor",{
-                entityId:null,
                 entityType:"photo"
             });
             await openEditor(
@@ -149,7 +147,6 @@ export function initAdmin(page,updates={}){
 
         if(action==="add-source"){
             setModalUrl("editor",{
-                entityId:null,
                 entityType:"source"
             });
             await openEditor(
@@ -202,7 +199,6 @@ export function initAdmin(page,updates={}){
 
         if(action==="add-record"){
             setModalUrl("editor",{
-                entityId:null,
                 entityType:"record"
             });
             await openEditor(
@@ -255,7 +251,6 @@ export function initAdmin(page,updates={}){
 
         if(action==="add-subject"){
             setModalUrl("editor",{
-                entityId:null,
                 entityType:"subject"
             });
 
