@@ -2,9 +2,6 @@ import{modalRegistry}from"./modalRegistry.js";
 import{isAdmin}from"../../admin/adminMode.js";
 import{getCurrentModal}from"./modal.js";
 
-let modalHistory=[];
-let suppressCloseUrl=false;
-
 function getRegistration(type){
     return modalRegistry.find(modal=>modal.type===type)??null;
 }
@@ -16,69 +13,53 @@ function getUrlParams(registration,url){
 }
 
 export function setModalUrl(type,params={}){
-    const currentUrl=new URL(window.location.href);
-    if(currentUrl.searchParams.get("modal"))modalHistory.push(currentUrl.toString());
-
     const url=new URL(window.location.href);
     url.searchParams.set("modal",type);
-
-    Object.entries(params).forEach(([key,value])=>{
+    for(const key of Object.keys(params)){
+        const value=params[key];
         if(value===null||value===undefined||value==="")url.searchParams.delete(key);
         else url.searchParams.set(key,String(value));
-    });
-
-    window.history.pushState({},"",url);
+    }
+    window.history.pushState({modal:true},"",url);
 }
 
 export function replaceModalUrl(params={}){
     const url=new URL(window.location.href);
-
-    Object.entries(params).forEach(([key,value])=>{
+    for(const[key,value]of Object.entries(params)){
         if(value===null||value===undefined||value==="")url.searchParams.delete(key);
         else url.searchParams.set(key,String(value));
-    });
-
-    window.history.replaceState({},"",url);
+    }
+    window.history.replaceState({modal:true},"",url);
 }
 
 export function clearModalUrl(){
     const url=new URL(window.location.href);
     const type=url.searchParams.get("modal");
-
     if(!type)return;
-
     const registration=getRegistration(type);
-
     url.searchParams.delete("modal");
-
     for(const key of registration?.params??[]){
-        url.searchParams.delete(key);
+        if(key!=="id")url.searchParams.delete(key);
     }
-
-    window.history.pushState({},"",url);
+    window.history.replaceState({},"",url);
 }
 
-async function closeCurrentModalSilently(){
-    const modal=getCurrentModal();
-
-    if(!modal)return;
-
-    suppressCloseUrl=true;
-
-    try{
-        await modal.close();
-    }finally{
-        suppressCloseUrl=false;
+async function closeFromUrl(){
+    const state=window.history.state;
+    if(state?.modal){
+        window.history.back();
+        return;
     }
+    clearModalUrl();
 }
 
 async function reload(){
     const url=new URL(window.location.href);
     const type=url.searchParams.get("modal");
+    const current=getCurrentModal();
 
     if(!type){
-        modalHistory=[];
-        if(getCurrentModal())await closeCurrentModalSilently();
+        if(current)await current.close();
         return;
     }
 
@@ -86,15 +67,11 @@ async function reload(){
 
     if(!registration){
         console.error("Unknown modal:",type);
-        await closeCurrentModalSilently();
-        modalHistory=[];
         clearModalUrl();
         return;
     }
 
     if(registration.admin&&!isAdmin()){
-        await closeCurrentModalSilently();
-        modalHistory=[];
         clearModalUrl();
         return;
     }
@@ -104,33 +81,16 @@ async function reload(){
 
     if(registration.load&&!data){
         console.error("Modal data not found:",type,params);
-        await closeCurrentModalSilently();
-        modalHistory=[];
         clearModalUrl();
         return;
     }
 
-    if(getCurrentModal())await closeCurrentModalSilently();
+    if(current)await current.close();
 
     await registration.open?.(data);
 
     const modal=getCurrentModal();
-
-    if(!modal)return;
-
-    modal.setCloseHandler(async()=>{
-        if(suppressCloseUrl)return;
-
-        if(modalHistory.length){
-            const previousUrl=modalHistory.pop();
-            window.history.pushState({},"",previousUrl);
-            await reload();
-            return;
-        }
-
-        clearModalUrl();
-        modalHistory=[];
-    });
+    if(modal)modal.setCloseHandler(closeFromUrl);
 }
 
 export async function restoreModalFromUrl(){
@@ -143,23 +103,14 @@ window.addEventListener("popstate",async()=>{
 
 document.addEventListener("click",async event=>{
     const link=event.target.closest(".subject-mention");
-
     if(!link)return;
-
     const href=link.getAttribute("href");
-
     if(!href)return;
-
     const url=new URL(href,window.location.href);
-
     if(url.searchParams.get("modal")!=="subject")return;
-
     event.preventDefault();
-
     const entityId=url.searchParams.get("entityId");
-
     if(!entityId)return;
-
     setModalUrl("subject",{entityId});
     await reload();
 });
