@@ -129,7 +129,9 @@ function getHiddenMargins(el){
             :rect.height;
 
     const half=
-        (size+gap)/2;
+        axis==="horizontal"
+            ?(size+gap)/2
+            :(size+margins.top+margins.bottom+gap*2)/2;
 
     const hidden={
         ...margins
