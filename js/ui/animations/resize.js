@@ -151,6 +151,23 @@ function getLayoutDirection(el){
         flexDirection==="row"||
         flexDirection==="row-reverse"
     ){
+        const cssDirection=
+            style.getPropertyValue(
+                "--admin-animation-direction"
+            ).trim();
+
+        if(cssDirection==="left")
+            return {
+                axis:"horizontal",
+                direction:"reverse"
+            };
+
+        if(cssDirection==="right")
+            return {
+                axis:"horizontal",
+                direction:"forward"
+            };
+
         let direction=
             flexDirection==="row"
                 ?"forward"
@@ -231,19 +248,18 @@ function getHiddenOffset(el){
     let left=0;
 
     if(layout.axis==="horizontal"){
-
         if(layout.direction==="forward"){
-            const hiddenLeft=
-                parentRect.left-elementRect.right;
-
-            left=
-                hiddenLeft-horizontalGap;
-        }else{
             const hiddenLeft=
                 parentRect.right-elementRect.left;
 
             left=
                 hiddenLeft+horizontalGap;
+        }else{
+            const hiddenLeft=
+                parentRect.left-elementRect.right;
+
+            left=
+                hiddenLeft-horizontalGap;
         }
 
         const hiddenTop=
@@ -251,9 +267,7 @@ function getHiddenOffset(el){
 
         top=
             hiddenTop-verticalGap;
-
     }else{
-
         if(layout.direction==="forward"){
             const hiddenTop=
                 parentRect.top-elementRect.bottom;
