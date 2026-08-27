@@ -1,16 +1,6 @@
-// ======================================
-// Universal geometry animations
-// Margin based
-// ======================================
-
 const EXPAND_DURATION=420;
 const COLLAPSE_DURATION=420;
-
 const DEBUG_ANIMATIONS=true;
-
-// ======================================
-// Debug
-// ======================================
 
 function log(...args){
     if(DEBUG_ANIMATIONS)
@@ -25,10 +15,6 @@ function fmt(value){
     return Number(value||0).toFixed(2);
 }
 
-// ======================================
-// Geometry
-// ======================================
-
 function getRect(el){
     return el?.getBoundingClientRect()||null;
 }
@@ -37,13 +23,8 @@ function forceLayout(){
     void document.documentElement.offsetHeight;
 }
 
-// ======================================
-// Margin
-// ======================================
-
 function getMargins(el){
     const style=window.getComputedStyle(el);
-
     return{
         top:parseFloat(style.marginTop)||0,
         right:parseFloat(style.marginRight)||0,
@@ -58,10 +39,6 @@ function setMargins(el,margin){
     el.style.setProperty("margin-bottom",`${margin.bottom}px`,"important");
     el.style.setProperty("margin-left",`${margin.left}px`,"important");
 }
-
-// ======================================
-// Layout axis
-// ======================================
 
 function getLayoutAxis(el){
     const parent=el?.parentElement;
@@ -108,10 +85,6 @@ function getLayoutAxis(el){
     return"vertical";
 }
 
-// ======================================
-// Gap
-// ======================================
-
 function getGap(el,axis){
     const parent=el?.parentElement;
 
@@ -125,10 +98,6 @@ function getGap(el,axis){
         :parseFloat(style.rowGap)||0;
 }
 
-// ======================================
-// Hidden margins
-// ======================================
-
 function getHiddenMargins(el){
     const rect=getRect(el);
 
@@ -139,19 +108,12 @@ function getHiddenMargins(el){
     const axis=getLayoutAxis(el);
     const gap=getGap(el,axis);
 
-    const size=
-        axis==="horizontal"
-            ?rect.width
-            :rect.height;
+    const size=axis==="horizontal"?rect.width:rect.height;
+    const half=axis==="horizontal"
+        ?(size+gap)/2
+        :(size+margins.top+margins.bottom+gap*2)/2;
 
-    const half=
-        axis==="horizontal"
-            ?(size+gap)/2
-            :(size+margins.top+margins.bottom+gap*2)/2;
-
-    const hidden={
-        ...margins
-    };
+    const hidden={...margins};
 
     if(axis==="horizontal"){
         hidden.left=margins.left-half;
@@ -161,24 +123,16 @@ function getHiddenMargins(el){
         hidden.bottom=margins.bottom-half;
     }
 
-    log(
-        "HIDDEN MARGINS",
-        getName(el),
-        {
-            axis,
-            size:fmt(size),
-            gap:fmt(gap),
-            half:fmt(half),
-            hidden
-        }
-    );
+    log("HIDDEN MARGINS",getName(el),{
+        axis,
+        size:fmt(size),
+        gap:fmt(gap),
+        half:fmt(half),
+        hidden
+    });
 
     return hidden;
 }
-
-// ======================================
-// Stop
-// ======================================
 
 function stopSizeAnimation(el){
     if(!el)
@@ -195,10 +149,6 @@ function stopSizeAnimation(el){
     }
 }
 
-// ======================================
-// Clear
-// ======================================
-
 function clearSizeAnimationStyles(el){
     if(!el)
         return;
@@ -210,10 +160,6 @@ function clearSizeAnimationStyles(el){
     el.style.removeProperty("transition");
 }
 
-// ======================================
-// Cancel
-// ======================================
-
 export function cancelSizeAnimation(el){
     if(!el)
         return;
@@ -224,19 +170,11 @@ export function cancelSizeAnimation(el){
     log("CANCEL",getName(el));
 }
 
-// ======================================
-// Easing
-// ======================================
-
 function easeOutCubic(progress){
     return 1-Math.pow(1-progress,3);
 }
 
-// ======================================
-// Margin animation
-// ======================================
-
-function animateMargins(el,from,target,duration){
+function animateMargins(el,from,target,duration,clearOnFinish=true){
     if(!el)
         return Promise.resolve();
 
@@ -255,9 +193,7 @@ function animateMargins(el,from,target,duration){
     const startTime=performance.now();
 
     return new Promise(resolve=>{
-
         function frame(now){
-
             const elapsed=now-startTime;
             const progress=Math.min(1,elapsed/duration);
             const eased=easeOutCubic(progress);
@@ -277,28 +213,22 @@ function animateMargins(el,from,target,duration){
             }
 
             el._animationFrame=null;
-
             setMargins(el,to);
             forceLayout();
 
             el._animationTimer=setTimeout(()=>{
-
                 el._animationTimer=null;
 
-                clearSizeAnimationStyles(el);
+                if(clearOnFinish)
+                    clearSizeAnimationStyles(el);
 
                 resolve();
-
             },20);
         }
 
         el._animationFrame=requestAnimationFrame(frame);
     });
 }
-
-// ======================================
-// Expand
-// ======================================
 
 export function animateExpand(el){
     if(!el)
@@ -311,13 +241,10 @@ export function animateExpand(el){
         el,
         hidden,
         visible,
-        EXPAND_DURATION
+        EXPAND_DURATION,
+        true
     );
 }
-
-// ======================================
-// Collapse
-// ======================================
 
 export function animateCollapse(el){
     if(!el)
@@ -330,6 +257,7 @@ export function animateCollapse(el){
         el,
         visible,
         hidden,
-        COLLAPSE_DURATION
+        COLLAPSE_DURATION,
+        false
     );
 }
