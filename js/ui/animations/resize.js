@@ -1,6 +1,7 @@
 const EXPAND_DURATION=420;
 const COLLAPSE_DURATION=420;
 const DEBUG_ANIMATIONS=true;
+const COLLAPSE_END_GAP=0;
 
 function log(...args){
     if(DEBUG_ANIMATIONS)
@@ -115,13 +116,13 @@ function getHiddenMargins(el){
 
     const hidden={...margins};
 
-    if(axis==="horizontal"){
-        hidden.left=margins.left-half;
-        hidden.right=margins.right-half;
-    }else{
-        hidden.top=margins.top-half;
-        hidden.bottom=margins.bottom-half;
-    }
+if(axis==="horizontal"){
+    hidden.left=margins.left-half;
+    hidden.right=margins.right-half;
+}else{
+    hidden.top=margins.top-half-COLLAPSE_END_GAP;
+    hidden.bottom=margins.bottom-half-COLLAPSE_END_GAP;
+}
 
     log("HIDDEN MARGINS",getName(el),{
         axis,
