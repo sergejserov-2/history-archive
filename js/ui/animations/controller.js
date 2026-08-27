@@ -1,7 +1,8 @@
 import{
     animateExpand,
     animateCollapse,
-    cancelSizeAnimation
+    cancelSizeAnimation,
+    clearSizeAnimation
 }from"./resize.js";
 
 import{
@@ -100,6 +101,8 @@ export function hide(element){
                     }
 
                     element.hidden=true;
+                    clearSizeAnimation(element);
+
                     element._animationState=null;
                     element._animationTimer=null;
                     resolve();
