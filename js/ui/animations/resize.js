@@ -34,6 +34,7 @@ function getAxis(el){
 
     if(s.display==="grid"){
         const rect=getRect(el);
+
         if(rect){
             for(const sibling of parent.children){
                 if(sibling===el)
@@ -63,6 +64,7 @@ function getGap(el,axis){
         return 0;
 
     const s=getComputedStyle(parent);
+
     return axis==="horizontal"
         ?parseFloat(s.columnGap)||0
         :parseFloat(s.rowGap)||0;
@@ -71,6 +73,7 @@ function getGap(el,axis){
 function getHiddenMargins(el){
     const rect=getRect(el);
     const margins=getMargins(el);
+
     if(!rect)
         return margins;
 
@@ -79,11 +82,11 @@ function getHiddenMargins(el){
     const hidden={...margins};
 
     if(axis==="vertical"){
-        const shift=(rect.height+gap)/2;
+        const shift=(rect.height+margins.top+margins.bottom+gap)/2;
         hidden.top-=shift;
         hidden.bottom-=shift;
     }else{
-        const shift=(rect.width+gap)/2;
+        const shift=(rect.width+margins.left+margins.right+gap)/2;
         hidden.left-=shift;
         hidden.right-=shift;
     }
