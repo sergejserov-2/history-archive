@@ -85,7 +85,9 @@ function getHiddenMargins(el){
     const endGap=isSection(el)&&axis==="vertical"?SECTION_END_GAP:0;
 
     if(axis==="vertical"){
-        const shift=(rect.height+margins.top+margins.bottom+gap+endGap)/2;
+        const total=rect.height+margins.top+margins.bottom+gap;
+        console.log("[animations] GEOMETRY",el.id||el.className,{height:rect.height,marginTop:margins.top,marginBottom:margins.bottom,gap,total});
+        const shift=(total+endGap)/2;
         hidden.top-=shift;
         hidden.bottom-=shift;
     }else{
