@@ -1,3 +1,4 @@
+
 import{getPhotos,getAllPhotos}from"../../api/photos.js";
 import{getSources,getAllSources}from"../../api/sources.js";
 import{getRecords,getAllRecords}from"../../api/records.js";
@@ -31,11 +32,34 @@ export const photoPreviewModal={
             if(!photo)return null;
             return{photo,photos:gallery,showInfo:false,urlParams:{feedbackId:params.feedbackId}};
         }
+
         if(!params.id||!params.entityId)return null;
+
         const photos=await getPhotos(params.id);
-        const photo=photos.find(item=>item.id===params.entityId);
+
+        const sortedPhotos=[...(photos??[])].sort((a,b)=>{
+            const dateA=a.date||"",dateB=b.date||"";
+
+            if(!dateA&&!dateB){
+                const author=(a.author??"").localeCompare(b.author??"","ru");
+                return author!==0?author:(a.title??"").localeCompare(b.title??"","ru");
+            }
+
+            if(!dateA)return 1;
+            if(!dateB)return -1;
+
+            const date=String(dateB).localeCompare(String(dateA));
+            if(date!==0)return date;
+
+            const author=(a.author??"").localeCompare(b.author??"","ru");
+            return author!==0?author:(a.title??"").localeCompare(b.title??"","ru");
+        });
+
+        const photo=sortedPhotos.find(item=>item.id===params.entityId);
+
         if(!photo)return null;
-        return{photo,photos,showInfo:true,urlParams:{id:params.id}};
+
+        return{photo,photos:sortedPhotos,showInfo:true,urlParams:{id:params.id}};
     },
     open:async data=>{
         if(data)openPhotoViewer(data.photo,{fromUrl:true,photos:data.photos,showInfo:data.showInfo,urlParams:data.urlParams});
@@ -48,52 +72,71 @@ export const editorModal={
     params:["id","entityId","entityType"],
     load:async params=>{
         if(!params.entityId||!params.entityType)return null;
+
         const objects=await getAllObjects();
+
         if(["objectType","recordType","subjectType"].includes(params.entityType)){
             let entity=null,context={};
+
             if(params.entityType==="objectType"){
                 entity=await getType(params.entityId);
                 if(!entity)return null;
                 context={objects,types:await getTypes()};
             }
+
             if(params.entityType==="recordType"){
                 entity=await getRecordType(params.entityId);
                 if(!entity)return null;
                 context={objects,recordTypes:await getRecordTypes()};
             }
+
             if(params.entityType==="subjectType"){
                 entity=await getSubjectType(params.entityId);
                 if(!entity)return null;
                 context={objects,subjectTypes:await getSubjectTypes()};
             }
+
             return{entity,type:params.entityType,objects,context};
         }
+
         if(params.entityType==="subject"){
             const[subject,subjects,subjectTypes]=await Promise.all([getSubject(params.entityId),getSubjects(),getSubjectTypes()]);
             if(!subject)return null;
             return{entity:subject,type:"subject",objects,subjects,subjectTypes,context:{objects,subjects,subjectTypes}};
         }
+
         if(!params.id)return null;
+
         if(params.entityType==="object"){
             const object=await getObject(params.entityId);
             if(!object)return null;
             const[type,types,children,photos]=await Promise.all([getType(object.typeId),getTypes(),getChildren(object.id),getPhotos(object.id)]);
             return{entity:object,type:"object",objects,children,photos,types,context:{objects}};
         }
+
         if(!["photo","source","record"].includes(params.entityType))return null;
+
         let entities=[];
+
         if(params.entityType==="photo")entities=await getPhotos(params.id);
         if(params.entityType==="source")entities=await getSources(params.id);
         if(params.entityType==="record")entities=await getRecords(params.id);
+
         const entity=entities.find(item=>item.id===params.entityId);
+
         if(!entity)return null;
+
         return{entity,type:params.entityType,objects,context:{parentId:params.id,objects}};
     },
     open:async data=>{
         if(!data)return;
+
         if(["objectType","recordType","subjectType"].includes(data.type))return openEditor(data.type,data.entity,data.context);
+
         if(data.type==="object")return openEditor("object",data.entity,{...data.context,types:data.types,objects:data.objects,children:data.children,photos:data.photos});
+
         if(data.type==="subject")return openEditor("subject",data.entity,{...data.context,objects:data.objects,subjects:data.subjects,subjectTypes:data.subjectTypes});
+
         return openEditor(data.type,data.entity,data.context);
     }
 };
@@ -105,8 +148,11 @@ export const subjectModal={
     params:["entityId"],
     load:async params=>{
         if(!params.entityId)return null;
+
         const[subject,subjects,objects,photos,sources,records,subjectTypes]=await Promise.all([getSubject(params.entityId),getSubjects(),getAllObjects(),getAllPhotos(),getAllSources(),getAllRecords(),getSubjectTypes()]);
+
         if(!subject)return null;
+
         return{subject,subjects,objects,photos,sources,records,subjectTypes};
     },
     open:async data=>{
@@ -118,6 +164,7 @@ export const subjectsModal={type:"subjects",params:[],load:null,open:async()=>op
 export const typesModal={type:"types",admin:true,params:[],load:null,open:async()=>openTypesModal()};
 export const activityModal={type:"activity",admin:true,params:[],load:null,open:async()=>openActivityModal()};
 export const feedbacksModal={type:"feedbacks",admin:true,params:[],load:null,open:async()=>openFeedbacksModal({fromUrl:true})};
+
 export const feedbackViewModal={
     type:"feedback-view",
     params:["entityId"],
@@ -130,6 +177,7 @@ export const feedbackViewModal={
         if(data)openFeedbackModal(data.feedback,{fromUrl:true});
     }
 };
+
 export const feedbackModal={
     type:"feedback",
     params:["objectId"],
@@ -138,4 +186,5 @@ export const feedbackModal={
         if(data)openFeedbackFormByObjectId(data.objectId);
     }
 };
+
 export const modalRegistry=[photoPreviewModal,editorModal,loginModal,subjectModal,subjectsModal,typesModal,activityModal,feedbacksModal,feedbackViewModal,feedbackModal];
