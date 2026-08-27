@@ -1,7 +1,6 @@
 import{
     animateExpand,
     animateCollapse,
-    animateExpandGroup,
     animateCollapseGroup,
     cancelSizeAnimation,
     clearSizeAnimation
@@ -20,98 +19,56 @@ const HIDDEN_CLASS="animation--hidden";
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
 
-const collapseQueue=[];
-let collapseFlushScheduled=false;
+function getCollapseGroup(element){
+    const parent=element?.parentElement;
 
-function getSiblingGroup(elements){
-    const result=[];
-    const set=new Set(elements);
+    if(!parent)
+        return[element];
 
-    for(const element of elements){
-        if(!element?.parentElement)
-            continue;
+    const tagName=element.tagName;
 
-        if(!result.length){
-            result.push(element);
-            continue;
-        }
-
-        const last=result[result.length-1];
-
-        if(element.parentElement!==last.parentElement)
-            continue;
-
-        const children=[...last.parentElement.children];
-        const lastIndex=children.indexOf(last);
-        const elementIndex=children.indexOf(element);
-
-        if(Math.abs(lastIndex-elementIndex)===1)
-            result.push(element);
-    }
-
-    return result;
-}
-
-function queueCollapse(element){
-    return new Promise(resolve=>{
-        collapseQueue.push({element,resolve});
-
-        if(collapseFlushScheduled)
-            return;
-
-        collapseFlushScheduled=true;
-
-        queueMicrotask(flushCollapseQueue);
+    return[...parent.children].filter(child=>{
+        return child.tagName===tagName&&
+            child.hidden===false&&
+            child._animationState===EXIT_STATE;
     });
 }
 
-function flushCollapseQueue(){
-    collapseFlushScheduled=false;
-
-    const queue=collapseQueue.splice(0);
-
-    if(!queue.length)
+function finishCollapse(element){
+    if(element._animationState!==EXIT_STATE)
         return;
 
-    const groups=[];
+    element.hidden=true;
+    clearSizeAnimation(element);
 
-    for(const item of queue){
-        let group=groups.find(group=>{
-            if(!group.length)
-                return false;
+    element._animationState=null;
+    element._animationTimer=null;
+    element._collapsePromise=null;
+}
 
-            const first=group[0];
-            return first.parentElement===item.element.parentElement;
-        });
+function startCollapseGroup(element){
+    if(element._collapsePromise)
+        return element._collapsePromise;
 
-        if(!group){
-            group=[item.element];
-            groups.push(group);
-            continue;
+    const group=getCollapseGroup(element);
+
+    console.log("[animation] collapse group:",group);
+
+    const promise=group.length>1
+        ?animateCollapseGroup(group)
+        :animateCollapse(element);
+
+    for(const item of group)
+        item._collapsePromise=promise;
+
+    promise.then(()=>{
+        for(const item of group){
+            if(item._collapsePromise===promise)
+                item._collapsePromise=null;
         }
+    });
 
-        const children=[...item.element.parentElement.children];
-        const indexes=group.map(element=>children.indexOf(element));
-        const index=children.indexOf(item.element);
-
-        if(indexes.some(value=>Math.abs(value-index)===1))
-            group.push(item.element);
-        else{
-            group=[item.element];
-            groups.push(group);
-        }
-    }
-
-    console.log("[animation] collapse groups:",groups);
-
-    for(const group of groups){
-        const items=queue.filter(item=>group.includes(item.element));
-
-        animateCollapseGroup(group).then(()=>{
-            for(const item of items)
-                item.resolve();
-        });
-    }
+    return promise;
 }
 
 export function cancelAnimation(element){
@@ -129,6 +86,7 @@ export function cancelAnimation(element){
     element.classList.remove("animation--exiting");
 
     element._animationState=null;
+    element._collapsePromise=null;
 }
 
 export function show(element){
@@ -190,17 +148,8 @@ export function hide(element){
                     return;
                 }
 
-                queueCollapse(element).then(()=>{
-                    if(element._animationState!==EXIT_STATE){
-                        resolve();
-                        return;
-                    }
-
-                    element.hidden=true;
-                    clearSizeAnimation(element);
-
-                    element._animationState=null;
-                    element._animationTimer=null;
+                startCollapseGroup(element).then(()=>{
+                    finishCollapse(element);
                     resolve();
                 });
             },EXIT_DELAY);
