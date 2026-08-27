@@ -1,108 +1,62 @@
-// ======================================
-// Admin UI controller
-// ======================================
-
-import{
-    onAdminStateChanged
-}from"./adminMode.js";
-
-import{
-    updateAdminButton
-}from"../ui/components/adminButtons.js";
-
-import{
-    show,
-    hide
-}from"../ui/animations/controller.js";
-
-// ======================================
-// State
-// ======================================
+import{onAdminStateChanged}from"./adminMode.js";
+import{updateAdminButton}from"../ui/components/adminButtons.js";
+import{show,hide}from"../ui/animations/controller.js";
 
 let currentAdminState=false;
 let initialized=false;
 let observer=null;
-
-// ======================================
-// Get current UI state
-// ======================================
+let initialSync=true;
 
 export function isAdminUIEnabled(){
     return currentAdminState;
 }
 
-// ======================================
-// Find all admin buttons
-// ======================================
-
 function getAdminButtons(){
-    return document.querySelectorAll(
-        ".admin-button"
-    );
+    return document.querySelectorAll(".admin-button");
 }
-
-// ======================================
-// Find empty sections
-// ======================================
 
 function getEmptySections(){
-    return document.querySelectorAll(
-        ".section--admin-empty"
-    );
+    return document.querySelectorAll(".section--admin-empty");
 }
 
-// ======================================
-// Empty section buttons
-// ======================================
-
 function showEmptySectionButtons(section){
-    section.querySelectorAll(
-        ".admin-button"
-    ).forEach(button=>{
+    section.querySelectorAll(".admin-button").forEach(button=>{
         button.hidden=false;
-        button.classList.remove(
-            "animation--hidden"
-        );
+        button.classList.remove("animation--hidden");
     });
 }
 
 function hideEmptySectionButtons(section){
-    section.querySelectorAll(
-        ".admin-button"
-    ).forEach(button=>{
+    section.querySelectorAll(".admin-button").forEach(button=>{
         button.hidden=true;
-        button.classList.add(
-            "animation--hidden"
-        );
+        button.classList.add("animation--hidden");
     });
 }
 
-// ======================================
-// Empty section update
-// ======================================
-
-function updateEmptySection(section){
+function updateEmptySection(section,instant=false){
     if(!section)
         return;
+
+    if(instant){
+        if(currentAdminState){
+            section.hidden=false;
+            section.classList.remove("animation--hidden");
+            showEmptySectionButtons(section);
+        }else{
+            hideEmptySectionButtons(section);
+            section.hidden=true;
+            section.classList.add("animation--hidden");
+        }
+        return;
+    }
 
     const shouldShow=currentAdminState;
     const state=section._animationState;
 
-    if(
-        shouldShow&&
-        !section.hidden&&
-        state!=="exit"&&
-        !section.classList.contains(
-            "animation--hidden"
-        )
-    )
+    if(shouldShow&&!section.hidden&&state!=="exit"&&!section.classList.contains("animation--hidden"))
         return;
 
-    if(
-        !shouldShow&&
-        section.hidden&&
-        state!=="enter"
-    )
+    if(!shouldShow&&section.hidden&&state!=="enter")
         return;
 
     if(shouldShow){
@@ -114,124 +68,70 @@ function updateEmptySection(section){
     hide(section).then(()=>{
         if(currentAdminState)
             return;
-
         hideEmptySectionButtons(section);
     });
 }
 
-// ======================================
-// Synchronize empty sections
-// ======================================
-
-function syncEmptySections(){
-    getEmptySections().forEach(
-        updateEmptySection
-    );
+function syncEmptySections(instant=false){
+    getEmptySections().forEach(section=>updateEmptySection(section,instant));
 }
 
-// ======================================
-// Synchronize all buttons
-// ======================================
-
-export function syncAdminButtons(){
-    syncEmptySections();
-
+export function syncAdminButtons(instant=false){
+    syncEmptySections(instant);
     getAdminButtons().forEach(button=>{
-        if(
-            button.closest(
-                ".section--admin-empty"
-            )
-        )
+        if(button.closest(".section--admin-empty"))
             return;
-
-        updateAdminButton(
-            button,
-            currentAdminState
-        );
+        if(instant){
+            updateAdminButton(button,currentAdminState,false);
+            return;
+        }
+        updateAdminButton(button,currentAdminState);
     });
 }
-
-// ======================================
-// Auth state changed
-// ======================================
 
 function handleAdminStateChanged(admin){
     const nextState=!!admin;
 
-    if(
-        nextState===
-        currentAdminState
-    )
+    if(nextState===currentAdminState)
         return;
 
     currentAdminState=nextState;
-
     syncAdminButtons();
 }
 
-// ======================================
-// Observe dynamically inserted HTML
-// ======================================
-
 function observeAdminButtons(){
-    if(observer)
+    if(observer||!document.body)
         return;
 
-    if(!document.body)
-        return;
+    observer=new MutationObserver(mutations=>{
+        let hasNewElements=false;
 
-    observer=new MutationObserver(
-        mutations=>{
-            let hasNewElements=false;
+        mutations.forEach(mutation=>{
+            mutation.addedNodes.forEach(node=>{
+                if(node.nodeType!==Node.ELEMENT_NODE)
+                    return;
 
-            mutations.forEach(
-                mutation=>{
-                    mutation.addedNodes.forEach(
-                        node=>{
-                            if(
-                                node.nodeType!==
-                                Node.ELEMENT_NODE
-                            )
-                                return;
-
-                            if(
-                                node.matches?.(
-                                    ".admin-button,.section--admin-empty"
-                                )
-                            ){
-                                hasNewElements=true;
-                                return;
-                            }
-
-                            if(
-                                node.querySelector?.(
-                                    ".admin-button,.section--admin-empty"
-                                )
-                            ){
-                                hasNewElements=true;
-                            }
-                        }
-                    );
+                if(node.matches?.(".admin-button,.section--admin-empty")){
+                    hasNewElements=true;
+                    return;
                 }
-            );
 
-            if(hasNewElements)
-                syncAdminButtons();
-        }
-    );
+                if(node.querySelector?.(".admin-button,.section--admin-empty"))
+                    hasNewElements=true;
+            });
+        });
 
-    observer.observe(
-        document.body,
-        {
-            childList:true,
-            subtree:true
-        }
-    );
+        if(!hasNewElements)
+            return;
+
+        syncAdminButtons(initialSync);
+
+        if(initialSync)
+            initialSync=false;
+    });
+
+    observer.observe(document.body,{childList:true,subtree:true});
 }
-
-// ======================================
-// Initialize
-// ======================================
 
 export function initAdminController(){
     if(initialized)
@@ -239,28 +139,12 @@ export function initAdminController(){
 
     initialized=true;
 
-    onAdminStateChanged(
-        handleAdminStateChanged
-    );
-
+    onAdminStateChanged(handleAdminStateChanged);
     observeAdminButtons();
 }
 
-// ======================================
-// Automatic initialization
-// ======================================
-
-if(
-    document.readyState===
-    "loading"
-){
-    document.addEventListener(
-        "DOMContentLoaded",
-        initAdminController,
-        {
-            once:true
-        }
-    );
+if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",initAdminController,{once:true});
 }else{
     initAdminController();
 }
