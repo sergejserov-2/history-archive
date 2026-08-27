@@ -93,6 +93,7 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         overlay.classList.remove("modal-overlay--visible");
         await waitForTransition(overlay,()=>{});
         overlay.remove();
+
         if(typeof handler==="function")await handler();
     }
 
@@ -110,7 +111,13 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         });
     });
 
-    currentModal={overlay,element:modal,close,closeHandler:null,setCloseHandler};
+    currentModal={
+        overlay,
+        element:modal,
+        close,
+        closeHandler:null,
+        setCloseHandler
+    };
 
     return{
         root:overlay,
