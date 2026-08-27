@@ -1,122 +1,34 @@
-import{
-    adminEdit,
-    adminDelete
-}from"../components/adminButtons.js";
-
-import{
-    onAdminStateChanged
-}from"../../admin/adminMode.js";
-
-import{
-    initAdminController
-}from"../../admin/adminController.js";
-
-import{
-    initAdmin
-}from"../../admin/admin.js";
-
-import{
-    getObject,
-    getType,
-    getParents,
-    getChildren,
-    getAllObjects
-}from"../../api/objects.js";
-
-import{
-    getTypes
-}from"../../api/types.js";
-
-import{
-    renderHeader
-}from"../components/header.js";
-
-import{
-    renderBreadcrumbs
-}from"../components/breadcrumbs.js";
-
-import{
-    renderChildren
-}from"../components/children.js";
-
-import{
-    getRecords
-}from"../../api/records.js";
-
-import{
-    renderRecords
-}from"../components/records.js";
-
-import{
-    getRecordTypes
-}from"../../api/recordTypes.js";
-
-import{
-    getPhotos
-}from"../../api/photos.js";
-
-import{
-    renderPhotos
-}from"../components/photos.js";
-
-import{
-    getSources
-}from"../../api/sources.js";
-
-import{
-    renderSources
-}from"../components/sources.js";
-
-import{
-    getSubjects
-}from"../../api/subjects.js";
-
-import{
-    getSubjectTypes
-}from"../../api/subjectTypes.js";
-
-import{
-    renderStatusBadgeHTML
-}from"../components/editor/status.js";
-
-import{
-    renderMentions,
-    getSubjectHref
-}from"../components/mentionLink.js";
-
-import{
-    restoreModalFromUrl
-}from"../components/modalReload.js";
-
-import{
-    createPageUpdates
-}from"../../admin/update.js";
-
-import{
-    renderFeedbackPrompt,
-    initFeedbackPrompt
-}from"../components/feedbackPrompt.js";
-
-import{
-    openFeedbackFormByObjectId
-}from"../components/feedbackForm.js";
-
-import{
-    initCoverDrag
-}from"../components/coverDrag.js";
-
-import{
-    initPageLoader,
-    revealPage
-}from"../components/pageLoader.js";
+import{adminEdit,adminDelete}from"../components/adminButtons.js";
+import{isAuthReady,isAdmin,onAdminStateChanged}from"../../admin/adminMode.js";
+import{initAdminController}from"../../admin/adminController.js";
+import{initAdmin}from"../../admin/admin.js";
+import{getObject,getType,getParents,getChildren,getAllObjects}from"../../api/objects.js";
+import{getTypes}from"../../api/types.js";
+import{renderHeader}from"../components/header.js";
+import{renderBreadcrumbs}from"../components/breadcrumbs.js";
+import{renderChildren}from"../components/children.js";
+import{getRecords}from"../../api/records.js";
+import{renderRecords}from"../components/records.js";
+import{getRecordTypes}from"../../api/recordTypes.js";
+import{getPhotos}from"../../api/photos.js";
+import{renderPhotos}from"../components/photos.js";
+import{getSources}from"../../api/sources.js";
+import{renderSources}from"../components/sources.js";
+import{getSubjects}from"../../api/subjects.js";
+import{getSubjectTypes}from"../../api/subjectTypes.js";
+import{renderStatusBadgeHTML}from"../components/editor/status.js";
+import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
+import{restoreModalFromUrl}from"../components/modalReload.js";
+import{createPageUpdates}from"../../admin/update.js";
+import{renderFeedbackPrompt,initFeedbackPrompt}from"../components/feedbackPrompt.js";
+import{openFeedbackFormByObjectId}from"../components/feedbackForm.js";
+import{initCoverDrag}from"../components/coverDrag.js";
+import{initPageLoader,revealPage}from"../components/pageLoader.js";
 
 initPageLoader();
 initAdminController();
 
-const params=new URLSearchParams(
-    window.location.search
-);
-
+const params=new URLSearchParams(window.location.search);
 const objectId=params.get("id");
 
 let pageObject=null;
@@ -133,131 +45,65 @@ let pageTypes=[];
 let pageObjects=[];
 
 const page={
-    get object(){
-        return pageObject;
-    },
-    set object(value){
-        pageObject=value;
-    },
-    get type(){
-        return pageType;
-    },
-    set type(value){
-        pageType=value;
-    },
-    get parents(){
-        return pageParents;
-    },
-    get children(){
-        return pageChildren;
-    },
-    set children(value){
-        pageChildren=value;
-    },
-    get records(){
-        return pageRecords;
-    },
-    set records(value){
-        pageRecords=value;
-    },
-    get photos(){
-        return pagePhotos;
-    },
-    set photos(value){
-        pagePhotos=value;
-    },
-    get sources(){
-        return pageSources;
-    },
-    set sources(value){
-        pageSources=value;
-    },
-    get subjects(){
-        return pageSubjects;
-    },
-    get subjectTypes(){
-        return pageSubjectTypes;
-    },
-    get recordTypes(){
-        return pageRecordTypes;
-    },
-    get objects(){
-        return pageObjects;
-    },
-    get types(){
-        return pageTypes;
-    },
+    get object(){return pageObject;},
+    set object(value){pageObject=value;},
+    get type(){return pageType;},
+    set type(value){pageType=value;},
+    get parents(){return pageParents;},
+    get children(){return pageChildren;},
+    set children(value){pageChildren=value;},
+    get records(){return pageRecords;},
+    set records(value){pageRecords=value;},
+    get photos(){return pagePhotos;},
+    set photos(value){pagePhotos=value;},
+    get sources(){return pageSources;},
+    set sources(value){pageSources=value;},
+    get subjects(){return pageSubjects;},
+    get subjectTypes(){return pageSubjectTypes;},
+    get recordTypes(){return pageRecordTypes;},
+    get objects(){return pageObjects;},
+    get types(){return pageTypes;},
     renderObjectBlock,
-    getChildren:()=>{
-        return getChildren(
-            pageObject.id,
-            pageObjects
-        );
-    },
+    getChildren:()=>getChildren(pageObject.id,pageObjects),
     renderCoverState:async()=>{
-        const block=document.querySelector(
-            ".object"
-        );
-
+        const block=document.querySelector(".object");
         if(block){
-            block.outerHTML=
-                renderObjectBlock();
-
-            initCoverDrag(
-                block.parentElement
-            );
+            block.outerHTML=renderObjectBlock();
+            initCoverDrag(block.parentElement);
         }
     }
 };
 
 const updates=createPageUpdates(page);
 
+function waitForAuth(){
+    if(isAuthReady())
+        return Promise.resolve();
+    return new Promise(resolve=>{
+        const unsubscribe=onAdminStateChanged(()=>{
+            unsubscribe();
+            resolve();
+        });
+    });
+}
+
 async function loadPage(){
-
     console.time("LOAD DATA");
-
+    await waitForAuth();
     console.time("getAllObjects");
-
-    const[
-        objects,
-        types
-    ]=await Promise.all([
-        getAllObjects(),
-        getTypes()
-    ]);
-
+    const[objects,types]=await Promise.all([getAllObjects(),getTypes()]);
     console.timeEnd("getAllObjects");
-
-    const object=objects.find(
-        item=>item.id===objectId
-    );
-
+    const object=objects.find(item=>item.id===objectId);
     if(!object){
-        document.body.innerHTML=
-            "<h1>Объект не найден</h1>";
-
+        document.body.innerHTML="<h1>Объект не найден</h1>";
         return;
     }
-
-    document.title=
-        object.title||
-        "Исторический архив";
-
+    document.title=object.title||"Исторический архив";
     pageObject=object;
     pageObjects=objects;
     pageTypes=types;
-
-    pageType=
-        types.find(
-            type=>type.id===object.typeId
-        )??null;
-
-    const timed=(name,promise)=>
-        promise.then(result=>{
-            console.timeEnd(name);
-            return result;
-        });
-
+    pageType=types.find(type=>type.id===object.typeId)??null;
+    const timed=(name,promise)=>promise.then(result=>{console.timeEnd(name);return result;});
     console.time("getRecordTypes");
     console.time("getParents");
     console.time("getChildren");
@@ -266,292 +112,96 @@ async function loadPage(){
     console.time("getSources");
     console.time("getSubjects");
     console.time("getSubjectTypes");
-
-    [
-        pageRecordTypes,
-        pageSubjectTypes,
-        pageParents,
-        pageChildren,
-        pageRecords,
-        pagePhotos,
-        pageSources,
-        pageSubjects
-    ]=await Promise.all([
-        timed(
-            "getRecordTypes",
-            getRecordTypes()
-        ),
-        timed(
-            "getSubjectTypes",
-            getSubjectTypes()
-        ),
-        timed(
-            "getParents",
-            getParents(
-                object,
-                objects,
-                types
-            )
-        ),
-        getChildren(
-            object.id,
-            objects
-        ),
-        timed(
-            "getRecords",
-            getRecords(object.id)
-        ),
-        timed(
-            "getPhotos",
-            getPhotos(object.id)
-        ),
-        timed(
-            "getSources",
-            getSources(object.id)
-        ),
-        timed(
-            "getSubjects",
-            getSubjects()
-        )
+    [pageRecordTypes,pageSubjectTypes,pageParents,pageChildren,pageRecords,pagePhotos,pageSources,pageSubjects]=await Promise.all([
+        timed("getRecordTypes",getRecordTypes()),
+        timed("getSubjectTypes",getSubjectTypes()),
+        timed("getParents",getParents(object,objects,types)),
+        getChildren(object.id,objects),
+        timed("getRecords",getRecords(object.id)),
+        timed("getPhotos",getPhotos(object.id)),
+        timed("getSources",getSources(object.id)),
+        timed("getSubjects",getSubjects())
     ]);
-
     console.timeEnd("LOAD DATA");
-
     console.time("RENDER PAGE");
-
     await renderPage();
-
     console.timeEnd("RENDER PAGE");
 }
 
-export function onPhotoDeleted(){
-    return updates.updatePhotosBlock();
-}
-
-export function onSourceDeleted(){
-    return updates.updateSourcesBlock();
-}
-
-export function onRecordDeleted(){
-    return updates.updateRecordsBlock();
-}
-
-export function onObjectDeleted(){
-    return updates.onObjectDeleted();
-}
+export function onPhotoDeleted(){return updates.updatePhotosBlock();}
+export function onSourceDeleted(){return updates.updateSourcesBlock();}
+export function onRecordDeleted(){return updates.updateRecordsBlock();}
+export function onObjectDeleted(){return updates.onObjectDeleted();}
 
 function renderObjectBlock(){
-
-    const coverPhoto=
-        pagePhotos.find(
-            photo=>photo.id===
-                pageObject.coverPhotoId
-        );
-
-    const status=
-        renderStatusBadgeHTML(
-            pageObject.status
-        );
-
+    const coverPhoto=pagePhotos.find(photo=>photo.id===pageObject.coverPhotoId);
+    const status=renderStatusBadgeHTML(pageObject.status);
     return`
         <section class="object">
-            <div
-                class="object__cover"
-                data-cover-drag
-            >
-                ${
-                    coverPhoto?.previewPath
-                    ?
-                    `
-                    <div
-                        class="object__cover-bg"
-                        style="background-image:url('${coverPhoto.previewPath}')"
-                    ></div>
-
-                    <img
-                        class="object__cover-image"
-                        data-cover-image
-                        src="${coverPhoto.previewPath}"
-                        alt="${coverPhoto.title??""}"
-                        draggable="false"
-                    >
-                    `
-                    :
-                    `
-                    <div class="object__cover-placeholder">
-                        Фото отсутствует
-                    </div>
-                    `
-                }
+            <div class="object__cover" data-cover-drag>
+                ${coverPhoto?.previewPath?`
+                    <div class="object__cover-bg" style="background-image:url('${coverPhoto.previewPath}')"></div>
+                    <img class="object__cover-image" data-cover-image src="${coverPhoto.previewPath}" alt="${coverPhoto.title??""}" draggable="false">
+                `:`
+                    <div class="object__cover-placeholder">Фото отсутствует</div>
+                `}
             </div>
-
             <div class="object__info">
-
-                <div class="object__type">
-                    ${pageType?.title??""}
-                </div>
-
+                <div class="object__type">${pageType?.title??""}</div>
                 <h1 class="object__title">
-
-                    <span class="object__title-text">
-                        ${pageObject.title??""}
-                    </span>
-
-                    ${adminEdit(
-                        "object",
-                        pageObject.id
-                    )}
-
-                    ${adminDelete(
-                        "object",
-                        pageObject.id
-                    )}
-
+                    <span class="object__title-text">${pageObject.title??""}</span>
+                    ${adminEdit("object",pageObject.id)}
+                    ${adminDelete("object",pageObject.id)}
                     ${status}
-
                 </h1>
-
-                ${
-                    pageObject.description?.trim()
-                    ?
-                    `
-                    <div class="object__description">
-                        ${renderMentions(
-                            pageObject.description.trim(),
-                            pageSubjects,
-                            getSubjectHref
-                        )}
-                    </div>
-                    `
-                    :
-                    ""
-                }
-
-                ${
-                    renderRecords(
-                        pageRecords,
-                        pageRecordTypes,
-                        pageSubjects
-                    )
-                }
-
+                ${pageObject.description?.trim()?`
+                    <div class="object__description">${renderMentions(pageObject.description.trim(),pageSubjects,getSubjectHref)}</div>
+                `:""}
+                ${renderRecords(pageRecords,pageRecordTypes,pageSubjects)}
             </div>
         </section>
     `;
 }
 
 async function renderPage(){
-
-    const childrenHTML=
-        await renderChildren(
-            pageChildren,
-            pageObject,
-            pageObjects,
-            pageTypes
-        );
-
-    const breadcrumbsHTML=
-        renderBreadcrumbs(
-            pageObject,
-            pageParents
-        );
-
-    const galleryEmpty=
-        pagePhotos.length===0;
-
-    const sourcesEmpty=
-        pageSources.length===0;
-
-    const childrenEmpty=
-        pageChildren.length===0;
-
+    const childrenHTML=await renderChildren(pageChildren,pageObject,pageObjects,pageTypes);
+    const breadcrumbsHTML=renderBreadcrumbs(pageObject,pageParents);
+    const galleryEmpty=pagePhotos.length===0;
+    const sourcesEmpty=pageSources.length===0;
+    const childrenEmpty=pageChildren.length===0;
     document.body.innerHTML=`
         ${renderHeader(page,updates)}
-
         <main class="page">
-
             ${breadcrumbsHTML}
-
             ${renderObjectBlock()}
-
-            ${renderFeedbackPrompt(
-                pageObject.id
-            )}
-
-            <section
-                id="gallery"
-                ${galleryEmpty
-                    ?"class=\"section--admin-empty\" hidden"
-                    :""
-                }
-            >
-
+            ${renderFeedbackPrompt(pageObject.id)}
+            <section id="gallery" ${galleryEmpty?'class="section--admin-empty" hidden':""}>
                 <h2>Фотографии</h2>
-
-                ${renderPhotos(
-                    pagePhotos
-                )}
-
+                ${renderPhotos(pagePhotos)}
             </section>
-
-            <section
-                id="sources"
-                ${sourcesEmpty
-                    ?"class=\"section--admin-empty\" hidden"
-                    :""
-                }
-            >
-
+            <section id="sources" ${sourcesEmpty?'class="section--admin-empty" hidden':""}>
                 <h2>Источники</h2>
-
-                ${renderSources(
-                    pageSources,
-                    pageSubjects
-                )}
-
+                ${renderSources(pageSources,pageSubjects)}
             </section>
-
-            <section
-                id="children"
-                ${childrenEmpty
-                    ?"class=\"section--admin-empty\" hidden"
-                    :""
-                }
-            >
-
+            <section id="children" ${childrenEmpty?'class="section--admin-empty" hidden':""}>
                 <h2>Дочерние объекты</h2>
-
                 ${childrenHTML}
-
             </section>
-
         </main>
     `;
-
     initCoverDrag(document);
     initFeedbackPrompt();
 }
 
-loadPage()
-    .then(async()=>{
-        onAdminStateChanged(
-            admin=>{
-                if(admin){
-                    initAdmin(
-                        page,
-                        updates
-                    );
-                }
-            }
-        );
-
-        await revealPage();
-
-        await restoreModalFromUrl();
-    })
-    .catch(error=>{
-        console.error(
-            "Ошибка загрузки страницы:",
-            error
-        );
+loadPage().then(async()=>{
+    let initial=true;
+    onAdminStateChanged(admin=>{
+        if(admin)
+            initAdmin(page,updates,{initial});
+        initial=false;
     });
+    await revealPage();
+    await restoreModalFromUrl();
+}).catch(error=>{
+    console.error("Ошибка загрузки страницы:",error);
+});
