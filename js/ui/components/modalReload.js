@@ -137,7 +137,7 @@ export async function restoreModalFromUrl(){
     await reload();
 }
 
-export async function openPhotoModal(photo,{id=null,photos=[]}={}){
+export async function openPhotoModal(photo,{id=null}={}) {
     if(!photo?.id)return;
 
     const objectId=
