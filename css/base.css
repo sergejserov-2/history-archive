@@ -901,3 +901,7 @@ button.admin-button:hover {
     pointer-events:none;
 
 }
+
+.section--admin-empty{
+    overflow:hidden;
+}
