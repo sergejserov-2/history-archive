@@ -73,6 +73,23 @@ function isSection(el){
     return el?.tagName==="SECTION";
 }
 
+function logGeometry(label,el){
+    const rect=getRect(el);
+    if(!rect)
+        return;
+
+    const margins=getMargins(el);
+
+    console.log(`[animations] ${label}`,el.id||el.className,{
+        top:rect.top,
+        bottom:rect.bottom,
+        height:rect.height,
+        marginTop:margins.top,
+        marginBottom:margins.bottom,
+        hidden:el.hidden
+    });
+}
+
 function getHiddenMargins(el){
     const rect=getRect(el);
     const margins=getMargins(el);
@@ -153,7 +170,14 @@ function animate(el,from,to,duration){
 
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
+
+                logGeometry("BEFORE CLEAR",el);
+
                 clear(el);
+                void document.documentElement.offsetHeight;
+
+                logGeometry("AFTER CLEAR",el);
+
                 resolve();
             },20);
         }
