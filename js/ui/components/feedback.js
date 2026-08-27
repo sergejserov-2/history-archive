@@ -1,13 +1,11 @@
 import{createModal}from"./modal.js";
-import{setModalUrl}from"./modalReload.js";
 import{renderDateTime}from"./date.js";
 import{openPhotoViewer}from"./photoViewer.js";
 
 let currentFeedbackModal=null;
 
-export function openFeedbackModal(feedback,{fromUrl=false}={}){
+export function openFeedbackModal(feedback){
     if(!feedback)return null;
-    if(!fromUrl&&feedback.id)setModalUrl("feedback-view",{entityId:feedback.id});
     const modal=createModal({
         title:"Обращение",
         content:renderFeedback(feedback),
@@ -86,9 +84,18 @@ export function closeFeedbackModal(){
 }
 
 function escapeHTML(value=""){
-    return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","'");
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","'");
 }
 
 function escapeAttribute(value=""){
-    return String(value).replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;");
 }
