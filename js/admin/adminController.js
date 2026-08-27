@@ -52,15 +52,26 @@ function getEmptySections(){
 }
 
 // ======================================
-// Empty section button
+// Empty section buttons
 // ======================================
 
-function syncEmptySectionButtons(section){
+function showEmptySectionButtons(section){
     section.querySelectorAll(
         ".admin-button"
     ).forEach(button=>{
-        button.hidden=!currentAdminState;
+        button.hidden=false;
         button.classList.remove(
+            "animation--hidden"
+        );
+    });
+}
+
+function hideEmptySectionButtons(section){
+    section.querySelectorAll(
+        ".admin-button"
+    ).forEach(button=>{
+        button.hidden=true;
+        button.classList.add(
             "animation--hidden"
         );
     });
@@ -94,10 +105,18 @@ function updateEmptySection(section){
     )
         return;
 
-    if(shouldShow)
+    if(shouldShow){
+        showEmptySectionButtons(section);
         show(section);
-    else
-        hide(section);
+        return;
+    }
+
+    hide(section).then(()=>{
+        if(currentAdminState)
+            return;
+
+        hideEmptySectionButtons(section);
+    });
 }
 
 // ======================================
@@ -105,10 +124,9 @@ function updateEmptySection(section){
 // ======================================
 
 function syncEmptySections(){
-    getEmptySections().forEach(section=>{
-        syncEmptySectionButtons(section);
-        updateEmptySection(section);
-    });
+    getEmptySections().forEach(
+        updateEmptySection
+    );
 }
 
 // ======================================
