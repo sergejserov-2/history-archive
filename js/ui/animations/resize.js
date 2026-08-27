@@ -70,56 +70,34 @@ function getGap(el,axis){
         :parseFloat(s.rowGap)||0;
 }
 
-function name(el){
-    return el?.id||el?.className||el?.tagName||"element";
-}
-
-function geometry(el){
-    if(!el)
-        return null;
-
+function getSnapshot(el){
     const rect=getRect(el);
     const margins=getMargins(el);
-    const parent=el.parentElement;
+    const parent=el?.parentElement;
     const parentRect=getRect(parent);
 
     if(!rect)
         return null;
 
-    const axis=getAxis(el);
-    const gap=getGap(el,axis);
-
     return{
-        name:name(el),
-        top:+rect.top.toFixed(3),
-        bottom:+rect.bottom.toFixed(3),
-        height:+rect.height.toFixed(3),
-        marginTop:+margins.top.toFixed(3),
-        marginBottom:+margins.bottom.toFixed(3),
-        marginLeft:+margins.left.toFixed(3),
-        marginRight:+margins.right.toFixed(3),
-        gap:+gap.toFixed(3),
-        parentTop:parentRect?+parentRect.top.toFixed(3):null,
-        parentBottom:parentRect?+parentRect.bottom.toFixed(3):null,
-        parentHeight:parentRect?+parentRect.height.toFixed(3):null,
-        hidden:el.hidden
+        top:Number(rect.top.toFixed(3)),
+        bottom:Number(rect.bottom.toFixed(3)),
+        height:Number(rect.height.toFixed(3)),
+        left:Number(rect.left.toFixed(3)),
+        right:Number(rect.right.toFixed(3)),
+        width:Number(rect.width.toFixed(3)),
+        marginTop:Number(margins.top.toFixed(3)),
+        marginBottom:Number(margins.bottom.toFixed(3)),
+        marginLeft:Number(margins.left.toFixed(3)),
+        marginRight:Number(margins.right.toFixed(3)),
+        parentTop:parentRect?Number(parentRect.top.toFixed(3)):null,
+        parentBottom:parentRect?Number(parentRect.bottom.toFixed(3)):null,
+        parentHeight:parentRect?Number(parentRect.height.toFixed(3)):null
     };
 }
 
-function logGeometry(label,el){
-    console.log(`[animations] ${label}`,geometry(el));
-}
-
-function logLayout(label,el){
-    if(!el)
-        return;
-
-    console.log(`[animations] ${label}`,{
-        element:geometry(el),
-        previous:geometry(el.previousElementSibling),
-        next:geometry(el.nextElementSibling),
-        parent:geometry(el.parentElement)
-    });
+function log(label,el){
+    console.log(`[animations] ${label}`,el.id||el.className,getSnapshot(el));
 }
 
 function getHiddenMargins(el){
@@ -137,16 +115,13 @@ function getHiddenMargins(el){
         const total=rect.height+margins.top+margins.bottom+gap;
         const shift=total/2;
 
-        console.log("[animations] HIDDEN CALC",{
-            element:name(el),
-            height:+rect.height.toFixed(3),
-            marginTop:+margins.top.toFixed(3),
-            marginBottom:+margins.bottom.toFixed(3),
-            gap:+gap.toFixed(3),
-            total:+total.toFixed(3),
-            shift:+shift.toFixed(3),
-            hiddenTop:+(margins.top-shift).toFixed(3),
-            hiddenBottom:+(margins.bottom-shift).toFixed(3)
+        console.log(`[animations] HIDDEN CALC ${el.id||el.className}`,{
+            height:Number(rect.height.toFixed(3)),
+            marginTop:Number(margins.top.toFixed(3)),
+            marginBottom:Number(margins.bottom.toFixed(3)),
+            gap:Number(gap.toFixed(3)),
+            total:Number(total.toFixed(3)),
+            shift:Number(shift.toFixed(3))
         });
 
         hidden.top-=shift;
@@ -155,16 +130,13 @@ function getHiddenMargins(el){
         const total=rect.width+margins.left+margins.right+gap;
         const shift=total/2;
 
-        console.log("[animations] HIDDEN CALC",{
-            element:name(el),
-            width:+rect.width.toFixed(3),
-            marginLeft:+margins.left.toFixed(3),
-            marginRight:+margins.right.toFixed(3),
-            gap:+gap.toFixed(3),
-            total:+total.toFixed(3),
-            shift:+shift.toFixed(3),
-            hiddenLeft:+(margins.left-shift).toFixed(3),
-            hiddenRight:+(margins.right-shift).toFixed(3)
+        console.log(`[animations] HIDDEN CALC ${el.id||el.className}`,{
+            width:Number(rect.width.toFixed(3)),
+            marginLeft:Number(margins.left.toFixed(3)),
+            marginRight:Number(margins.right.toFixed(3)),
+            gap:Number(gap.toFixed(3)),
+            total:Number(total.toFixed(3)),
+            shift:Number(shift.toFixed(3))
         });
 
         hidden.left-=shift;
@@ -202,16 +174,12 @@ function animate(el,from,to,duration){
 
     stop(el);
 
-    console.groupCollapsed(`[animations] START ${name(el)}`);
-    logGeometry("INITIAL",el);
-    console.log("[animations] FROM",from);
-    console.log("[animations] TO",to);
-    console.groupEnd();
+    log("START",el);
 
     setMargins(el,from);
     void document.documentElement.offsetHeight;
 
-    logLayout("AFTER SET FROM",el);
+    log("AFTER SET FROM",el);
 
     const start=performance.now();
 
@@ -234,15 +202,11 @@ function animate(el,from,to,duration){
 
             el._animationFrame=null;
             setMargins(el,to);
-            void document.documentElement.offsetHeight;
 
-            logLayout("BEFORE CLEAR",el);
+            log("JUST BEFORE RESOLVE",el);
 
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
-
-                logLayout("JUST BEFORE RESOLVE",el);
-
                 resolve();
             },20);
         }
@@ -255,9 +219,8 @@ export function cancelSizeAnimation(el){
     if(!el)
         return;
 
-    console.log("[animations] CANCEL",name(el));
-
     stop(el);
+    console.log(`[animations] CANCEL ${el.id||el.className}`);
     clear(el);
 }
 
@@ -265,21 +228,21 @@ export function clearSizeAnimation(el){
     if(!el)
         return;
 
-    console.log("[animations] CLEAR",name(el));
-
-    logLayout("BEFORE EXTERNAL CLEAR",el);
+    console.log(`[animations] BEFORE EXTERNAL CLEAR ${el.id||el.className}`);
+    log("EXTERNAL BEFORE",el);
 
     clear(el);
     void document.documentElement.offsetHeight;
 
-    logLayout("AFTER EXTERNAL CLEAR",el);
+    log("EXTERNAL AFTER",el);
+    console.log(`[animations] AFTER EXTERNAL CLEAR ${el.id||el.className}`);
 }
 
 export function animateExpand(el){
     if(!el)
         return Promise.resolve();
 
-    console.log("[animations] EXPAND",name(el));
+    console.log(`[animations] EXPAND ${el.id||el.className}`);
 
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
@@ -291,7 +254,7 @@ export function animateCollapse(el){
     if(!el)
         return Promise.resolve();
 
-    console.log("[animations] COLLAPSE",name(el));
+    console.log(`[animations] COLLAPSE ${el.id||el.className}`);
 
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
