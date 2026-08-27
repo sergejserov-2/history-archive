@@ -185,6 +185,20 @@ function animateGroup(elements,mode,duration){
     if(!items.length)
         return Promise.resolve();
 
+    console.groupCollapsed(`resize group: ${mode}`);
+
+    console.table(items.map((item,index)=>({
+        index:index+1,
+        element:item.el,
+        size:item.size,
+        marginTop:item.visible.top,
+        marginBottom:item.visible.bottom
+    })));
+
+    console.log("total:",items.reduce((sum,item)=>sum+item.size,0));
+
+    console.groupEnd();
+
     for(const item of items){
         stop(item.el);
         setMargins(item.el,item.visible);
@@ -197,37 +211,29 @@ function animateGroup(elements,mode,duration){
     const axis=getAxis(first.el);
     const shift=total/2;
 
-    const firstFrom={...first.visible};
-    const firstTo={...first.visible};
+    const animations=items.map(item=>({
+        el:item.el,
+        from:{...item.visible},
+        to:{...item.visible}
+    }));
 
     if(mode==="collapse"){
         if(axis==="vertical"){
-            firstTo.top-=shift;
-            firstTo.bottom-=shift;
+            animations[0].to.top-=shift;
+            animations[0].to.bottom-=shift;
         }else{
-            firstTo.left-=shift;
-            firstTo.right-=shift;
+            animations[0].to.left-=shift;
+            animations[0].to.right-=shift;
         }
     }else{
         if(axis==="vertical"){
-            firstFrom.top-=shift;
-            firstFrom.bottom-=shift;
+            animations[0].from.top-=shift;
+            animations[0].from.bottom-=shift;
         }else{
-            firstFrom.left-=shift;
-            firstFrom.right-=shift;
+            animations[0].from.left-=shift;
+            animations[0].from.right-=shift;
         }
     }
-
-    const animations=items.map((item,index)=>{
-        if(index===0)
-            return{el:item.el,from:firstFrom,to:firstTo};
-
-        return{
-            el:item.el,
-            from:item.visible,
-            to:item.visible
-        };
-    });
 
     const start=performance.now();
 
@@ -241,8 +247,10 @@ function animateGroup(elements,mode,duration){
 
             if(t<1){
                 const frameId=requestAnimationFrame(frame);
+
                 for(const item of animations)
                     item.el._animationFrame=frameId;
+
                 return;
             }
 
@@ -254,6 +262,7 @@ function animateGroup(elements,mode,duration){
             const timer=setTimeout(()=>{
                 for(const item of animations)
                     item.el._animationTimer=null;
+
                 resolve();
             },20);
 
@@ -262,6 +271,7 @@ function animateGroup(elements,mode,duration){
         }
 
         const frameId=requestAnimationFrame(frame);
+
         for(const item of animations)
             item.el._animationFrame=frameId;
     });
