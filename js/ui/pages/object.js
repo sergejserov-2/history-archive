@@ -1,39 +1,122 @@
-import {
+import{
     adminEdit,
     adminDelete
-} from "../components/adminButtons.js";
-import{onAdminStateChanged}from"../../admin/adminMode.js";
-import {
+}from"../components/adminButtons.js";
+
+import{
+    onAdminStateChanged
+}from"../../admin/adminMode.js";
+
+import{
     initAdminController
-} from "../../admin/adminController.js";
-import{initAdmin}from"../../admin/admin.js";
-import{getObject,getType,getParents,getChildren,getAllObjects}from"../../api/objects.js";
-import{getTypes}from"../../api/types.js";
-import{renderHeader}from"../components/header.js";
-import{renderBreadcrumbs}from"../components/breadcrumbs.js";
-import{renderChildren}from"../components/children.js";
-import{getRecords}from"../../api/records.js";
-import{renderRecords}from"../components/records.js";
-import{getRecordTypes}from"../../api/recordTypes.js";
-import{getPhotos}from"../../api/photos.js";
-import{renderPhotos}from"../components/photos.js";
-import{getSources}from"../../api/sources.js";
-import{renderSources}from"../components/sources.js";
-import{getSubjects}from"../../api/subjects.js";
-import{getSubjectTypes}from"../../api/subjectTypes.js";
-import{renderStatusBadgeHTML}from"../components/editor/status.js";
-import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
-import{restoreModalFromUrl}from"../components/modalReload.js";
-import{createPageUpdates}from"../../admin/update.js";
-import{renderFeedbackPrompt,initFeedbackPrompt}from"../components/feedbackPrompt.js";
-import{openFeedbackFormByObjectId}from"../components/feedbackForm.js";
-import{initCoverDrag}from"../components/coverDrag.js";
-import{initPageLoader,revealPage}from"../components/pageLoader.js";
+}from"../../admin/adminController.js";
+
+import{
+    initAdmin
+}from"../../admin/admin.js";
+
+import{
+    getObject,
+    getType,
+    getParents,
+    getChildren,
+    getAllObjects
+}from"../../api/objects.js";
+
+import{
+    getTypes
+}from"../../api/types.js";
+
+import{
+    renderHeader
+}from"../components/header.js";
+
+import{
+    renderBreadcrumbs
+}from"../components/breadcrumbs.js";
+
+import{
+    renderChildren
+}from"../components/children.js";
+
+import{
+    getRecords
+}from"../../api/records.js";
+
+import{
+    renderRecords
+}from"../components/records.js";
+
+import{
+    getRecordTypes
+}from"../../api/recordTypes.js";
+
+import{
+    getPhotos
+}from"../../api/photos.js";
+
+import{
+    renderPhotos
+}from"../components/photos.js";
+
+import{
+    getSources
+}from"../../api/sources.js";
+
+import{
+    renderSources
+}from"../components/sources.js";
+
+import{
+    getSubjects
+}from"../../api/subjects.js";
+
+import{
+    getSubjectTypes
+}from"../../api/subjectTypes.js";
+
+import{
+    renderStatusBadgeHTML
+}from"../components/editor/status.js";
+
+import{
+    renderMentions,
+    getSubjectHref
+}from"../components/mentionLink.js";
+
+import{
+    restoreModalFromUrl
+}from"../components/modalReload.js";
+
+import{
+    createPageUpdates
+}from"../../admin/update.js";
+
+import{
+    renderFeedbackPrompt,
+    initFeedbackPrompt
+}from"../components/feedbackPrompt.js";
+
+import{
+    openFeedbackFormByObjectId
+}from"../components/feedbackForm.js";
+
+import{
+    initCoverDrag
+}from"../components/coverDrag.js";
+
+import{
+    initPageLoader,
+    revealPage
+}from"../components/pageLoader.js";
 
 initPageLoader();
 initAdminController();
 
-const params=new URLSearchParams(window.location.search);
+const params=new URLSearchParams(
+    window.location.search
+);
+
 const objectId=params.get("id");
 
 let pageObject=null;
@@ -50,32 +133,79 @@ let pageTypes=[];
 let pageObjects=[];
 
 const page={
-    get object(){return pageObject;},
-    set object(value){pageObject=value;},
-    get type(){return pageType;},
-    set type(value){pageType=value;},
-    get parents(){return pageParents;},
-    get children(){return pageChildren;},
-    set children(value){pageChildren=value;},
-    get records(){return pageRecords;},
-    set records(value){pageRecords=value;},
-    get photos(){return pagePhotos;},
-    set photos(value){pagePhotos=value;},
-    get sources(){return pageSources;},
-    set sources(value){pageSources=value;},
-    get subjects(){return pageSubjects;},
-    get subjectTypes(){return pageSubjectTypes;},
-    get recordTypes(){return pageRecordTypes;},
-    get objects(){return pageObjects;},
-    get types(){return pageTypes;},
+    get object(){
+        return pageObject;
+    },
+    set object(value){
+        pageObject=value;
+    },
+    get type(){
+        return pageType;
+    },
+    set type(value){
+        pageType=value;
+    },
+    get parents(){
+        return pageParents;
+    },
+    get children(){
+        return pageChildren;
+    },
+    set children(value){
+        pageChildren=value;
+    },
+    get records(){
+        return pageRecords;
+    },
+    set records(value){
+        pageRecords=value;
+    },
+    get photos(){
+        return pagePhotos;
+    },
+    set photos(value){
+        pagePhotos=value;
+    },
+    get sources(){
+        return pageSources;
+    },
+    set sources(value){
+        pageSources=value;
+    },
+    get subjects(){
+        return pageSubjects;
+    },
+    get subjectTypes(){
+        return pageSubjectTypes;
+    },
+    get recordTypes(){
+        return pageRecordTypes;
+    },
+    get objects(){
+        return pageObjects;
+    },
+    get types(){
+        return pageTypes;
+    },
     renderObjectBlock,
-    getChildren:()=>getChildren(pageObject.id,pageObjects),
+    getChildren:()=>{
+        return getChildren(
+            pageObject.id,
+            pageObjects
+        );
+    },
     renderCoverState:async()=>{
-        const block=document.querySelector(".object");
+        const block=document.querySelector(
+            ".object"
+        );
 
         if(block){
-            block.outerHTML=renderObjectBlock();
-            initCoverDrag(block.parentElement);
+            block.outerHTML=
+                renderObjectBlock();
+
+            initCoverDrag(
+                block.parentElement
+            );
         }
     }
 };
@@ -88,26 +218,25 @@ async function loadPage(){
 
     console.time("getAllObjects");
 
-    const[objects,types]=
-        await Promise.all([
-            getAllObjects(),
-            getTypes()
-        ]);
+    const[
+        objects,
+        types
+    ]=await Promise.all([
+        getAllObjects(),
+        getTypes()
+    ]);
 
     console.timeEnd("getAllObjects");
 
-    const object=
-        objects.find(
-            item=>item.id===objectId
-        );
+    const object=objects.find(
+        item=>item.id===objectId
+    );
 
     if(!object){
-
         document.body.innerHTML=
             "<h1>Объект не найден</h1>";
 
         return;
-
     }
 
     document.title=
@@ -193,7 +322,6 @@ async function loadPage(){
     await renderPage();
 
     console.timeEnd("RENDER PAGE");
-
 }
 
 export function onPhotoDeleted(){
@@ -216,7 +344,8 @@ function renderObjectBlock(){
 
     const coverPhoto=
         pagePhotos.find(
-            photo=>photo.id===pageObject.coverPhotoId
+            photo=>photo.id===
+                pageObject.coverPhotoId
         );
 
     const status=
@@ -226,20 +355,33 @@ function renderObjectBlock(){
 
     return`
         <section class="object">
-            <div class="object__cover" data-cover-drag>
+            <div
+                class="object__cover"
+                data-cover-drag
+            >
                 ${
                     coverPhoto?.previewPath
                     ?
-                    `<div class="object__cover-bg" style="background-image:url('${coverPhoto.previewPath}')"></div>
+                    `
+                    <div
+                        class="object__cover-bg"
+                        style="background-image:url('${coverPhoto.previewPath}')"
+                    ></div>
+
                     <img
                         class="object__cover-image"
                         data-cover-image
                         src="${coverPhoto.previewPath}"
                         alt="${coverPhoto.title??""}"
                         draggable="false"
-                    >`
+                    >
+                    `
                     :
-                    `<div class="object__cover-placeholder">Фото отсутствует</div>`
+                    `
+                    <div class="object__cover-placeholder">
+                        Фото отсутствует
+                    </div>
+                    `
                 }
             </div>
 
@@ -249,36 +391,38 @@ function renderObjectBlock(){
                     ${pageType?.title??""}
                 </div>
 
-<h1 class="object__title">
+                <h1 class="object__title">
 
-    <span class="object__title-text">
-        ${pageObject.title??""}
-    </span>
+                    <span class="object__title-text">
+                        ${pageObject.title??""}
+                    </span>
 
-    ${adminEdit(
-        "object",
-        pageObject.id
-    )}
+                    ${adminEdit(
+                        "object",
+                        pageObject.id
+                    )}
 
-    ${adminDelete(
-        "object",
-        pageObject.id
-    )}
+                    ${adminDelete(
+                        "object",
+                        pageObject.id
+                    )}
 
-    ${status}
+                    ${status}
 
-</h1>
+                </h1>
 
                 ${
                     pageObject.description?.trim()
                     ?
-                    `<div class="object__description">
+                    `
+                    <div class="object__description">
                         ${renderMentions(
                             pageObject.description.trim(),
                             pageSubjects,
                             getSubjectHref
                         )}
-                    </div>`
+                    </div>
+                    `
                     :
                     ""
                 }
@@ -294,7 +438,6 @@ function renderObjectBlock(){
             </div>
         </section>
     `;
-
 }
 
 async function renderPage(){
@@ -313,6 +456,15 @@ async function renderPage(){
             pageParents
         );
 
+    const galleryEmpty=
+        pagePhotos.length===0;
+
+    const sourcesEmpty=
+        pageSources.length===0;
+
+    const childrenEmpty=
+        pageChildren.length===0;
+
     document.body.innerHTML=`
         ${renderHeader(page,updates)}
 
@@ -323,86 +475,83 @@ async function renderPage(){
             ${renderObjectBlock()}
 
             ${renderFeedbackPrompt(
-                    pageObject.id
+                pageObject.id
+            )}
+
+            <section
+                id="gallery"
+                ${galleryEmpty
+                    ?"class=\"section--admin-empty\" hidden"
+                    :""
+                }
+            >
+
+                <h2>Фотографии</h2>
+
+                ${renderPhotos(
+                    pagePhotos
                 )}
 
-            ${
-                `
-                <section id="gallery">
+            </section>
 
-                    <h2>Фотографии</h2>
+            <section
+                id="sources"
+                ${sourcesEmpty
+                    ?"class=\"section--admin-empty\" hidden"
+                    :""
+                }
+            >
 
-                    ${renderPhotos(
-                        pagePhotos
-                    )}
+                <h2>Источники</h2>
 
-                </section>
-                `
-            }
+                ${renderSources(
+                    pageSources,
+                    pageSubjects
+                )}
 
-            ${
-                `
-                <section id="sources">
+            </section>
 
-                    <h2>Источники</h2>
+            <section
+                id="children"
+                ${childrenEmpty
+                    ?"class=\"section--admin-empty\" hidden"
+                    :""
+                }
+            >
 
-                    ${renderSources(
-                        pageSources,
-                        pageSubjects
-                    )}
+                <h2>Дочерние объекты</h2>
 
-                </section>
-                `
-            }
+                ${childrenHTML}
 
-            ${
-                `
-                <section id="children">
-
-                    <h2>Дочерние объекты</h2>
-
-                    ${childrenHTML}
-
-                </section>
-                `
-            }
+            </section>
 
         </main>
     `;
 
     initCoverDrag(document);
     initFeedbackPrompt();
-
 }
 
 loadPage()
     .then(async()=>{
-
         onAdminStateChanged(
             admin=>{
-
                 if(admin){
-
                     initAdmin(
                         page,
                         updates
                     );
-
                 }
-
             }
         );
 
         await revealPage();
 
         await restoreModalFromUrl();
-
     })
     .catch(error=>{
-
         console.error(
             "Ошибка загрузки страницы:",
             error
         );
-
     });
