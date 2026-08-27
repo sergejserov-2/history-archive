@@ -1,8 +1,8 @@
 import{adminEdit,adminDelete}from"../components/adminButtons.js";
-import{isAuthReady,isAdmin,onAdminStateChanged}from"../../admin/adminMode.js";
-import{initAdminController}from"../../admin/adminController.js";
+import{isAuthReady,onAdminStateChanged}from"../../admin/adminMode.js";
+import{initAdminController,initializeAdminUI}from"../../admin/adminController.js";
 import{initAdmin}from"../../admin/admin.js";
-import{getObject,getType,getParents,getChildren,getAllObjects}from"../../api/objects.js";
+import{getParents,getChildren,getAllObjects}from"../../api/objects.js";
 import{getTypes}from"../../api/types.js";
 import{renderHeader}from"../components/header.js";
 import{renderBreadcrumbs}from"../components/breadcrumbs.js";
@@ -21,7 +21,6 @@ import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
 import{restoreModalFromUrl}from"../components/modalReload.js";
 import{createPageUpdates}from"../../admin/update.js";
 import{renderFeedbackPrompt,initFeedbackPrompt}from"../components/feedbackPrompt.js";
-import{openFeedbackFormByObjectId}from"../components/feedbackForm.js";
 import{initCoverDrag}from"../components/coverDrag.js";
 import{initPageLoader,revealPage}from"../components/pageLoader.js";
 
@@ -30,7 +29,6 @@ initAdminController();
 
 const params=new URLSearchParams(window.location.search);
 const objectId=params.get("id");
-
 let pageObject=null;
 let pageType=null;
 let pageParents=[];
@@ -77,8 +75,7 @@ const page={
 const updates=createPageUpdates(page);
 
 function waitForAuth(){
-    if(isAuthReady())
-        return Promise.resolve();
+    if(isAuthReady())return Promise.resolve();
     return new Promise(resolve=>{
         const unsubscribe=onAdminStateChanged(()=>{
             unsubscribe();
@@ -125,6 +122,7 @@ async function loadPage(){
     console.timeEnd("LOAD DATA");
     console.time("RENDER PAGE");
     await renderPage();
+    initializeAdminUI();
     console.timeEnd("RENDER PAGE");
 }
 
@@ -194,11 +192,8 @@ async function renderPage(){
 }
 
 loadPage().then(async()=>{
-    let initial=true;
     onAdminStateChanged(admin=>{
-        if(admin)
-            initAdmin(page,updates,{initial});
-        initial=false;
+        if(admin)initAdmin(page,updates);
     });
     await revealPage();
     await restoreModalFromUrl();
