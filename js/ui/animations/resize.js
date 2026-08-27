@@ -3,8 +3,8 @@
 // Margin based
 // ======================================
 
-const EXPAND_DURATION=4420;
-const COLLAPSE_DURATION=4420;
+const EXPAND_DURATION=420;
+const COLLAPSE_DURATION=420;
 
 const DEBUG_ANIMATIONS=true;
 
@@ -222,6 +222,7 @@ function animateMargins(el,from,target,duration){
             }
 
             el._animationFrame=null;
+
             setMargin(el,to.top,to.left);
             forceLayout();
 
@@ -244,15 +245,18 @@ export function animateExpand(el){
     if(!el)
         return Promise.resolve();
 
-    const hidden=getHiddenOffset(el);
+    const visible=getCurrentMargin(el);
+    const offset=getHiddenOffset(el);
+
+    const hidden={
+        top:visible.top+offset.top,
+        left:visible.left+offset.left
+    };
 
     return animateMargins(
         el,
         hidden,
-        {
-            top:0,
-            left:0
-        },
+        visible,
         EXPAND_DURATION
     );
 }
@@ -265,12 +269,17 @@ export function animateCollapse(el){
     if(!el)
         return Promise.resolve();
 
-    const from=getCurrentMargin(el);
-    const hidden=getHiddenOffset(el);
+    const visible=getCurrentMargin(el);
+    const offset=getHiddenOffset(el);
+
+    const hidden={
+        top:visible.top+offset.top,
+        left:visible.left+offset.left
+    };
 
     return animateMargins(
         el,
-        from,
+        visible,
         hidden,
         COLLAPSE_DURATION
     );
