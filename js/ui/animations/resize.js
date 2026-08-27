@@ -1,5 +1,5 @@
-const EXPAND_DURATION=420;
-const COLLAPSE_DURATION=420;
+const EXPAND_DURATION=5420;
+const COLLAPSE_DURATION=5420;
 const DEBUG_ANIMATIONS=true;
 
 function log(...args){
