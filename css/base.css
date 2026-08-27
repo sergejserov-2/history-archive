@@ -848,6 +848,9 @@ div.admin-button {
     cursor: pointer;
     font-size: var(--font-size-lg);
 }
+div.admin-button:hover {
+    background: var(--color-admin-bg-hover) !important;
+}
 
 button.admin-button {
     width: 22px;
