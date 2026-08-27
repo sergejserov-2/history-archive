@@ -4,8 +4,8 @@ import{show,hide}from"../ui/animations/controller.js";
 
 let currentAdminState=false;
 let initialized=false;
+let uiInitialized=false;
 let observer=null;
-let initialSync=true;
 
 export function isAdminUIEnabled(){
     return currentAdminState;
@@ -33,7 +33,7 @@ function hideEmptySectionButtons(section){
     });
 }
 
-function updateEmptySection(section,animate=true){
+function updateEmptySection(section,animate){
     if(!section)return;
     if(!animate){
         if(currentAdminState){
@@ -47,11 +47,10 @@ function updateEmptySection(section,animate=true){
         }
         return;
     }
-    const shouldShow=currentAdminState;
     const state=section._animationState;
-    if(shouldShow&&!section.hidden&&state!=="exit"&&!section.classList.contains("animation--hidden"))return;
-    if(!shouldShow&&section.hidden&&state!=="enter")return;
-    if(shouldShow){
+    if(currentAdminState&&!section.hidden&&state!=="exit"&&!section.classList.contains("animation--hidden"))return;
+    if(!currentAdminState&&section.hidden&&state!=="enter")return;
+    if(currentAdminState){
         showEmptySectionButtons(section);
         show(section);
         return;
@@ -62,11 +61,11 @@ function updateEmptySection(section,animate=true){
     });
 }
 
-function syncEmptySections(animate=true){
+function syncEmptySections(animate){
     getEmptySections().forEach(section=>updateEmptySection(section,animate));
 }
 
-export function syncAdminButtons(animate=true){
+export function syncAdminButtons(animate=uiInitialized){
     syncEmptySections(animate);
     getAdminButtons().forEach(button=>{
         if(button.closest(".section--admin-empty"))return;
@@ -79,12 +78,17 @@ export function syncAdminButtons(animate=true){
     });
 }
 
+export function initializeAdminUI(){
+    if(uiInitialized)return;
+    syncAdminButtons(false);
+    uiInitialized=true;
+}
+
 function handleAdminStateChanged(admin){
     const nextState=!!admin;
     if(nextState===currentAdminState)return;
     currentAdminState=nextState;
-    syncAdminButtons(!initialSync);
-    initialSync=false;
+    syncAdminButtons(uiInitialized);
 }
 
 function observeAdminButtons(){
@@ -102,7 +106,7 @@ function observeAdminButtons(){
                     hasNewElements=true;
             });
         });
-        if(hasNewElements)syncAdminButtons(!initialSync);
+        if(hasNewElements)syncAdminButtons(uiInitialized);
     });
     observer.observe(document.body,{childList:true,subtree:true});
 }
