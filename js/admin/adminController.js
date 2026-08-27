@@ -73,7 +73,6 @@ export function syncAdminButtons(animate=true){
         if(!animate){
             button.hidden=!currentAdminState;
             button.classList.toggle("animation--hidden",!currentAdminState);
-            updateAdminButton(button,currentAdminState,false);
             return;
         }
         updateAdminButton(button,currentAdminState);
