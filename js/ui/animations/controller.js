@@ -98,7 +98,6 @@ export function hide(element){
 
     element._animationState=EXIT_STATE;
 
-    return hideVisibility(element).then(()=>{
         if(element._animationState!==EXIT_STATE)
             return;
 
@@ -122,5 +121,4 @@ export function hide(element){
                 });
             },EXIT_DELAY);
         });
-    });
 }
