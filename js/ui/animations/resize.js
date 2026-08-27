@@ -1,6 +1,5 @@
 const EXPAND_DURATION=5420;
 const COLLAPSE_DURATION=5420;
-const SECTION_END_GAP=0;
 
 function getRect(el){
     return el?.getBoundingClientRect()||null;
@@ -35,6 +34,7 @@ function getAxis(el){
 
     if(s.display==="grid"){
         const rect=getRect(el);
+
         if(rect){
             for(const sibling of parent.children){
                 if(sibling===el)
@@ -64,47 +64,25 @@ function getGap(el,axis){
         return 0;
 
     const s=getComputedStyle(parent);
+
     return axis==="horizontal"
         ?parseFloat(s.columnGap)||0
         :parseFloat(s.rowGap)||0;
 }
 
-function isSection(el){
-    return el?.tagName==="SECTION";
-}
-
-function logGeometry(label,el){
-    const rect=getRect(el);
-    if(!rect)
-        return;
-
-    const margins=getMargins(el);
-
-    console.log(`[animations] ${label}`,el.id||el.className,{
-        top:rect.top,
-        bottom:rect.bottom,
-        height:rect.height,
-        marginTop:margins.top,
-        marginBottom:margins.bottom,
-        hidden:el.hidden
-    });
-}
-
 function getHiddenMargins(el){
     const rect=getRect(el);
     const margins=getMargins(el);
+
     if(!rect)
         return margins;
 
     const axis=getAxis(el);
     const gap=getGap(el,axis);
     const hidden={...margins};
-    const endGap=isSection(el)&&axis==="vertical"?SECTION_END_GAP:0;
 
     if(axis==="vertical"){
-        const total=rect.height+margins.top+margins.bottom+gap;
-        console.log("[animations] GEOMETRY",el.id||el.className,{height:rect.height,marginTop:margins.top,marginBottom:margins.bottom,gap,total});
-        const shift=(total+endGap)/2;
+        const shift=(rect.height+margins.top+margins.bottom+gap)/2;
         hidden.top-=shift;
         hidden.bottom-=shift;
     }else{
@@ -170,14 +148,6 @@ function animate(el,from,to,duration){
 
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
-
-                logGeometry("BEFORE CLEAR",el);
-
-                clear(el);
-                void document.documentElement.offsetHeight;
-
-                logGeometry("AFTER CLEAR",el);
-
                 resolve();
             },20);
         }
@@ -191,6 +161,13 @@ export function cancelSizeAnimation(el){
         return;
 
     stop(el);
+    clear(el);
+}
+
+export function clearSizeAnimation(el){
+    if(!el)
+        return;
+
     clear(el);
 }
 
