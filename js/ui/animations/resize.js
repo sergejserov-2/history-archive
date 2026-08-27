@@ -70,31 +70,6 @@ function getGap(el,axis){
         :parseFloat(s.rowGap)||0;
 }
 
-function isSection(el){
-    return el?.tagName==="SECTION";
-}
-
-function logSectionFrame(el,label){
-    if(!isSection(el))
-        return;
-
-    const parent=el.parentElement;
-    const rect=getRect(el);
-    const parentRect=getRect(parent);
-    const margins=getMargins(el);
-
-    if(!rect||!parentRect)
-        return;
-
-    console.log(`[animations] ${label} ${el.id||el.className}`,{
-        parentHeight:+parentRect.height.toFixed(3),
-        top:+rect.top.toFixed(3),
-        height:+rect.height.toFixed(3),
-        marginTop:+margins.top.toFixed(3),
-        marginBottom:+margins.bottom.toFixed(3)
-    });
-}
-
 function getHiddenMargins(el){
     const rect=getRect(el);
     const margins=getMargins(el);
@@ -119,6 +94,20 @@ function getHiddenMargins(el){
     return hidden;
 }
 
+function getSize(el){
+    const rect=getRect(el);
+    const margins=getMargins(el);
+
+    if(!rect)
+        return 0;
+
+    const axis=getAxis(el);
+
+    return axis==="vertical"
+        ?rect.height+margins.top+margins.bottom
+        :rect.width+margins.left+margins.right;
+}
+
 function stop(el){
     if(el._animationFrame)
         cancelAnimationFrame(el._animationFrame);
@@ -141,28 +130,104 @@ function ease(t){
     return 1-Math.pow(1-t,3);
 }
 
-function interpolate(from,to,e){
+function interpolate(from,to,t){
     return{
-        top:from.top+(to.top-from.top)*e,
-        right:from.right+(to.right-from.right)*e,
-        bottom:from.bottom+(to.bottom-from.bottom)*e,
-        left:from.left+(to.left-from.left)*e
+        top:from.top+(to.top-from.top)*t,
+        right:from.right+(to.right-from.right)*t,
+        bottom:from.bottom+(to.bottom-from.bottom)*t,
+        left:from.left+(to.left-from.left)*t
     };
 }
 
-function animateGroup(items,duration){
+function animate(el,from,to,duration){
+    if(!el)
+        return Promise.resolve();
+
+    stop(el);
+    setMargins(el,from);
+    void document.documentElement.offsetHeight;
+
+    const start=performance.now();
+
+    return new Promise(resolve=>{
+        function frame(now){
+            const t=Math.min(1,(now-start)/duration);
+            setMargins(el,interpolate(from,to,ease(t)));
+
+            if(t<1){
+                el._animationFrame=requestAnimationFrame(frame);
+                return;
+            }
+
+            el._animationFrame=null;
+            setMargins(el,to);
+
+            el._animationTimer=setTimeout(()=>{
+                el._animationTimer=null;
+                resolve();
+            },20);
+        }
+
+        el._animationFrame=requestAnimationFrame(frame);
+    });
+}
+
+function animateGroup(elements,mode,duration){
+    if(!elements?.length)
+        return Promise.resolve();
+
+    const items=elements.filter(Boolean).map(el=>({
+        el,
+        visible:getMargins(el),
+        size:getSize(el)
+    }));
+
     if(!items.length)
         return Promise.resolve();
 
     for(const item of items){
         stop(item.el);
-        setMargins(item.el,item.from);
+        setMargins(item.el,item.visible);
     }
 
     void document.documentElement.offsetHeight;
 
-    for(const item of items)
-        logSectionFrame(item.el,"START");
+    const first=items[0];
+    const total=items.reduce((sum,item)=>sum+item.size,0);
+    const axis=getAxis(first.el);
+    const shift=total/2;
+
+    const firstFrom={...first.visible};
+    const firstTo={...first.visible};
+
+    if(mode==="collapse"){
+        if(axis==="vertical"){
+            firstTo.top-=shift;
+            firstTo.bottom-=shift;
+        }else{
+            firstTo.left-=shift;
+            firstTo.right-=shift;
+        }
+    }else{
+        if(axis==="vertical"){
+            firstFrom.top-=shift;
+            firstFrom.bottom-=shift;
+        }else{
+            firstFrom.left-=shift;
+            firstFrom.right-=shift;
+        }
+    }
+
+    const animations=items.map((item,index)=>{
+        if(index===0)
+            return{el:item.el,from:firstFrom,to:firstTo};
+
+        return{
+            el:item.el,
+            from:item.visible,
+            to:item.visible
+        };
+    });
 
     const start=performance.now();
 
@@ -171,41 +236,35 @@ function animateGroup(items,duration){
             const t=Math.min(1,(now-start)/duration);
             const e=ease(t);
 
-            for(const item of items)
+            for(const item of animations)
                 setMargins(item.el,interpolate(item.from,item.to,e));
 
             if(t<1){
                 const frameId=requestAnimationFrame(frame);
-                for(const item of items)
+                for(const item of animations)
                     item.el._animationFrame=frameId;
                 return;
             }
 
-            for(const item of items){
+            for(const item of animations){
                 item.el._animationFrame=null;
                 setMargins(item.el,item.to);
             }
 
             const timer=setTimeout(()=>{
-                for(const item of items){
+                for(const item of animations)
                     item.el._animationTimer=null;
-                    logSectionFrame(item.el,"BEFORE RESOLVE");
-                }
                 resolve();
             },20);
 
-            for(const item of items)
+            for(const item of animations)
                 item.el._animationTimer=timer;
         }
 
         const frameId=requestAnimationFrame(frame);
-        for(const item of items)
+        for(const item of animations)
             item.el._animationFrame=frameId;
     });
-}
-
-function animate(el,from,to,duration){
-    return animateGroup([{el,from,to}],duration);
 }
 
 export function cancelSizeAnimation(el){
@@ -244,27 +303,9 @@ export function animateCollapse(el){
 }
 
 export function animateExpandGroup(elements){
-    if(!elements?.length)
-        return Promise.resolve();
-
-    const items=elements.map(el=>({
-        el,
-        from:getHiddenMargins(el),
-        to:getMargins(el)
-    }));
-
-    return animateGroup(items,EXPAND_DURATION);
+    return animateGroup(elements,"expand",EXPAND_DURATION);
 }
 
 export function animateCollapseGroup(elements){
-    if(!elements?.length)
-        return Promise.resolve();
-
-    const items=elements.map(el=>({
-        el,
-        from:getMargins(el),
-        to:getHiddenMargins(el)
-    }));
-
-    return animateGroup(items,COLLAPSE_DURATION);
+    return animateGroup(elements,"collapse",COLLAPSE_DURATION);
 }
