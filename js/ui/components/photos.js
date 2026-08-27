@@ -4,18 +4,23 @@ import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
 
 export function renderPhotos(photos,objectId=null){
     const cards=[];
+
     cards.push(adminAdd("add-photo","Добавить фото",{className:"photo-card photo-card--add"}));
 
     const sortedPhotos=[...(photos??[])].sort((a,b)=>{
         const dateA=a.date||"",dateB=b.date||"";
+
         if(!dateA&&!dateB){
             const author=(a.author??"").localeCompare(b.author??"","ru");
             return author!==0?author:(a.title??"").localeCompare(b.title??"","ru");
         }
+
         if(!dateA)return 1;
         if(!dateB)return -1;
+
         const date=String(dateB).localeCompare(String(dateA));
         if(date!==0)return date;
+
         const author=(a.author??"").localeCompare(b.author??"","ru");
         return author!==0?author:(a.title??"").localeCompare(b.title??"","ru");
     });
@@ -25,8 +30,9 @@ export function renderPhotos(photos,objectId=null){
         const hasPreview=Boolean(photo.previewPath);
         let mediaHTML;
 
-        if(uploading&&!hasPreview)mediaHTML=renderLoadingPlaceholder();
-        else if(hasPreview){
+        if(uploading&&!hasPreview){
+            mediaHTML=renderLoadingPlaceholder();
+        }else if(hasPreview){
             mediaHTML=`
                 ${uploading?renderLoadingPlaceholder():""}
                 <img class="photo-card__image${uploading?" photo-card__image--loading":""}" src="${photo.previewPath}" alt="${photo.title??""}">
@@ -71,10 +77,7 @@ export function renderPhotos(photos,objectId=null){
             const image=media.querySelector(".photo-card__image");
             if(!image||!image.complete||image.naturalWidth===0)return;
 
-            void openPhotoModal(photo,{
-                id:objectId,
-                photos:sortedPhotos
-            });
+            void openPhotoModal(photo,{id:objectId,photos:sortedPhotos});
         };
     },0);
 
