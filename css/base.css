@@ -735,14 +735,14 @@ section h2 {
 
 
 /* ==========================================
-   ADMIN BUTTONS
+   ANIMATIONS
 ========================================== */
 
-.admin-button{
+.animation--hidden{
 
-    opacity:1;
+    opacity:0;
 
-    pointer-events:auto;
+    pointer-events:none;
 
     transform:none;
 
@@ -752,52 +752,13 @@ section h2 {
 
 
 /* ==========================================
-   PHASE 1 / HIDDEN
+   ENTER
 ========================================== */
 
-.admin-button--hidden{
-
-    opacity:0;
-
-    pointer-events:none;
-
-}
-
-
-/* ==========================================
-   PHASE 2 / GEOMETRIC EXPAND
-========================================== */
-
-/*
-    Геометрия управляется JavaScript.
-
-    Для маленьких кнопок:
-        width: 0
-        height: 0
-
-        ↓
-
-        22px × 22px
-
-    Для больших блоков:
-        height: 0
-
-        ↓
-
-        scrollHeight
-
-    Здесь opacity НЕ меняется.
-*/
-
-
-/* ==========================================
-   PHASE 3 / APPEAR
-========================================== */
-
-.admin-button--entering{
+.animation--entering{
 
     animation:
-        admin-button-enter
+        animation-enter
         300ms
         ease
         both;
@@ -806,13 +767,13 @@ section h2 {
 
 
 /* ==========================================
-   EXIT PHASE 1 / DISSOLVE
+   EXIT
 ========================================== */
 
-.admin-button--exiting{
+.animation--exiting{
 
     animation:
-        admin-button-exit
+        animation-exit
         300ms
         ease
         both;
@@ -824,17 +785,21 @@ section h2 {
    APPEAR ANIMATION
 ========================================== */
 
-@keyframes admin-button-enter{
+@keyframes animation-enter{
 
     0%{
 
         opacity:0;
+
+        transform:scale(.96);
 
     }
 
     100%{
 
         opacity:1;
+
+        transform:scale(1);
 
     }
 
@@ -845,17 +810,21 @@ section h2 {
    DISSOLVE ANIMATION
 ========================================== */
 
-@keyframes admin-button-exit{
+@keyframes animation-exit{
 
     0%{
 
         opacity:1;
+
+        transform:scale(1);
 
     }
 
     100%{
 
         opacity:0;
+
+        transform:scale(.98);
 
     }
 
