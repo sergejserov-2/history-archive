@@ -8,6 +8,15 @@ import{
     cancelSizeAnimation
 }from"./resize.js";
 
+import{
+    showVisibility
+}from"./visibility.js";
+
+const ENTER_DELAY=10;
+const EXIT_DELAY=10;
+
+const HIDDEN_CLASS="animation--hidden";
+
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
 
@@ -26,8 +35,13 @@ export function cancelAnimation(element){
 
     cancelSizeAnimation(element);
 
-    element.classList.remove("animation--entering");
-    element.classList.remove("animation--exiting");
+    element.classList.remove(
+        "animation--entering"
+    );
+
+    element.classList.remove(
+        "animation--exiting"
+    );
 
     element._animationState=null;
 }
@@ -45,12 +59,31 @@ export function show(element){
     element._animationState=ENTER_STATE;
     element.hidden=false;
 
+    element.classList.add(
+        HIDDEN_CLASS
+    );
+
     animateExpand(element).then(()=>{
 
         if(element._animationState!==ENTER_STATE)
             return;
 
-        element._animationState=null;
+        element._animationTimer=setTimeout(()=>{
+
+            if(element._animationState!==ENTER_STATE)
+                return;
+
+            showVisibility(element).then(()=>{
+
+                if(element._animationState!==ENTER_STATE)
+                    return;
+
+                element._animationState=null;
+                element._animationTimer=null;
+
+            });
+
+        },ENTER_DELAY);
 
     });
 }
@@ -77,6 +110,7 @@ export function hide(element){
 
         element.hidden=true;
         element._animationState=null;
+        element._animationTimer=null;
 
     });
 }
