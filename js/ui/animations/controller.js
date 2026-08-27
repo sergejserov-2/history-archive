@@ -1,6 +1,7 @@
 import{
     animateExpand,
     animateCollapse,
+    animateExpandGroup,
     animateCollapseGroup,
     cancelSizeAnimation,
     clearSizeAnimation
@@ -19,7 +20,7 @@ const HIDDEN_CLASS="animation--hidden";
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
 
-function getCollapseGroup(element){
+function getAnimationGroup(element,state){
     const parent=element?.parentElement;
 
     if(!parent)
@@ -29,9 +30,24 @@ function getCollapseGroup(element){
 
     return[...parent.children].filter(child=>{
         return child.tagName===tagName&&
-            child.hidden===false&&
-            child._animationState===EXIT_STATE;
+            child._animationState===state;
     });
+}
+
+function getGroupPromise(element){
+    return element?._sizeAnimationPromise||null;
+}
+
+function setGroupPromise(group,promise){
+    for(const element of group)
+        element._sizeAnimationPromise=promise;
+}
+
+function clearGroupPromise(group,promise){
+    for(const element of group){
+        if(element._sizeAnimationPromise===promise)
+            element._sizeAnimationPromise=null;
+    }
 }
 
 function finishCollapse(element){
@@ -43,14 +59,26 @@ function finishCollapse(element){
 
     element._animationState=null;
     element._animationTimer=null;
-    element._collapsePromise=null;
+}
+
+function finishExpand(element){
+    if(element._animationState!==ENTER_STATE)
+        return;
+
+    clearSizeAnimation(element);
+    element.classList.remove(HIDDEN_CLASS);
+
+    element._animationState=null;
+    element._animationTimer=null;
 }
 
 function startCollapseGroup(element){
-    if(element._collapsePromise)
-        return element._collapsePromise;
+    const existing=getGroupPromise(element);
 
-    const group=getCollapseGroup(element);
+    if(existing)
+        return existing;
+
+    const group=getAnimationGroup(element,EXIT_STATE);
 
     console.log("[animation] collapse group:",group);
 
@@ -58,14 +86,33 @@ function startCollapseGroup(element){
         ?animateCollapseGroup(group)
         :animateCollapse(element);
 
-    for(const item of group)
-        item._collapsePromise=promise;
+    setGroupPromise(group,promise);
 
     promise.then(()=>{
-        for(const item of group){
-            if(item._collapsePromise===promise)
-                item._collapsePromise=null;
-        }
+        clearGroupPromise(group,promise);
+    });
+
+    return promise;
+}
+
+function startExpandGroup(element){
+    const existing=getGroupPromise(element);
+
+    if(existing)
+        return existing;
+
+    const group=getAnimationGroup(element,ENTER_STATE);
+
+    console.log("[animation] expand group:",group);
+
+    const promise=group.length>1
+        ?animateExpandGroup(group)
+        :animateExpand(element);
+
+    setGroupPromise(group,promise);
+
+    promise.then(()=>{
+        clearGroupPromise(group,promise);
     });
 
     return promise;
@@ -86,7 +133,7 @@ export function cancelAnimation(element){
     element.classList.remove("animation--exiting");
 
     element._animationState=null;
-    element._collapsePromise=null;
+    element._sizeAnimationPromise=null;
 }
 
 export function show(element){
@@ -100,12 +147,14 @@ export function show(element){
 
     element.classList.add(HIDDEN_CLASS);
 
-    return animateExpand(element).then(()=>{
-        if(element._animationState!==ENTER_STATE)
-            return;
+    return new Promise(resolve=>{
+        element._animationTimer=setTimeout(()=>{
+            if(element._animationState!==ENTER_STATE){
+                resolve();
+                return;
+            }
 
-        return new Promise(resolve=>{
-            element._animationTimer=setTimeout(()=>{
+            startExpandGroup(element).then(()=>{
                 if(element._animationState!==ENTER_STATE){
                     resolve();
                     return;
@@ -117,12 +166,11 @@ export function show(element){
                         return;
                     }
 
-                    element._animationState=null;
-                    element._animationTimer=null;
+                    finishExpand(element);
                     resolve();
                 });
-            },ENTER_DELAY);
-        });
+            });
+        },ENTER_DELAY);
     });
 }
 
