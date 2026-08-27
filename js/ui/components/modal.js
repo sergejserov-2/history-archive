@@ -28,52 +28,85 @@ function createModalElement({title="",content="",width=null,admin=false}={}){
 }
 
 export function createModal({title="",content="",width=null,admin=false}={}){
-    const oldModal=currentModal;
-    let overlay=oldModal?.overlay??null;
-    const isReplacement=Boolean(oldModal);
-
+    const previous=currentModal;
+    let overlay=previous?.overlay??null;
     if(!overlay){
         overlay=document.createElement("div");
         overlay.className="modal-overlay";
         document.body.appendChild(overlay);
     }
 
-    if(oldModal?.element){
-        oldModal.element.remove();
-        currentModal=null;
-    }
-
     const modal=createModalElement({title,content,width,admin});
+    const isReplacement=Boolean(previous);
+
     if(isReplacement)modal.classList.add("modal--replacement");
     overlay.appendChild(modal);
 
     let closing=false;
     let closeHandler=null;
+    let cleanup=null;
 
     function setCloseHandler(handler){
-        closeHandler=handler;
-        if(currentModal?.element===modal)currentModal.closeHandler=handler;
+        closeHandler=typeof handler==="function"?handler:null;
+        if(currentModal?.element===modal)currentModal.closeHandler=closeHandler;
+    }
+
+    function setCleanup(handler){
+        cleanup=typeof handler==="function"?handler:null;
+        if(currentModal?.element===modal)currentModal.cleanup=cleanup;
     }
 
     async function close(){
         if(currentModal?.element!==modal||closing)return;
         closing=true;
-        const handler=closeHandler;
+
+        if(typeof cleanup==="function"){
+            try{
+                await cleanup();
+            }catch(error){
+                console.error("Ошибка очистки модалки:",error);
+            }
+        }
+
         modal.classList.remove("modal--visible");
         modal.classList.add("modal--closing");
         await waitForTransition(modal,()=>{});
         modal.remove();
+
         if(currentModal?.element===modal)currentModal=null;
-        if(overlay.parentNode){
+
+        const handler=closeHandler;
+        if(typeof handler==="function"){
+            try{
+                await handler();
+            }catch(error){
+                console.error("Ошибка обработчика закрытия модалки:",error);
+            }
+        }
+
+        if(!currentModal&&overlay.isConnected){
             overlay.classList.remove("modal-overlay--visible");
             await waitForTransition(overlay,()=>{});
-            overlay.remove();
+            if(!currentModal)overlay.remove();
         }
-        if(typeof handler==="function")await handler();
     }
 
     const closeButton=modal.querySelector(".modal__close");
     if(closeButton)closeButton.onclick=close;
+
+    if(previous?.element?.isConnected){
+        previous.element.remove();
+    }
+
+    currentModal={
+        overlay,
+        element:modal,
+        close,
+        closeHandler:null,
+        cleanup:null,
+        setCloseHandler,
+        setCleanup
+    };
 
     requestAnimationFrame(()=>{
         requestAnimationFrame(()=>{
@@ -85,8 +118,6 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         });
     });
 
-    currentModal={overlay,element:modal,close,closeHandler:null,setCloseHandler};
-
     return{
         root:overlay,
         content:modal.querySelector(".modal__content"),
@@ -95,6 +126,7 @@ export function createModal({title="",content="",width=null,admin=false}={}){
             if(contentElement)contentElement.innerHTML=html;
         },
         setCloseHandler,
+        setCleanup,
         close
     };
 }
