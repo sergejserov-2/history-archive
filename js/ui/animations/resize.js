@@ -1,10 +1,10 @@
 // ======================================
 // Universal geometry animations
-// Margin based
+// Size + margin compensation
 // ======================================
 
-const EXPAND_DURATION=420;
-const COLLAPSE_DURATION=420;
+const EXPAND_DURATION=5420;
+const COLLAPSE_DURATION=5420;
 
 const DEBUG_ANIMATIONS=true;
 
@@ -25,11 +25,6 @@ function fmt(value){
     return Number(value||0).toFixed(2);
 }
 
-function getPosition(el){
-    const rect=el?.getBoundingClientRect();
-    return rect?`${fmt(rect.top)},${fmt(rect.left)}`:"-";
-}
-
 // ======================================
 // Geometry
 // ======================================
@@ -43,45 +38,147 @@ function forceLayout(){
 }
 
 // ======================================
-// Margin
+// Computed geometry
 // ======================================
 
-function getCurrentMargin(el){
-    const computed=window.getComputedStyle(el);
+function getGeometry(el){
+    const style=window.getComputedStyle(el);
+    const rect=getRect(el);
+
+    if(!rect)
+        return null;
 
     return {
-        top:parseFloat(computed.marginTop)||0,
-        left:parseFloat(computed.marginLeft)||0
+        width:rect.width,
+        height:rect.height,
+        marginTop:parseFloat(style.marginTop)||0,
+        marginRight:parseFloat(style.marginRight)||0,
+        marginBottom:parseFloat(style.marginBottom)||0,
+        marginLeft:parseFloat(style.marginLeft)||0
     };
 }
 
-function setMargin(el,top,left){
-    el.style.setProperty("margin-top",`${top}px`,"important");
-    el.style.setProperty("margin-left",`${left}px`,"important");
+// ======================================
+// Layout
+// ======================================
+
+function getLayout(el){
+    const parent=el?.parentElement;
+
+    if(!parent)
+        return {
+            axis:"vertical",
+            direction:"forward"
+        };
+
+    const style=window.getComputedStyle(parent);
+
+    if(
+        style.display==="flex"&&
+        (
+            style.flexDirection==="row"||
+            style.flexDirection==="row-reverse"
+        )
+    ){
+        return {
+            axis:"horizontal",
+            direction:
+                style.flexDirection==="row"
+                    ?"forward"
+                    :"reverse"
+        };
+    }
+
+    return {
+        axis:"vertical",
+        direction:
+            style.flexDirection==="column-reverse"
+                ?"reverse"
+                :"forward"
+    };
 }
 
 // ======================================
-// End gap
+// Gap
 // ======================================
 
-function getEndGap(el,axis){
-    const style=window.getComputedStyle(el);
+function getGap(el,axis){
     const parent=el?.parentElement;
 
     if(!parent)
         return 0;
 
-    const parentStyle=window.getComputedStyle(parent);
+    const style=window.getComputedStyle(parent);
 
-    const margin=axis==="vertical"
-        ?parseFloat(style.marginBottom)||0
-        :parseFloat(style.marginRight)||0;
+    return axis==="horizontal"
+        ?parseFloat(style.columnGap)||0
+        :parseFloat(style.rowGap)||0;
+}
 
-    const rowGap=parseFloat(parentStyle.rowGap)||0;
-    const columnGap=parseFloat(parentStyle.columnGap)||0;
-    const gap=axis==="vertical"?rowGap:columnGap;
+// ======================================
+// Compensation
+// ======================================
 
-    return margin||gap;
+function getCompensation(el,axis){
+    const style=window.getComputedStyle(el);
+
+    const gap=getGap(el,axis);
+
+    if(axis==="horizontal"){
+        return {
+            start:parseFloat(style.marginLeft)||0,
+            end:(parseFloat(style.marginRight)||0)+gap
+        };
+    }
+
+    return {
+        start:parseFloat(style.marginTop)||0,
+        end:(parseFloat(style.marginBottom)||0)+gap
+    };
+}
+
+// ======================================
+// Size
+// ======================================
+
+function setSize(el,width,height){
+    el.style.setProperty(
+        "width",
+        `${Math.max(0,width)}px`,
+        "important"
+    );
+
+    el.style.setProperty(
+        "height",
+        `${Math.max(0,height)}px`,
+        "important"
+    );
+}
+
+function setMargins(el,top,right,bottom,left){
+    el.style.setProperty(
+        "margin-top",
+        `${top}px`,
+        "important"
+    );
+
+    el.style.setProperty(
+        "margin-right",
+        `${right}px`,
+        "important"
+    );
+
+    el.style.setProperty(
+        "margin-bottom",
+        `${bottom}px`,
+        "important"
+    );
+
+    el.style.setProperty(
+        "margin-left",
+        `${left}px`,
+        "important"
+    );
 }
 
 // ======================================
@@ -111,7 +208,11 @@ function clearSizeAnimationStyles(el){
     if(!el)
         return;
 
+    el.style.removeProperty("width");
+    el.style.removeProperty("height");
     el.style.removeProperty("margin-top");
+    el.style.removeProperty("margin-right");
+    el.style.removeProperty("margin-bottom");
     el.style.removeProperty("margin-left");
     el.style.removeProperty("transition");
 }
@@ -131,192 +232,6 @@ export function cancelSizeAnimation(el){
 }
 
 // ======================================
-// Layout direction
-// ======================================
-
-function getLayoutDirection(el){
-    const parent=el?.parentElement;
-
-    if(!parent)
-        return {
-            axis:"vertical",
-            direction:"forward"
-        };
-
-    const style=window.getComputedStyle(parent);
-    const flexDirection=style.flexDirection;
-    const justifyContent=style.justifyContent;
-
-    if(
-        flexDirection==="row"||
-        flexDirection==="row-reverse"
-    ){
-        const cssDirection=
-            style.getPropertyValue(
-                "--admin-animation-direction"
-            ).trim();
-
-        if(cssDirection==="left")
-            return {
-                axis:"horizontal",
-                direction:"reverse"
-            };
-
-        if(cssDirection==="right")
-            return {
-                axis:"horizontal",
-                direction:"forward"
-            };
-
-        let direction=
-            flexDirection==="row"
-                ?"forward"
-                :"reverse";
-
-        if(
-            justifyContent==="flex-end"||
-            justifyContent==="end"
-        ){
-            direction=
-                direction==="forward"
-                    ?"reverse"
-                    :"forward";
-        }
-
-        if(style.direction==="rtl"){
-            direction=
-                direction==="forward"
-                    ?"reverse"
-                    :"forward";
-        }
-
-        return {
-            axis:"horizontal",
-            direction
-        };
-    }
-
-    let direction=
-        flexDirection==="column-reverse"
-            ?"reverse"
-            :"forward";
-
-    if(
-        justifyContent==="flex-end"||
-        justifyContent==="end"
-    ){
-        direction=
-            direction==="forward"
-                ?"reverse"
-                :"forward";
-    }
-
-    return {
-        axis:"vertical",
-        direction
-    };
-}
-
-// ======================================
-// Hidden offset
-// ======================================
-
-function getHiddenOffset(el){
-    const parent=el?.parentElement;
-
-    if(!parent)
-        return {
-            top:-300,
-            left:-100
-        };
-
-    const elementRect=getRect(el);
-    const parentRect=getRect(parent);
-
-    if(!elementRect||!parentRect)
-        return {
-            top:-300,
-            left:-100
-        };
-
-    const verticalGap=getEndGap(el,"vertical");
-    const horizontalGap=getEndGap(el,"horizontal");
-
-    const layout=getLayoutDirection(el);
-
-    let top=0;
-    let left=0;
-
-    if(layout.axis==="horizontal"){
-        if(layout.direction==="forward"){
-            const hiddenLeft=
-                parentRect.right-elementRect.left;
-
-            left=
-                hiddenLeft+horizontalGap;
-        }else{
-            const hiddenLeft=
-                parentRect.left-elementRect.right;
-
-            left=
-                hiddenLeft-horizontalGap;
-        }
-
-        const hiddenTop=
-            parentRect.top-elementRect.bottom;
-
-        top=
-            hiddenTop-verticalGap;
-    }else{
-        if(layout.direction==="forward"){
-            const hiddenTop=
-                parentRect.top-elementRect.bottom;
-
-            top=
-                hiddenTop-verticalGap;
-        }else{
-            const hiddenTop=
-                parentRect.bottom-elementRect.top;
-
-            top=
-                hiddenTop+verticalGap;
-        }
-
-        const distanceLeft=
-            Math.abs(elementRect.left-parentRect.left);
-
-        const distanceRight=
-            Math.abs(parentRect.right-elementRect.right);
-
-        if(distanceLeft<=distanceRight){
-            const hiddenLeft=
-                parentRect.left-elementRect.right;
-
-            left=
-                hiddenLeft-horizontalGap;
-        }else{
-            const hiddenLeft=
-                parentRect.right-elementRect.left;
-
-            left=
-                hiddenLeft+horizontalGap;
-        }
-    }
-
-    log("HIDDEN OFFSET",getName(el),{
-        axis:layout.axis,
-        direction:layout.direction,
-        top:fmt(top),
-        left:fmt(left)
-    });
-
-    return {
-        top,
-        left
-    };
-}
-
-// ======================================
 // Easing
 // ======================================
 
@@ -325,40 +240,145 @@ function easeOutCubic(progress){
 }
 
 // ======================================
-// Margin animation
+// Animation
 // ======================================
 
-function animateMargins(el,from,target,duration){
-    if(!el)
+function animateGeometry(
+    el,
+    geometry,
+    layout,
+    expanding,
+    duration
+){
+    if(!el||!geometry)
         return Promise.resolve();
 
     stopSizeAnimation(el);
 
-    const to={
-        top:Number(target.top)||0,
-        left:Number(target.left)||0
+    const axis=layout.axis;
+
+    const startSize=expanding
+        ?0
+        :(axis==="horizontal"
+            ?geometry.width
+            :geometry.height);
+
+    const endSize=expanding
+        ?(axis==="horizontal"
+            ?geometry.width
+            :geometry.height)
+        :0;
+
+    const compensation=getCompensation(
+        el,
+        axis
+    );
+
+    const startMarginStart=expanding
+        ?compensation.start
+        :0;
+
+    const endMarginStart=expanding
+        ?0
+        :compensation.start;
+
+    const startMarginEnd=expanding
+        ?compensation.end
+        :0;
+
+    const endMarginEnd=expanding
+        ?0
+        :compensation.end;
+
+    const margins={
+        top:geometry.marginTop,
+        right:geometry.marginRight,
+        bottom:geometry.marginBottom,
+        left:geometry.marginLeft
     };
 
-    setMargin(el,from.top,from.left);
+    function apply(progress){
+        const eased=easeOutCubic(progress);
+
+        const size=
+            startSize+
+            (endSize-startSize)*eased;
+
+        const marginStart=
+            startMarginStart+
+            (endMarginStart-startMarginStart)*eased;
+
+        const marginEnd=
+            startMarginEnd+
+            (endMarginEnd-startMarginEnd)*eased;
+
+        if(axis==="horizontal"){
+            const left=
+                layout.direction==="forward"
+                    ?marginStart
+                    :marginEnd;
+
+            const right=
+                layout.direction==="forward"
+                    ?marginEnd
+                    :marginStart;
+
+            setSize(
+                el,
+                size,
+                geometry.height
+            );
+
+            setMargins(
+                el,
+                margins.top,
+                right,
+                margins.bottom,
+                left
+            );
+
+            return;
+        }
+
+        const top=
+            layout.direction==="forward"
+                ?marginStart
+                :marginEnd;
+
+        const bottom=
+            layout.direction==="forward"
+                ?marginEnd
+                :marginStart;
+
+        setSize(
+            el,
+            geometry.width,
+            size
+        );
+
+        setMargins(
+            el,
+            top,
+            margins.right,
+            bottom,
+            margins.left
+        );
+    }
+
+    apply(0);
     forceLayout();
 
     const startTime=performance.now();
 
     return new Promise(resolve=>{
+
         function frame(now){
-            const elapsed=now-startTime;
-            const progress=Math.min(1,elapsed/duration);
-            const eased=easeOutCubic(progress);
+            const progress=Math.min(
+                1,
+                (now-startTime)/duration
+            );
 
-            const top=
-                from.top+
-                (to.top-from.top)*eased;
-
-            const left=
-                from.left+
-                (to.left-from.left)*eased;
-
-            setMargin(el,top,left);
+            apply(progress);
 
             if(progress<1){
                 el._animationFrame=
@@ -368,13 +388,17 @@ function animateMargins(el,from,target,duration){
 
             el._animationFrame=null;
 
-            setMargin(el,to.top,to.left);
+            apply(1);
             forceLayout();
 
             el._animationTimer=setTimeout(()=>{
+
                 el._animationTimer=null;
+
                 clearSizeAnimationStyles(el);
+
                 resolve();
+
             },20);
         }
 
@@ -391,18 +415,25 @@ export function animateExpand(el){
     if(!el)
         return Promise.resolve();
 
-    const visible=getCurrentMargin(el);
-    const offset=getHiddenOffset(el);
+    const geometry=getGeometry(el);
 
-    const hidden={
-        top:visible.top+offset.top,
-        left:visible.left+offset.left
-    };
+    if(!geometry)
+        return Promise.resolve();
 
-    return animateMargins(
+    const layout=getLayout(el);
+
+    log(
+        "EXPAND",
+        getName(el),
+        layout,
+        geometry
+    );
+
+    return animateGeometry(
         el,
-        hidden,
-        visible,
+        geometry,
+        layout,
+        true,
         EXPAND_DURATION
     );
 }
@@ -415,18 +446,25 @@ export function animateCollapse(el){
     if(!el)
         return Promise.resolve();
 
-    const visible=getCurrentMargin(el);
-    const offset=getHiddenOffset(el);
+    const geometry=getGeometry(el);
 
-    const hidden={
-        top:visible.top+offset.top,
-        left:visible.left+offset.left
-    };
+    if(!geometry)
+        return Promise.resolve();
 
-    return animateMargins(
+    const layout=getLayout(el);
+
+    log(
+        "COLLAPSE",
+        getName(el),
+        layout,
+        geometry
+    );
+
+    return animateGeometry(
         el,
-        visible,
-        hidden,
+        geometry,
+        layout,
+        false,
         COLLAPSE_DURATION
     );
 }
