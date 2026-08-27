@@ -9,7 +9,8 @@ import{
 }from"./resize.js";
 
 import{
-    showVisibility
+    showVisibility,
+    hideVisibility
 }from"./visibility.js";
 
 const ENTER_DELAY=10;
@@ -35,13 +36,8 @@ export function cancelAnimation(element){
 
     cancelSizeAnimation(element);
 
-    element.classList.remove(
-        "animation--entering"
-    );
-
-    element.classList.remove(
-        "animation--exiting"
-    );
+    element.classList.remove("animation--entering");
+    element.classList.remove("animation--exiting");
 
     element._animationState=null;
 }
@@ -59,32 +55,24 @@ export function show(element){
     element._animationState=ENTER_STATE;
     element.hidden=false;
 
-    element.classList.add(
-        HIDDEN_CLASS
-    );
+    element.classList.add(HIDDEN_CLASS);
 
     animateExpand(element).then(()=>{
-
         if(element._animationState!==ENTER_STATE)
             return;
 
         element._animationTimer=setTimeout(()=>{
-
             if(element._animationState!==ENTER_STATE)
                 return;
 
             showVisibility(element).then(()=>{
-
                 if(element._animationState!==ENTER_STATE)
                     return;
 
                 element._animationState=null;
                 element._animationTimer=null;
-
             });
-
         },ENTER_DELAY);
-
     });
 }
 
@@ -103,14 +91,22 @@ export function hide(element){
 
     element._animationState=EXIT_STATE;
 
-    animateCollapse(element).then(()=>{
-
+    hideVisibility(element).then(()=>{
         if(element._animationState!==EXIT_STATE)
             return;
 
-        element.hidden=true;
-        element._animationState=null;
-        element._animationTimer=null;
+        element._animationTimer=setTimeout(()=>{
+            if(element._animationState!==EXIT_STATE)
+                return;
 
+            animateCollapse(element).then(()=>{
+                if(element._animationState!==EXIT_STATE)
+                    return;
+
+                element.hidden=true;
+                element._animationState=null;
+                element._animationTimer=null;
+            });
+        },EXIT_DELAY);
     });
 }
