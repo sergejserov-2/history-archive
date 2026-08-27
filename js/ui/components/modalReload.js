@@ -24,8 +24,10 @@ export function setModalUrl(type,params={}){
     const url=new URL(window.location.href);
     const oldType=url.searchParams.get("modal");
     const oldRegistration=getRegistration(oldType);
+    const registration=getRegistration(type);
 
     if(oldType&&oldType!==type)cleanModalParams(url,oldRegistration);
+    cleanModalParams(url,registration);
 
     url.searchParams.set("modal",type);
 
