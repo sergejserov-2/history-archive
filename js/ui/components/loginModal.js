@@ -1,269 +1,95 @@
-// ======================================
-// Login modal
-// ======================================
-
-import {
-    login
-}
-from "../../admin/adminMode.js";
-
+import{login}from"../../admin/adminMode.js";
 import{createModal}from"./modal.js";
-import{setModalUrl}from"./modalReload.js";
 
-// ======================================
-// Open login modal
-// ======================================
+export function openLoginModal(){
+    const savedEmail=localStorage.getItem("adminEmail")??"";
+    const savedPassword=localStorage.getItem("adminPassword")??"";
 
-export function openLoginModal({
-
-    fromUrl = false
-
-} = {}){
-
-    // ==================================
-    // URL
-    // ==================================
-
-    if(!fromUrl){
-
-        setModalUrl(
-            "login"
-        );
-
-    }
-
-    // ==================================
-    // Saved login data
-    // ==================================
-
-    const savedEmail =
-        localStorage.getItem(
-            "adminEmail"
-        ) ?? "";
-
-    const savedPassword =
-        localStorage.getItem(
-            "adminPassword"
-        ) ?? "";
-
-    // ==================================
-    // Form
-    // ==================================
-
-    const form = `
-
+    const form=`
         <div class="login-form">
-
             <label>
-
                 Email
-
                 <input
                     id="adminLoginEmail"
                     type="email"
                     autocomplete="username"
                     value="${savedEmail}"
                 >
-
             </label>
-
             <label>
-
                 Пароль
-
                 <input
                     id="adminLoginPassword"
                     type="password"
                     autocomplete="current-password"
                     value="${savedPassword}"
                 >
-
             </label>
-
             <div class="entity-editor__buttons">
-
-                <button
-                    id="adminLoginSubmit"
-                >
-
+                <button id="adminLoginSubmit">
                     Войти
-
                 </button>
-
-                <button
-                    id="adminLoginCancel"
-                >
-
+                <button id="adminLoginCancel">
                     Отмена
-
                 </button>
-
             </div>
-
         </div>
-
     `;
 
-    // ==================================
-    // Create modal
-    // ==================================
+    const modal=createModal({
+        title:"Войти как редактор",
+        content:form
+    });
 
-    const modal =
-        createModal({
-
-            title:
-                "Войти как редактор",
-
-            content:
-                form
-
-        });
-
-    const root =
-        modal.root;
-
-    // ==================================
-    // Elements
-    // ==================================
-
-    const emailInput =
-        root.querySelector(
-            "#adminLoginEmail"
-        );
-
-    const passwordInput =
-        root.querySelector(
-            "#adminLoginPassword"
-        );
-
-    const loginButton =
-        root.querySelector(
-            "#adminLoginSubmit"
-        );
-
-    const cancelButton =
-        root.querySelector(
-            "#adminLoginCancel"
-        );
-
-    // ==================================
-    // Focus
-    // ==================================
+    const root=modal.root;
+    const emailInput=root.querySelector("#adminLoginEmail");
+    const passwordInput=root.querySelector("#adminLoginPassword");
+    const loginButton=root.querySelector("#adminLoginSubmit");
+    const cancelButton=root.querySelector("#adminLoginCancel");
 
     emailInput?.focus();
 
-    // ==================================
-    // Cancel
-    // ==================================
-
-    cancelButton.onclick = ()=>{
-
+    cancelButton.onclick=()=>{
         modal.close();
-
     };
 
-    // ==================================
-    // Login
-    // ==================================
-
-    loginButton.onclick = async()=>{
-
-        const email =
-            emailInput.value.trim();
-
-        const password =
-            passwordInput.value;
+    loginButton.onclick=async()=>{
+        const email=emailInput.value.trim();
+        const password=passwordInput.value;
 
         if(!email){
-
-            alert(
-                "Введите email"
-            );
-
+            alert("Введите email");
             emailInput.focus();
-
             return;
-
         }
 
         if(!password){
-
-            alert(
-                "Введите пароль"
-            );
-
+            alert("Введите пароль");
             passwordInput.focus();
-
             return;
-
         }
 
-        loginButton.disabled = true;
+        loginButton.disabled=true;
 
         try{
+            await login(email,password);
 
-            await login(
-
-                email,
-
-                password
-
-            );
-
-            // ==================================
-            // Запоминаем данные
-            // ==================================
-
-            localStorage.setItem(
-                "adminEmail",
-                email
-            );
-
-            localStorage.setItem(
-                "adminPassword",
-                password
-            );
+            localStorage.setItem("adminEmail",email);
+            localStorage.setItem("adminPassword",password);
 
             modal.close();
-
-        }
-        catch(error){
-
-            console.error(
-                error
-            );
-
-            alert(
-                "Неверный email или пароль"
-            );
-
+        }catch(error){
+            console.error(error);
+            alert("Неверный email или пароль");
             passwordInput.focus();
-
+        }finally{
+            loginButton.disabled=false;
         }
-        finally{
-
-            loginButton.disabled = false;
-
-        }
-
     };
 
-    // ==================================
-    // Enter
-    // ==================================
-
-    passwordInput.onkeydown = event=>{
-
-        if(
-            event.key === "Enter"
-        ){
-
-            loginButton.click();
-
-        }
-
+    passwordInput.onkeydown=event=>{
+        if(event.key==="Enter")loginButton.click();
     };
 
     return modal;
-
 }
