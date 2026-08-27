@@ -218,6 +218,25 @@ function animateMargins(el,from,target,duration){
             setMargins(el,to);
             forceLayout();
 
+            const parent=el.parentElement;
+            const parentRect=getRect(parent);
+            const elRect=getRect(el);
+            const next=parent?([...parent.children].find(child=>{
+                if(child===el)
+                    return false;
+                const rect=getRect(child);
+                return rect&&rect.top>=elRect.bottom-1;
+            })):null;
+            const nextRect=getRect(next);
+
+            log("END",getName(el),{
+                parentBottom:fmt(parentRect?.bottom),
+                elBottom:fmt(elRect?.bottom),
+                nextTop:fmt(nextRect?.top),
+                parentToEl:fmt(parentRect?.bottom-elRect?.bottom),
+                elToNext:fmt(nextRect?.top-elRect?.bottom)
+            });
+
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
                 clearSizeAnimationStyles(el);
