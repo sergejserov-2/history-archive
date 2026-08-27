@@ -1,10 +1,7 @@
 import{getRecentActivities}from"../../api/activity.js";
 import{createModal}from"./modal.js";
-import{setModalUrl}from"./modalReload.js";
+import{openModal}from"./modalReload.js";
 import{renderEntityList}from"./entityList.js";
-import{openSubjectModal}from"./subject.js";
-import{openSubjectsModal}from"./subjects.js";
-import{openTypesModal}from"./types.js";
 import{getSubject}from"../../api/subjects.js";
 import{renderDateTime}from"./date.js";
 
@@ -18,41 +15,25 @@ export async function openActivityModal(){
         title:"История изменений",
         content:renderActivityList(activities),
         width:630,
-        admin: true
+        admin:true
     });
 
     currentActivityModal=modal;
     modal.activities=activities;
 
-    modal.root.addEventListener(
-        "click",
-        async event=>{
+    modal.root.addEventListener("click",async event=>{
+        const row=event.target.closest(".entity-list-row");
+        if(!row)return;
 
-            const row=
-                event.target.closest(
-                    ".entity-list-row"
-                );
+        const id=row.dataset.id;
+        if(!id)return;
 
-            if(!row)return;
+        const activity=activities.find(item=>item.id===id);
+        if(!activity)return;
 
-            const id=row.dataset.id;
-
-            if(!id)return;
-
-            const activity=
-                activities.find(
-                    item=>item.id===id
-                );
-
-            if(!activity)return;
-
-            event.preventDefault();
-
-            await openActivityTarget(
-                activity
-            );
-        }
-    );
+        event.preventDefault();
+        await openActivityTarget(activity);
+    });
 
     return modal;
 }
@@ -60,17 +41,13 @@ export async function openActivityModal(){
 export async function refreshActivityModal(){
 
     if(!currentActivityModal?.root?.isConnected){
-
         currentActivityModal=null;
-
         return;
     }
 
-    const activities=
-        await getRecentActivities(100);
+    const activities=await getRecentActivities(100);
 
-    currentActivityModal.activities=
-        activities;
+    currentActivityModal.activities=activities;
 
     currentActivityModal.setContent(
         renderActivityList(activities)
@@ -79,41 +56,23 @@ export async function refreshActivityModal(){
 
 async function openActivityTarget(activity){
 
-    const{
-        action,
-        entityType,
-        entityId,
-        parentId
-    }=activity;
-
-    // ======================================
-    // Object
-    // ======================================
+    const{action,entityType,entityId,parentId}=activity;
 
     if(entityType==="object"){
 
         if(action==="delete"){
-
-            window.location.href=
-                parentId
-                    ?`object.html?id=${parentId}`
-                    :"index.html";
-
+            window.location.href=parentId
+                ?`object.html?id=${parentId}`
+                :"index.html";
             return;
         }
 
         if(entityId){
-
-            window.location.href=
-                `object.html?id=${entityId}`;
+            window.location.href=`object.html?id=${entityId}`;
         }
 
         return;
     }
-
-    // ======================================
-    // Photo / Source / Record
-    // ======================================
 
     if(
         entityType==="photo"||
@@ -122,57 +81,28 @@ async function openActivityTarget(activity){
     ){
 
         if(parentId){
-
-            window.location.href=
-                `object.html?id=${parentId}`;
+            window.location.href=`object.html?id=${parentId}`;
         }
 
         return;
     }
-
-    // ======================================
-    // Subject
-    // ======================================
 
     if(entityType==="subject"){
 
         if(action==="delete"){
-
-            setModalUrl(
-                "subjects",
-                {}
-            );
-
-            await openSubjectsModal();
-
+            await openModal("subjects");
             return;
         }
 
-        const subject=
-            await getSubject(entityId);
-
+        const subject=await getSubject(entityId);
         if(!subject)return;
 
-        setModalUrl(
-            "subject",
-            {
-                entityId
-            }
-        );
-
-        openSubjectModal(
-            subject,
-            {
-                fromUrl:true
-            }
-        );
+        await openModal("subject",{
+            entityId
+        });
 
         return;
     }
-
-    // ======================================
-    // Types
-    // ======================================
 
     if(
         entityType==="objectType"||
@@ -180,13 +110,7 @@ async function openActivityTarget(activity){
         entityType==="subjectType"
     ){
 
-        setModalUrl(
-            "types",
-            {}
-        );
-
-        await openTypesModal();
-
+        await openModal("types");
         return;
     }
 }
@@ -196,114 +120,64 @@ function renderActivityList(activities=[]){
     const groups=new Map();
 
     [...activities]
-        .sort(
-            (a,b)=>
-                Number(b.createdAt??0)-
-                Number(a.createdAt??0)
-        )
+        .sort((a,b)=>Number(b.createdAt??0)-Number(a.createdAt??0))
         .forEach(activity=>{
 
-            const date=
-                new Date(
-                    Number(activity.createdAt??0)
-                );
-
-            const key=
-                `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+            const date=new Date(Number(activity.createdAt??0));
+            const key=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 
             if(!groups.has(key)){
-                groups.set(
-                    key,
-                    {
-                        date,
-                        items:[]
-                    }
-                );
+                groups.set(key,{
+                    date,
+                    items:[]
+                });
             }
 
             groups.get(key).items.push({
-
                 id:activity.id,
-
                 clickable:true,
-
-                sortValue:
-                    Number(
-                        activity.createdAt??0
-                    ),
-
-                title:
-                    escapeHTML(
-                        activity.adminName||
-                        activity.adminEmail||
-                        "Неизвестный администратор"
-                    ),
-
-                description:
-                    formatActivityDescription(
-                        activity
-                    ),
-
-                meta:
-                    renderDateTime(
-                        activity.createdAt
-                    )
+                sortValue:Number(activity.createdAt??0),
+                title:escapeHTML(
+                    activity.adminName||
+                    activity.adminEmail||
+                    "Неизвестный администратор"
+                ),
+                description:formatActivityDescription(activity),
+                meta:renderDateTime(activity.createdAt)
             });
         });
 
     return renderEntityList({
-
         groups:[
-            ...groups.values()
-                .map(group=>({
-
-                    title:
-                        formatActivityGroupDate(
-                            group.date
-                        ),
-
-                    items:
-                        group.items,
-
-                    sortDirection:
-                        "desc"
-
-                }))
+            ...groups.values().map(group=>({
+                title:formatActivityGroupDate(group.date),
+                items:group.items,
+                sortDirection:"desc"
+            }))
         ]
-
     });
 }
 
 function formatActivityGroupDate(date){
 
-    const now=
-        new Date();
+    const now=new Date();
 
-    const today=
-        new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate()
-        );
+    const today=new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
+    );
 
-    const target=
-        new Date(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate()
-        );
+    const target=new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    );
 
-    const diff=
-        Math.round(
-            (today-target)/
-            86400000
-        );
+    const diff=Math.round((today-target)/86400000);
 
-    if(diff===0)
-        return"Сегодня";
-
-    if(diff===1)
-        return"Вчера";
+    if(diff===0)return"Сегодня";
+    if(diff===1)return"Вчера";
 
     return date.toLocaleDateString(
         "ru-RU",
@@ -317,12 +191,8 @@ function formatActivityGroupDate(date){
 
 function formatActivityDescription(activity){
 
-    const title=
-        activity.title||
-        "Без названия";
-
-    const name=
-        escapeHTML(title);
+    const title=activity.title||"Без названия";
+    const name=escapeHTML(title);
 
     if(activity.action==="create")
         return`Создание ${formatEntityName(activity.entityType)} "${name}"`;
@@ -339,17 +209,14 @@ function formatActivityDescription(activity){
 function formatEntityName(type){
 
     const names={
-
         object:"объекта",
         photo:"фотографии",
         source:"источника",
         record:"записи",
         subject:"субъекта",
-
         objectType:"типа объектов",
         recordType:"типа записей",
         subjectType:"типа субъектов"
-
     };
 
     return names[type]??"сущности";
