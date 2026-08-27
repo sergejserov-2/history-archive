@@ -1,178 +1,101 @@
-import{modalRegistry}from"./modalRegistry.js";
-import{isAdmin}from"../../admin/adminMode.js";
-import{getCurrentModal}from"./modal.js";
+let currentModal=null;
 
-let restoring=false;
-let closingFromHistory=false;
-
-function getRegistration(type){
-    return modalRegistry.find(item=>item.type===type)??null;
-}
-
-function getUrlParams(registration,url){
-    const params={};
-    for(const key of registration.params??[])params[key]=url.searchParams.get(key);
-    return params;
-}
-
-function getBaseUrl(url){
-    const base=new URL(url.href);
-    const registration=getRegistration(base.searchParams.get("modal"));
-    base.searchParams.delete("modal");
-    for(const key of registration?.params??[])base.searchParams.delete(key);
-    return base;
-}
-
-function buildModalUrl(type,params={}){
-    const url=new URL(window.location.href);
-    const registration=getRegistration(type);
-
-    url.searchParams.set("modal",type);
-
-    for(const key of registration?.params??[]){
-        if(key==="id")continue;
-        const value=params[key];
-        if(value===null||value===undefined||value==="")url.searchParams.delete(key);
-        else url.searchParams.set(key,String(value));
-    }
-
-    return url;
-}
-
-export function setModalUrl(type,params={}){
-    const url=buildModalUrl(type,params);
-    window.history.pushState({modal:true},"",url);
-}
-
-export function replaceModalUrl(params={}){
-    const url=new URL(window.location.href);
-    const registration=getRegistration(url.searchParams.get("modal"));
-
-    for(const key of registration?.params??[]){
-        if(key==="id")continue;
-        if(Object.prototype.hasOwnProperty.call(params,key)){
-            const value=params[key];
-            if(value===null||value===undefined||value==="")url.searchParams.delete(key);
-            else url.searchParams.set(key,String(value));
-        }
-    }
-
-    window.history.replaceState({modal:true},"",url);
-}
-
-export function clearModalUrl(){
-    const url=new URL(window.location.href);
-    const type=url.searchParams.get("modal");
-
-    if(!type)return;
-
-    const base=getBaseUrl(url);
-    window.history.replaceState({},"",base);
-}
-
-async function closeCurrentModalSilently(){
-    const modal=getCurrentModal();
-    if(!modal)return;
-
-    closingFromHistory=true;
-
-    try{
-        await modal.close();
-    }finally{
-        closingFromHistory=false;
-    }
-}
-
-async function openFromUrl(){
-    const url=new URL(window.location.href);
-    const type=url.searchParams.get("modal");
-
-    if(!type){
-        await closeCurrentModalSilently();
-        return;
-    }
-
-    const registration=getRegistration(type);
-
-    if(!registration){
-        console.error("Unknown modal:",type);
-        clearModalUrl();
-        await closeCurrentModalSilently();
-        return;
-    }
-
-    if(registration.admin&&!isAdmin()){
-        clearModalUrl();
-        await closeCurrentModalSilently();
-        return;
-    }
-
-    const params=getUrlParams(registration,url);
-    const data=registration.load?await registration.load(params):null;
-
-    if(registration.load&&!data){
-        console.error("Modal data not found:",type,params);
-        clearModalUrl();
-        await closeCurrentModalSilently();
-        return;
-    }
-
-    await closeCurrentModalSilently();
-
-    await registration.open?.(data);
-
-    const modal=getCurrentModal();
-
-    if(!modal)return;
-
-    modal.setCloseHandler(()=>{
-        if(closingFromHistory)return;
-        window.history.back();
+function waitForTransition(element,callback){
+    return new Promise(resolve=>{
+        let finished=false;
+        const finish=()=>{
+            if(finished)return;
+            finished=true;
+            element.removeEventListener("transitionend",onTransitionEnd);
+            clearTimeout(timeout);
+            resolve();
+        };
+        const onTransitionEnd=event=>{
+            if(event.target===element&&(event.propertyName==="transform"||event.propertyName==="opacity"))finish();
+        };
+        const timeout=setTimeout(finish,500);
+        element.addEventListener("transitionend",onTransitionEnd);
+        callback();
     });
 }
 
-export async function restoreModalFromUrl(){
-    if(restoring)return;
+function createModalElement({title="",content="",width=null,admin=false}={}){
+    const modal=document.createElement("div");
+    modal.className=admin?"modal modal--admin":"modal";
+    if(width)modal.style.setProperty("--modal-width",`${width}px`);
+    modal.innerHTML=`<div class="modal__header"><h2>${title}</h2><span class="modal__close">×</span></div><div class="modal__content">${content}</div>`;
+    return modal;
+}
 
-    restoring=true;
+export function createModal({title="",content="",width=null,admin=false}={}){
+    const oldModal=currentModal;
+    const overlay=oldModal?.overlay??document.createElement("div");
+    const modal=createModalElement({title,content,width,admin});
+    let closing=false;
+    let closeHandler=null;
 
-    try{
-        await openFromUrl();
-    }finally{
-        restoring=false;
+    if(!oldModal){
+        overlay.className="modal-overlay";
+        document.body.appendChild(overlay);
     }
+
+    overlay.appendChild(modal);
+
+    async function close({runHandler=true}={}){
+        if(currentModal?.element!==modal||closing)return;
+        closing=true;
+        modal.classList.remove("modal--visible");
+        modal.classList.add("modal--closing");
+        await waitForTransition(modal,()=>{});
+        modal.remove();
+
+        if(currentModal?.element!==modal)return;
+
+        currentModal=null;
+
+        if(runHandler&&typeof closeHandler==="function")await closeHandler();
+        if(currentModal)return;
+
+        overlay.classList.remove("modal-overlay--visible");
+        await waitForTransition(overlay,()=>{});
+        if(overlay.parentNode)overlay.remove();
+    }
+
+    const closeButton=modal.querySelector(".modal__close");
+    if(closeButton)closeButton.onclick=()=>void close();
+
+    if(oldModal){
+        oldModal.element.classList.remove("modal--visible");
+        oldModal.element.classList.add("modal--closing");
+        void waitForTransition(oldModal.element,()=>{}).then(()=>oldModal.element.remove());
+    }
+
+    currentModal={overlay,element:modal,close,setCloseHandler:handler=>{closeHandler=handler;}};
+
+    requestAnimationFrame(()=>{
+        if(!oldModal)overlay.classList.add("modal-overlay--visible");
+        requestAnimationFrame(()=>modal.classList.add("modal--visible"));
+    });
+
+    return{
+        root:overlay,
+        content:modal.querySelector(".modal__content"),
+        setContent(html){
+            const contentElement=modal.querySelector(".modal__content");
+            if(contentElement)contentElement.innerHTML=html;
+        },
+        setCloseHandler(handler){
+            closeHandler=handler;
+        },
+        close:()=>close()
+    };
 }
 
-export function updateModalParams(params={}){
-    replaceModalUrl(params);
+export function getCurrentModal(){
+    return currentModal;
 }
 
-window.addEventListener("popstate",()=>{
-    void restoreModalFromUrl();
-});
-
-document.addEventListener("click",event=>{
-    const link=event.target.closest(".subject-mention");
-
-    if(!link)return;
-
-    const href=link.getAttribute("href");
-
-    if(!href)return;
-
-    const url=new URL(href,window.location.href);
-
-    if(url.searchParams.get("modal")!=="subject")return;
-
-    event.preventDefault();
-
-    const type=url.searchParams.get("modal");
-    const registration=getRegistration(type);
-
-    if(!registration)return;
-
-    const params=getUrlParams(registration,url);
-
-    setModalUrl(type,params);
-    void restoreModalFromUrl();
-});
+export function closeCurrentModal(options={}){
+    if(!currentModal)return;
+    void currentModal.close(options);
+}
