@@ -22,7 +22,7 @@ export function adminButton(
 class="
 admin-button
 ${options.className||""}
-admin-button--hidden
+animation--hidden
 "
 hidden
 data-action="${action}"
@@ -101,7 +101,7 @@ export function adminAdd(
 class="
 ${options.className||"entity-list__add"}
 admin-button
-admin-button--hidden
+animation--hidden
 ${options.disabled?"admin-button--disabled":""}
 "
 hidden
@@ -135,7 +135,7 @@ class="
 header__button
 header__button--admin
 admin-button
-admin-button--hidden
+animation--hidden
 "
 hidden
 title="${title}"
@@ -250,14 +250,14 @@ export function updateAdminButton(
         return;
 
     const shouldShow=!!admin;
-    const state=button._adminAnimationState;
+    const state=button._animationState;
 
     if(
         shouldShow&&
         !button.hidden&&
         state!=="exit"&&
         !button.classList.contains(
-            "admin-button--hidden"
+            "animation--hidden"
         )
     )
         return;
