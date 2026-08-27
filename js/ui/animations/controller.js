@@ -1,6 +1,8 @@
 import{
     animateExpand,
     animateCollapse,
+    animateExpandGroup,
+    animateCollapseGroup,
     cancelSizeAnimation,
     clearSizeAnimation
 }from"./resize.js";
@@ -17,6 +19,100 @@ const HIDDEN_CLASS="animation--hidden";
 
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
+
+const collapseQueue=[];
+let collapseFlushScheduled=false;
+
+function getSiblingGroup(elements){
+    const result=[];
+    const set=new Set(elements);
+
+    for(const element of elements){
+        if(!element?.parentElement)
+            continue;
+
+        if(!result.length){
+            result.push(element);
+            continue;
+        }
+
+        const last=result[result.length-1];
+
+        if(element.parentElement!==last.parentElement)
+            continue;
+
+        const children=[...last.parentElement.children];
+        const lastIndex=children.indexOf(last);
+        const elementIndex=children.indexOf(element);
+
+        if(Math.abs(lastIndex-elementIndex)===1)
+            result.push(element);
+    }
+
+    return result;
+}
+
+function queueCollapse(element){
+    return new Promise(resolve=>{
+        collapseQueue.push({element,resolve});
+
+        if(collapseFlushScheduled)
+            return;
+
+        collapseFlushScheduled=true;
+
+        queueMicrotask(flushCollapseQueue);
+    });
+}
+
+function flushCollapseQueue(){
+    collapseFlushScheduled=false;
+
+    const queue=collapseQueue.splice(0);
+
+    if(!queue.length)
+        return;
+
+    const groups=[];
+
+    for(const item of queue){
+        let group=groups.find(group=>{
+            if(!group.length)
+                return false;
+
+            const first=group[0];
+            return first.parentElement===item.element.parentElement;
+        });
+
+        if(!group){
+            group=[item.element];
+            groups.push(group);
+            continue;
+        }
+
+        const children=[...item.element.parentElement.children];
+        const indexes=group.map(element=>children.indexOf(element));
+        const index=children.indexOf(item.element);
+
+        if(indexes.some(value=>Math.abs(value-index)===1))
+            group.push(item.element);
+        else{
+            group=[item.element];
+            groups.push(group);
+        }
+    }
+
+    console.log("[animation] collapse groups:",groups);
+
+    for(const group of groups){
+        const items=queue.filter(item=>group.includes(item.element));
+
+        animateCollapseGroup(group).then(()=>{
+            for(const item of items)
+                item.resolve();
+        });
+    }
+}
 
 export function cancelAnimation(element){
     if(!element)
@@ -94,7 +190,7 @@ export function hide(element){
                     return;
                 }
 
-                animateCollapse(element).then(()=>{
+                queueCollapse(element).then(()=>{
                     if(element._animationState!==EXIT_STATE){
                         resolve();
                         return;
