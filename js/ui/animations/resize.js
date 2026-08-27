@@ -1,7 +1,16 @@
+// ======================================
+// Universal geometry animations
+// Margin based
+// ======================================
+
 const EXPAND_DURATION=420;
 const COLLAPSE_DURATION=5420;
-const COLLAPSE_END_GAP=16.5;
+
 const DEBUG_ANIMATIONS=true;
+
+// ======================================
+// Debug
+// ======================================
 
 function log(...args){
     if(DEBUG_ANIMATIONS)
@@ -16,6 +25,10 @@ function fmt(value){
     return Number(value||0).toFixed(2);
 }
 
+// ======================================
+// Geometry
+// ======================================
+
 function getRect(el){
     return el?.getBoundingClientRect()||null;
 }
@@ -24,8 +37,13 @@ function forceLayout(){
     void document.documentElement.offsetHeight;
 }
 
+// ======================================
+// Margin
+// ======================================
+
 function getMargins(el){
     const style=window.getComputedStyle(el);
+
     return{
         top:parseFloat(style.marginTop)||0,
         right:parseFloat(style.marginRight)||0,
@@ -40,6 +58,10 @@ function setMargins(el,margin){
     el.style.setProperty("margin-bottom",`${margin.bottom}px`,"important");
     el.style.setProperty("margin-left",`${margin.left}px`,"important");
 }
+
+// ======================================
+// Layout axis
+// ======================================
 
 function getLayoutAxis(el){
     const parent=el?.parentElement;
@@ -56,7 +78,8 @@ function getLayoutAxis(el){
 
     if(style.display==="grid"){
         const rect=getRect(el);
-        const siblings=[...parent.children].filter(child=>child!==el);
+        const siblings=[...parent.children]
+            .filter(child=>child!==el);
 
         if(rect){
             const sameRow=siblings
@@ -85,6 +108,10 @@ function getLayoutAxis(el){
     return"vertical";
 }
 
+// ======================================
+// Gap
+// ======================================
+
 function getGap(el,axis){
     const parent=el?.parentElement;
 
@@ -98,6 +125,10 @@ function getGap(el,axis){
         :parseFloat(style.rowGap)||0;
 }
 
+// ======================================
+// Hidden margins
+// ======================================
+
 function getHiddenMargins(el){
     const rect=getRect(el);
 
@@ -108,10 +139,9 @@ function getHiddenMargins(el){
     const axis=getLayoutAxis(el);
     const gap=getGap(el,axis);
     const size=axis==="horizontal"?rect.width:rect.height;
-
     const half=axis==="horizontal"
         ?(size+gap)/2
-        :(size+margins.top+margins.bottom+gap*2)/2;
+        :(size+margins.top+margins.bottom+gap*2+16.5)/2;
 
     const hidden={...margins};
 
@@ -119,8 +149,8 @@ function getHiddenMargins(el){
         hidden.left=margins.left-half;
         hidden.right=margins.right-half;
     }else{
-        hidden.top=margins.top-half-COLLAPSE_END_GAP;
-        hidden.bottom=margins.bottom-half-COLLAPSE_END_GAP;
+        hidden.top=margins.top-half;
+        hidden.bottom=margins.bottom-half;
     }
 
     log("HIDDEN",getName(el),{
@@ -129,14 +159,18 @@ function getHiddenMargins(el){
         marginTop:fmt(margins.top),
         marginBottom:fmt(margins.bottom),
         gap:fmt(gap),
+        endGap:"16.50",
         half:fmt(half),
-        endGap:fmt(COLLAPSE_END_GAP),
         hiddenTop:fmt(hidden.top),
         hiddenBottom:fmt(hidden.bottom)
     });
 
     return hidden;
 }
+
+// ======================================
+// Stop
+// ======================================
 
 function stopSizeAnimation(el){
     if(!el)
@@ -153,6 +187,10 @@ function stopSizeAnimation(el){
     }
 }
 
+// ======================================
+// Clear
+// ======================================
+
 function clearSizeAnimationStyles(el){
     if(!el)
         return;
@@ -164,17 +202,31 @@ function clearSizeAnimationStyles(el){
     el.style.removeProperty("transition");
 }
 
+// ======================================
+// Cancel
+// ======================================
+
 export function cancelSizeAnimation(el){
     if(!el)
         return;
 
     stopSizeAnimation(el);
     clearSizeAnimationStyles(el);
+
+    log("CANCEL",getName(el));
 }
+
+// ======================================
+// Easing
+// ======================================
 
 function easeOutCubic(progress){
     return 1-Math.pow(1-progress,3);
 }
+
+// ======================================
+// Margin animation
+// ======================================
 
 function animateMargins(el,from,target,duration){
     if(!el)
@@ -195,7 +247,9 @@ function animateMargins(el,from,target,duration){
     const startTime=performance.now();
 
     return new Promise(resolve=>{
+
         function frame(now){
+
             const elapsed=now-startTime;
             const progress=Math.min(1,elapsed/duration);
             const eased=easeOutCubic(progress);
@@ -215,38 +269,57 @@ function animateMargins(el,from,target,duration){
             }
 
             el._animationFrame=null;
+
             setMargins(el,to);
             forceLayout();
 
-            const parent=el.parentElement;
-            const parentRect=getRect(parent);
-            const elRect=getRect(el);
-            const next=parent?([...parent.children].find(child=>{
-                if(child===el)
-                    return false;
-                const rect=getRect(child);
-                return rect&&rect.top>=elRect.bottom-1;
-            })):null;
-            const nextRect=getRect(next);
+            const beforeElement=getRect(el);
+            const beforeParent=getRect(el.parentElement);
+            const beforeMargins=getMargins(el);
 
-            log("END",getName(el),{
-                parentBottom:fmt(parentRect?.bottom),
-                elBottom:fmt(elRect?.bottom),
-                nextTop:fmt(nextRect?.top),
-                parentToEl:fmt(parentRect?.bottom-elRect?.bottom),
-                elToNext:fmt(nextRect?.top-elRect?.bottom)
+            log("BEFORE CLEAR",getName(el),{
+                elementTop:fmt(beforeElement?.top),
+                elementBottom:fmt(beforeElement?.bottom),
+                parentTop:fmt(beforeParent?.top),
+                parentBottom:fmt(beforeParent?.bottom),
+                marginTop:fmt(beforeMargins.top),
+                marginBottom:fmt(beforeMargins.bottom)
             });
 
             el._animationTimer=setTimeout(()=>{
+
                 el._animationTimer=null;
+
                 clearSizeAnimationStyles(el);
+                forceLayout();
+
+                const afterElement=getRect(el);
+                const afterParent=getRect(el.parentElement);
+                const afterMargins=getMargins(el);
+
+                log("AFTER CLEAR",getName(el),{
+                    elementTop:fmt(afterElement?.top),
+                    elementBottom:fmt(afterElement?.bottom),
+                    parentTop:fmt(afterParent?.top),
+                    parentBottom:fmt(afterParent?.bottom),
+                    marginTop:fmt(afterMargins.top),
+                    marginBottom:fmt(afterMargins.bottom),
+                    deltaTop:fmt((afterElement?.top||0)-(beforeElement?.top||0)),
+                    deltaBottom:fmt((afterElement?.bottom||0)-(beforeElement?.bottom||0))
+                });
+
                 resolve();
+
             },20);
         }
 
         el._animationFrame=requestAnimationFrame(frame);
     });
 }
+
+// ======================================
+// Expand
+// ======================================
 
 export function animateExpand(el){
     if(!el)
@@ -255,8 +328,17 @@ export function animateExpand(el){
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
 
-    return animateMargins(el,hidden,visible,EXPAND_DURATION);
+    return animateMargins(
+        el,
+        hidden,
+        visible,
+        EXPAND_DURATION
+    );
 }
+
+// ======================================
+// Collapse
+// ======================================
 
 export function animateCollapse(el){
     if(!el)
@@ -265,5 +347,10 @@ export function animateCollapse(el){
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
 
-    return animateMargins(el,visible,hidden,COLLAPSE_DURATION);
+    return animateMargins(
+        el,
+        visible,
+        hidden,
+        COLLAPSE_DURATION
+    );
 }
