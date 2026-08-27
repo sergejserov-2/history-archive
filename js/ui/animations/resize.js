@@ -16,10 +16,10 @@ function getMargins(el){
 }
 
 function setMargins(el,m){
-    el.style.setProperty("margin-top",`${m.top}px`,"important");
-    el.style.setProperty("margin-right",`${m.right}px`,"important");
-    el.style.setProperty("margin-bottom",`${m.bottom}px`,"important");
-    el.style.setProperty("margin-left",`${m.left}px`,"important");
+    el.style.setProperty("margin-top",`${m.top}px`,"important`);
+    el.style.setProperty("margin-right",`${m.right}px`,"important`);
+    el.style.setProperty("margin-bottom",`${m.bottom}px`,"important`);
+    el.style.setProperty("margin-left",`${m.left}px`,"important`);
 }
 
 function getAxis(el){
@@ -74,19 +74,24 @@ function isSection(el){
     return el?.tagName==="SECTION";
 }
 
-function logParent(label,el){
+function logSectionFrame(el,label){
     if(!isSection(el))
         return;
 
     const parent=el.parentElement;
-    const rect=getRect(parent);
-    if(!rect)
+    const rect=getRect(el);
+    const parentRect=getRect(parent);
+    const margins=getMargins(el);
+
+    if(!rect||!parentRect)
         return;
 
-    console.log(`[animations] ${label} parent ${el.id||el.className}`,{
+    console.log(`[animations] ${label} ${el.id||el.className}`,{
+        parentHeight:+parentRect.height.toFixed(3),
         top:+rect.top.toFixed(3),
-        bottom:+rect.bottom.toFixed(3),
-        height:+rect.height.toFixed(3)
+        height:+rect.height.toFixed(3),
+        marginTop:+margins.top.toFixed(3),
+        marginBottom:+margins.bottom.toFixed(3)
     });
 }
 
@@ -144,7 +149,7 @@ function animate(el,from,to,duration){
     setMargins(el,from);
     void document.documentElement.offsetHeight;
 
-    logParent("START",el);
+    logSectionFrame(el,"START");
 
     const start=performance.now();
 
@@ -160,6 +165,9 @@ function animate(el,from,to,duration){
                 left:from.left+(to.left-from.left)*e
             });
 
+            if(isSection(el))
+                logSectionFrame(el,`FRAME ${Math.round(t*100)}%`);
+
             if(t<1){
                 el._animationFrame=requestAnimationFrame(frame);
                 return;
@@ -170,7 +178,7 @@ function animate(el,from,to,duration){
 
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
-                logParent("BEFORE RESOLVE",el);
+                logSectionFrame(el,"BEFORE RESOLVE");
                 resolve();
             },20);
         }
