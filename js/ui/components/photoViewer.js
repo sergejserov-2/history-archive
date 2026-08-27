@@ -5,7 +5,10 @@ import{adminEdit,adminDelete}from"./adminButtons.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}){
     if(!photo)return;
-    const gallery=[...(photos??[])];
+const gallery=[...(photos??[])];
+console.log("VIEWER photo:",photo.id);
+console.log("VIEWER gallery:",gallery.map(item=>item.id));
+console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(photo.id)));
     let currentIndex=gallery.findIndex(item=>String(item.id)===String(photo.id));
     if(currentIndex<0){
         gallery.push(photo);
