@@ -257,6 +257,7 @@ input {
     padding: var(--space-2) !important;
     width: auto !important;
     height: auto !important;
+   margin: auto !important;
 }
 
 .header__button--admin:hover{
