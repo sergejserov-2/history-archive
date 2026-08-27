@@ -91,5 +91,22 @@ export function hide(element){
 
     element._animationState=EXIT_STATE;
 
+    hideVisibility(element).then(()=>{
+        if(element._animationState!==EXIT_STATE)
+            return;
 
+        element._animationTimer=setTimeout(()=>{
+            if(element._animationState!==EXIT_STATE)
+                return;
+
+            animateCollapse(element).then(()=>{
+                if(element._animationState!==EXIT_STATE)
+                    return;
+
+                element.hidden=true;
+                element._animationState=null;
+                element._animationTimer=null;
+            });
+        },EXIT_DELAY);
+    });
 }
