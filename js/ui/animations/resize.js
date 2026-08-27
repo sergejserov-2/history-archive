@@ -1,13 +1,5 @@
-// ======================================
-// Universal geometry animations
-// ======================================
-
-const EXPAND_DURATION=420;
-const COLLAPSE_DURATION=420;
-
-// ======================================
-// Geometry
-// ======================================
+const EXPAND_DURATION=3420;
+const COLLAPSE_DURATION=3420;
 
 function getRect(el){
     return el?.getBoundingClientRect()||null;
@@ -43,13 +35,22 @@ function getAxis(el){
     if(s.display==="grid"){
         const rect=getRect(el);
         if(rect){
-            const siblings=[...parent.children].filter(x=>x!==el);
-            if(siblings.some(x=>{
-                const r=getRect(x);
-                return r&&Math.abs(r.top-rect.top)<2;
-            }))
-                return"horizontal";
+            for(const sibling of parent.children){
+                if(sibling===el)
+                    continue;
+
+                const r=getRect(sibling);
+                if(!r)
+                    continue;
+
+                if(Math.abs(r.top-rect.top)<2)
+                    return"horizontal";
+
+                if(Math.abs(r.left-rect.left)<2)
+                    return"vertical";
+            }
         }
+
         return s.gridAutoFlow.includes("column")?"horizontal":"vertical";
     }
 
@@ -75,29 +76,25 @@ function getHiddenMargins(el){
 
     const axis=getAxis(el);
     const gap=getGap(el,axis);
-    const size=axis==="horizontal"?rect.width:rect.height;
-    const shift=(size+gap)/2;
-
     const hidden={...margins};
 
-    if(axis==="horizontal"){
-        hidden.left-=shift;
-        hidden.right-=shift;
-    }else{
+    if(axis==="vertical"){
+        const shift=(rect.height+gap)/2;
         hidden.top-=shift;
         hidden.bottom-=shift;
+    }else{
+        const shift=(rect.width+gap)/2;
+        hidden.left-=shift;
+        hidden.right-=shift;
     }
 
     return hidden;
 }
 
-// ======================================
-// Animation
-// ======================================
-
 function stop(el){
     if(el._animationFrame)
         cancelAnimationFrame(el._animationFrame);
+
     if(el._animationTimer)
         clearTimeout(el._animationTimer);
 
@@ -122,7 +119,7 @@ function animate(el,from,to,duration){
 
     stop(el);
     setMargins(el,from);
-    void el.offsetHeight;
+    void document.documentElement.offsetHeight;
 
     const start=performance.now();
 
@@ -157,10 +154,6 @@ function animate(el,from,to,duration){
     });
 }
 
-// ======================================
-// Cancel
-// ======================================
-
 export function cancelSizeAnimation(el){
     if(!el)
         return;
@@ -168,10 +161,6 @@ export function cancelSizeAnimation(el){
     stop(el);
     clear(el);
 }
-
-// ======================================
-// Expand
-// ======================================
 
 export function animateExpand(el){
     if(!el)
@@ -182,10 +171,6 @@ export function animateExpand(el){
 
     return animate(el,hidden,visible,EXPAND_DURATION);
 }
-
-// ======================================
-// Collapse
-// ======================================
 
 export function animateCollapse(el){
     if(!el)
