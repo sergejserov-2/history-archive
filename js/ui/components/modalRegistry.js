@@ -42,14 +42,10 @@ export const photoPreviewModal={
                 urlParams:{feedbackId:params.feedbackId}
             };
         }
-
         if(!params.entityId)return null;
-
         const pageId=new URL(window.location.href).searchParams.get("id");
         if(!pageId)return null;
-
         const photos=await getPhotos(pageId);
-
         const sortedPhotos=[...(photos??[])].sort((a,b)=>{
             const dateA=a.date||"",dateB=b.date||"";
             if(!dateA&&!dateB){
@@ -63,10 +59,8 @@ export const photoPreviewModal={
             const author=(a.author??"").localeCompare(b.author??"","ru");
             return author!==0?author:(a.title??"").localeCompare(b.title??"","ru");
         });
-
         const photo=sortedPhotos.find(item=>item.id===params.entityId);
         if(!photo)return null;
-
         return{
             photo,
             photos:sortedPhotos,
@@ -92,39 +86,28 @@ export const editorModal={
     params:["entityId","entityType"],
     load:async params=>{
         if(!params.entityType)return null;
-
         const pageId=new URL(window.location.href).searchParams.get("id");
         const objects=await getAllObjects();
 
         if(["objectType","recordType","subjectType"].includes(params.entityType)){
             if(!params.entityId)return null;
-
             let entity=null,context={};
-
             if(params.entityType==="objectType"){
                 entity=await getType(params.entityId);
                 if(!entity)return null;
                 context={objects,types:await getTypes()};
             }
-
             if(params.entityType==="recordType"){
                 entity=await getRecordType(params.entityId);
                 if(!entity)return null;
                 context={objects,recordTypes:await getRecordTypes()};
             }
-
             if(params.entityType==="subjectType"){
                 entity=await getSubjectType(params.entityId);
                 if(!entity)return null;
                 context={objects,subjectTypes:await getSubjectTypes()};
             }
-
-            return{
-                entity,
-                type:params.entityType,
-                objects,
-                context
-            };
+            return{entity,type:params.entityType,objects,context};
         }
 
         if(params.entityType==="subject"){
@@ -134,30 +117,21 @@ export const editorModal={
                     getSubjects(),
                     getSubjectTypes()
                 ]);
-
                 if(!subject)return null;
-
                 return{
                     entity:subject,
                     type:"subject",
                     objects,
                     subjects,
                     subjectTypes,
-                    context:{
-                        objects,
-                        subjects,
-                        subjectTypes
-                    }
+                    context:{objects,subjects,subjectTypes}
                 };
             }
-
             if(!pageId)return null;
-
             const[subjects,subjectTypes]=await Promise.all([
                 getSubjects(),
                 getSubjectTypes()
             ]);
-
             return{
                 entity:null,
                 type:"subject",
@@ -179,14 +153,12 @@ export const editorModal={
             if(params.entityId){
                 const object=await getObject(params.entityId);
                 if(!object)return null;
-
                 const[type,types,children,photos]=await Promise.all([
                     getType(object.typeId),
                     getTypes(),
                     getChildren(object.id),
                     getPhotos(object.id)
                 ]);
-
                 return{
                     entity:object,
                     type:"object",
@@ -194,13 +166,9 @@ export const editorModal={
                     children,
                     photos,
                     types,
-                    context:{
-                        objects,
-                        parentId:pageId
-                    }
+                    context:{objects,parentId:pageId}
                 };
             }
-
             return{
                 entity:null,
                 type:"object",
@@ -208,17 +176,13 @@ export const editorModal={
                 children:[],
                 photos:[],
                 types:await getTypes(),
-                context:{
-                    objects,
-                    parentId:pageId
-                }
+                context:{objects,parentId:pageId}
             };
         }
 
         if(!["photo","source","record"].includes(params.entityType))return null;
 
         let entities=[];
-
         if(params.entityType==="photo")entities=await getPhotos(pageId);
         if(params.entityType==="source")entities=await getSources(pageId);
         if(params.entityType==="record")entities=await getRecords(pageId);
@@ -228,10 +192,7 @@ export const editorModal={
                 entity:null,
                 type:params.entityType,
                 objects,
-                context:{
-                    parentId:pageId,
-                    objects
-                }
+                context:{parentId:pageId,objects}
             };
         }
 
@@ -242,10 +203,7 @@ export const editorModal={
             entity,
             type:params.entityType,
             objects,
-            context:{
-                parentId:pageId,
-                objects
-            }
+            context:{parentId:pageId,objects}
         };
     },
     open:async data=>{
@@ -290,16 +248,7 @@ export const subjectModal={
     params:["entityId"],
     load:async params=>{
         if(!params.entityId)return null;
-
-        const[
-            subject,
-            subjects,
-            objects,
-            photos,
-            sources,
-            records,
-            subjectTypes
-        ]=await Promise.all([
+        const[subject,subjects,objects,photos,sources,records,subjectTypes]=await Promise.all([
             getSubject(params.entityId),
             getSubjects(),
             getAllObjects(),
@@ -308,18 +257,8 @@ export const subjectModal={
             getRecords(),
             getSubjectTypes()
         ]);
-
         if(!subject)return null;
-
-        return{
-            subject,
-            subjects,
-            objects,
-            photos,
-            sources,
-            records,
-            subjectTypes
-        };
+        return{subject,subjects,objects,photos,sources,records,subjectTypes};
     },
     open:async data=>{
         if(data){
@@ -329,7 +268,8 @@ export const subjectModal={
                 photos:data.photos,
                 sources:data.sources,
                 records:data.records,
-                subjectTypes:data.subjectTypes
+                subjectTypes:data.subjectTypes,
+                fromUrl:true
             });
         }
     }
@@ -375,7 +315,7 @@ export const feedbackViewModal={
         return feedback?{feedback}:null;
     },
     open:async data=>{
-        if(data)openFeedbackModal(data.feedback);
+        if(data)openFeedbackModal(data.feedback,{fromUrl:true});
     }
 };
 
