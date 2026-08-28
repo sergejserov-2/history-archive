@@ -94,7 +94,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     let dragging=false,startX=0,startY=0,startTranslateX=0,startTranslateY=0;
     let touchStartX=0,touchStartY=0,touchStartTranslateX=0,touchStartTranslateY=0;
     let pinchStartDistance=null,pinchStartZoom=1;
-    let savedZoom=1,savedRelativeX=0,savedRelativeY=0;
+    let savedZoom=1,savedImageX=0,savedImageY=0;
     let originalObjectUrl=null;
     let loadingTimer=null;
     let loadToken=0;
@@ -117,24 +117,39 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     function saveViewPosition(){
+        const areaWidth=imageArea.clientWidth;
+        const areaHeight=imageArea.clientHeight;
+        const imageWidth=image.naturalWidth;
+        const imageHeight=image.naturalHeight;
+
+        if(!areaWidth||!areaHeight||!imageWidth||!imageHeight||!scale)return;
+
         savedZoom=zoom;
 
-        const width=image.naturalWidth*scale;
-        const height=image.naturalHeight*scale;
+        const centerX=areaWidth/2;
+        const centerY=areaHeight/2;
 
-        savedRelativeX=width?translateX/width:0;
-        savedRelativeY=height?translateY/height:0;
+        const imagePointX=(centerX-translateX)/scale;
+        const imagePointY=(centerY-translateY)/scale;
+
+        savedImageX=imagePointX/imageWidth;
+        savedImageY=imagePointY/imageHeight;
     }
 
     function restoreViewPosition(){
+        const areaWidth=imageArea.clientWidth;
+        const areaHeight=imageArea.clientHeight;
+        const imageWidth=image.naturalWidth;
+        const imageHeight=image.naturalHeight;
+
         zoom=savedZoom;
         scale=fitScale*zoom;
 
-        const width=image.naturalWidth*scale;
-        const height=image.naturalHeight*scale;
+        const imagePointX=savedImageX*imageWidth*scale;
+        const imagePointY=savedImageY*imageHeight*scale;
 
-        translateX=savedRelativeX*width;
-        translateY=savedRelativeY*height;
+        translateX=areaWidth/2-imagePointX;
+        translateY=areaHeight/2-imagePointY;
 
         updateTransform();
     }
@@ -146,8 +161,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         translateX=0;
         translateY=0;
         savedZoom=1;
-        savedRelativeX=0;
-        savedRelativeY=0;
+        savedImageX=0;
+        savedImageY=0;
         dragging=false;
         pinchStartDistance=null;
 
