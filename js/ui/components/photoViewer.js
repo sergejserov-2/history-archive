@@ -22,7 +22,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         </div>
         <img id="photoViewerImage" src="" alt="" draggable="false">
     </div>
-    ${showInfo?`
     <div class="photo-viewer__info">
         <button class="photo-viewer__info-toggle" type="button" aria-label="Свернуть информацию" title="Свернуть">›</button>
         <div class="photo-viewer__info-content">
@@ -41,7 +40,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             </div>
             <a class="photo-viewer__download" hidden download target="_blank" rel="noopener">Скачать</a>
         </div>
-    </div>`:""}
+    </div>
 </div>`;
 
     const modal=createModal({title:"Фотография",content:form,width:showInfo?840:640});
@@ -55,6 +54,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     const progress=root.querySelector(".photo-viewer__progress div");
     const infoToggle=root.querySelector(".photo-viewer__info-toggle");
     const viewer=root.querySelector(".photo-viewer");
+
+    if(!showInfo){
+        viewer.classList.add("photo-viewer--info-collapsed");
+        infoToggle?.remove();
+    }
 
     if(infoToggle){
         infoToggle.onclick=()=>{
