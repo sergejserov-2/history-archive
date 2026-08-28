@@ -128,7 +128,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         savedPreviewHeight=image.naturalHeight;
 
         console.log("[VIEWER] CAPTURE VIEW",{
-            time:performance.now(),
             naturalWidth:image.naturalWidth,
             naturalHeight:image.naturalHeight,
             fitScale,
@@ -153,7 +152,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         translateY=savedRelativeY*height;
 
         console.log("[VIEWER] RESTORE VIEW",{
-            time:performance.now(),
             naturalWidth:image.naturalWidth,
             naturalHeight:image.naturalHeight,
             fitScale,
@@ -232,7 +230,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function loadImage(src){
         return new Promise((resolve,reject)=>{
             const loader=new Image();
-            loader.onload=resolve;
+            loader.onload=()=>resolve(loader);
             loader.onerror=reject;
             loader.src=src;
         });
@@ -316,7 +314,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             updateOriginalProgress(loaded/total*100);
         }
 
-        console.log("[VIEWER] ORIGINAL DOWNLOAD COMPLETE",{time:performance.now(),size:loaded,total});
+        console.log("[VIEWER] ORIGINAL DOWNLOAD COMPLETE",{size:loaded,total});
 
         return URL.createObjectURL(new Blob(chunks));
     }
@@ -340,7 +338,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
                 return;
             }
 
-            console.log("[VIEWER] ORIGINAL READY TO APPLY",{time:performance.now()});
+            console.log("[VIEWER] ORIGINAL READY TO APPLY");
 
             originalObjectUrl=objectUrl;
             captureView();
@@ -350,7 +348,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             if(token!==loadToken)return;
 
             console.log("[VIEWER] ORIGINAL IMAGE READY",{
-                time:performance.now(),
                 naturalWidth:image.naturalWidth,
                 naturalHeight:image.naturalHeight
             });
@@ -362,7 +359,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             updateOriginalProgress(100);
 
             console.log("[VIEWER] ORIGINAL APPLIED",{
-                time:performance.now(),
                 zoom,
                 scale,
                 translateX,
@@ -437,11 +433,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         if(!nextPhoto)return;
 
         console.log("[VIEWER] SHOW PHOTO",{
-            time:performance.now(),
             index:nextIndex,
             showControls,
-            controlsHidden:controls?.element?.hidden,
-            controlsConnected:controls?.element?.isConnected
+            id:nextPhoto.id
         });
 
         currentIndex=nextIndex;
@@ -455,31 +449,32 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         const loaded=await loadPhotoImage(nextPhoto);
 
         console.log("[VIEWER] SHOW PHOTO LOADED",{
-            time:performance.now(),
+            index:nextIndex,
             loaded,
             showControls
         });
 
         if(loaded&&showControls){
+            console.log("[VIEWER] CALL controls.show()");
             controls.show();
         }
     }
 
     function showPrevious(){
-        console.log("[VIEWER] SHOW PREVIOUS",{time:performance.now(),currentIndex});
-
         if(currentIndex<=0)return;
 
+        console.log("[VIEWER] PREVIOUS -> controls.hide()");
         controls.hide();
+
         void showPhoto(gallery[currentIndex-1],currentIndex-1,{showControls:true});
     }
 
     function showNext(){
-        console.log("[VIEWER] SHOW NEXT",{time:performance.now(),currentIndex});
-
         if(currentIndex>=gallery.length-1)return;
 
+        console.log("[VIEWER] NEXT -> controls.hide()");
         controls.hide();
+
         void showPhoto(gallery[currentIndex+1],currentIndex+1,{showControls:true});
     }
 
@@ -593,7 +588,12 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         onNext:showNext
     });
 
+    console.log("[VIEWER] CONTROLS CREATED",controls.element);
+
     controls.hide();
+
+    console.log("[VIEWER] CONTROLS INITIAL HIDE");
+
     root.appendChild(controls.element);
 
     void showPhoto(gallery[currentIndex],currentIndex,{
@@ -604,25 +604,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     const originalClose=modal.close;
 
     modal.close=()=>{
-        console.log("[VIEWER] CLOSE START",{
-            time:performance.now(),
-            controlsHidden:controls.element.hidden,
-            controlsOpacity:getComputedStyle(controls.element).opacity,
-            controlsVisibility:getComputedStyle(controls.element).visibility,
-            controlsConnected:controls.element.isConnected,
-            rootConnected:root.isConnected
-        });
+        console.log("[VIEWER] MODAL CLOSE START");
+        console.trace("[VIEWER] modal.close() trace");
 
+        console.log("[VIEWER] CLOSE -> controls.hide()");
         controls.hide();
-
-        console.log("[VIEWER] AFTER CONTROLS HIDE",{
-            time:performance.now(),
-            controlsHidden:controls.element.hidden,
-            controlsOpacity:getComputedStyle(controls.element).opacity,
-            controlsVisibility:getComputedStyle(controls.element).visibility,
-            controlsConnected:controls.element.isConnected,
-            rootConnected:root.isConnected
-        });
 
         hideOriginalLoading();
         ++loadToken;
@@ -630,30 +616,18 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
 
+        console.log("[VIEWER] CLOSE -> controls.destroy()");
         controls.destroy();
-
-        console.log("[VIEWER] AFTER CONTROLS DESTROY",{
-            time:performance.now(),
-            controlsConnected:controls.element.isConnected,
-            rootConnected:root.isConnected
-        });
 
         if(originalObjectUrl){
             URL.revokeObjectURL(originalObjectUrl);
             originalObjectUrl=null;
         }
 
-        console.log("[VIEWER] BEFORE ORIGINAL CLOSE",{
-            time:performance.now(),
-            rootConnected:root.isConnected
-        });
-
+        console.log("[VIEWER] CLOSE -> originalClose()");
         originalClose();
 
-        console.log("[VIEWER] CLOSE END",{
-            time:performance.now(),
-            rootConnected:root.isConnected
-        });
+        console.log("[VIEWER] MODAL CLOSE END");
     };
 
     return modal;
