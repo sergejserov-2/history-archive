@@ -92,7 +92,7 @@ export async function openTypesModal(){
 
             if(action==="add-type"){
                 await openModal("editor",{
-                    entityType:"type"
+                    entityType:type
                 });
 
                 return;
