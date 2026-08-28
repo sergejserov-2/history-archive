@@ -1,4 +1,5 @@
 import{openModal}from"./modalReload.js";
+import{hide}from"../animations/controller.js";
 
 export function renderFeedbackPrompt(objectId){
     if(!objectId)return"";
@@ -44,7 +45,10 @@ export function initFeedbackPrompt(){
     }
 
     if(close){
-        close.onclick=()=>prompt.remove();
+        close.onclick=async()=>{
+            await hide(prompt);
+            prompt.remove();
+        };
     }
 }
 
