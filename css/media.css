@@ -534,7 +534,6 @@
 }
 
 
-
 /* ==========================================
    VIEWER CONTROLS
 ========================================== */
@@ -545,7 +544,6 @@
     z-index:10;
     pointer-events:none;
     opacity:1;
-    transition:opacity .18s ease;
 }
 
 .viewer-controls--hidden {
