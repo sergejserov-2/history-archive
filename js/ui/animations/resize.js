@@ -232,15 +232,21 @@ export function animateCollapseGroup(elements){
     return animateGroup(elements,"collapse",COLLAPSE_DURATION);
 }
 
+
 export function animateChange(el,oldSize,onPrepared){
     if(!el||!Number.isFinite(oldSize))return Promise.resolve();
     return new Promise(resolve=>{
         requestAnimationFrame(()=>{
             requestAnimationFrame(()=>{
+                const newSize=getSize(el);
+                if(newSize===oldSize){
+                    onPrepared?.();
+                    resolve();
+                    return;
+                }
                 const margins=getMargins(el);
                 const axis=getAxis(el);
-                const size=getSize(el);
-                const delta=size-oldSize;
+                const delta=newSize-oldSize;
                 const from={...margins};
                 const to={...margins};
                 if(axis==="vertical"){
@@ -254,40 +260,24 @@ export function animateChange(el,oldSize,onPrepared){
                 void el.offsetHeight;
                 onPrepared?.();
                 requestAnimationFrame(()=>{
-                    requestAnimationFrame(()=>{
-                        const newSize=getSize(el);
-                        const actualDelta=newSize-oldSize;
-                        const actualFrom={...margins};
-                        if(axis==="vertical"){
-                            actualFrom.top-=actualDelta/2;
-                            actualFrom.bottom-=actualDelta/2;
-                        }else{
-                            actualFrom.left-=actualDelta/2;
-                            actualFrom.right-=actualDelta/2;
-                        }
-                        setMargins(el,actualFrom);
-                        void el.offsetHeight;
-                        requestAnimationFrame(()=>{
-                            const start=performance.now();
-                            function frame(now){
-                                const t=Math.min(1,Math.max(0,(now-start)/CHANGE_DURATION));
-                                const e=ease(t);
-                                setMargins(el,interpolate(actualFrom,to,e));
-                                if(t<1){
-                                    el._animationFrame=requestAnimationFrame(frame);
-                                    return;
-                                }
-                                el._animationFrame=null;
-                                setMargins(el,to);
-                                el._animationTimer=setTimeout(()=>{
-                                    el._animationTimer=null;
-                                    clear(el);
-                                    resolve();
-                                },20);
-                            }
+                    const start=performance.now();
+                    function frame(now){
+                        const t=Math.min(1,Math.max(0,(now-start)/CHANGE_DURATION));
+                        const e=ease(t);
+                        setMargins(el,interpolate(from,to,e));
+                        if(t<1){
                             el._animationFrame=requestAnimationFrame(frame);
-                        });
-                    });
+                            return;
+                        }
+                        el._animationFrame=null;
+                        setMargins(el,to);
+                        el._animationTimer=setTimeout(()=>{
+                            el._animationTimer=null;
+                            clear(el);
+                            resolve();
+                        },20);
+                    }
+                    el._animationFrame=requestAnimationFrame(frame);
                 });
             });
         });
