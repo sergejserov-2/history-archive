@@ -126,19 +126,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         savedRelativeY=height?translateY/height:0;
         savedPreviewWidth=image.naturalWidth;
         savedPreviewHeight=image.naturalHeight;
-
-        console.log("[VIEWER] CAPTURE VIEW",{
-            naturalWidth:image.naturalWidth,
-            naturalHeight:image.naturalHeight,
-            fitScale,
-            zoom,
-            scale,
-            translateX,
-            translateY,
-            savedZoom,
-            savedRelativeX,
-            savedRelativeY
-        });
     }
 
     function restoreView(){
@@ -150,16 +137,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         translateX=savedRelativeX*width;
         translateY=savedRelativeY*height;
-
-        console.log("[VIEWER] RESTORE VIEW",{
-            naturalWidth:image.naturalWidth,
-            naturalHeight:image.naturalHeight,
-            fitScale,
-            zoom,
-            scale,
-            translateX,
-            translateY
-        });
 
         updateTransform();
     }
@@ -230,7 +207,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function loadImage(src){
         return new Promise((resolve,reject)=>{
             const loader=new Image();
-            loader.onload=()=>resolve(loader);
+            loader.onload=resolve;
             loader.onerror=reject;
             loader.src=src;
         });
@@ -314,8 +291,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             updateOriginalProgress(loaded/total*100);
         }
 
-        console.log("[VIEWER] ORIGINAL DOWNLOAD COMPLETE",{size:loaded,total});
-
         return URL.createObjectURL(new Blob(chunks));
     }
 
@@ -338,32 +313,24 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
                 return;
             }
 
-            console.log("[VIEWER] ORIGINAL READY TO APPLY");
-
             originalObjectUrl=objectUrl;
+
+            /*
+             * Сохраняем состояние непосредственно перед заменой preview
+             * на оригинал, чтобы пользователь мог менять zoom/позицию
+             * всё время загрузки оригинала.
+             */
             captureView();
 
             await loadBlobIntoImage(originalObjectUrl);
 
             if(token!==loadToken)return;
 
-            console.log("[VIEWER] ORIGINAL IMAGE READY",{
-                naturalWidth:image.naturalWidth,
-                naturalHeight:image.naturalHeight
-            });
-
             calculateFitScale();
             restoreView();
 
             image.style.visibility="visible";
             updateOriginalProgress(100);
-
-            console.log("[VIEWER] ORIGINAL APPLIED",{
-                zoom,
-                scale,
-                translateX,
-                translateY
-            });
         }catch(error){
             if(token===loadToken&&!String(error.message).includes("Загрузка отменена")){
                 console.error("Ошибка загрузки оригинала:",error);
@@ -432,12 +399,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     async function showPhoto(nextPhoto,nextIndex,{updateUrl=true,showControls=false}={}){
         if(!nextPhoto)return;
 
-        console.log("[VIEWER] SHOW PHOTO",{
-            index:nextIndex,
-            showControls,
-            id:nextPhoto.id
-        });
-
         currentIndex=nextIndex;
         controls.update(currentIndex);
         updateInfo(nextPhoto);
@@ -448,14 +409,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         const loaded=await loadPhotoImage(nextPhoto);
 
-        console.log("[VIEWER] SHOW PHOTO LOADED",{
-            index:nextIndex,
-            loaded,
-            showControls
-        });
-
         if(loaded&&showControls){
-            console.log("[VIEWER] CALL controls.show()");
             controls.show();
         }
     }
@@ -463,18 +417,14 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function showPrevious(){
         if(currentIndex<=0)return;
 
-        console.log("[VIEWER] PREVIOUS -> controls.hide()");
         controls.hide();
-
         void showPhoto(gallery[currentIndex-1],currentIndex-1,{showControls:true});
     }
 
     function showNext(){
         if(currentIndex>=gallery.length-1)return;
 
-        console.log("[VIEWER] NEXT -> controls.hide()");
         controls.hide();
-
         void showPhoto(gallery[currentIndex+1],currentIndex+1,{showControls:true});
     }
 
@@ -588,12 +538,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         onNext:showNext
     });
 
-    console.log("[VIEWER] CONTROLS CREATED",controls.element);
-
     controls.hide();
-
-    console.log("[VIEWER] CONTROLS INITIAL HIDE");
-
     root.appendChild(controls.element);
 
     void showPhoto(gallery[currentIndex],currentIndex,{
@@ -601,34 +546,21 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         showControls:true
     });
 
-    const originalClose=modal.close;
-
-    modal.close=()=>{
-        console.log("[VIEWER] MODAL CLOSE START");
-        console.trace("[VIEWER] modal.close() trace");
-
-        console.log("[VIEWER] CLOSE -> controls.hide()");
+    modal.setBeforeCloseHandler(()=>{
         controls.hide();
-
         hideOriginalLoading();
         ++loadToken;
 
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
 
-        console.log("[VIEWER] CLOSE -> controls.destroy()");
         controls.destroy();
 
         if(originalObjectUrl){
             URL.revokeObjectURL(originalObjectUrl);
             originalObjectUrl=null;
         }
-
-        console.log("[VIEWER] CLOSE -> originalClose()");
-        originalClose();
-
-        console.log("[VIEWER] MODAL CLOSE END");
-    };
+    });
 
     return modal;
 }
