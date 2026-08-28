@@ -128,7 +128,7 @@ async function loadPage(){
 
 export function onPhotoDeleted(){return updates.updatePhotosBlock();}
 export function onSourceDeleted(){return updates.updateSourcesBlock();}
-export function onRecordDeleted(){return updates.updateRecordsBlock();}
+export function onRecordDeleted(id){return updates.removeRecord(id);}
 export function onObjectDeleted(){return updates.onObjectDeleted();}
 
 function renderObjectBlock(){
