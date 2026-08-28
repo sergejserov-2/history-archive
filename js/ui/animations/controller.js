@@ -3,8 +3,10 @@ import{
     animateCollapse,
     animateExpandGroup,
     animateCollapseGroup,
+    animateChange,
     cancelSizeAnimation,
-    clearSizeAnimation
+    clearSizeAnimation,
+    getSize
 }from"./resize.js";
 
 import{
@@ -14,34 +16,29 @@ import{
 
 const ENTER_DELAY=10;
 const EXIT_DELAY=10;
+const CHANGE_DELAY=10;
 
 const HIDDEN_CLASS="animation--hidden";
 
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
+const CHANGE_STATE="change";
 
 function getGroup(element,state){
     const parent=element?.parentElement;
-
-    if(!parent)
-        return[element];
-
+    if(!parent)return[element];
     const tagName=element.tagName;
-
     return[...parent.children].filter(item=>{
-        return item.tagName===tagName&&
-            item._animationState===state;
+        return item.tagName===tagName&&item._animationState===state;
     });
 }
 
 function setState(group,state){
-    for(const element of group)
-        element._animationState=state;
+    for(const element of group)element._animationState=state;
 }
 
 function setPromise(group,promise){
-    for(const element of group)
-        element._groupAnimationPromise=promise;
+    for(const element of group)element._groupAnimationPromise=promise;
 }
 
 function getPromise(element){
@@ -57,9 +54,7 @@ function clearPromise(group,promise){
 
 function finishExpand(group){
     for(const element of group){
-        if(element._animationState!==ENTER_STATE)
-            continue;
-
+        if(element._animationState!==ENTER_STATE)continue;
         clearSizeAnimation(element);
         element.classList.remove(HIDDEN_CLASS);
         element._animationState=null;
@@ -69,9 +64,7 @@ function finishExpand(group){
 
 function finishCollapse(group){
     for(const element of group){
-        if(element._animationState!==EXIT_STATE)
-            continue;
-
+        if(element._animationState!==EXIT_STATE)continue;
         element.hidden=true;
         clearSizeAnimation(element);
         element.classList.remove(HIDDEN_CLASS);
@@ -80,150 +73,139 @@ function finishCollapse(group){
     }
 }
 
+function finishChange(element){
+    if(element._animationState!==CHANGE_STATE)return;
+    clearSizeAnimation(element);
+    element.classList.remove(HIDDEN_CLASS);
+    element._animationState=null;
+    element._animationTimer=null;
+}
+
 function runExpand(group){
-    if(!group.length)
-        return Promise.resolve();
-
+    if(!group.length)return Promise.resolve();
     const existing=getPromise(group[0]);
-
-    if(existing)
-        return existing;
-
+    if(existing)return existing;
     for(const element of group){
         element.hidden=false;
         element.classList.add(HIDDEN_CLASS);
     }
-
     void document.documentElement.offsetHeight;
-
-    const resize=group.length>1
-        ?animateExpandGroup(group)
-        :animateExpand(group[0]);
-
+    const resize=group.length>1?animateExpandGroup(group):animateExpand(group[0]);
     const promise=resize.then(()=>{
-        return Promise.all(
-            group.map(element=>showVisibility(element))
-        );
+        return Promise.all(group.map(element=>showVisibility(element)));
     }).then(()=>{
         finishExpand(group);
     });
-
     setPromise(group,promise);
-
-    promise.then(()=>{
-        clearPromise(group,promise);
-    });
-
+    promise.then(()=>clearPromise(group,promise));
     return promise;
 }
 
 function runCollapse(group){
-    if(!group.length)
-        return Promise.resolve();
-
+    if(!group.length)return Promise.resolve();
     const existing=getPromise(group[0]);
-
-    if(existing)
-        return existing;
-
-    const visibility=Promise.all(
-        group.map(element=>hideVisibility(element))
-    );
-
+    if(existing)return existing;
+    const visibility=Promise.all(group.map(element=>hideVisibility(element)));
     const promise=visibility.then(()=>{
-        const resize=group.length>1
+        return group.length>1
             ?animateCollapseGroup(group)
             :animateCollapse(group[0]);
-
-        return resize;
     }).then(()=>{
         finishCollapse(group);
     });
-
     setPromise(group,promise);
+    promise.then(()=>clearPromise(group,promise));
+    return promise;
+}
 
-    promise.then(()=>{
-        clearPromise(group,promise);
-    });
-
+function runChange(element,oldSize){
+    if(!element)return Promise.resolve();
+    const existing=getPromise(element);
+    if(existing)return existing;
+    element.hidden=false;
+    element.classList.add(HIDDEN_CLASS);
+    void document.documentElement.offsetHeight;
+    const promise=animateChange(element,oldSize)
+        .then(()=>showVisibility(element))
+        .then(()=>finishChange(element));
+    setPromise([element],promise);
+    promise.then(()=>clearPromise([element],promise));
     return promise;
 }
 
 export function cancelAnimation(element){
-    if(!element)
-        return;
-
+    if(!element)return;
     if(element._animationTimer){
         clearTimeout(element._animationTimer);
         element._animationTimer=null;
     }
-
     cancelSizeAnimation(element);
-
     element.classList.remove("animation--entering");
     element.classList.remove("animation--exiting");
-
+    element.classList.remove(HIDDEN_CLASS);
     element._animationState=null;
     element._groupAnimationPromise=null;
 }
 
 export function show(element){
-    if(!element)
-        return Promise.resolve();
-
+    if(!element)return Promise.resolve();
     if(element._animationState===ENTER_STATE)
         return getPromise(element)||Promise.resolve();
-
     cancelAnimation(element);
-
     element._animationState=ENTER_STATE;
-
     return new Promise(resolve=>{
         element._animationTimer=setTimeout(()=>{
             element._animationTimer=null;
-
             if(element._animationState!==ENTER_STATE){
                 resolve();
                 return;
             }
-
             const group=getGroup(element,ENTER_STATE);
-
             setState(group,ENTER_STATE);
-
             runExpand(group).then(resolve);
         },ENTER_DELAY);
     });
 }
 
 export function hide(element){
-    if(!element)
-        return Promise.resolve();
-
-    if(element.hidden)
-        return Promise.resolve();
-
+    if(!element)return Promise.resolve();
+    if(element.hidden)return Promise.resolve();
     if(element._animationState===EXIT_STATE)
         return getPromise(element)||Promise.resolve();
-
     cancelAnimation(element);
-
     element._animationState=EXIT_STATE;
-
     return new Promise(resolve=>{
         element._animationTimer=setTimeout(()=>{
             element._animationTimer=null;
-
             if(element._animationState!==EXIT_STATE){
                 resolve();
                 return;
             }
-
             const group=getGroup(element,EXIT_STATE);
-
             setState(group,EXIT_STATE);
-
             runCollapse(group).then(resolve);
         },EXIT_DELAY);
     });
+}
+
+export function change(element,oldSize){
+    if(!element)return Promise.resolve();
+    if(element._animationState===CHANGE_STATE)
+        return getPromise(element)||Promise.resolve();
+    cancelAnimation(element);
+    element._animationState=CHANGE_STATE;
+    return new Promise(resolve=>{
+        element._animationTimer=setTimeout(()=>{
+            element._animationTimer=null;
+            if(element._animationState!==CHANGE_STATE){
+                resolve();
+                return;
+            }
+            runChange(element,oldSize).then(resolve);
+        },CHANGE_DELAY);
+    });
+}
+
+export function getAnimationSize(element){
+    return getSize(element);
 }
