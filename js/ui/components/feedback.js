@@ -57,6 +57,7 @@ function renderFeedbackPhotos(photoIds=[]){
 function setupFeedbackPhotos(root,feedback){
     const photoIds=Array.isArray(feedback.photoIds)?feedback.photoIds:[];
     if(!photoIds.length)return;
+
     const gallery=photoIds.map((photo,index)=>({
         id:String(index),
         title:"",
@@ -64,11 +65,14 @@ function setupFeedbackPhotos(root,feedback){
         previewPath:photo.previewPath,
         storagePath:photo.storagePath
     }));
+
     root.querySelector(".feedback__photos")?.addEventListener("click",event=>{
         const photo=event.target.closest(".feedback__photo");
         if(!photo)return;
+
         const index=Number(photo.dataset.photoIndex);
         if(!Number.isFinite(index)||!gallery[index])return;
+
         openPhotoViewer(gallery[index],{
             photos:gallery,
             showInfo:false,
