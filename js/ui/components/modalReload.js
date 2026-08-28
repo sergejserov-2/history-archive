@@ -4,6 +4,7 @@ import{getCurrentModal}from"./modal.js";
 
 let restoring=false;
 let modalContext=null;
+let reloadAgain=false;
 
 function getRegistration(type){
     return modalRegistry.find(modal=>modal.type===type)??null;
@@ -76,6 +77,7 @@ export function clearModalUrl(){
     if(!type)return;
 
     const registration=getRegistration(type);
+
     url.searchParams.delete("modal");
     cleanModalParams(url,registration);
 
@@ -93,67 +95,74 @@ async function closeCurrentWithoutHistory(){
 }
 
 async function reload(){
-    if(restoring)return;
+    if(restoring){
+        reloadAgain=true;
+        return;
+    }
 
     restoring=true;
 
     try{
-        const url=new URL(window.location.href);
-        const type=url.searchParams.get("modal");
+        do{
+            reloadAgain=false;
 
-        if(!type){
-            modalContext=null;
-            await closeCurrentWithoutHistory();
-            return;
-        }
+            const url=new URL(window.location.href);
+            const type=url.searchParams.get("modal");
 
-        const registration=getRegistration(type);
+            if(!type){
+                modalContext=null;
+                await closeCurrentWithoutHistory();
+                continue;
+            }
 
-        if(!registration){
-            modalContext=null;
-            await closeCurrentWithoutHistory();
-            return;
-        }
+            const registration=getRegistration(type);
 
-        if(registration.admin&&!isAdmin()){
-            modalContext=null;
-            await closeCurrentWithoutHistory();
+            if(!registration){
+                modalContext=null;
+                await closeCurrentWithoutHistory();
+                continue;
+            }
 
-            const cleanUrl=new URL(window.location.href);
-            cleanUrl.searchParams.delete("modal");
-            cleanModalParams(cleanUrl,registration);
+            if(registration.admin&&!isAdmin()){
+                modalContext=null;
+                await closeCurrentWithoutHistory();
 
-            window.history.replaceState({},"",cleanUrl);
-            return;
-        }
+                const cleanUrl=new URL(window.location.href);
+                cleanUrl.searchParams.delete("modal");
+                cleanModalParams(cleanUrl,registration);
 
-        const params=getUrlParams(registration,url);
-        const data=registration.load
-            ?await registration.load(params,modalContext)
-            :null;
+                window.history.replaceState({},"",cleanUrl);
+                continue;
+            }
 
-        if(registration.load&&!data){
-            modalContext=null;
-            await closeCurrentWithoutHistory();
+            const params=getUrlParams(registration,url);
+            const data=registration.load
+                ?await registration.load(params,modalContext)
+                :null;
 
-            const cleanUrl=new URL(window.location.href);
-            cleanUrl.searchParams.delete("modal");
-            cleanModalParams(cleanUrl,registration);
+            if(registration.load&&!data){
+                modalContext=null;
+                await closeCurrentWithoutHistory();
 
-            window.history.replaceState({},"",cleanUrl);
-            return;
-        }
+                const cleanUrl=new URL(window.location.href);
+                cleanUrl.searchParams.delete("modal");
+                cleanModalParams(cleanUrl,registration);
 
-        await registration.open?.(data);
+                window.history.replaceState({},"",cleanUrl);
+                continue;
+            }
 
-        const modal=getCurrentModal();
+            await registration.open?.(data);
 
-        if(modal){
-            modal.setCloseHandler(()=>{
-                if(restoring)return;
-                window.history.back();
-            });
-        }
+            const modal=getCurrentModal();
+
+            if(modal){
+                modal.setCloseHandler(()=>{
+                    if(restoring)return;
+                    window.history.back();
+                });
+            }
+        }while(reloadAgain);
     }finally{
         restoring=false;
     }
