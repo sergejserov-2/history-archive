@@ -1,4 +1,3 @@
-
 import{createModal}from"./modal.js";
 import{replaceModalUrl}from"./modalReload.js";
 import{createViewerControls}from"./viewerControls.js";
@@ -103,16 +102,39 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function updateTransform(){
         scale=fitScale*zoom;
         image.style.transform=`translate3d(${translateX}px,${translateY}px,0) scale(${scale})`;
+
+        console.log("[VIEWER] transform",{
+            fitScale,
+            zoom,
+            scale,
+            translateX,
+            translateY,
+            naturalWidth:image.naturalWidth,
+            naturalHeight:image.naturalHeight
+        });
     }
 
     function calculateFitScale(){
         const areaWidth=imageArea.clientWidth,areaHeight=imageArea.clientHeight;
         const imageWidth=image.naturalWidth,imageHeight=image.naturalHeight;
 
+        console.log("[VIEWER] calculateFitScale BEFORE",{
+            areaWidth,
+            areaHeight,
+            imageWidth,
+            imageHeight,
+            zoom,
+            scale,
+            translateX,
+            translateY
+        });
+
         if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return false;
 
         fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
         updateTransform();
+
+        console.log("[VIEWER] calculateFitScale AFTER",{fitScale,zoom,scale,translateX,translateY});
 
         return true;
     }
@@ -125,9 +147,33 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         savedRelativeX=displayedWidth?translateX/displayedWidth:0;
         savedRelativeY=displayedHeight?translateY/displayedHeight:0;
+
+        console.log("[VIEWER] SAVE VIEW",{
+            naturalWidth:image.naturalWidth,
+            naturalHeight:image.naturalHeight,
+            fitScale,
+            zoom,
+            scale,
+            translateX,
+            translateY,
+            displayedWidth,
+            displayedHeight,
+            savedZoom,
+            savedRelativeX,
+            savedRelativeY
+        });
     }
 
     function restoreViewPosition(){
+        console.log("[VIEWER] RESTORE VIEW BEFORE",{
+            naturalWidth:image.naturalWidth,
+            naturalHeight:image.naturalHeight,
+            fitScale,
+            savedZoom,
+            savedRelativeX,
+            savedRelativeY
+        });
+
         zoom=savedZoom;
         scale=fitScale*zoom;
 
@@ -138,9 +184,21 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         translateY=savedRelativeY*displayedHeight;
 
         updateTransform();
+
+        console.log("[VIEWER] RESTORE VIEW AFTER",{
+            fitScale,
+            zoom,
+            scale,
+            translateX,
+            translateY,
+            displayedWidth,
+            displayedHeight
+        });
     }
 
     function resetView(){
+        console.log("[VIEWER] RESET VIEW");
+
         fitScale=1;
         zoom=1;
         scale=1;
@@ -202,15 +260,32 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     function loadImage(src){
+        console.log("[VIEWER] LOAD IMAGE",src);
+
         return new Promise((resolve,reject)=>{
             const loader=new Image();
-            loader.onload=()=>resolve(loader);
-            loader.onerror=reject;
+
+            loader.onload=()=>{
+                console.log("[VIEWER] IMAGE LOADED",{
+                    src,
+                    width:loader.naturalWidth,
+                    height:loader.naturalHeight
+                });
+                resolve(loader);
+            };
+
+            loader.onerror=error=>{
+                console.error("[VIEWER] IMAGE LOAD ERROR",src,error);
+                reject(error);
+            };
+
             loader.src=src;
         });
     }
 
     function showOriginalLoading(){
+        console.log("[VIEWER] SHOW ORIGINAL LOADING");
+
         if(!loading)return;
 
         loading.classList.add("photo-viewer__original-loading--visible");
@@ -224,6 +299,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     function setIndeterminateProgress(){
+        console.log("[VIEWER] ORIGINAL PROGRESS INDETERMINATE");
+
         if(!loading)return;
 
         loading.classList.add("photo-viewer__original-loading--indeterminate");
@@ -242,9 +319,13 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         loading.classList.remove("photo-viewer__original-loading--visible","photo-viewer__original-loading--indeterminate");
 
         if(progress)progress.style.width="0%";
+
+        console.log("[VIEWER] HIDE ORIGINAL LOADING");
     }
 
     function startDelayedLoading(){
+        console.log("[VIEWER] START ORIGINAL LOADING TIMER");
+
         hideOriginalLoading();
 
         loadingTimer=setTimeout(()=>{
@@ -254,7 +335,18 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     async function loadOriginal(src,token){
+        console.log("[VIEWER] LOAD ORIGINAL START",{
+            src,
+            token
+        });
+
         const response=await fetch(src);
+
+        console.log("[VIEWER] ORIGINAL RESPONSE",{
+            status:response.status,
+            contentLength:response.headers.get("Content-Length"),
+            hasBody:!!response.body
+        });
 
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         if(token!==loadToken)throw new Error("Загрузка отменена");
@@ -263,11 +355,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         const total=Number(contentLength);
 
         if(!response.body||!total){
-            setIndeterminateProgress();
-
             const blob=await response.blob();
 
             if(token!==loadToken)throw new Error("Загрузка отменена");
+
+            console.log("[VIEWER] ORIGINAL BLOB READY",{size:blob.size});
 
             return URL.createObjectURL(blob);
         }
@@ -288,24 +380,55 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             updateOriginalProgress(loaded/total*100);
         }
 
-        return URL.createObjectURL(new Blob(chunks));
+        const blob=new Blob(chunks);
+
+        console.log("[VIEWER] ORIGINAL DOWNLOAD COMPLETE",{
+            size:blob.size,
+            total
+        });
+
+        return URL.createObjectURL(blob);
     }
 
     function loadBlobIntoImage(src){
+        console.log("[VIEWER] PUT ORIGINAL INTO IMAGE",src);
+
         return new Promise((resolve,reject)=>{
-            image.onload=resolve;
-            image.onerror=reject;
+            image.onload=()=>{
+                console.log("[VIEWER] ORIGINAL IMAGE READY",{
+                    naturalWidth:image.naturalWidth,
+                    naturalHeight:image.naturalHeight
+                });
+                resolve();
+            };
+
+            image.onerror=error=>{
+                console.error("[VIEWER] ORIGINAL IMAGE ERROR",error);
+                reject(error);
+            };
+
             image.src=src;
         });
     }
 
     async function loadOriginalInBackground(nextPhoto,token){
+        console.log("[VIEWER] BACKGROUND ORIGINAL START",{
+            photoId:nextPhoto.id,
+            token,
+            currentToken:loadToken,
+            zoom,
+            scale,
+            translateX,
+            translateY
+        });
+
         startDelayedLoading();
 
         try{
             const objectUrl=await loadOriginal(nextPhoto.storagePath,token);
 
             if(token!==loadToken){
+                console.log("[VIEWER] ORIGINAL CANCELLED AFTER DOWNLOAD");
                 URL.revokeObjectURL(objectUrl);
                 return;
             }
@@ -314,7 +437,22 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
             await loadBlobIntoImage(originalObjectUrl);
 
-            if(token!==loadToken)return;
+            if(token!==loadToken){
+                console.log("[VIEWER] ORIGINAL CANCELLED AFTER IMAGE LOAD");
+                return;
+            }
+
+            console.log("[VIEWER] BEFORE ORIGINAL FIT",{
+                zoom,
+                scale,
+                translateX,
+                translateY,
+                savedZoom,
+                savedRelativeX,
+                savedRelativeY,
+                naturalWidth:image.naturalWidth,
+                naturalHeight:image.naturalHeight
+            });
 
             const areaWidth=imageArea.clientWidth;
             const areaHeight=imageArea.clientHeight;
@@ -324,13 +462,32 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return;
 
             fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
+
+            console.log("[VIEWER] ORIGINAL FIT CALCULATED",{
+                areaWidth,
+                areaHeight,
+                imageWidth,
+                imageHeight,
+                fitScale,
+                savedZoom,
+                savedRelativeX,
+                savedRelativeY
+            });
+
             restoreViewPosition();
 
             image.style.visibility="visible";
             updateOriginalProgress(100);
+
+            console.log("[VIEWER] ORIGINAL APPLIED",{
+                zoom,
+                scale,
+                translateX,
+                translateY
+            });
         }catch(error){
             if(token===loadToken&&!String(error.message).includes("Загрузка отменена")){
-                console.error("Ошибка загрузки оригинала:",error);
+                console.error("[VIEWER] ORIGINAL ERROR",error);
             }
         }finally{
             if(token===loadToken)hideOriginalLoading();
@@ -339,6 +496,13 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     async function loadPhotoImage(nextPhoto){
         const token=++loadToken;
+
+        console.log("[VIEWER] LOAD PHOTO",{
+            photoId:nextPhoto.id,
+            token,
+            previewPath:nextPhoto.previewPath,
+            storagePath:nextPhoto.storagePath
+        });
 
         resetView();
         hideOriginalLoading();
@@ -366,21 +530,35 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
                 return true;
             }catch(error){
-                if(token===loadToken)console.error("Ошибка загрузки изображения:",error);
+                if(token===loadToken)console.error("[VIEWER] IMAGE ERROR",error);
                 return false;
             }
         }
 
         try{
-            await loadImage(nextPhoto.previewPath);
+            const preview=await loadImage(nextPhoto.previewPath);
 
             if(token!==loadToken)return false;
 
             image.src=nextPhoto.previewPath;
+
+            console.log("[VIEWER] PREVIEW BEFORE FIT",{
+                naturalWidth:preview.naturalWidth,
+                naturalHeight:preview.naturalHeight
+            });
+
             calculateFitScale();
             image.style.visibility="visible";
+
+            console.log("[VIEWER] PREVIEW SHOWN",{
+                zoom,
+                scale,
+                translateX,
+                translateY,
+                fitScale
+            });
         }catch(error){
-            if(token===loadToken)console.error("Ошибка загрузки preview:",error);
+            if(token===loadToken)console.error("[VIEWER] PREVIEW ERROR",error);
             return false;
         }
 
