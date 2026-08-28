@@ -117,14 +117,14 @@ function runCollapse(group){
     return promise;
 }
 
-function runChange(element,oldSize){
+function runChange(element,oldSize,onPrepared){
     if(!element)return Promise.resolve();
     const existing=getPromise(element);
     if(existing)return existing;
     element.hidden=false;
     element.classList.add(HIDDEN_CLASS);
     void element.offsetHeight;
-    const promise=animateChange(element,oldSize)
+    const promise=animateChange(element,oldSize,onPrepared)
         .then(()=>showVisibility(element))
         .then(()=>finishChange(element));
     setPromise([element],promise);
@@ -187,13 +187,13 @@ export function hide(element){
     });
 }
 
-export function change(element,oldSize){
+export function change(element,oldSize,onPrepared){
     if(!element)return Promise.resolve();
     if(element._animationState===CHANGE_STATE)
         return getPromise(element)||Promise.resolve();
     cancelAnimation(element);
     element._animationState=CHANGE_STATE;
-    return runChange(element,oldSize);
+    return runChange(element,oldSize,onPrepared);
 }
 
 export function getAnimationSize(element){
