@@ -487,21 +487,28 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     const originalClose=modal.close;
 
-    modal.close=()=>{
-        window.removeEventListener("mousemove",handleMouseMove);
-        window.removeEventListener("mouseup",handleMouseUp);
+const originalClose=modal.close;
 
-        const result=originalClose();
+modal.close=()=>{
+    controls.hide();
+    window.removeEventListener("mousemove",handleMouseMove);
+    window.removeEventListener("mouseup",handleMouseUp);
 
-        controls.destroy();
+    return new Promise(resolve=>{
+        requestAnimationFrame(()=>{
+            setTimeout(()=>{
+                controls.destroy();
 
-        if(originalObjectUrl){
-            URL.revokeObjectURL(originalObjectUrl);
-            originalObjectUrl=null;
-        }
+                if(originalObjectUrl){
+                    URL.revokeObjectURL(originalObjectUrl);
+                    originalObjectUrl=null;
+                }
 
-        return result;
-    };
+                resolve(originalClose());
+            },180);
+        });
+    });
+};
 
     return modal;
 }
