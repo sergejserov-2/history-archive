@@ -1,4 +1,6 @@
 export function createViewerControls({currentIndex,total,onPrevious,onNext}){
+    console.log("[CONTROLS] CREATE",{currentIndex,total});
+
     const controls=document.createElement("div");
     controls.className="viewer-controls";
 
@@ -21,7 +23,6 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
 
     function update(index){
         console.log("[CONTROLS] UPDATE",{
-            time:performance.now(),
             index,
             total,
             hidden:controls.hidden,
@@ -35,48 +36,46 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
     }
 
     function show(){
-        console.log("[CONTROLS] SHOW BEFORE",{
-            time:performance.now(),
-            hidden:controls.hidden,
-            opacity:getComputedStyle(controls).opacity,
-            visibility:getComputedStyle(controls).visibility,
-            className:controls.className,
-            connected:controls.isConnected
+        console.log("[CONTROLS] SHOW",{
+            hiddenBefore:controls.hidden,
+            classBefore:controls.className,
+            connected:controls.isConnected,
+            display:getComputedStyle(controls).display,
+            opacity:getComputedStyle(controls).opacity
         });
+
+        console.trace("[CONTROLS] SHOW TRACE");
 
         controls.hidden=false;
         controls.classList.remove("viewer-controls--hidden");
 
         console.log("[CONTROLS] SHOW AFTER",{
-            time:performance.now(),
             hidden:controls.hidden,
-            opacity:getComputedStyle(controls).opacity,
-            visibility:getComputedStyle(controls).visibility,
             className:controls.className,
-            connected:controls.isConnected
+            connected:controls.isConnected,
+            display:getComputedStyle(controls).display,
+            opacity:getComputedStyle(controls).opacity
         });
     }
 
     function hide(){
-        console.log("[CONTROLS] HIDE BEFORE",{
-            time:performance.now(),
-            hidden:controls.hidden,
-            opacity:getComputedStyle(controls).opacity,
-            visibility:getComputedStyle(controls).visibility,
-            className:controls.className,
+        console.log("[CONTROLS] HIDE",{
+            hiddenBefore:controls.hidden,
+            classBefore:controls.className,
             connected:controls.isConnected
         });
+
+        console.trace("[CONTROLS] HIDE TRACE");
 
         controls.hidden=true;
         controls.classList.add("viewer-controls--hidden");
 
         console.log("[CONTROLS] HIDE AFTER",{
-            time:performance.now(),
             hidden:controls.hidden,
-            opacity:getComputedStyle(controls).opacity,
-            visibility:getComputedStyle(controls).visibility,
             className:controls.className,
-            connected:controls.isConnected
+            connected:controls.isConnected,
+            display:getComputedStyle(controls).display,
+            opacity:getComputedStyle(controls).opacity
         });
     }
 
@@ -84,7 +83,6 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
         event.preventDefault();
 
         console.log("[CONTROLS] PREVIOUS CLICK",{
-            time:performance.now(),
             disabled:previousButton.disabled
         });
 
@@ -95,7 +93,6 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
         event.preventDefault();
 
         console.log("[CONTROLS] NEXT CLICK",{
-            time:performance.now(),
             disabled:nextButton.disabled
         });
 
@@ -113,11 +110,8 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
         )return;
 
         if(event.key==="ArrowLeft"){
-            console.log("[CONTROLS] KEY LEFT",{
-                time:performance.now(),
-                disabled:previousButton.disabled,
-                hidden:controls.hidden,
-                className:controls.className
+            console.log("[CONTROLS] ARROW LEFT",{
+                disabled:previousButton.disabled
             });
 
             event.preventDefault();
@@ -128,11 +122,8 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
         }
 
         if(event.key==="ArrowRight"){
-            console.log("[CONTROLS] KEY RIGHT",{
-                time:performance.now(),
-                disabled:nextButton.disabled,
-                hidden:controls.hidden,
-                className:controls.className
+            console.log("[CONTROLS] ARROW RIGHT",{
+                disabled:nextButton.disabled
             });
 
             event.preventDefault();
@@ -146,23 +137,20 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
     update(currentIndex);
 
     function destroy(){
-        console.log("[CONTROLS] DESTROY BEFORE",{
-            time:performance.now(),
+        console.log("[CONTROLS] DESTROY",{
             hidden:controls.hidden,
-            opacity:getComputedStyle(controls).opacity,
-            visibility:getComputedStyle(controls).visibility,
             className:controls.className,
-            connected:controls.isConnected,
-            parent:controls.parentElement?.className
+            connected:controls.isConnected
         });
+
+        console.trace("[CONTROLS] DESTROY TRACE");
 
         window.removeEventListener("keydown",handleKeydown);
         controls.remove();
 
         console.log("[CONTROLS] DESTROY AFTER",{
-            time:performance.now(),
-            connected:controls.isConnected,
-            parent:controls.parentElement?.className
+            hidden:controls.hidden,
+            connected:controls.isConnected
         });
     }
 
