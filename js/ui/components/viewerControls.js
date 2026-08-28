@@ -1,18 +1,22 @@
 export function createViewerControls({currentIndex,total,onPrevious,onNext}){
     const controls=document.createElement("div");
     controls.className="viewer-controls";
+
     const position=document.createElement("div");
     position.className="viewer-controls__position";
+
     const previousButton=document.createElement("button");
     previousButton.type="button";
     previousButton.className="viewer-controls__previous";
     previousButton.setAttribute("aria-label","Предыдущая фотография");
     previousButton.innerHTML="‹";
+
     const nextButton=document.createElement("button");
     nextButton.type="button";
     nextButton.className="viewer-controls__next";
     nextButton.setAttribute("aria-label","Следующая фотография");
     nextButton.innerHTML="›";
+
     controls.append(position,previousButton,nextButton);
 
     function update(index){
@@ -33,12 +37,20 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
 
     function handleKeydown(event){
         const target=event.target;
-        if(target instanceof HTMLInputElement||target instanceof HTMLTextAreaElement||target instanceof HTMLSelectElement||target?.isContentEditable)return;
+
+        if(
+            target instanceof HTMLInputElement||
+            target instanceof HTMLTextAreaElement||
+            target instanceof HTMLSelectElement||
+            target?.isContentEditable
+        )return;
+
         if(event.key==="ArrowLeft"){
             event.preventDefault();
             if(!previousButton.disabled)onPrevious();
             return;
         }
+
         if(event.key==="ArrowRight"){
             event.preventDefault();
             if(!nextButton.disabled)onNext();
@@ -46,6 +58,7 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
     }
 
     window.addEventListener("keydown",handleKeydown);
+
     update(currentIndex);
 
     function destroy(){
@@ -53,5 +66,9 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
         controls.remove();
     }
 
-    return{element:controls,update,destroy};
+    return{
+        element:controls,
+        update,
+        destroy
+    };
 }
