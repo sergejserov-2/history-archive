@@ -4,7 +4,6 @@ import{getAllObjects}from"../../api/objects.js";
 import{getAllPhotos}from"../../api/photos.js";
 import{getAllSources}from"../../api/sources.js";
 import{getAllRecords}from"../../api/records.js";
-import{openSubjectModal}from"./subject.js";
 import{openModal}from"./modalReload.js";
 import{createModal}from"./modal.js";
 import{renderEntityList}from"./entityList.js";
