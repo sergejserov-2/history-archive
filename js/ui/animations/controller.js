@@ -104,6 +104,7 @@ export function cancelAnimation(element){
     element.classList.remove("animation--entering");
     element.classList.remove("animation--exiting");
     element.classList.remove(HIDDEN_CLASS);
+    element.hidden=false;
     element._animationState=null;
     element._groupAnimationPromise=null;
 }
@@ -113,12 +114,13 @@ export function show(element){
     if(element._animationState===ENTER_STATE)
         return getPromise(element)||Promise.resolve();
     cancelAnimation(element);
-    element.classList.add(HIDDEN_CLASS);
     element._animationState=ENTER_STATE;
+    element.hidden=true;
     return new Promise(resolve=>{
         element._animationTimer=setTimeout(()=>{
             element._animationTimer=null;
             if(element._animationState!==ENTER_STATE){
+                element.hidden=false;
                 resolve();
                 return;
             }
