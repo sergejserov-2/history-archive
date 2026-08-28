@@ -94,7 +94,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     let dragging=false,startX=0,startY=0,startTranslateX=0,startTranslateY=0;
     let touchStartX=0,touchStartY=0,touchStartTranslateX=0,touchStartTranslateY=0;
     let pinchStartDistance=null,pinchStartZoom=1;
-    let savedZoom=1,savedImageX=0,savedImageY=0;
+    let savedZoom=1,savedRelativeX=0,savedRelativeY=0;
     let originalObjectUrl=null;
     let loadingTimer=null;
     let loadToken=0;
@@ -111,45 +111,30 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return false;
 
         fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
+        scale=fitScale*zoom;
         updateTransform();
 
         return true;
     }
 
     function saveViewPosition(){
-        const areaWidth=imageArea.clientWidth;
-        const areaHeight=imageArea.clientHeight;
-        const imageWidth=image.naturalWidth;
-        const imageHeight=image.naturalHeight;
-
-        if(!areaWidth||!areaHeight||!imageWidth||!imageHeight||!scale)return;
+        const imageWidth=image.naturalWidth*scale;
+        const imageHeight=image.naturalHeight*scale;
 
         savedZoom=zoom;
-
-        const centerX=areaWidth/2;
-        const centerY=areaHeight/2;
-
-        const imagePointX=(centerX-translateX)/scale;
-        const imagePointY=(centerY-translateY)/scale;
-
-        savedImageX=imagePointX/imageWidth;
-        savedImageY=imagePointY/imageHeight;
+        savedRelativeX=imageWidth?translateX/imageWidth:0;
+        savedRelativeY=imageHeight?translateY/imageHeight:0;
     }
 
     function restoreViewPosition(){
-        const areaWidth=imageArea.clientWidth;
-        const areaHeight=imageArea.clientHeight;
-        const imageWidth=image.naturalWidth;
-        const imageHeight=image.naturalHeight;
-
         zoom=savedZoom;
         scale=fitScale*zoom;
 
-        const imagePointX=savedImageX*imageWidth*scale;
-        const imagePointY=savedImageY*imageHeight*scale;
+        const imageWidth=image.naturalWidth*scale;
+        const imageHeight=image.naturalHeight*scale;
 
-        translateX=areaWidth/2-imagePointX;
-        translateY=areaHeight/2-imagePointY;
+        translateX=savedRelativeX*imageWidth;
+        translateY=savedRelativeY*imageHeight;
 
         updateTransform();
     }
@@ -161,8 +146,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         translateX=0;
         translateY=0;
         savedZoom=1;
-        savedImageX=0;
-        savedImageY=0;
+        savedRelativeX=0;
+        savedRelativeY=0;
         dragging=false;
         pinchStartDistance=null;
 
@@ -328,7 +313,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
             if(token!==loadToken)return;
 
-            calculateFitScale();
+            if(!calculateFitScale())return;
+
             restoreViewPosition();
             image.style.visibility="visible";
             updateOriginalProgress(100);
