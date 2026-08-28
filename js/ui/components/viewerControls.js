@@ -26,19 +26,13 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
     }
 
     function show(){
+        controls.hidden=false;
         controls.classList.remove("viewer-controls--hidden");
-        controls.style.visibility="visible";
-        controls.style.opacity="1";
-        controls.style.pointerEvents="none";
-        previousButton.style.pointerEvents="auto";
-        nextButton.style.pointerEvents="auto";
     }
 
     function hide(){
+        controls.hidden=true;
         controls.classList.add("viewer-controls--hidden");
-        controls.style.opacity="0";
-        controls.style.visibility="hidden";
-        controls.style.pointerEvents="none";
     }
 
     previousButton.onclick=event=>{
