@@ -261,14 +261,18 @@ export function createPageUpdates(state){
             if(element)await show(element);
         },
 
-        async removeRecord(id){
-            state.records=state.records.filter(record=>record.id!==id);
-            const element=document.querySelector(`.record[data-record-id="${id}"]`);
-            if(element){
-                await hide(element);
-                element.remove();
-            }
-        },
+async removeRecord(id){
+    state.records=state.records.filter(record=>record.id!==id);
+    const element=document.querySelector(`.record[data-record-id="${id}"]`);
+    if(!element)return;
+    const group=element.closest(".entity-list__group");
+    await hide(element);
+    element.remove();
+    if(group&&!group.querySelector(".record")){
+        await hide(group);
+        group.remove();
+    }
+}
 
         async updateRecord(savedRecord){
             if(!savedRecord?.id)return;
