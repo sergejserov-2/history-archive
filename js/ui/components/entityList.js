@@ -64,8 +64,9 @@ function renderRow(item){
         ${hasDescription?`<div class="entity-list-row__description">${item.description}</div>`:""}
         ${hasMeta?`<div class="entity-list-row__meta">${item.meta}</div>`:""}
     `;
-    if(item.href)return`<a class="${rowClass}" href="${item.href}" ${item.id?`data-id="${item.id}"`:""}>${content}</a>`;
-    return`<div class="${rowClass}" ${item.id?`data-id="${item.id}"`:""}>${content}</div>`;
+    const attributes=item.id?`data-id="${item.id}"`:"";
+    if(item.href)return`<a class="${rowClass}" href="${item.href}" ${attributes}>${content}</a>`;
+    return`<div class="${rowClass}" ${attributes}>${content}</div>`;
 }
 
 function getGroup(list,groupId){
@@ -94,8 +95,11 @@ export function insertEntityListItem({groupId,groupTitle,element,compare}={}){
 export async function showEntityListItem(result){
     if(!result)return;
     if(result.created){
-        await show(result.group);
-        await show(result.element);
+        const title=result.group.querySelector(".entity-list__group-title");
+        await Promise.all([
+            show(title),
+            show(result.element)
+        ]);
         return;
     }
     await show(result.element);
@@ -105,9 +109,18 @@ export async function removeEntityListItem({element}={}){
     if(!element)return;
     const group=element.closest(".entity-list__group");
     if(!group)return;
+    const title=group.querySelector(".entity-list__group-title");
+    const rows=group.querySelectorAll(".entity-list-row");
+    if(rows.length===1){
+        await Promise.all([
+            hide(element),
+            hide(title)
+        ]);
+        element.remove();
+        title?.remove();
+        group.remove();
+        return;
+    }
     await hide(element);
     element.remove();
-    if(group.querySelector(".entity-list-row"))return;
-    await hide(group);
-    group.remove();
 }
