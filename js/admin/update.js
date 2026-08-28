@@ -252,3 +252,4 @@ export function createPageUpdates(state){
         }
     };
 }
+export{uploadPhoto,uploadSourceDocument};
