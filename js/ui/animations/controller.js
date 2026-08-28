@@ -123,6 +123,7 @@ function runChange(element,oldSize){
     if(existing)return existing;
     element.hidden=false;
     element.classList.add(HIDDEN_CLASS);
+    void element.offsetHeight;
     const promise=animateChange(element,oldSize)
         .then(()=>showVisibility(element))
         .then(()=>finishChange(element));
