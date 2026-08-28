@@ -7,7 +7,7 @@ import{getType,createType,updateType,deleteType}from"../api/types.js";
 import{getRecordType,createRecordType,updateRecordType,deleteRecordType}from"../api/recordTypes.js";
 import{getSubjectType,createSubjectType,updateSubjectType,deleteSubjectType}from"../api/subjectTypes.js";
 import{moveFileToDeleted,uploadPhoto,uploadSourceDocument}from"../api/storage.js";
-import{insertRecord}from"../ui/components/records.js";
+import{addRecordToList,removeRecordFromList}from"../ui/components/records.js";
 import{renderPhoto}from"../ui/components/photos.js";
 import{renderSource}from"../ui/components/sources.js";
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
@@ -246,44 +246,27 @@ export function createPageUpdates(state){
             await state.renderSubjectBlock?.();
         },
 
-        async addRecord(savedRecord){
-            if(!savedRecord?.id)return;
-            const fresh=await getRecord(savedRecord.id);
-            if(!fresh)return;
-            state.records=[...state.records.filter(item=>item.id!==fresh.id),fresh];
-            const element=insertRecord(fresh,state.subjects,state.recordTypes);
-            if(element)await show(element);
-        },
+async addRecord(savedRecord){
+    if(!savedRecord?.id)return;
+    const fresh=await getRecord(savedRecord.id);
+    if(!fresh)return;
+    state.records=[...state.records.filter(record=>record.id!==fresh.id),fresh];
+    await addRecordToList(fresh,state.subjects,state.recordTypes);
+},
 
-        async removeRecord(id){
-            const element=document.querySelector(`.record[data-record-id="${id}"]`);
-            state.records=state.records.filter(record=>record.id!==id);
-            if(!element)return;
-            const group=element.closest(".entity-list__group");
-            const lastRecord=group&&!group.querySelector(`.record:not([data-record-id="${id}"])`);
-            if(lastRecord&&group){
-                await Promise.all([hide(element),hide(group)]);
-                element.remove();
-                group.remove();
-                return;
-            }
-            await hide(element);
-            element.remove();
-        },
+async removeRecord(id){
+    state.records=state.records.filter(record=>record.id!==id);
+    await removeRecordFromList(id);
+},
 
-        async updateRecord(savedRecord){
-            if(!savedRecord?.id)return;
-            const fresh=await getRecord(savedRecord.id);
-            if(!fresh)return;
-            state.records=state.records.map(record=>record.id===fresh.id?fresh:record);
-            const oldElement=document.querySelector(`.record[data-record-id="${fresh.id}"]`);
-            if(oldElement){
-                await hide(oldElement);
-                oldElement.remove();
-            }
-            const element=insertRecord(fresh,state.subjects,state.recordTypes);
-            if(element)await show(element);
-        },
+async updateRecord(savedRecord){
+    if(!savedRecord?.id)return;
+    const fresh=await getRecord(savedRecord.id);
+    if(!fresh)return;
+    state.records=state.records.map(record=>record.id===fresh.id?fresh:record);
+    await removeRecordFromList(fresh.id);
+    await addRecordToList(fresh,state.subjects,state.recordTypes);
+},
 
         async addPhoto(savedPhoto,uploading=false){
             if(!savedPhoto?.id)return;
