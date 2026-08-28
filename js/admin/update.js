@@ -158,11 +158,9 @@ async function changeBlock(block,render){
     if(!block)return false;
     const parent=block.parentElement;
     const oldSize=getAnimationSize(block);
-    const parentRect=parent?.getBoundingClientRect();
-    const parentHeight=parentRect?.height;
+    const parentHeight=parent?.getBoundingClientRect()?.height;
     if(parent&&Number.isFinite(parentHeight))parent.style.setProperty("height",`${parentHeight}px`,"important");
     block.innerHTML=render();
-    void block.offsetHeight;
     await waitForLayout();
     let released=false;
     const release=()=>{
