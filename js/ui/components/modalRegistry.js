@@ -1,6 +1,6 @@
 import{getPhotos,getAllPhotos}from"../../api/photos.js";
-import{getSources}from"../../api/sources.js";
-import{getRecords}from"../../api/records.js";
+import{getSources,getAllSources}from"../../api/sources.js";
+import{getRecords,getAllRecords}from"../../api/records.js";
 import{getObject,getType,getChildren,getAllObjects}from"../../api/objects.js";
 import{getTypes}from"../../api/types.js";
 import{getRecordType,getRecordTypes}from"../../api/recordTypes.js";
@@ -253,8 +253,8 @@ export const subjectModal={
             getSubjects(),
             getAllObjects(),
             getAllPhotos(),
-            getSources(),
-            getRecords(),
+            getAllSources(),
+            getAllRecords(),
             getSubjectTypes()
         ]);
         if(!subject)return null;
