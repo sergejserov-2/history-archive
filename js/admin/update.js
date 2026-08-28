@@ -222,7 +222,12 @@ export function createPageUpdates(state){
             if(!savedRecord?.id)return;
             state.records=await getRecords(state.object.id);
             const oldElement=document.querySelector(`.record[data-record-id="${savedRecord.id}"]`);
-            if(oldElement)oldElement.outerHTML=renderRecord(savedRecord,state.subjects);
+            if(oldElement){
+                await hide(oldElement);
+                oldElement.remove();
+            }
+            const element=insertRecord(savedRecord,state.subjects,state.recordTypes);
+            if(element)await show(element);
         },
         async updatePhoto(savedPhoto,uploading=false){
             if(!savedPhoto?.id)return;
