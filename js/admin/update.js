@@ -12,6 +12,7 @@ import{renderPhotos}from"../ui/components/photos.js";
 import{renderSources}from"../ui/components/sources.js";
 import{renderChildren}from"../ui/components/children.js";
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
+import{change,show,hide,getAnimationSize}from"../ui/animations/controller.js";
 import{getCurrentUser}from"./adminMode.js";
 import{createActivity,getActivities,getRecentActivities}from"../api/activity.js";
 
@@ -144,6 +145,17 @@ export async function deleteEntity(type,id,context={}){
     throw new Error(`Unknown entity type: ${type}`);
 }
 
+async function changeBlock(block,render){
+    if(!block){
+        return false;
+    }
+
+    const oldSize=getAnimationSize(block);
+    block.innerHTML=render();
+    await change(block,oldSize);
+    return true;
+}
+
 export function createPageUpdates(state){
     return{
         async updateObjectBlock(data){
@@ -152,11 +164,13 @@ export function createPageUpdates(state){
             if(!state.object)return;
             const block=document.querySelector(".object");
             if(block){
+                const oldSize=getAnimationSize(block);
                 block.outerHTML=state.renderObjectBlock();
                 const newBlock=document.querySelector(".object");
                 if(newBlock){
                     const{initCoverDrag}=await import("../ui/components/coverDrag.js");
                     initCoverDrag(newBlock);
+                    await change(newBlock,oldSize);
                 }
             }
         },
@@ -175,11 +189,13 @@ export function createPageUpdates(state){
             if(savedRecord?.id&&!state.records.some(record=>record.id===savedRecord.id))state.records.push(savedRecord);
             const block=document.querySelector(".records");
             if(block){
-                block.outerHTML=renderRecords(state.records,state.recordTypes,state.subjects);
+                await changeBlock(block,()=>renderRecords(state.records,state.recordTypes,state.subjects));
                 return;
             }
             if(state.records.length){
                 document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.subjects));
+                const newBlock=document.querySelector(".records");
+                if(newBlock)await show(newBlock);
             }
         },
         async updatePhotosBlock(savedPhoto=null,uploading=false){
@@ -194,14 +210,17 @@ export function createPageUpdates(state){
                     const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender)}</section>`;
                     if(sources)sources.insertAdjacentHTML("beforebegin",html);
                     else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
+                    const newGallery=document.querySelector("#gallery");
+                    if(newGallery)await show(newGallery);
                 }
                 return;
             }
             if(!photosForRender.length){
+                await hide(gallery);
                 gallery.remove();
                 return;
             }
-            gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender)}`;
+            await changeBlock(gallery,()=>`<h2>Фотографии</h2>${renderPhotos(photosForRender)}`);
         },
         async updateSourcesBlock(savedSource=null){
             if(!state.object)return;
@@ -214,14 +233,17 @@ export function createPageUpdates(state){
                     const html=`<section id="sources"><h2>Источники</h2>${renderSources(state.sources,state.subjects)}</section>`;
                     if(children)children.insertAdjacentHTML("beforebegin",html);
                     else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
+                    const newBlock=document.querySelector("#sources");
+                    if(newBlock)await show(newBlock);
                 }
                 return;
             }
             if(!state.sources.length){
+                await hide(block);
                 block.remove();
                 return;
             }
-            block.innerHTML=`<h2>Источники</h2>${renderSources(state.sources,state.subjects)}`;
+            await changeBlock(block,()=>`<h2>Источники</h2>${renderSources(state.sources,state.subjects)}`);
         },
         async updateChildrenBlock(){
             if(!state.object)return;
@@ -229,10 +251,14 @@ export function createPageUpdates(state){
             const block=document.querySelector("#children");
             const html=`<h2>Дочерние объекты</h2>${await renderChildren(state.children,state.object,state.objects,state.types)}`;
             if(block){
-                block.innerHTML=html;
+                await changeBlock(block,()=>html);
                 return;
             }
-            if(state.children.length)document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
+            if(state.children.length){
+                document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
+                const newBlock=document.querySelector("#children");
+                if(newBlock)await show(newBlock);
+            }
         },
         async onObjectDeleted(){
             const parent=state.parents?.[0];
