@@ -238,12 +238,40 @@ export function animateChange(el,oldSize){
     console.log("[resize] CHANGE START");
     console.log("[resize] oldSize:",oldSize);
 
+    const margins=getMargins(el);
+    const axis=getAxis(el);
+    const initialSize=getSize(el);
+    const initialDelta=initialSize-oldSize;
+    const from={...margins};
+    const to={...margins};
+
+    if(axis==="vertical"){
+        from.top-=initialDelta/2;
+        from.bottom-=initialDelta/2;
+    }else{
+        from.left-=initialDelta/2;
+        from.right-=initialDelta/2;
+    }
+
+    console.log("[resize] INITIAL SIZE:",initialSize);
+    console.log("[resize] INITIAL DELTA:",initialDelta);
+    console.log("[resize] INITIAL MARGINS:",margins);
+    console.log("[resize] INITIAL FROM:",from);
+
+    setMargins(el,from);
+    void el.offsetHeight;
+
+    console.log("[resize] START STATE SET IMMEDIATELY");
+    console.log("[resize] start rect:",getRect(el));
+    console.log("[resize] start size:",getSize(el));
+    console.log("[resize] start margins:",getMargins(el));
+
     return new Promise(resolve=>{
         requestAnimationFrame(()=>{
             requestAnimationFrame(()=>{
                 const newSize=getSize(el);
-                const margins=getMargins(el);
-                const axis=getAxis(el);
+                const currentMargins=getMargins(el);
+                const currentAxis=getAxis(el);
                 const delta=newSize-oldSize;
 
                 console.log("[resize] AFTER 2 RAF");
@@ -252,36 +280,31 @@ export function animateChange(el,oldSize){
                 console.log("[resize] newSize:",newSize);
                 console.log("[resize] oldSize:",oldSize);
                 console.log("[resize] delta:",delta);
-                console.log("[resize] margins:",margins);
-                console.log("[resize] axis:",axis);
+                console.log("[resize] margins:",currentMargins);
+                console.log("[resize] axis:",currentAxis);
 
                 if(newSize===oldSize){
                     console.log("[resize] size unchanged");
+                    clear(el);
                     resolve();
                     return;
                 }
 
-                const from={...margins};
-                const to={...margins};
+                const finalFrom={...currentMargins};
+                const finalTo={...currentMargins};
 
-                if(axis==="vertical"){
-                    from.top-=delta/2;
-                    from.bottom-=delta/2;
+                if(currentAxis==="vertical"){
+                    finalFrom.top-=delta/2;
+                    finalFrom.bottom-=delta/2;
                 }else{
-                    from.left-=delta/2;
-                    from.right-=delta/2;
+                    finalFrom.left-=delta/2;
+                    finalFrom.right-=delta/2;
                 }
 
-                console.log("[resize] animation from:",from);
-                console.log("[resize] animation to:",to);
+                console.log("[resize] FINAL FROM:",finalFrom);
+                console.log("[resize] FINAL TO:",finalTo);
 
-                setMargins(el,from);
-
-                console.log("[resize] START STATE SET");
-                console.log("[resize] start rect:",getRect(el));
-                console.log("[resize] start size:",getSize(el));
-                console.log("[resize] start margins:",getMargins(el));
-
+                setMargins(el,finalFrom);
                 void el.offsetHeight;
 
                 requestAnimationFrame(()=>{
@@ -291,7 +314,7 @@ export function animateChange(el,oldSize){
                     function frame(now){
                         const t=Math.min(1,Math.max(0,(now-start)/CHANGE_DURATION));
                         const e=ease(t);
-                        const current=interpolate(from,to,e);
+                        const current=interpolate(finalFrom,finalTo,e);
 
                         setMargins(el,current);
 
@@ -314,7 +337,7 @@ export function animateChange(el,oldSize){
                         }
 
                         el._animationFrame=null;
-                        setMargins(el,to);
+                        setMargins(el,finalTo);
 
                         console.log("[resize] CHANGE END",{
                             rect:getRect(el),
