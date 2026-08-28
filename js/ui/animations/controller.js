@@ -3,10 +3,8 @@ import{
     animateCollapse,
     animateExpandGroup,
     animateCollapseGroup,
-    animateChange,
     cancelSizeAnimation,
-    clearSizeAnimation,
-    getSize
+    clearSizeAnimation
 }from"./resize.js";
 
 import{
@@ -21,15 +19,12 @@ const HIDDEN_CLASS="animation--hidden";
 
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
-const CHANGE_STATE="change";
 
 function getGroup(element,state){
     const parent=element?.parentElement;
     if(!parent)return[element];
     const tagName=element.tagName;
-    return[...parent.children].filter(item=>{
-        return item.tagName===tagName&&item._animationState===state;
-    });
+    return[...parent.children].filter(item=>item.tagName===tagName&&item._animationState===state);
 }
 
 function setState(group,state){
@@ -72,14 +67,6 @@ function finishCollapse(group){
     }
 }
 
-function finishChange(element){
-    if(element._animationState!==CHANGE_STATE)return;
-    clearSizeAnimation(element);
-    element.classList.remove(HIDDEN_CLASS);
-    element._animationState=null;
-    element._animationTimer=null;
-}
-
 function runExpand(group){
     if(!group.length)return Promise.resolve();
     const existing=getPromise(group[0]);
@@ -90,11 +77,7 @@ function runExpand(group){
     }
     void document.documentElement.offsetHeight;
     const resize=group.length>1?animateExpandGroup(group):animateExpand(group[0]);
-    const promise=resize.then(()=>{
-        return Promise.all(group.map(element=>showVisibility(element)));
-    }).then(()=>{
-        finishExpand(group);
-    });
+    const promise=resize.then(()=>Promise.all(group.map(element=>showVisibility(element)))).then(()=>finishExpand(group));
     setPromise(group,promise);
     promise.then(()=>clearPromise(group,promise));
     return promise;
@@ -105,30 +88,9 @@ function runCollapse(group){
     const existing=getPromise(group[0]);
     if(existing)return existing;
     const visibility=Promise.all(group.map(element=>hideVisibility(element)));
-    const promise=visibility.then(()=>{
-        return group.length>1
-            ?animateCollapseGroup(group)
-            :animateCollapse(group[0]);
-    }).then(()=>{
-        finishCollapse(group);
-    });
+    const promise=visibility.then(()=>group.length>1?animateCollapseGroup(group):animateCollapse(group[0])).then(()=>finishCollapse(group));
     setPromise(group,promise);
     promise.then(()=>clearPromise(group,promise));
-    return promise;
-}
-
-function runChange(element,oldSize,onPrepared){
-    if(!element)return Promise.resolve();
-    const existing=getPromise(element);
-    if(existing)return existing;
-    element.hidden=false;
-    element.classList.add(HIDDEN_CLASS);
-    void element.offsetHeight;
-    const promise=animateChange(element,oldSize,onPrepared)
-        .then(()=>showVisibility(element))
-        .then(()=>finishChange(element));
-    setPromise([element],promise);
-    promise.then(()=>clearPromise([element],promise));
     return promise;
 }
 
@@ -185,17 +147,4 @@ export function hide(element){
             runCollapse(group).then(resolve);
         },EXIT_DELAY);
     });
-}
-
-export function change(element,oldSize,onPrepared){
-    if(!element)return Promise.resolve();
-    if(element._animationState===CHANGE_STATE)
-        return getPromise(element)||Promise.resolve();
-    cancelAnimation(element);
-    element._animationState=CHANGE_STATE;
-    return runChange(element,oldSize,onPrepared);
-}
-
-export function getAnimationSize(element){
-    return getSize(element);
 }
