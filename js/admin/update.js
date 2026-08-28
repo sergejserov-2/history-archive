@@ -272,7 +272,7 @@ async removeRecord(id){
         await hide(group);
         group.remove();
     }
-}
+},
 
         async updateRecord(savedRecord){
             if(!savedRecord?.id)return;
