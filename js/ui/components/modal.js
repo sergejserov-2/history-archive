@@ -63,9 +63,6 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         if(currentModal?.element!==modal)return;
 
         currentModal=null;
-
-        if(currentModal)return;
-
         overlay.classList.remove("modal-overlay--visible");
         await waitForTransition(overlay,()=>{});
         if(overlay.parentNode)overlay.remove();
@@ -84,8 +81,8 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         overlay,
         element:modal,
         close,
-        setCloseHandler:handler=>{closeHandler=handler;},
-        setBeforeCloseHandler:handler=>{beforeCloseHandler=handler;}
+        setCloseHandler:handler=>{closeHandler=handler},
+        setBeforeCloseHandler:handler=>{beforeCloseHandler=handler}
     };
 
     requestAnimationFrame(()=>{
@@ -95,7 +92,6 @@ export function createModal({title="",content="",width=null,admin=false}={}){
 
     return{
         root:overlay,
-        element:modal,
         content:modal.querySelector(".modal__content"),
         setContent(html){
             const contentElement=modal.querySelector(".modal__content");
