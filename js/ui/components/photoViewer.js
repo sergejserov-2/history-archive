@@ -588,23 +588,23 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     const originalClose=modal.close;
 
-    modal.close=()=>{
-        controls.hide();
-        hideOriginalLoading();
-        ++loadToken;
+modal.close=()=>{
+    controls.hide();
+    hideOriginalLoading();
+    ++loadToken;
 
-        window.removeEventListener("mousemove",handleMouseMove);
-        window.removeEventListener("mouseup",handleMouseUp);
+    window.removeEventListener("mousemove",handleMouseMove);
+    window.removeEventListener("mouseup",handleMouseUp);
 
-        controls.destroy();
+    controls.destroy();
 
-        if(originalObjectUrl){
-            URL.revokeObjectURL(originalObjectUrl);
-            originalObjectUrl=null;
-        }
+    if(originalObjectUrl){
+        URL.revokeObjectURL(originalObjectUrl);
+        originalObjectUrl=null;
+    }
 
-        originalClose();
-    };
+    originalClose();
+};
 
     return modal;
 }
