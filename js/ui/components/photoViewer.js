@@ -5,8 +5,10 @@ import{adminEdit,adminDelete}from"./adminButtons.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}){
     if(!photo)return;
+
     const gallery=[...(photos??[])];
     let currentIndex=gallery.findIndex(item=>String(item.id)===String(photo.id));
+
     if(currentIndex<0){
         gallery.push(photo);
         currentIndex=gallery.length-1;
@@ -73,6 +75,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     root.addEventListener("click",event=>{
         const button=event.target.closest(".admin-button");
         if(!button)return;
+
         root.dispatchEvent(new CustomEvent("photo-admin-action",{
             bubbles:true,
             detail:{
@@ -91,7 +94,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     let dragging=false,startX=0,startY=0,startTranslateX=0,startTranslateY=0;
     let touchStartX=0,touchStartY=0,touchStartTranslateX=0,touchStartTranslateY=0;
     let pinchStartDistance=null,pinchStartZoom=1;
-    let relativeX=0,relativeY=0;
+    let savedZoom=1,savedRelativeX=0,savedRelativeY=0;
     let originalObjectUrl=null;
     let loadingTimer=null;
     let loadToken=0;
@@ -104,24 +107,36 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function calculateFitScale(){
         const areaWidth=imageArea.clientWidth,areaHeight=imageArea.clientHeight;
         const imageWidth=image.naturalWidth,imageHeight=image.naturalHeight;
+
         if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return false;
+
         fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
         updateTransform();
+
         return true;
     }
 
     function saveViewPosition(){
+        savedZoom=zoom;
+
         const width=image.naturalWidth*scale;
         const height=image.naturalHeight*scale;
-        relativeX=width?translateX/width:0;
-        relativeY=height?translateY/height:0;
+
+        savedRelativeX=width?translateX/width:0;
+        savedRelativeY=height?translateY/height:0;
     }
 
     function restoreViewPosition(){
+        zoom=savedZoom;
+        scale=fitScale*zoom;
+
         const width=image.naturalWidth*scale;
         const height=image.naturalHeight*scale;
-        translateX=relativeX*width;
-        translateY=relativeY*height;
+
+        translateX=savedRelativeX*width;
+        translateY=savedRelativeY*height;
+
+        updateTransform();
     }
 
     function resetView(){
@@ -130,10 +145,12 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         scale=1;
         translateX=0;
         translateY=0;
-        relativeX=0;
-        relativeY=0;
+        savedZoom=1;
+        savedRelativeX=0;
+        savedRelativeY=0;
         dragging=false;
         pinchStartDistance=null;
+
         imageArea.classList.remove("is-dragging");
         image.style.transform="";
         image.style.visibility="hidden";
@@ -141,6 +158,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     function updateInfo(nextPhoto){
         if(!showInfo)return;
+
         const description=root.querySelector(".photo-viewer__description");
         const author=root.querySelector(".photo-viewer__author");
         const authorValue=root.querySelector(".photo-viewer__author-value");
@@ -151,19 +169,26 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         const titleActions=root.querySelector(".photo-viewer__title-actions");
 
         if(title)title.textContent=nextPhoto.title??"";
-        if(titleActions)titleActions.innerHTML=`${adminEdit("photo",nextPhoto.id)}${adminDelete("photo",nextPhoto.id)}`;
+
+        if(titleActions){
+            titleActions.innerHTML=`${adminEdit("photo",nextPhoto.id)}${adminDelete("photo",nextPhoto.id)}`;
+        }
+
         if(description){
             description.textContent=nextPhoto.description??"";
             description.hidden=!nextPhoto.description;
         }
+
         if(author){
             authorValue.textContent=nextPhoto.author??"";
             author.hidden=!nextPhoto.author;
         }
+
         if(date){
             dateValue.textContent=nextPhoto.date??"";
             date.hidden=!nextPhoto.date;
         }
+
         if(download){
             if(nextPhoto.storagePath){
                 download.href=nextPhoto.storagePath;
@@ -186,8 +211,10 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     function showOriginalLoading(){
         if(!loading)return;
+
         loading.classList.add("photo-viewer__original-loading--visible");
         loading.classList.remove("photo-viewer__original-loading--indeterminate");
+
         if(progress)progress.style.width="0%";
     }
 
@@ -197,7 +224,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     function setIndeterminateProgress(){
         if(!loading)return;
+
         loading.classList.add("photo-viewer__original-loading--indeterminate");
+
         if(progress)progress.style.width="100%";
     }
 
@@ -206,13 +235,17 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             clearTimeout(loadingTimer);
             loadingTimer=null;
         }
+
         if(!loading)return;
+
         loading.classList.remove("photo-viewer__original-loading--visible","photo-viewer__original-loading--indeterminate");
+
         if(progress)progress.style.width="0%";
     }
 
     function startDelayedLoading(){
         hideOriginalLoading();
+
         loadingTimer=setTimeout(()=>{
             loadingTimer=null;
             showOriginalLoading();
@@ -221,6 +254,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     async function loadOriginal(src,token){
         const response=await fetch(src);
+
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         if(token!==loadToken)throw new Error("Загрузка отменена");
 
@@ -228,9 +262,10 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         const total=Number(contentLength);
 
         if(!response.body||!total){
-            setIndeterminateProgress();
             const blob=await response.blob();
+
             if(token!==loadToken)throw new Error("Загрузка отменена");
+
             return URL.createObjectURL(blob);
         }
 
@@ -240,10 +275,13 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         while(true){
             const{done,value}=await reader.read();
+
             if(done)break;
             if(token!==loadToken)throw new Error("Загрузка отменена");
+
             chunks.push(value);
             loaded+=value.length;
+
             updateOriginalProgress(loaded/total*100);
         }
 
@@ -256,6 +294,36 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             image.onerror=reject;
             image.src=src;
         });
+    }
+
+    async function loadOriginalInBackground(nextPhoto,token){
+        startDelayedLoading();
+
+        try{
+            const objectUrl=await loadOriginal(nextPhoto.storagePath,token);
+
+            if(token!==loadToken){
+                URL.revokeObjectURL(objectUrl);
+                return;
+            }
+
+            originalObjectUrl=objectUrl;
+
+            await loadBlobIntoImage(originalObjectUrl);
+
+            if(token!==loadToken)return;
+
+            calculateFitScale();
+            restoreViewPosition();
+            image.style.visibility="visible";
+            updateOriginalProgress(100);
+        }catch(error){
+            if(token===loadToken&&!String(error.message).includes("Загрузка отменена")){
+                console.error("Ошибка загрузки оригинала:",error);
+            }
+        }finally{
+            if(token===loadToken)hideOriginalLoading();
+        }
     }
 
     async function loadPhotoImage(nextPhoto){
@@ -273,11 +341,18 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         if(!nextPhoto.previewPath){
             if(!nextPhoto.storagePath)return false;
+
             try{
                 await loadImage(nextPhoto.storagePath);
+
                 if(token!==loadToken)return false;
+
                 image.src=nextPhoto.storagePath;
-                if(calculateFitScale())image.style.visibility="visible";
+
+                if(calculateFitScale()){
+                    image.style.visibility="visible";
+                }
+
                 return true;
             }catch(error){
                 if(token===loadToken)console.error("Ошибка загрузки изображения:",error);
@@ -287,7 +362,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         try{
             await loadImage(nextPhoto.previewPath);
+
             if(token!==loadToken)return false;
+
             image.src=nextPhoto.previewPath;
             calculateFitScale();
             image.style.visibility="visible";
@@ -296,40 +373,12 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             return false;
         }
 
-        if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath)return true;
-
-        startDelayedLoading();
-        saveViewPosition();
-
-        const savedZoom=zoom;
-
-        try{
-            const objectUrl=await loadOriginal(nextPhoto.storagePath,token);
-
-            if(token!==loadToken){
-                URL.revokeObjectURL(objectUrl);
-                return false;
-            }
-
-            originalObjectUrl=objectUrl;
-            await loadBlobIntoImage(originalObjectUrl);
-
-            if(token!==loadToken)return false;
-
-            fitScale=Math.min(imageArea.clientWidth/image.naturalWidth,imageArea.clientHeight/image.naturalHeight);
-            zoom=savedZoom;
-            scale=fitScale*zoom;
-            restoreViewPosition();
-            updateTransform();
-            image.style.visibility="visible";
-            updateOriginalProgress(100);
-        }catch(error){
-            if(token===loadToken&&!String(error.message).includes("Загрузка отменена")){
-                console.error("Ошибка загрузки оригинала:",error);
-            }
-        }finally{
-            if(token===loadToken)hideOriginalLoading();
+        if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath){
+            return true;
         }
+
+        saveViewPosition();
+        void loadOriginalInBackground(nextPhoto,token);
 
         return true;
     }
@@ -341,39 +390,49 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         controls.update(currentIndex);
         updateInfo(nextPhoto);
 
-        if(updateUrl&&nextPhoto.id)replaceModalUrl({entityId:nextPhoto.id});
+        if(updateUrl&&nextPhoto.id){
+            replaceModalUrl({entityId:nextPhoto.id});
+        }
 
         const loaded=await loadPhotoImage(nextPhoto);
 
-        if(loaded&&showControls)controls.show();
+        if(loaded&&showControls){
+            controls.show();
+        }
     }
 
     function showPrevious(){
         if(currentIndex<=0)return;
+
         controls.hide();
         void showPhoto(gallery[currentIndex-1],currentIndex-1,{showControls:true});
     }
 
     function showNext(){
         if(currentIndex>=gallery.length-1)return;
+
         controls.hide();
         void showPhoto(gallery[currentIndex+1],currentIndex+1,{showControls:true});
     }
 
     imageArea.addEventListener("mousedown",event=>{
         event.preventDefault();
+
         dragging=true;
         startX=event.clientX;
         startY=event.clientY;
         startTranslateX=translateX;
         startTranslateY=translateY;
+
         imageArea.classList.add("is-dragging");
     });
 
     function handleMouseMove(event){
         if(!dragging)return;
+
         translateX=startTranslateX+event.clientX-startX;
         translateY=startTranslateY+event.clientY-startY;
+
         updateTransform();
     }
 
@@ -408,6 +467,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     imageArea.addEventListener("touchstart",event=>{
         if(event.touches.length===1){
             const touch=event.touches[0];
+
             dragging=true;
             touchStartX=touch.clientX;
             touchStartY=touch.clientY;
@@ -427,16 +487,21 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         if(event.touches.length===1&&dragging){
             const touch=event.touches[0];
+
             translateX=touchStartTranslateX+touch.clientX-touchStartX;
             translateY=touchStartTranslateY+touch.clientY-touchStartY;
+
             updateTransform();
         }
 
         if(event.touches.length===2){
             const distance=getTouchDistance(event.touches[0],event.touches[1]);
+
             if(!pinchStartDistance)return;
+
             zoom=pinchStartZoom*(distance/pinchStartDistance);
             zoom=Math.max(1,Math.min(zoom,5));
+
             updateTransform();
         }
     },{passive:false});
@@ -449,6 +514,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function getTouchDistance(first,second){
         const dx=first.clientX-second.clientX;
         const dy=first.clientY-second.clientY;
+
         return Math.sqrt(dx*dx+dy*dy);
     }
 
@@ -468,31 +534,23 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     });
 
     const originalClose=modal.close;
-    let closing=false;
 
     modal.close=()=>{
-        if(closing)return;
-        closing=true;
-
+        controls.hide();
         hideOriginalLoading();
+        ++loadToken;
+
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
 
-        controls.hide();
+        controls.destroy();
 
-        return new Promise(resolve=>{
-            setTimeout(()=>{
-                controls.destroy();
+        if(originalObjectUrl){
+            URL.revokeObjectURL(originalObjectUrl);
+            originalObjectUrl=null;
+        }
 
-                if(originalObjectUrl){
-                    URL.revokeObjectURL(originalObjectUrl);
-                    originalObjectUrl=null;
-                }
-
-                originalClose();
-                resolve();
-            },180);
-        });
+        originalClose();
     };
 
     return modal;
