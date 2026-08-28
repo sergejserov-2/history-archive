@@ -20,6 +20,7 @@ function getPeriod(record){
 
 function getRecordData(record,subjects=[]){
     return{
+        id:record.id,
         title:record.title??"",
         description:record.description?.trim()?renderMentions(record.description.trim(),subjects,getSubjectHref):"",
         meta:getPeriod(record),
@@ -69,7 +70,7 @@ export function renderRecord(record,subjects=[]){
         hasMeta?"entity-list-row--meta":""
     ].filter(Boolean).join(" ");
     return`
-        <div class="${rowClass} record" data-record-id="${record.id}">
+        <div class="${rowClass} record" data-record-id="${record.id}" data-id="${record.id}">
             <div class="entity-list-row__title">
                 <span class="entity-list-row__title-text">${item.title}</span>
                 ${item.actions}
@@ -80,36 +81,17 @@ export function renderRecord(record,subjects=[]){
     `;
 }
 
-export function insertRecord(record,subjects=[],recordTypes=[]){
-    const html=renderRecord(record,subjects);
+function createRecordElement(record,subjects=[]){
     const template=document.createElement("template");
-    template.innerHTML=html.trim();
-    const element=template.content.firstElementChild;
-    if(!element)return null;
-    const item=getRecordData(record,subjects);
-    const groupId=getRecordGroupId(record,recordTypes);
-    const groupTitle=getRecordGroupTitle(record,recordTypes);
-    const result=insertEntityListItem({
-        groupId,
-        groupTitle,
-        element,
-        compare:(newElement,row)=>{
-            const meta=row.querySelector(".entity-list-row__meta")?.textContent.trim()??"";
-            const title=row.querySelector(".entity-list-row__title-text")?.textContent.trim()??"";
-            return compareItems({meta,title},{meta:item.meta,title:item.title});
-        }
-    });
-    return result?.element??null;
+    template.innerHTML=renderRecord(record,subjects).trim();
+    return template.content.firstElementChild;
 }
 
-export async function addRecordToList(record,subjects=[],recordTypes=[]){
-    const html=renderRecord(record,subjects);
-    const template=document.createElement("template");
-    template.innerHTML=html.trim();
-    const element=template.content.firstElementChild;
+function getInsertResult(record,subjects=[],recordTypes=[]){
+    const element=createRecordElement(record,subjects);
     if(!element)return null;
     const item=getRecordData(record,subjects);
-    const result=insertEntityListItem({
+    return insertEntityListItem({
         groupId:getRecordGroupId(record,recordTypes),
         groupTitle:getRecordGroupTitle(record,recordTypes),
         element,
@@ -119,8 +101,18 @@ export async function addRecordToList(record,subjects=[],recordTypes=[]){
             return compareItems({meta,title},{meta:item.meta,title:item.title});
         }
     });
+}
+
+export function insertRecord(record,subjects=[],recordTypes=[]){
+    const result=getInsertResult(record,subjects,recordTypes);
+    return result?.element??null;
+}
+
+export async function addRecordToList(record,subjects=[],recordTypes=[]){
+    const result=getInsertResult(record,subjects,recordTypes);
+    if(!result)return null;
     await showEntityListItem(result);
-    return element;
+    return result.element;
 }
 
 export async function removeRecordFromList(id){
@@ -135,7 +127,7 @@ export function renderRecords(records,recordTypes=[],subjects=[]){
         type:recordType,
         records:(records??[]).filter(record=>record.typeId===recordType.id)
     })).filter(group=>group.records.length>0);
-    const recordsWithoutType=(records??[]).filter(record=>!record.typeId||!recordTypes.some(type=>type.id===record.typeId));
+    const recordsWithoutType=(records??[]).filter(record=>!record.typeId||!recordTypes.some(type=>type.id===record.typeTypeId));
     typedRecords.forEach(group=>groups.push({
         id:group.type.id,
         title:group.type.title??"",
