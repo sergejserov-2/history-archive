@@ -126,8 +126,8 @@ async function loadPage(){
     console.timeEnd("RENDER PAGE");
 }
 
-export function onPhotoDeleted(){return updates.updatePhotosBlock();}
-export function onSourceDeleted(){return updates.updateSourcesBlock();}
+export function onPhotoDeleted(id){return updates.removePhoto(id);}
+export function onSourceDeleted(id){return updates.removeSource(id);}
 export function onRecordDeleted(id){return updates.removeRecord(id);}
 export function onObjectDeleted(){return updates.onObjectDeleted();}
 
