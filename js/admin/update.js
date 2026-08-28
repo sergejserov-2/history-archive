@@ -40,7 +40,7 @@ export async function getEntity(type,id){
     throw new Error(`Unknown entity type: ${type}`);
 }
 
-export async function updateEntity(type,entity,data,context={},updates=[]){
+export async function updateEntity(type,entity,data,context={},updates={}){
     const api=API[type];
     if(!api)throw new Error(`Unknown entity type: ${type}`);
 
@@ -73,7 +73,9 @@ export async function updateEntity(type,entity,data,context={},updates=[]){
     }
 
     let savedData;
-    if(entity?.id){
+    const isUpdate=Boolean(entity?.id);
+
+    if(isUpdate){
         await api.update(entity.id,data);
         savedData={id:entity.id,...data};
         await createActivity({action:"update",entityType:type,entityId:entity.id,title:data.title??entity.title??"",...(type==="object"||type==="record"||type==="photo"||type==="source"?{parentId:context.parentId??null}:{}),adminEmail:getAdminEmail(),createdAt:Date.now()});
@@ -82,10 +84,9 @@ export async function updateEntity(type,entity,data,context={},updates=[]){
         await createActivity({action:"create",entityType:type,entityId:savedData.id,title:savedData.title??"",...(type==="object"||type==="record"||type==="photo"||type==="source"?{parentId:context.parentId??null}:{}),adminEmail:getAdminEmail(),createdAt:Date.now()});
     }
 
-    for(const update of updates){
-        const callback=context.updates?.[update];
-        if(typeof callback==="function")await callback(savedData);
-    }
+    const updateName=isUpdate?updates.update:updates.create;
+    const callback=context.updates?.[updateName];
+    if(typeof callback==="function")await callback(savedData);
 
     return savedData;
 }
