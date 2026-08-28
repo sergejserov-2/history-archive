@@ -67,6 +67,7 @@ export function clearModalUrl(){
 async function closeCurrentWithoutHistory(){
     const modal=getCurrentModal();
     if(!modal)return;
+    modal.setBeforeCloseHandler?.(null);
     modal.setCloseHandler(null);
     await modal.close({runHandler:false});
 }
