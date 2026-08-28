@@ -5,8 +5,10 @@ import{adminEdit,adminDelete}from"./adminButtons.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}){
     if(!photo)return;
+
     const gallery=[...(photos??[])];
     let currentIndex=gallery.findIndex(item=>String(item.id)===String(photo.id));
+
     if(currentIndex<0){
         gallery.push(photo);
         currentIndex=gallery.length-1;
@@ -63,7 +65,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     if(infoToggle){
         infoToggle.onclick=()=>{
             viewer.classList.toggle("photo-viewer--info-collapsed");
+
             const collapsed=viewer.classList.contains("photo-viewer--info-collapsed");
+
             infoToggle.textContent=collapsed?"‹":"›";
             infoToggle.setAttribute("aria-label",collapsed?"Развернуть информацию":"Свернуть информацию");
             infoToggle.title=collapsed?"Развернуть":"Свернуть";
@@ -73,6 +77,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     root.addEventListener("click",event=>{
         const button=event.target.closest(".admin-button");
         if(!button)return;
+
         root.dispatchEvent(new CustomEvent("photo-admin-action",{
             bubbles:true,
             detail:{
@@ -101,20 +106,25 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function calculateFitScale(){
         const areaWidth=imageArea.clientWidth,areaHeight=imageArea.clientHeight;
         const imageWidth=image.naturalWidth,imageHeight=image.naturalHeight;
+
         if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return false;
+
         fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
         updateTransform();
+
         return true;
     }
 
     function saveRelativePosition(){
         const width=image.naturalWidth*scale,height=image.naturalHeight*scale;
+
         relativeX=width?translateX/width:0;
         relativeY=height?translateY/height:0;
     }
 
     function restoreRelativePosition(){
         const width=image.naturalWidth*scale,height=image.naturalHeight*scale;
+
         translateX=relativeX*width;
         translateY=relativeY*height;
     }
@@ -129,6 +139,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         relativeY=0;
         dragging=false;
         pinchStartDistance=null;
+
         imageArea.classList.remove("is-dragging");
         image.style.transform="";
         image.style.visibility="hidden";
@@ -181,6 +192,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function loadImage(src){
         return new Promise((resolve,reject)=>{
             const loader=new Image();
+
             loader.onload=()=>resolve(loader);
             loader.onerror=reject;
             loader.src=src;
@@ -189,8 +201,10 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     function showOriginalLoading(){
         if(!loading)return;
+
         loading.classList.add("photo-viewer__original-loading--visible");
         loading.classList.remove("photo-viewer__original-loading--indeterminate");
+
         if(progress)progress.style.width="0%";
     }
 
@@ -200,17 +214,21 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     function setIndeterminateProgress(){
         if(!loading)return;
+
         loading.classList.add("photo-viewer__original-loading--indeterminate");
+
         if(progress)progress.style.width="100%";
     }
 
     function hideOriginalLoading(){
         if(!loading)return;
+
         loading.classList.remove("photo-viewer__original-loading--visible","photo-viewer__original-loading--indeterminate");
     }
 
     async function loadOriginal(src){
         const response=await fetch(src);
+
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
 
         const contentLength=response.headers.get("Content-Length");
@@ -218,7 +236,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         if(!response.body||!total){
             setIndeterminateProgress();
+
             const blob=await response.blob();
+
             return URL.createObjectURL(blob);
         }
 
@@ -228,9 +248,12 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         while(true){
             const{done,value}=await reader.read();
+
             if(done)break;
+
             chunks.push(value);
             loaded+=value.length;
+
             updateOriginalProgress(loaded/total*100);
         }
 
@@ -246,16 +269,24 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             originalObjectUrl=null;
         }
 
-        if(nextPhoto.previewPath)imageBackground.style.backgroundImage=`url('${nextPhoto.previewPath}')`;
-        else imageBackground.style.backgroundImage="";
+        if(nextPhoto.previewPath){
+            imageBackground.style.backgroundImage=`url('${nextPhoto.previewPath}')`;
+        }else{
+            imageBackground.style.backgroundImage="";
+        }
 
         if(!nextPhoto.previewPath){
             if(!nextPhoto.storagePath)return false;
 
             try{
                 await loadImage(nextPhoto.storagePath);
+
                 image.src=nextPhoto.storagePath;
-                if(calculateFitScale())image.style.visibility="visible";
+
+                if(calculateFitScale()){
+                    image.style.visibility="visible";
+                }
+
                 return true;
             }catch(error){
                 console.error("Ошибка загрузки изображения:",error);
@@ -265,6 +296,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         try{
             await loadImage(nextPhoto.previewPath);
+
             image.src=nextPhoto.previewPath;
             calculateFitScale();
             image.style.visibility="visible";
@@ -273,12 +305,15 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             return false;
         }
 
-        if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath)return true;
+        if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath){
+            return true;
+        }
 
         showOriginalLoading();
 
         try{
             originalObjectUrl=await loadOriginal(nextPhoto.storagePath);
+
             saveRelativePosition();
 
             image.src=originalObjectUrl;
@@ -305,6 +340,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         if(!nextPhoto)return;
 
         currentIndex=nextIndex;
+
         controls.update(currentIndex);
         updateInfo(nextPhoto);
 
@@ -314,33 +350,41 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         const loaded=await loadPhotoImage(nextPhoto);
 
-        if(loaded&&showControls)controls.show();
+        if(loaded&&showControls){
+            controls.show();
+        }
     }
 
     function showPrevious(){
         if(currentIndex<=0)return;
-        void showPhoto(gallery[currentIndex-1],currentIndex-1,{showControls:false});
+
+        void showPhoto(gallery[currentIndex-1],currentIndex-1);
     }
 
     function showNext(){
         if(currentIndex>=gallery.length-1)return;
-        void showPhoto(gallery[currentIndex+1],currentIndex+1,{showControls:false});
+
+        void showPhoto(gallery[currentIndex+1],currentIndex+1);
     }
 
     imageArea.addEventListener("mousedown",event=>{
         event.preventDefault();
+
         dragging=true;
         startX=event.clientX;
         startY=event.clientY;
         startTranslateX=translateX;
         startTranslateY=translateY;
+
         imageArea.classList.add("is-dragging");
     });
 
     function handleMouseMove(event){
         if(!dragging)return;
+
         translateX=startTranslateX+event.clientX-startX;
         translateY=startTranslateY+event.clientY-startY;
+
         updateTransform();
     }
 
@@ -375,6 +419,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     imageArea.addEventListener("touchstart",event=>{
         if(event.touches.length===1){
             const touch=event.touches[0];
+
             dragging=true;
             touchStartX=touch.clientX;
             touchStartY=touch.clientY;
@@ -394,17 +439,21 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         if(event.touches.length===1&&dragging){
             const touch=event.touches[0];
+
             translateX=touchStartTranslateX+touch.clientX-touchStartX;
             translateY=touchStartTranslateY+touch.clientY-touchStartY;
+
             updateTransform();
         }
 
         if(event.touches.length===2){
             const distance=getTouchDistance(event.touches[0],event.touches[1]);
+
             if(!pinchStartDistance)return;
 
             zoom=pinchStartZoom*(distance/pinchStartDistance);
             zoom=Math.max(1,Math.min(zoom,5));
+
             updateTransform();
         }
     },{passive:false});
@@ -417,6 +466,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function getTouchDistance(first,second){
         const dx=first.clientX-second.clientX;
         const dy=first.clientY-second.clientY;
+
         return Math.sqrt(dx*dx+dy*dy);
     }
 
@@ -430,27 +480,27 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     controls.hide();
     root.appendChild(controls.element);
 
-    void showPhoto(gallery[currentIndex],currentIndex,{updateUrl:false,showControls:true});
+    void showPhoto(gallery[currentIndex],currentIndex,{
+        updateUrl:false,
+        showControls:true
+    });
 
     const originalClose=modal.close;
 
     modal.close=()=>{
-        controls.hide();
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
 
-        return new Promise(resolve=>{
-            setTimeout(()=>{
-                controls.destroy();
+        const result=originalClose();
 
-                if(originalObjectUrl){
-                    URL.revokeObjectURL(originalObjectUrl);
-                    originalObjectUrl=null;
-                }
+        controls.destroy();
 
-                resolve(originalClose());
-            },180);
-        });
+        if(originalObjectUrl){
+            URL.revokeObjectURL(originalObjectUrl);
+            originalObjectUrl=null;
+        }
+
+        return result;
     };
 
     return modal;
