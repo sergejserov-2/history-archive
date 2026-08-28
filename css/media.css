@@ -373,22 +373,22 @@
 
 .photo-viewer__original-loading {
     position: absolute;
-    top:18px;
-    left:50%;
-    z-index:5;
-    width:min(320px,80%);
-    transform:translate(-50%,-8px);
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .2s ease,transform .2s ease;
-    text-align:center;
-    color:var(--color-text-primary);
-    font-size:var(--font-size-sm);
+    top: 18px;
+    left: 50%;
+    z-index: 5;
+    width: min(320px,80%);
+    transform: translate(-50%,-8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease,transform .2s ease;
+    text-align: center;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
 }
 
 .photo-viewer__original-loading--visible {
-    opacity:1;
-    transform:translate(-50%,0);
+    opacity: 1;
+    transform: translate(-50%,0);
 }
 
 .photo-viewer__progress {
@@ -515,6 +515,24 @@
     background:var(--color-card-hover);
     color:var(--color-text-primary);
 }
+
+
+.photo-viewer__image-area::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 4;
+    height: 110px;
+    background: linear-gradient(to bottom, rgba(0,0,0,.55), transparent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .45s ease;
+}
+
+.photo-viewer__image-area:has(.photo-viewer__original-loading--visible)::after {
+    opacity: 1;
+}
+
 
 
 /* ==========================================
