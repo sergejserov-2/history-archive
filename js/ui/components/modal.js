@@ -33,6 +33,7 @@ export function createModal({title="",content="",width=null,admin=false}={}){
     const modal=createModalElement({title,content,width,admin});
     let closing=false;
     let closeHandler=null;
+    let beforeCloseHandler=null;
 
     if(!oldModal){
         overlay.className="modal-overlay";
@@ -43,6 +44,10 @@ export function createModal({title="",content="",width=null,admin=false}={}){
 
     async function close({runHandler=true}={}){
         if(currentModal?.element!==modal||closing)return;
+
+        if(runHandler&&typeof beforeCloseHandler==="function"){
+            await beforeCloseHandler();
+        }
 
         if(runHandler&&typeof closeHandler==="function"){
             await closeHandler();
@@ -79,7 +84,8 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         overlay,
         element:modal,
         close,
-        setCloseHandler:handler=>{closeHandler=handler;}
+        setCloseHandler:handler=>{closeHandler=handler;},
+        setBeforeCloseHandler:handler=>{beforeCloseHandler=handler;}
     };
 
     requestAnimationFrame(()=>{
@@ -96,6 +102,9 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         },
         setCloseHandler(handler){
             closeHandler=handler;
+        },
+        setBeforeCloseHandler(handler){
+            beforeCloseHandler=handler;
         },
         close:()=>close()
     };
