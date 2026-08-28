@@ -127,7 +127,7 @@ export function renderRecords(records,recordTypes=[],subjects=[]){
         type:recordType,
         records:(records??[]).filter(record=>record.typeId===recordType.id)
     })).filter(group=>group.records.length>0);
-    const recordsWithoutType=(records??[]).filter(record=>!record.typeId||!recordTypes.some(type=>type.id===record.typeTypeId));
+const recordsWithoutType=(records??[]).filter(record=>!record.typeId||!recordTypes.some(type=>type.id===record.typeId));
     typedRecords.forEach(group=>groups.push({
         id:group.type.id,
         title:group.type.title??"",
