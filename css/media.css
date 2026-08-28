@@ -306,24 +306,31 @@
 
 .modal--photo-viewer .modal__content {
     position: relative;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .photo-viewer {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--viewer-info-width);
+    grid-template-columns: minmax(0,1fr) var(--viewer-info-width);
     gap: var(--viewer-gap);
     align-items: stretch;
-    transition:grid-template-columns .25s ease;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible;
+    transition:grid-template-columns .25s ease,gap .25s ease;
 }
 
 .photo-viewer--info-collapsed {
-    grid-template-columns: minmax(0,1fr) 0;
+    grid-template-columns:minmax(0,1fr) 0;
     gap:0;
 }
 
 .photo-viewer__image-area {
     position: relative;
     min-width: 0;
+    width: 100%;
     height: var(--viewer-height);
     min-height: var(--viewer-min-height);
     display: flex;
@@ -366,13 +373,13 @@
 
 .photo-viewer__original-loading {
     position: absolute;
-    top: 18px;
-    left: 50%;
-    z-index: 5;
-    width: min(320px,80%);
-    transform: translate(-50%,-8px);
-    opacity: 0;
-    pointer-events: none;
+    top:18px;
+    left:50%;
+    z-index:5;
+    width:min(320px,80%);
+    transform:translate(-50%,-8px);
+    opacity:0;
+    pointer-events:none;
     transition:opacity .2s ease,transform .2s ease;
     text-align:center;
     color:var(--color-text-primary);
@@ -397,23 +404,45 @@
     width:0;
     height:100%;
     background:var(--color-text-secondary);
-    transition:width .2s ease;
+    transition:width .12s linear;
+}
+
+.photo-viewer__original-loading--indeterminate .photo-viewer__progress div {
+    width:35%;
+    animation:photo-viewer-progress 1s ease-in-out infinite;
+}
+
+@keyframes photo-viewer-progress {
+    0% {
+        transform:translateX(-100%);
+    }
+    100% {
+        transform:translateX(380%);
+    }
 }
 
 .photo-viewer__info {
     position: relative;
     min-width: 0;
+    width: 100%;
     overflow: visible;
+}
+
+.photo-viewer--info-collapsed .photo-viewer__info {
+    width:0;
+}
+
+.photo-viewer__info-content {
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+    opacity:1;
+    transition:opacity .2s ease;
 }
 
 .photo-viewer--info-collapsed .photo-viewer__info-content {
     opacity:0;
     pointer-events:none;
-}
-
-.photo-viewer__info-content {
-    opacity:1;
-    transition:opacity .2s ease;
 }
 
 .photo-viewer__info-toggle {
@@ -436,10 +465,6 @@
 
 .photo-viewer__info-toggle:hover {
     color:var(--color-text-primary);
-}
-
-.photo-viewer--info-collapsed .photo-viewer__info-toggle {
-    left:-20px;
 }
 
 .photo-viewer__title {
