@@ -1,5 +1,6 @@
 const EXPAND_DURATION=320;
 const COLLAPSE_DURATION=320;
+const CHANGE_DURATION=320;
 
 function getRect(el){
     return el?.getBoundingClientRect()||null;
@@ -24,62 +25,38 @@ function setMargins(el,m){
 
 function getAxis(el){
     const parent=el?.parentElement;
-    if(!parent)
-        return"vertical";
-
+    if(!parent)return"vertical";
     const s=getComputedStyle(parent);
-
-    if(s.display==="flex")
-        return s.flexDirection.startsWith("row")?"horizontal":"vertical";
-
+    if(s.display==="flex")return s.flexDirection.startsWith("row")?"horizontal":"vertical";
     if(s.display==="grid"){
         const rect=getRect(el);
-
         if(rect){
             for(const sibling of parent.children){
-                if(sibling===el)
-                    continue;
-
+                if(sibling===el)continue;
                 const r=getRect(sibling);
-                if(!r)
-                    continue;
-
-                if(Math.abs(r.top-rect.top)<2)
-                    return"horizontal";
-
-                if(Math.abs(r.left-rect.left)<2)
-                    return"vertical";
+                if(!r)continue;
+                if(Math.abs(r.top-rect.top)<2)return"horizontal";
+                if(Math.abs(r.left-rect.left)<2)return"vertical";
             }
         }
-
         return s.gridAutoFlow.includes("column")?"horizontal":"vertical";
     }
-
     return"vertical";
 }
 
 function getGap(el,axis){
     const parent=el?.parentElement;
-    if(!parent)
-        return 0;
-
+    if(!parent)return 0;
     const s=getComputedStyle(parent);
-
-    return axis==="horizontal"
-        ?parseFloat(s.columnGap)||0
-        :parseFloat(s.rowGap)||0;
+    return axis==="horizontal"?parseFloat(s.columnGap)||0:parseFloat(s.rowGap)||0;
 }
 
-function getSize(el){
+export function getSize(el){
     const rect=getRect(el);
     const margins=getMargins(el);
-
-    if(!rect)
-        return 0;
-
+    if(!rect)return 0;
     const axis=getAxis(el);
     const gap=getGap(el,axis);
-
     return axis==="vertical"
         ?rect.height+margins.top+margins.bottom+gap
         :rect.width+margins.left+margins.right+gap;
@@ -88,18 +65,12 @@ function getSize(el){
 function getHiddenMargins(el){
     const rect=getRect(el);
     const margins=getMargins(el);
-
-    if(!rect)
-        return margins;
-
+    if(!rect)return margins;
     const axis=getAxis(el);
     const gap=getGap(el,axis);
     const hidden={...margins};
-    const size=axis==="vertical"
-        ?rect.height+margins.top+margins.bottom+gap
-        :rect.width+margins.left+margins.right+gap;
+    const size=rect[axis==="vertical"?"height":"width"]+margins.top+margins.bottom+gap;
     const shift=size/2;
-
     if(axis==="vertical"){
         hidden.top-=shift;
         hidden.bottom-=shift;
@@ -107,17 +78,12 @@ function getHiddenMargins(el){
         hidden.left-=shift;
         hidden.right-=shift;
     }
-
     return hidden;
 }
 
 function stop(el){
-    if(el._animationFrame)
-        cancelAnimationFrame(el._animationFrame);
-
-    if(el._animationTimer)
-        clearTimeout(el._animationTimer);
-
+    if(el._animationFrame)cancelAnimationFrame(el._animationFrame);
+    if(el._animationTimer)clearTimeout(el._animationTimer);
     el._animationFrame=null;
     el._animationTimer=null;
 }
@@ -143,70 +109,52 @@ function interpolate(from,to,t){
 }
 
 function animate(el,from,to,duration){
-    if(!el)
-        return Promise.resolve();
-
+    if(!el)return Promise.resolve();
     stop(el);
     setMargins(el,from);
     void document.documentElement.offsetHeight;
-
     const start=performance.now();
-
     return new Promise(resolve=>{
         function frame(now){
             const t=Math.min(1,(now-start)/duration);
             setMargins(el,interpolate(from,to,ease(t)));
-
             if(t<1){
                 el._animationFrame=requestAnimationFrame(frame);
                 return;
             }
-
             el._animationFrame=null;
             setMargins(el,to);
-
             el._animationTimer=setTimeout(()=>{
                 el._animationTimer=null;
                 resolve();
             },20);
         }
-
         el._animationFrame=requestAnimationFrame(frame);
     });
 }
 
 function animateGroup(elements,mode,duration){
-    if(!elements?.length)
-        return Promise.resolve();
-
+    if(!elements?.length)return Promise.resolve();
     const items=elements.filter(Boolean).map(el=>({
         el,
         visible:getMargins(el),
         size:getSize(el)
     }));
-
-    if(!items.length)
-        return Promise.resolve();
-
+    if(!items.length)return Promise.resolve();
     const total=items.reduce((sum,item)=>sum+item.size,0);
-
     for(const item of items){
         stop(item.el);
         setMargins(item.el,item.visible);
     }
-
     void document.documentElement.offsetHeight;
-
     const first=items[0];
     const axis=getAxis(first.el);
     const shift=total/2;
-
     const animations=items.map(item=>({
         el:item.el,
         from:{...item.visible},
         to:{...item.visible}
     }));
-
     if(mode==="collapse"){
         if(axis==="vertical"){
             animations[0].to.top-=shift;
@@ -224,81 +172,55 @@ function animateGroup(elements,mode,duration){
             animations[0].from.right-=shift;
         }
     }
-
     const start=performance.now();
-
     return new Promise(resolve=>{
         function frame(now){
             const t=Math.min(1,(now-start)/duration);
             const e=ease(t);
-
             for(const item of animations)
                 setMargins(item.el,interpolate(item.from,item.to,e));
-
             if(t<1){
                 const frameId=requestAnimationFrame(frame);
-
-                for(const item of animations)
-                    item.el._animationFrame=frameId;
-
+                for(const item of animations)item.el._animationFrame=frameId;
                 return;
             }
-
             for(const item of animations){
                 item.el._animationFrame=null;
                 setMargins(item.el,item.to);
             }
-
             const timer=setTimeout(()=>{
-                for(const item of animations)
-                    item.el._animationTimer=null;
-
+                for(const item of animations)item.el._animationTimer=null;
                 resolve();
             },20);
-
-            for(const item of animations)
-                item.el._animationTimer=timer;
+            for(const item of animations)item.el._animationTimer=timer;
         }
-
         const frameId=requestAnimationFrame(frame);
-
-        for(const item of animations)
-            item.el._animationFrame=frameId;
+        for(const item of animations)item.el._animationFrame=frameId;
     });
 }
 
 export function cancelSizeAnimation(el){
-    if(!el)
-        return;
-
+    if(!el)return;
     stop(el);
     clear(el);
 }
 
 export function clearSizeAnimation(el){
-    if(!el)
-        return;
-
+    if(!el)return;
     clear(el);
 }
 
 export function animateExpand(el){
-    if(!el)
-        return Promise.resolve();
-
+    if(!el)return Promise.resolve();
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
-
     return animate(el,hidden,visible,EXPAND_DURATION);
 }
 
 export function animateCollapse(el){
-    if(!el)
-        return Promise.resolve();
-
+    if(!el)return Promise.resolve();
     const visible=getMargins(el);
     const hidden=getHiddenMargins(el);
-
     return animate(el,visible,hidden,COLLAPSE_DURATION);
 }
 
@@ -308,4 +230,20 @@ export function animateExpandGroup(elements){
 
 export function animateCollapseGroup(elements){
     return animateGroup(elements,"collapse",COLLAPSE_DURATION);
+}
+
+export function animateChange(el,oldSize){
+    if(!el||!Number.isFinite(oldSize))return Promise.resolve();
+    const newSize=getSize(el);
+    if(newSize<=oldSize)return Promise.resolve();
+    const margins=getMargins(el);
+    const axis=getAxis(el);
+    const delta=newSize-oldSize;
+    const from={...margins};
+    const to={...margins};
+    if(axis==="vertical")from.bottom+=delta;
+    else from.right+=delta;
+    return animate(el,from,to,CHANGE_DURATION).then(()=>{
+        clear(el);
+    });
 }
