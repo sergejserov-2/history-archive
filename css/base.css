@@ -653,7 +653,9 @@ section h2 {
 *::-webkit-scrollbar-thumb:hover {
     background: var(--color-card-hover);
 }
-
+html.animation--running{
+    overflow:clip;
+}
 
 /* ==========================================
    FEEDBACK PROMPT
