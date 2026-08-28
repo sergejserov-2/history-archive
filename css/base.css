@@ -900,5 +900,5 @@ button.admin-button:hover {
 
 .admin-button--disabled{
     opacity:.45;
-    cursor:not-allowed;
+    cursor:not-allowed !important;
 }
