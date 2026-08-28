@@ -1,6 +1,5 @@
 const EXPAND_DURATION=320;
 const COLLAPSE_DURATION=320;
-const CHANGE_DURATION=6320;
 
 function getRect(el){
     return el?.getBoundingClientRect()||null;
@@ -230,56 +229,4 @@ export function animateExpandGroup(elements){
 
 export function animateCollapseGroup(elements){
     return animateGroup(elements,"collapse",COLLAPSE_DURATION);
-}
-
-
-export function animateChange(el,oldSize,onPrepared){
-    if(!el||!Number.isFinite(oldSize))return Promise.resolve();
-    return new Promise(resolve=>{
-        requestAnimationFrame(()=>{
-            requestAnimationFrame(()=>{
-                const newSize=getSize(el);
-                if(newSize===oldSize){
-                    onPrepared?.();
-                    resolve();
-                    return;
-                }
-                const margins=getMargins(el);
-                const axis=getAxis(el);
-                const delta=newSize-oldSize;
-                const from={...margins};
-                const to={...margins};
-                if(axis==="vertical"){
-                    from.top-=delta/2;
-                    from.bottom-=delta/2;
-                }else{
-                    from.left-=delta/2;
-                    from.right-=delta/2;
-                }
-                setMargins(el,from);
-                void el.offsetHeight;
-                onPrepared?.();
-                requestAnimationFrame(()=>{
-                    const start=performance.now();
-                    function frame(now){
-                        const t=Math.min(1,Math.max(0,(now-start)/CHANGE_DURATION));
-                        const e=ease(t);
-                        setMargins(el,interpolate(from,to,e));
-                        if(t<1){
-                            el._animationFrame=requestAnimationFrame(frame);
-                            return;
-                        }
-                        el._animationFrame=null;
-                        setMargins(el,to);
-                        el._animationTimer=setTimeout(()=>{
-                            el._animationTimer=null;
-                            clear(el);
-                            resolve();
-                        },20);
-                    }
-                    el._animationFrame=requestAnimationFrame(frame);
-                });
-            });
-        });
-    });
 }
