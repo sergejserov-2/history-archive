@@ -52,14 +52,12 @@ export async function updateEntity(type,entity,data,context={},updates=[]){
         if(!newId)throw new Error("ID типа не указан");
         const targetApi=API[newTarget];
         if(!targetApi?.create||!targetApi?.delete)throw new Error(`Unknown type target: ${newTarget}`);
-
         if(!oldId){
             const savedData={...data,id:newId,target:newTarget};
             const saved=await targetApi.create(newId,savedData);
             await createActivity({action:"create",entityType:type,entityId:newId,title:data.title??newId,adminEmail:getAdminEmail(),createdAt:Date.now()});
             return saved??savedData;
         }
-
         if(oldId!==newId||oldTarget!==newTarget){
             const savedData={...data,id:newId,target:newTarget};
             await targetApi.create(newId,savedData);
@@ -67,7 +65,6 @@ export async function updateEntity(type,entity,data,context={},updates=[]){
             await createActivity({action:"update",entityType:type,entityId:newId,title:data.title??newId,adminEmail:getAdminEmail(),createdAt:Date.now()});
             return savedData;
         }
-
         const updateData={...data};
         delete updateData.id;
         await api.update(oldId,updateData);
@@ -161,14 +158,11 @@ export function createPageUpdates(state){
         const bMeta=String(b?.date??b?.dateStart??b?.dateEnd??"").trim();
         const aNumber=getRecordSortValue(a);
         const bNumber=getRecordSortValue(b);
-
         if(aNumber!==null&&bNumber===null)return-1;
         if(aNumber===null&&bNumber!==null)return 1;
         if(aNumber!==null&&bNumber!==null&&aNumber!==bNumber)return aNumber-bNumber;
-
         const metaCompare=aMeta.localeCompare(bMeta,"ru",{numeric:true,sensitivity:"base"});
         if(metaCompare!==0)return metaCompare;
-
         return String(a?.title??"").localeCompare(String(b?.title??""),"ru",{sensitivity:"base"});
     }
 
@@ -261,18 +255,21 @@ export function createPageUpdates(state){
             if(element)await show(element);
         },
 
-async removeRecord(id){
-    state.records=state.records.filter(record=>record.id!==id);
-    const element=document.querySelector(`.record[data-record-id="${id}"]`);
-    if(!element)return;
-    const group=element.closest(".entity-list__group");
-    await hide(element);
-    element.remove();
-    if(group&&!group.querySelector(".record")){
-        await hide(group);
-        group.remove();
-    }
-},
+        async removeRecord(id){
+            const element=document.querySelector(`.record[data-record-id="${id}"]`);
+            state.records=state.records.filter(record=>record.id!==id);
+            if(!element)return;
+            const group=element.closest(".entity-list__group");
+            const lastRecord=group&&!group.querySelector(`.record:not([data-record-id="${id}"])`);
+            if(lastRecord&&group){
+                await Promise.all([hide(element),hide(group)]);
+                element.remove();
+                group.remove();
+                return;
+            }
+            await hide(element);
+            element.remove();
+        },
 
         async updateRecord(savedRecord){
             if(!savedRecord?.id)return;
