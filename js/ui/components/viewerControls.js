@@ -27,10 +27,18 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
 
     function show(){
         controls.classList.remove("viewer-controls--hidden");
+        controls.style.visibility="visible";
+        controls.style.opacity="1";
+        controls.style.pointerEvents="none";
+        previousButton.style.pointerEvents="auto";
+        nextButton.style.pointerEvents="auto";
     }
 
     function hide(){
         controls.classList.add("viewer-controls--hidden");
+        controls.style.opacity="0";
+        controls.style.visibility="hidden";
+        controls.style.pointerEvents="none";
     }
 
     previousButton.onclick=event=>{
