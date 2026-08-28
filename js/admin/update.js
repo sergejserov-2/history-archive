@@ -145,14 +145,36 @@ export async function deleteEntity(type,id,context={}){
     throw new Error(`Unknown entity type: ${type}`);
 }
 
-async function changeBlock(block,render){
-    if(!block){
-        return false;
-    }
+function nextFrame(){
+    return new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+}
 
+async function waitForLayout(){
+    await nextFrame();
+    await nextFrame();
+}
+
+async function changeBlock(block,render){
+    if(!block)return false;
+    const parent=block.parentElement;
     const oldSize=getAnimationSize(block);
+    const parentRect=parent?.getBoundingClientRect();
+    const parentHeight=parentRect?.height;
+    if(parent&&Number.isFinite(parentHeight))parent.style.setProperty("height",`${parentHeight}px`,"important");
     block.innerHTML=render();
-    await change(block,oldSize);
+    void block.offsetHeight;
+    await waitForLayout();
+    let released=false;
+    const release=()=>{
+        if(released)return;
+        released=true;
+        if(parent)parent.style.removeProperty("height");
+    };
+    try{
+        await change(block,oldSize,release);
+    }finally{
+        release();
+    }
     return true;
 }
 
