@@ -84,28 +84,28 @@ export const editorModal={
     type:"editor",
     admin:true,
     params:["entityId","entityType"],
-    load:async params=>{
+    load:async(params,runtimeContext={})=>{
         if(!params.entityType)return null;
         const pageId=new URL(window.location.href).searchParams.get("id");
-        const objects=await getAllObjects();
+        const objects=runtimeContext.objects??await getAllObjects();
 
         if(["objectType","recordType","subjectType"].includes(params.entityType)){
             if(!params.entityId)return null;
-            let entity=null,context={};
+            let entity=null,context={...runtimeContext};
             if(params.entityType==="objectType"){
                 entity=await getType(params.entityId);
                 if(!entity)return null;
-                context={objects,types:await getTypes()};
+                context={...context,objects,types:runtimeContext.types??await getTypes()};
             }
             if(params.entityType==="recordType"){
                 entity=await getRecordType(params.entityId);
                 if(!entity)return null;
-                context={objects,recordTypes:await getRecordTypes()};
+                context={...context,objects,recordTypes:runtimeContext.recordTypes??await getRecordTypes()};
             }
             if(params.entityType==="subjectType"){
                 entity=await getSubjectType(params.entityId);
                 if(!entity)return null;
-                context={objects,subjectTypes:await getSubjectTypes()};
+                context={...context,objects,subjectTypes:runtimeContext.subjectTypes??await getSubjectTypes()};
             }
             return{entity,type:params.entityType,objects,context};
         }
@@ -114,8 +114,8 @@ export const editorModal={
             if(params.entityId){
                 const[subject,subjects,subjectTypes]=await Promise.all([
                     getSubject(params.entityId),
-                    getSubjects(),
-                    getSubjectTypes()
+                    runtimeContext.subjects??getSubjects(),
+                    runtimeContext.subjectTypes??getSubjectTypes()
                 ]);
                 if(!subject)return null;
                 return{
@@ -124,13 +124,18 @@ export const editorModal={
                     objects,
                     subjects,
                     subjectTypes,
-                    context:{objects,subjects,subjectTypes}
+                    context:{
+                        ...runtimeContext,
+                        objects,
+                        subjects,
+                        subjectTypes
+                    }
                 };
             }
             if(!pageId)return null;
             const[subjects,subjectTypes]=await Promise.all([
-                getSubjects(),
-                getSubjectTypes()
+                runtimeContext.subjects??getSubjects(),
+                runtimeContext.subjectTypes??getSubjectTypes()
             ]);
             return{
                 entity:null,
@@ -139,6 +144,7 @@ export const editorModal={
                 subjects,
                 subjectTypes,
                 context:{
+                    ...runtimeContext,
                     objects,
                     subjects,
                     subjectTypes,
@@ -155,9 +161,9 @@ export const editorModal={
                 if(!object)return null;
                 const[type,types,children,photos]=await Promise.all([
                     getType(object.typeId),
-                    getTypes(),
-                    getChildren(object.id),
-                    getPhotos(object.id)
+                    runtimeContext.types??getTypes(),
+                    runtimeContext.children??getChildren(object.id),
+                    runtimeContext.photos??getPhotos(object.id)
                 ]);
                 return{
                     entity:object,
@@ -166,33 +172,45 @@ export const editorModal={
                     children,
                     photos,
                     types,
-                    context:{objects,parentId:pageId}
+                    context:{
+                        ...runtimeContext,
+                        objects,
+                        parentId:runtimeContext.parentId??pageId
+                    }
                 };
             }
             return{
                 entity:null,
                 type:"object",
                 objects,
-                children:[],
-                photos:[],
-                types:await getTypes(),
-                context:{objects,parentId:pageId}
+                children:runtimeContext.children??[],
+                photos:runtimeContext.photos??[],
+                types:runtimeContext.types??await getTypes(),
+                context:{
+                    ...runtimeContext,
+                    objects,
+                    parentId:runtimeContext.parentId??pageId
+                }
             };
         }
 
         if(!["photo","source","record"].includes(params.entityType))return null;
 
         let entities=[];
-        if(params.entityType==="photo")entities=await getPhotos(pageId);
-        if(params.entityType==="source")entities=await getSources(pageId);
-        if(params.entityType==="record")entities=await getRecords(pageId);
+        if(params.entityType==="photo")entities=runtimeContext.photos??await getPhotos(pageId);
+        if(params.entityType==="source")entities=runtimeContext.sources??await getSources(pageId);
+        if(params.entityType==="record")entities=runtimeContext.records??await getRecords(pageId);
 
         if(!params.entityId){
             return{
                 entity:null,
                 type:params.entityType,
                 objects,
-                context:{parentId:pageId,objects}
+                context:{
+                    ...runtimeContext,
+                    parentId:runtimeContext.parentId??pageId,
+                    objects
+                }
             };
         }
 
@@ -203,7 +221,11 @@ export const editorModal={
             entity,
             type:params.entityType,
             objects,
-            context:{parentId:pageId,objects}
+            context:{
+                ...runtimeContext,
+                parentId:runtimeContext.parentId??pageId,
+                objects
+            }
         };
     },
     open:async data=>{
