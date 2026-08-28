@@ -251,6 +251,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         if(!nextPhoto.previewPath){
             if(!nextPhoto.storagePath)return false;
+
             try{
                 await loadImage(nextPhoto.storagePath);
                 image.src=nextPhoto.storagePath;
@@ -303,7 +304,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     async function showPhoto(nextPhoto,nextIndex,{updateUrl=true,showControls=false}={}){
         if(!nextPhoto)return;
 
-        controls.hide();
         currentIndex=nextIndex;
         controls.update(currentIndex);
         updateInfo(nextPhoto);
@@ -314,19 +314,17 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         const loaded=await loadPhotoImage(nextPhoto);
 
-        if(loaded&&showControls){
-            requestAnimationFrame(()=>controls.show());
-        }
+        if(loaded&&showControls)controls.show();
     }
 
     function showPrevious(){
         if(currentIndex<=0)return;
-        void showPhoto(gallery[currentIndex-1],currentIndex-1,{showControls:true});
+        void showPhoto(gallery[currentIndex-1],currentIndex-1,{showControls:false});
     }
 
     function showNext(){
         if(currentIndex>=gallery.length-1)return;
-        void showPhoto(gallery[currentIndex+1],currentIndex+1,{showControls:true});
+        void showPhoto(gallery[currentIndex+1],currentIndex+1,{showControls:false});
     }
 
     imageArea.addEventListener("mousedown",event=>{
@@ -356,16 +354,21 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     imageArea.addEventListener("wheel",event=>{
         event.preventDefault();
+
         const oldScale=fitScale*zoom;
         const factor=Math.exp(-event.deltaY*0.001);
+
         zoom=Math.max(1,Math.min(zoom*factor,5));
+
         const newScale=fitScale*zoom;
         const rect=imageArea.getBoundingClientRect();
         const mouseX=event.clientX-rect.left-rect.width/2;
         const mouseY=event.clientY-rect.top-rect.height/2;
         const ratio=newScale/oldScale;
+
         translateX=mouseX-(mouseX-translateX)*ratio;
         translateY=mouseY-(mouseY-translateY)*ratio;
+
         updateTransform();
     },{passive:false});
 
@@ -399,6 +402,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         if(event.touches.length===2){
             const distance=getTouchDistance(event.touches[0],event.touches[1]);
             if(!pinchStartDistance)return;
+
             zoom=pinchStartZoom*(distance/pinchStartDistance);
             zoom=Math.max(1,Math.min(zoom,5));
             updateTransform();
