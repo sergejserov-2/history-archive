@@ -21,6 +21,23 @@ function cleanModalParams(url,registration){
     }
 }
 
+function isSameModal(type,params={}){
+    const url=new URL(window.location.href);
+    if(url.searchParams.get("modal")!==type)return false;
+
+    const registration=getRegistration(type);
+    if(!registration)return false;
+
+    for(const key of registration.params??[]){
+        if(key==="id")continue;
+        const current=url.searchParams.get(key)??"";
+        const next=params[key]===null||params[key]===undefined?"":String(params[key]);
+        if(current!==next)return false;
+    }
+
+    return true;
+}
+
 export function setModalUrl(type,params={}){
     const url=new URL(window.location.href);
     const oldType=url.searchParams.get("modal");
@@ -68,13 +85,16 @@ export function clearModalUrl(){
 async function closeCurrentWithoutHistory(){
     const modal=getCurrentModal();
     if(!modal)return;
+
     modal.setBeforeCloseHandler?.(null);
     modal.setCloseHandler(null);
+
     await modal.close({runHandler:false});
 }
 
 async function reload(){
     if(restoring)return;
+
     restoring=true;
 
     try{
@@ -98,22 +118,28 @@ async function reload(){
         if(registration.admin&&!isAdmin()){
             modalContext=null;
             await closeCurrentWithoutHistory();
+
             const cleanUrl=new URL(window.location.href);
             cleanUrl.searchParams.delete("modal");
             cleanModalParams(cleanUrl,registration);
+
             window.history.replaceState({},"",cleanUrl);
             return;
         }
 
         const params=getUrlParams(registration,url);
-        const data=registration.load?await registration.load(params,modalContext):null;
+        const data=registration.load
+            ?await registration.load(params,modalContext)
+            :null;
 
         if(registration.load&&!data){
             modalContext=null;
             await closeCurrentWithoutHistory();
+
             const cleanUrl=new URL(window.location.href);
             cleanUrl.searchParams.delete("modal");
             cleanModalParams(cleanUrl,registration);
+
             window.history.replaceState({},"",cleanUrl);
             return;
         }
@@ -134,6 +160,8 @@ async function reload(){
 }
 
 export async function openModal(type,params={},context=null){
+    if(isSameModal(type,params))return;
+
     modalContext=context;
     setModalUrl(type,params);
     await reload();
