@@ -7,12 +7,11 @@ import{getType,createType,updateType,deleteType}from"../api/types.js";
 import{getRecordType,createRecordType,updateRecordType,deleteRecordType}from"../api/recordTypes.js";
 import{getSubjectType,createSubjectType,updateSubjectType,deleteSubjectType}from"../api/subjectTypes.js";
 import{moveFileToDeleted,uploadPhoto,uploadSourceDocument}from"../api/storage.js";
-import{renderRecords}from"../ui/components/records.js";
-import{renderPhotos}from"../ui/components/photos.js";
-import{renderSources}from"../ui/components/sources.js";
-import{renderChildren}from"../ui/components/children.js";
+import{renderRecord}from"../ui/components/records.js";
+import{renderPhoto}from"../ui/components/photos.js";
+import{renderSource}from"../ui/components/sources.js";
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
-import{change,show,hide,getAnimationSize}from"../ui/animations/controller.js";
+import{show,hide}from"../ui/animations/controller.js";
 import{getCurrentUser}from"./adminMode.js";
 import{createActivity,getActivities,getRecentActivities}from"../api/activity.js";
 
@@ -101,7 +100,7 @@ export async function deleteEntity(type,id,context={}){
         if(photo?.previewPath)await moveFileToDeleted(photo.previewPath);
         await createActivity({action:"delete",entityType:"photo",entityId:id,title:photo?.title??"",parentId:context.parentId??null,adminEmail:getAdminEmail(),createdAt:Date.now()});
         await deletePhoto(id);
-        await context.updates?.updatePhotosBlock?.();
+        await context.updates?.removePhoto?.(id);
         return;
     }
     if(type==="source"){
@@ -109,14 +108,14 @@ export async function deleteEntity(type,id,context={}){
         if(source?.storagePath)await moveFileToDeleted(source.storagePath);
         await createActivity({action:"delete",entityType:"source",entityId:id,title:source?.title??"",parentId:context.parentId??null,adminEmail:getAdminEmail(),createdAt:Date.now()});
         await deleteSource(id);
-        await context.updates?.updateSourcesBlock?.();
+        await context.updates?.removeSource?.(id);
         return;
     }
     if(type==="record"){
         const record=(context.records??[]).find(record=>record.id===id);
         await createActivity({action:"delete",entityType:"record",entityId:id,title:record?.title??"",parentId:context.parentId??null,adminEmail:getAdminEmail(),createdAt:Date.now()});
         await deleteRecord(id);
-        await context.updates?.updateRecordsBlock?.();
+        await context.updates?.removeRecord?.(id);
         return;
     }
     if(type==="subject"){
@@ -145,37 +144,6 @@ export async function deleteEntity(type,id,context={}){
     throw new Error(`Unknown entity type: ${type}`);
 }
 
-function nextFrame(){
-    return new Promise(resolve=>requestAnimationFrame(()=>resolve()));
-}
-
-async function waitForLayout(){
-    await nextFrame();
-    await nextFrame();
-}
-
-async function changeBlock(block,render){
-    if(!block)return false;
-    const parent=block.parentElement;
-    const oldSize=getAnimationSize(block);
-    const parentHeight=parent?.getBoundingClientRect()?.height;
-    if(parent&&Number.isFinite(parentHeight))parent.style.setProperty("height",`${parentHeight}px`,"important");
-    block.innerHTML=render();
-    await waitForLayout();
-    let released=false;
-    const release=()=>{
-        if(released)return;
-        released=true;
-        if(parent)parent.style.removeProperty("height");
-    };
-    try{
-        await change(block,oldSize,release);
-    }finally{
-        release();
-    }
-    return true;
-}
-
 export function createPageUpdates(state){
     return{
         async updateObjectBlock(data){
@@ -184,13 +152,11 @@ export function createPageUpdates(state){
             if(!state.object)return;
             const block=document.querySelector(".object");
             if(block){
-                const oldSize=getAnimationSize(block);
                 block.outerHTML=state.renderObjectBlock();
                 const newBlock=document.querySelector(".object");
                 if(newBlock){
                     const{initCoverDrag}=await import("../ui/components/coverDrag.js");
                     initCoverDrag(newBlock);
-                    await change(newBlock,oldSize);
                 }
             }
         },
@@ -203,83 +169,79 @@ export function createPageUpdates(state){
             updateSubjectModal(state.subject,{subjects:state.subjects,objects:state.objects,photos:state.photos,sources:state.sources,records:state.records,subjectTypes:state.subjectTypes});
             await state.renderSubjectBlock?.();
         },
-        async updateRecordsBlock(savedRecord=null){
-            if(!state.object)return;
+        async addRecord(savedRecord){
+            if(!savedRecord?.id)return;
             state.records=await getRecords(state.object.id);
-            if(savedRecord?.id&&!state.records.some(record=>record.id===savedRecord.id))state.records.push(savedRecord);
-            const block=document.querySelector(".records");
-            if(block){
-                await changeBlock(block,()=>renderRecords(state.records,state.recordTypes,state.subjects));
-                return;
-            }
-            if(state.records.length){
-                document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.subjects));
-                const newBlock=document.querySelector(".records");
-                if(newBlock)await show(newBlock);
+            const recordsBlock=document.querySelector(".records");
+            const list=recordsBlock?.querySelector(".entity-list");
+            if(!list)return;
+            list.insertAdjacentHTML("beforeend",renderRecord(savedRecord,state.subjects));
+            const element=list.querySelector(`[data-record-id="${savedRecord.id}"]`);
+            if(element)await show(element);
+        },
+        async removeRecord(id){
+            state.records=state.records.filter(record=>record.id!==id);
+            const element=document.querySelector(`.record[data-record-id="${id}"]`);
+            if(element){
+                await hide(element);
+                element.remove();
             }
         },
-        async updatePhotosBlock(savedPhoto=null,uploading=false){
-            if(!state.object)return;
+        async addPhoto(savedPhoto,uploading=false){
+            if(!savedPhoto?.id)return;
             state.photos=await getPhotos(state.object.id);
-            if(savedPhoto?.id&&!state.photos.some(photo=>photo.id===savedPhoto.id))state.photos.push(savedPhoto);
-            const photosForRender=state.photos.map(photo=>({...photo,isUploading:Boolean(uploading)&&photo.id===savedPhoto?.id}));
-            const gallery=document.querySelector("#gallery");
-            if(!gallery){
-                if(photosForRender.length){
-                    const sources=document.querySelector("#sources");
-                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender)}</section>`;
-                    if(sources)sources.insertAdjacentHTML("beforebegin",html);
-                    else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
-                    const newGallery=document.querySelector("#gallery");
-                    if(newGallery)await show(newGallery);
-                }
-                return;
-            }
-            if(!photosForRender.length){
-                await hide(gallery);
-                gallery.remove();
-                return;
-            }
-            await changeBlock(gallery,()=>`<h2>Фотографии</h2>${renderPhotos(photosForRender)}`);
+            const photo={...savedPhoto,isUploading:Boolean(uploading)};
+            const list=document.querySelector(".photos-list");
+            if(!list)return;
+            list.insertAdjacentHTML("beforeend",renderPhoto(photo));
+            const element=list.querySelector(`[data-photo-id="${savedPhoto.id}"]`);
+            if(element)await show(element);
         },
-        async updateSourcesBlock(savedSource=null){
-            if(!state.object)return;
+        async removePhoto(id){
+            state.photos=state.photos.filter(photo=>photo.id!==id);
+            const element=document.querySelector(`.photo-card[data-photo-id="${id}"]`);
+            if(element){
+                await hide(element);
+                element.remove();
+            }
+        },
+        async addSource(savedSource){
+            if(!savedSource?.id)return;
             state.sources=await getSources(state.object.id);
-            if(savedSource?.id&&!state.sources.some(source=>source.id===savedSource.id))state.sources.push(savedSource);
-            const block=document.querySelector("#sources");
-            if(!block){
-                if(state.sources.length){
-                    const children=document.querySelector("#children");
-                    const html=`<section id="sources"><h2>Источники</h2>${renderSources(state.sources,state.subjects)}</section>`;
-                    if(children)children.insertAdjacentHTML("beforebegin",html);
-                    else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
-                    const newBlock=document.querySelector("#sources");
-                    if(newBlock)await show(newBlock);
-                }
-                return;
-            }
-            if(!state.sources.length){
-                await hide(block);
-                block.remove();
-                return;
-            }
-            await changeBlock(block,()=>`<h2>Источники</h2>${renderSources(state.sources,state.subjects)}`);
+            const list=document.querySelector(".sources-list");
+            if(!list)return;
+            list.insertAdjacentHTML("beforeend",renderSource(savedSource,state.subjects));
+            const element=list.querySelector(`[data-source-id="${savedSource.id}"]`);
+            if(element)await show(element);
         },
-        async updateChildrenBlock(){
-            if(!state.object)return;
-            state.children=await state.getChildren();
-            const block=document.querySelector("#children");
-            const html=`<h2>Дочерние объекты</h2>${await renderChildren(state.children,state.object,state.objects,state.types)}`;
-            if(block){
-                await changeBlock(block,()=>html);
-                return;
-            }
-            if(state.children.length){
-                document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
-                const newBlock=document.querySelector("#children");
-                if(newBlock)await show(newBlock);
+        async removeSource(id){
+            state.sources=state.sources.filter(source=>source.id!==id);
+            const element=document.querySelector(`.source[data-source-id="${id}"]`);
+            if(element){
+                await hide(element);
+                element.remove();
             }
         },
+        async updateRecord(savedRecord){
+            if(!savedRecord?.id)return;
+            state.records=await getRecords(state.object.id);
+            const oldElement=document.querySelector(`.record[data-record-id="${savedRecord.id}"]`);
+            if(oldElement)oldElement.outerHTML=renderRecord(savedRecord,state.subjects);
+        },
+        async updatePhoto(savedPhoto,uploading=false){
+            if(!savedPhoto?.id)return;
+            state.photos=await getPhotos(state.object.id);
+            const element=document.querySelector(`.photo-card[data-photo-id="${savedPhoto.id}"]`);
+            if(element)element.outerHTML=renderPhoto({...savedPhoto,isUploading:Boolean(uploading)});
+        },
+        async updateSource(savedSource){
+            if(!savedSource?.id)return;
+            state.sources=await getSources(state.object.id);
+            const element=document.querySelector(`.source[data-source-id="${savedSource.id}"]`);
+            if(element)element.outerHTML=renderSource(savedSource,state.subjects);
+        },
+        async updateChildrenBlock(){}
+        ,
         async onObjectDeleted(){
             const parent=state.parents?.[0];
             window.location.href=parent?.id?`object.html?id=${parent.id}`:"index.html";
@@ -289,5 +251,3 @@ export function createPageUpdates(state){
         }
     };
 }
-
-export{uploadPhoto,uploadSourceDocument};
