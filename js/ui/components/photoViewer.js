@@ -95,6 +95,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     let touchStartX=0,touchStartY=0,touchStartTranslateX=0,touchStartTranslateY=0;
     let pinchStartDistance=null,pinchStartZoom=1;
     let savedZoom=1,savedRelativeX=0,savedRelativeY=0;
+    let savedPreviewWidth=0,savedPreviewHeight=0;
     let originalObjectUrl=null;
     let loadingTimer=null;
     let loadToken=0;
@@ -102,103 +103,68 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function updateTransform(){
         scale=fitScale*zoom;
         image.style.transform=`translate3d(${translateX}px,${translateY}px,0) scale(${scale})`;
-
-        console.log("[VIEWER] transform",{
-            fitScale,
-            zoom,
-            scale,
-            translateX,
-            translateY,
-            naturalWidth:image.naturalWidth,
-            naturalHeight:image.naturalHeight
-        });
     }
 
     function calculateFitScale(){
         const areaWidth=imageArea.clientWidth,areaHeight=imageArea.clientHeight;
         const imageWidth=image.naturalWidth,imageHeight=image.naturalHeight;
 
-        console.log("[VIEWER] calculateFitScale BEFORE",{
-            areaWidth,
-            areaHeight,
-            imageWidth,
-            imageHeight,
+        if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return false;
+
+        fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
+        updateTransform();
+
+        return true;
+    }
+
+    function captureView(){
+        const width=image.naturalWidth*scale;
+        const height=image.naturalHeight*scale;
+
+        savedZoom=zoom;
+        savedRelativeX=width?translateX/width:0;
+        savedRelativeY=height?translateY/height:0;
+        savedPreviewWidth=image.naturalWidth;
+        savedPreviewHeight=image.naturalHeight;
+
+        console.log("[VIEWER] CAPTURE VIEW",{
+            naturalWidth:image.naturalWidth,
+            naturalHeight:image.naturalHeight,
+            fitScale,
+            zoom,
+            scale,
+            translateX,
+            translateY,
+            savedZoom,
+            savedRelativeX,
+            savedRelativeY
+        });
+    }
+
+    function restoreView(){
+        zoom=savedZoom;
+        scale=fitScale*zoom;
+
+        const width=image.naturalWidth*scale;
+        const height=image.naturalHeight*scale;
+
+        translateX=savedRelativeX*width;
+        translateY=savedRelativeY*height;
+
+        console.log("[VIEWER] RESTORE VIEW",{
+            naturalWidth:image.naturalWidth,
+            naturalHeight:image.naturalHeight,
+            fitScale,
             zoom,
             scale,
             translateX,
             translateY
         });
 
-        if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return false;
-
-        fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
         updateTransform();
-
-        console.log("[VIEWER] calculateFitScale AFTER",{fitScale,zoom,scale,translateX,translateY});
-
-        return true;
-    }
-
-    function saveViewPosition(){
-        savedZoom=zoom;
-
-        const displayedWidth=image.naturalWidth*scale;
-        const displayedHeight=image.naturalHeight*scale;
-
-        savedRelativeX=displayedWidth?translateX/displayedWidth:0;
-        savedRelativeY=displayedHeight?translateY/displayedHeight:0;
-
-        console.log("[VIEWER] SAVE VIEW",{
-            naturalWidth:image.naturalWidth,
-            naturalHeight:image.naturalHeight,
-            fitScale,
-            zoom,
-            scale,
-            translateX,
-            translateY,
-            displayedWidth,
-            displayedHeight,
-            savedZoom,
-            savedRelativeX,
-            savedRelativeY
-        });
-    }
-
-    function restoreViewPosition(){
-        console.log("[VIEWER] RESTORE VIEW BEFORE",{
-            naturalWidth:image.naturalWidth,
-            naturalHeight:image.naturalHeight,
-            fitScale,
-            savedZoom,
-            savedRelativeX,
-            savedRelativeY
-        });
-
-        zoom=savedZoom;
-        scale=fitScale*zoom;
-
-        const displayedWidth=image.naturalWidth*scale;
-        const displayedHeight=image.naturalHeight*scale;
-
-        translateX=savedRelativeX*displayedWidth;
-        translateY=savedRelativeY*displayedHeight;
-
-        updateTransform();
-
-        console.log("[VIEWER] RESTORE VIEW AFTER",{
-            fitScale,
-            zoom,
-            scale,
-            translateX,
-            translateY,
-            displayedWidth,
-            displayedHeight
-        });
     }
 
     function resetView(){
-        console.log("[VIEWER] RESET VIEW");
-
         fitScale=1;
         zoom=1;
         scale=1;
@@ -207,6 +173,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         savedZoom=1;
         savedRelativeX=0;
         savedRelativeY=0;
+        savedPreviewWidth=0;
+        savedPreviewHeight=0;
         dragging=false;
         pinchStartDistance=null;
 
@@ -260,32 +228,15 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     function loadImage(src){
-        console.log("[VIEWER] LOAD IMAGE",src);
-
         return new Promise((resolve,reject)=>{
             const loader=new Image();
-
-            loader.onload=()=>{
-                console.log("[VIEWER] IMAGE LOADED",{
-                    src,
-                    width:loader.naturalWidth,
-                    height:loader.naturalHeight
-                });
-                resolve(loader);
-            };
-
-            loader.onerror=error=>{
-                console.error("[VIEWER] IMAGE LOAD ERROR",src,error);
-                reject(error);
-            };
-
+            loader.onload=()=>resolve(loader);
+            loader.onerror=reject;
             loader.src=src;
         });
     }
 
     function showOriginalLoading(){
-        console.log("[VIEWER] SHOW ORIGINAL LOADING");
-
         if(!loading)return;
 
         loading.classList.add("photo-viewer__original-loading--visible");
@@ -299,8 +250,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     function setIndeterminateProgress(){
-        console.log("[VIEWER] ORIGINAL PROGRESS INDETERMINATE");
-
         if(!loading)return;
 
         loading.classList.add("photo-viewer__original-loading--indeterminate");
@@ -319,13 +268,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         loading.classList.remove("photo-viewer__original-loading--visible","photo-viewer__original-loading--indeterminate");
 
         if(progress)progress.style.width="0%";
-
-        console.log("[VIEWER] HIDE ORIGINAL LOADING");
     }
 
     function startDelayedLoading(){
-        console.log("[VIEWER] START ORIGINAL LOADING TIMER");
-
         hideOriginalLoading();
 
         loadingTimer=setTimeout(()=>{
@@ -335,18 +280,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     async function loadOriginal(src,token){
-        console.log("[VIEWER] LOAD ORIGINAL START",{
-            src,
-            token
-        });
-
         const response=await fetch(src);
-
-        console.log("[VIEWER] ORIGINAL RESPONSE",{
-            status:response.status,
-            contentLength:response.headers.get("Content-Length"),
-            hasBody:!!response.body
-        });
 
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
         if(token!==loadToken)throw new Error("Загрузка отменена");
@@ -355,11 +289,11 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         const total=Number(contentLength);
 
         if(!response.body||!total){
+            setIndeterminateProgress();
+
             const blob=await response.blob();
 
             if(token!==loadToken)throw new Error("Загрузка отменена");
-
-            console.log("[VIEWER] ORIGINAL BLOB READY",{size:blob.size});
 
             return URL.createObjectURL(blob);
         }
@@ -380,101 +314,53 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             updateOriginalProgress(loaded/total*100);
         }
 
-        const blob=new Blob(chunks);
+        console.log("[VIEWER] ORIGINAL DOWNLOAD COMPLETE",{size:loaded,total});
 
-        console.log("[VIEWER] ORIGINAL DOWNLOAD COMPLETE",{
-            size:blob.size,
-            total
-        });
-
-        return URL.createObjectURL(blob);
+        return URL.createObjectURL(new Blob(chunks));
     }
 
     function loadBlobIntoImage(src){
-        console.log("[VIEWER] PUT ORIGINAL INTO IMAGE",src);
-
         return new Promise((resolve,reject)=>{
-            image.onload=()=>{
-                console.log("[VIEWER] ORIGINAL IMAGE READY",{
-                    naturalWidth:image.naturalWidth,
-                    naturalHeight:image.naturalHeight
-                });
-                resolve();
-            };
-
-            image.onerror=error=>{
-                console.error("[VIEWER] ORIGINAL IMAGE ERROR",error);
-                reject(error);
-            };
-
+            image.onload=resolve;
+            image.onerror=reject;
             image.src=src;
         });
     }
 
     async function loadOriginalInBackground(nextPhoto,token){
-        console.log("[VIEWER] BACKGROUND ORIGINAL START",{
-            photoId:nextPhoto.id,
-            token,
-            currentToken:loadToken,
-            zoom,
-            scale,
-            translateX,
-            translateY
-        });
-
         startDelayedLoading();
 
         try{
             const objectUrl=await loadOriginal(nextPhoto.storagePath,token);
 
             if(token!==loadToken){
-                console.log("[VIEWER] ORIGINAL CANCELLED AFTER DOWNLOAD");
                 URL.revokeObjectURL(objectUrl);
                 return;
             }
 
+            console.log("[VIEWER] ORIGINAL READY TO APPLY");
+
             originalObjectUrl=objectUrl;
+
+            /*
+             * ВАЖНО:
+             * здесь preview ещё является текущим изображением.
+             * Поэтому только сейчас сохраняем актуальный zoom и позицию,
+             * которые пользователь мог менять всё время загрузки оригинала.
+             */
+            captureView();
 
             await loadBlobIntoImage(originalObjectUrl);
 
-            if(token!==loadToken){
-                console.log("[VIEWER] ORIGINAL CANCELLED AFTER IMAGE LOAD");
-                return;
-            }
+            if(token!==loadToken)return;
 
-            console.log("[VIEWER] BEFORE ORIGINAL FIT",{
-                zoom,
-                scale,
-                translateX,
-                translateY,
-                savedZoom,
-                savedRelativeX,
-                savedRelativeY,
+            console.log("[VIEWER] ORIGINAL IMAGE READY",{
                 naturalWidth:image.naturalWidth,
                 naturalHeight:image.naturalHeight
             });
 
-            const areaWidth=imageArea.clientWidth;
-            const areaHeight=imageArea.clientHeight;
-            const imageWidth=image.naturalWidth;
-            const imageHeight=image.naturalHeight;
-
-            if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return;
-
-            fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
-
-            console.log("[VIEWER] ORIGINAL FIT CALCULATED",{
-                areaWidth,
-                areaHeight,
-                imageWidth,
-                imageHeight,
-                fitScale,
-                savedZoom,
-                savedRelativeX,
-                savedRelativeY
-            });
-
-            restoreViewPosition();
+            calculateFitScale();
+            restoreView();
 
             image.style.visibility="visible";
             updateOriginalProgress(100);
@@ -487,7 +373,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             });
         }catch(error){
             if(token===loadToken&&!String(error.message).includes("Загрузка отменена")){
-                console.error("[VIEWER] ORIGINAL ERROR",error);
+                console.error("Ошибка загрузки оригинала:",error);
             }
         }finally{
             if(token===loadToken)hideOriginalLoading();
@@ -496,13 +382,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     async function loadPhotoImage(nextPhoto){
         const token=++loadToken;
-
-        console.log("[VIEWER] LOAD PHOTO",{
-            photoId:nextPhoto.id,
-            token,
-            previewPath:nextPhoto.previewPath,
-            storagePath:nextPhoto.storagePath
-        });
 
         resetView();
         hideOriginalLoading();
@@ -530,35 +409,21 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
                 return true;
             }catch(error){
-                if(token===loadToken)console.error("[VIEWER] IMAGE ERROR",error);
+                if(token===loadToken)console.error("Ошибка загрузки изображения:",error);
                 return false;
             }
         }
 
         try{
-            const preview=await loadImage(nextPhoto.previewPath);
+            await loadImage(nextPhoto.previewPath);
 
             if(token!==loadToken)return false;
 
             image.src=nextPhoto.previewPath;
-
-            console.log("[VIEWER] PREVIEW BEFORE FIT",{
-                naturalWidth:preview.naturalWidth,
-                naturalHeight:preview.naturalHeight
-            });
-
             calculateFitScale();
             image.style.visibility="visible";
-
-            console.log("[VIEWER] PREVIEW SHOWN",{
-                zoom,
-                scale,
-                translateX,
-                translateY,
-                fitScale
-            });
         }catch(error){
-            if(token===loadToken)console.error("[VIEWER] PREVIEW ERROR",error);
+            if(token===loadToken)console.error("Ошибка загрузки preview:",error);
             return false;
         }
 
@@ -566,7 +431,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             return true;
         }
 
-        saveViewPosition();
         void loadOriginalInBackground(nextPhoto,token);
 
         return true;
