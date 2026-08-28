@@ -60,6 +60,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         infoToggle.onclick=()=>{
             viewer.classList.toggle("photo-viewer--info-collapsed");
             const collapsed=viewer.classList.contains("photo-viewer--info-collapsed");
+            infoToggle.textContent=collapsed?"‹":"›";
             infoToggle.setAttribute("aria-label",collapsed?"Развернуть информацию":"Свернуть информацию");
             infoToggle.title=collapsed?"Развернуть":"Свернуть";
         };
@@ -86,6 +87,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     let dragging=false,startX=0,startY=0,startTranslateX=0,startTranslateY=0;
     let touchStartX=0,touchStartY=0,touchStartTranslateX=0,touchStartTranslateY=0;
     let pinchStartDistance=null,pinchStartZoom=1,relativeX=0,relativeY=0;
+    let originalObjectUrl=null;
 
     function updateTransform(){
         scale=fitScale*zoom;
@@ -172,30 +174,73 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         }
     }
 
-    function loadImage(src,onProgress){
+    function loadImage(src){
         return new Promise((resolve,reject)=>{
             const loader=new Image();
             loader.onload=()=>resolve(loader);
             loader.onerror=reject;
             loader.src=src;
-            if(onProgress)onProgress(100);
         });
     }
 
     function showOriginalLoading(){
         if(!loading)return;
         loading.classList.add("photo-viewer__original-loading--visible");
+        loading.classList.remove("photo-viewer__original-loading--indeterminate");
         if(progress)progress.style.width="0%";
+    }
+
+    function updateOriginalProgress(value){
+        if(progress)progress.style.width=`${Math.max(0,Math.min(100,value))}%`;
+    }
+
+    function setIndeterminateProgress(){
+        if(!loading)return;
+        loading.classList.add("photo-viewer__original-loading--indeterminate");
+        if(progress)progress.style.width="100%";
     }
 
     function hideOriginalLoading(){
         if(!loading)return;
-        loading.classList.remove("photo-viewer__original-loading--visible");
+        loading.classList.remove("photo-viewer__original-loading--visible","photo-viewer__original-loading--indeterminate");
+    }
+
+    async function loadOriginal(src){
+        const response=await fetch(src);
+        if(!response.ok)throw new Error(`HTTP ${response.status}`);
+
+        const contentLength=response.headers.get("Content-Length");
+        const total=Number(contentLength);
+
+        if(!response.body||!total){
+            setIndeterminateProgress();
+            const blob=await response.blob();
+            return URL.createObjectURL(blob);
+        }
+
+        const reader=response.body.getReader();
+        const chunks=[];
+        let loaded=0;
+
+        while(true){
+            const{done,value}=await reader.read();
+            if(done)break;
+            chunks.push(value);
+            loaded+=value.length;
+            updateOriginalProgress(loaded/total*100);
+        }
+
+        return URL.createObjectURL(new Blob(chunks));
     }
 
     async function loadPhotoImage(nextPhoto){
         resetView();
         hideOriginalLoading();
+
+        if(originalObjectUrl){
+            URL.revokeObjectURL(originalObjectUrl);
+            originalObjectUrl=null;
+        }
 
         if(nextPhoto.previewPath)imageBackground.style.backgroundImage=`url('${nextPhoto.previewPath}')`;
         else imageBackground.style.backgroundImage="";
@@ -228,16 +273,20 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         showOriginalLoading();
 
         try{
-            const original=await loadImage(nextPhoto.storagePath);
+            originalObjectUrl=await loadOriginal(nextPhoto.storagePath);
             saveRelativePosition();
-            image.src=original.src;
-            await new Promise(resolve=>{
-                if(image.complete)resolve();
-                else image.onload=resolve;
+
+            image.src=originalObjectUrl;
+
+            await new Promise((resolve,reject)=>{
+                image.onload=resolve;
+                image.onerror=reject;
             });
+
             calculateFitScale();
             restoreRelativePosition();
             updateTransform();
+            updateOriginalProgress(100);
         }catch(error){
             console.error("Ошибка загрузки оригинала:",error);
         }finally{
@@ -249,6 +298,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     async function showPhoto(nextPhoto,nextIndex,{updateUrl=true,showControls=false}={}){
         if(!nextPhoto)return;
+
         controls.element.classList.add("viewer-controls--loading");
         currentIndex=nextIndex;
         controls.update(currentIndex);
@@ -328,6 +378,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             touchStartTranslateX=translateX;
             touchStartTranslateY=translateY;
         }
+
         if(event.touches.length===2){
             dragging=false;
             pinchStartDistance=getTouchDistance(event.touches[0],event.touches[1]);
@@ -337,12 +388,14 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     imageArea.addEventListener("touchmove",event=>{
         event.preventDefault();
+
         if(event.touches.length===1&&dragging){
             const touch=event.touches[0];
             translateX=touchStartTranslateX+touch.clientX-touchStartX;
             translateY=touchStartTranslateY+touch.clientY-touchStartY;
             updateTransform();
         }
+
         if(event.touches.length===2){
             const distance=getTouchDistance(event.touches[0],event.touches[1]);
             if(!pinchStartDistance)return;
@@ -381,9 +434,16 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         controls.element.classList.add("viewer-controls--closing");
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
+
         return new Promise(resolve=>{
             setTimeout(()=>{
                 controls.destroy();
+
+                if(originalObjectUrl){
+                    URL.revokeObjectURL(originalObjectUrl);
+                    originalObjectUrl=null;
+                }
+
                 resolve(originalClose());
             },250);
         });
