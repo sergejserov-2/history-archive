@@ -119,16 +119,16 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     function saveViewPosition(){
-        const width=image.naturalWidth*scale;
-        const height=image.naturalHeight*scale;
+        const width=image.naturalWidth*zoom;
+        const height=image.naturalHeight*zoom;
 
         relativeX=width?translateX/width:0;
         relativeY=height?translateY/height:0;
     }
 
     function restoreViewPosition(){
-        const width=image.naturalWidth*scale;
-        const height=image.naturalHeight*scale;
+        const width=image.naturalWidth*zoom;
+        const height=image.naturalHeight*zoom;
 
         translateX=relativeX*width;
         translateY=relativeY*height;
