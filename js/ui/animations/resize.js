@@ -238,36 +238,22 @@ export function animateChange(el,oldSize){
     console.log("[resize] CHANGE START");
     console.log("[resize] oldSize:",oldSize);
 
-    const beforeRect=getRect(el);
-    const beforeMargins=getMargins(el);
-    const beforeAxis=getAxis(el);
-    const beforeGap=getGap(el,beforeAxis);
-
-    console.log("[resize] before rect:",beforeRect);
-    console.log("[resize] before rect height:",beforeRect?.height);
-    console.log("[resize] before margins:",beforeMargins);
-    console.log("[resize] before axis:",beforeAxis);
-    console.log("[resize] before gap:",beforeGap);
-    console.log("[resize] before getSize:",getSize(el));
-    console.log("[resize] before scrollHeight:",el.scrollHeight);
-    console.log("[resize] before offsetHeight:",el.offsetHeight);
-    console.log("[resize] before computed height:",getComputedStyle(el).height);
-
-    void el.offsetHeight;
-
-    console.log("[resize] after forced layout rect:",getRect(el));
-    console.log("[resize] after forced layout height:",getRect(el)?.height);
-    console.log("[resize] after forced layout getSize:",getSize(el));
-
     return new Promise(resolve=>{
         requestAnimationFrame(()=>{
             requestAnimationFrame(()=>{
                 const newSize=getSize(el);
+                const margins=getMargins(el);
+                const axis=getAxis(el);
+                const delta=newSize-oldSize;
 
                 console.log("[resize] AFTER 2 RAF");
-                console.log("[resize] after 2 RAF rect:",getRect(el));
-                console.log("[resize] after 2 RAF rect height:",getRect(el)?.height);
-                console.log("[resize] after 2 RAF getSize:",newSize);
+                console.log("[resize] rect:",getRect(el));
+                console.log("[resize] rect height:",getRect(el)?.height);
+                console.log("[resize] newSize:",newSize);
+                console.log("[resize] oldSize:",oldSize);
+                console.log("[resize] delta:",delta);
+                console.log("[resize] margins:",margins);
+                console.log("[resize] axis:",axis);
 
                 if(newSize===oldSize){
                     console.log("[resize] size unchanged");
@@ -275,9 +261,6 @@ export function animateChange(el,oldSize){
                     return;
                 }
 
-                const margins=getMargins(el);
-                const axis=getAxis(el);
-                const delta=newSize-oldSize;
                 const from={...margins};
                 const to={...margins};
 
@@ -289,19 +272,17 @@ export function animateChange(el,oldSize){
                     from.right-=delta/2;
                 }
 
-                console.log("[resize] newSize:",newSize);
-                console.log("[resize] delta:",delta);
                 console.log("[resize] animation from:",from);
                 console.log("[resize] animation to:",to);
 
-                // Ставим начальное состояние до запуска анимации.
                 setMargins(el,from);
-                void el.offsetHeight;
 
                 console.log("[resize] START STATE SET");
-                console.log("[resize] start state rect:",getRect(el));
-                console.log("[resize] start state size:",getSize(el));
-                console.log("[resize] start state margins:",getMargins(el));
+                console.log("[resize] start rect:",getRect(el));
+                console.log("[resize] start size:",getSize(el));
+                console.log("[resize] start margins:",getMargins(el));
+
+                void el.offsetHeight;
 
                 requestAnimationFrame(()=>{
                     const start=performance.now();
@@ -320,7 +301,6 @@ export function animateChange(el,oldSize){
                                 t,
                                 ease:e,
                                 rectHeight:rect?.height,
-                                rectWidth:rect?.width,
                                 size:getSize(el),
                                 margins:getMargins(el)
                             });
