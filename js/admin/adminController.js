@@ -35,6 +35,7 @@ function hideEmptySectionButtons(section){
 
 function updateEmptySection(section,animate){
     if(!section)return;
+
     if(!animate){
         if(currentAdminState){
             section.hidden=false;
@@ -47,14 +48,18 @@ function updateEmptySection(section,animate){
         }
         return;
     }
+
     const state=section._animationState;
+
     if(currentAdminState&&!section.hidden&&state!=="exit"&&!section.classList.contains("animation--hidden"))return;
     if(!currentAdminState&&section.hidden&&state!=="enter")return;
+
     if(currentAdminState){
         showEmptySectionButtons(section);
         show(section);
         return;
     }
+
     hide(section).then(()=>{
         if(currentAdminState)return;
         hideEmptySectionButtons(section);
@@ -67,52 +72,72 @@ function syncEmptySections(animate){
 
 export function syncAdminButtons(animate=uiInitialized){
     syncEmptySections(animate);
+
     getAdminButtons().forEach(button=>{
         if(button.closest(".section--admin-empty"))return;
+
         if(!animate){
             button.hidden=!currentAdminState;
             button.classList.toggle("animation--hidden",!currentAdminState);
             return;
         }
+
         updateAdminButton(button,currentAdminState);
     });
 }
 
 export function initializeAdminUI(){
     if(uiInitialized)return;
+
     syncAdminButtons(false);
     uiInitialized=true;
 }
 
 function handleAdminStateChanged(admin){
     const nextState=!!admin;
+
     if(nextState===currentAdminState)return;
+
     currentAdminState=nextState;
-    syncAdminButtons(uiInitialized);
+    syncAdminButtons(true);
+}
+
+function syncNewAdminElements(){
+    syncAdminButtons(false);
 }
 
 function observeAdminButtons(){
     if(observer||!document.body)return;
+
     observer=new MutationObserver(mutations=>{
         let hasNewElements=false;
+
         mutations.forEach(mutation=>{
             mutation.addedNodes.forEach(node=>{
                 if(node.nodeType!==Node.ELEMENT_NODE)return;
+
                 if(node.matches?.(".admin-button,.section--admin-empty")){
                     hasNewElements=true;
                     return;
                 }
+
                 if(node.querySelector?.(".admin-button,.section--admin-empty"))
                     hasNewElements=true;
             });
         });
-        if(hasNewElements)syncAdminButtons(uiInitialized);
+
+        if(hasNewElements)syncNewAdminElements();
     });
-    observer.observe(document.body,{childList:true,subtree:true});
+
+    observer.observe(document.body,{
+        childList:true,
+        subtree:true
+    });
 }
 
 export function initAdminController(){
     if(initialized)return;
+
     initialized=true;
     onAdminStateChanged(handleAdminStateChanged);
     observeAdminButtons();
