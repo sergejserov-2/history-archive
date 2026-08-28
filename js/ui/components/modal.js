@@ -43,6 +43,12 @@ export function createModal({title="",content="",width=null,admin=false}={}){
 
     async function close({runHandler=true}={}){
         if(currentModal?.element!==modal||closing)return;
+
+        if(runHandler&&typeof closeHandler==="function"){
+            await closeHandler();
+            return;
+        }
+
         closing=true;
         modal.classList.remove("modal--visible");
         modal.classList.add("modal--closing");
@@ -53,7 +59,6 @@ export function createModal({title="",content="",width=null,admin=false}={}){
 
         currentModal=null;
 
-        if(runHandler&&typeof closeHandler==="function")await closeHandler();
         if(currentModal)return;
 
         overlay.classList.remove("modal-overlay--visible");
@@ -70,7 +75,12 @@ export function createModal({title="",content="",width=null,admin=false}={}){
         void waitForTransition(oldModal.element,()=>{}).then(()=>oldModal.element.remove());
     }
 
-    currentModal={overlay,element:modal,close,setCloseHandler:handler=>{closeHandler=handler;}};
+    currentModal={
+        overlay,
+        element:modal,
+        close,
+        setCloseHandler:handler=>{closeHandler=handler;}
+    };
 
     requestAnimationFrame(()=>{
         if(!oldModal)overlay.classList.add("modal-overlay--visible");
