@@ -174,7 +174,7 @@ export function createPageUpdates(state){
             state.records=await getRecords(state.object.id);
             const element=insertRecord(savedRecord,state.subjects,state.recordTypes);
             if(element)await show(element);
-        }
+        },
         async removeRecord(id){
             state.records=state.records.filter(record=>record.id!==id);
             const element=document.querySelector(`.record[data-record-id="${id}"]`);
