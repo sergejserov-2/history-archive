@@ -95,6 +95,7 @@ export function createModal({title="",content="",width=null,admin=false}={}){
 
     return{
         root:overlay,
+        element:modal,
         content:modal.querySelector(".modal__content"),
         setContent(html){
             const contentElement=modal.querySelector(".modal__content");
