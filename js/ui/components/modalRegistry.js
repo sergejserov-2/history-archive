@@ -327,7 +327,7 @@ export const feedbackModal={
         return{objectId:params.objectId};
     },
     open:async data=>{
-        if(data)openFeedbackFormByObjectId(data.objectId);
+        if(data)return await openFeedbackFormByObjectId(data.objectId);
     }
 };
 
