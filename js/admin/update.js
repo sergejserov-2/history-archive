@@ -151,7 +151,14 @@ export function createPageUpdates(state){
             state.object=await getObject(state.object.id);
             if(!state.object)return;
             const block=document.querySelector(".object");
-            if(block)block.outerHTML=state.renderObjectBlock();
+            if(block){
+                block.outerHTML=state.renderObjectBlock();
+                const newBlock=document.querySelector(".object");
+                if(newBlock){
+                    const{initCoverDrag}=await import("../ui/components/coverDrag.js");
+                    initCoverDrag(newBlock);
+                }
+            }
         },
         async updateSubjectBlock(savedSubject=null,uploading=false){
             if(savedSubject?.id)state.subject={...state.subject,...savedSubject};
@@ -168,10 +175,12 @@ export function createPageUpdates(state){
             if(savedRecord?.id&&!state.records.some(record=>record.id===savedRecord.id))state.records.push(savedRecord);
             const block=document.querySelector(".records");
             if(block){
-                block.outerHTML=renderRecords(state.records,state.recordTypes,state.admin,state.subjects);
+                block.outerHTML=renderRecords(state.records,state.recordTypes,state.subjects);
                 return;
             }
-            if(state.admin||state.records.length)document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.admin));
+            if(state.records.length){
+                document.querySelector(".object__info")?.insertAdjacentHTML("beforeend",renderRecords(state.records,state.recordTypes,state.subjects));
+            }
         },
         async updatePhotosBlock(savedPhoto=null,uploading=false){
             if(!state.object)return;
@@ -180,15 +189,19 @@ export function createPageUpdates(state){
             const photosForRender=state.photos.map(photo=>({...photo,isUploading:Boolean(uploading)&&photo.id===savedPhoto?.id}));
             const gallery=document.querySelector("#gallery");
             if(!gallery){
-                if(state.admin||photosForRender.length){
+                if(photosForRender.length){
                     const sources=document.querySelector("#sources");
-                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}</section>`;
+                    const html=`<section id="gallery"><h2>Фотографии</h2>${renderPhotos(photosForRender)}</section>`;
                     if(sources)sources.insertAdjacentHTML("beforebegin",html);
                     else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
                 }
-            }else{
-                gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender,state.admin)}`;
+                return;
             }
+            if(!photosForRender.length){
+                gallery.remove();
+                return;
+            }
+            gallery.innerHTML=`<h2>Фотографии</h2>${renderPhotos(photosForRender)}`;
         },
         async updateSourcesBlock(savedSource=null){
             if(!state.object)return;
@@ -196,23 +209,30 @@ export function createPageUpdates(state){
             if(savedSource?.id&&!state.sources.some(source=>source.id===savedSource.id))state.sources.push(savedSource);
             const block=document.querySelector("#sources");
             if(!block){
-                if(state.admin||state.sources.length){
+                if(state.sources.length){
                     const children=document.querySelector("#children");
-                    const html=`<section id="sources"><h2>Источники</h2>${renderSources(state.sources,state.admin,state.subjects)}</section>`;
+                    const html=`<section id="sources"><h2>Источники</h2>${renderSources(state.sources,state.subjects)}</section>`;
                     if(children)children.insertAdjacentHTML("beforebegin",html);
                     else document.querySelector(".page")?.insertAdjacentHTML("beforeend",html);
                 }
                 return;
             }
-            block.innerHTML=`<h2>Источники</h2>${renderSources(state.sources,state.admin,state.subjects)}`;
+            if(!state.sources.length){
+                block.remove();
+                return;
+            }
+            block.innerHTML=`<h2>Источники</h2>${renderSources(state.sources,state.subjects)}`;
         },
         async updateChildrenBlock(){
             if(!state.object)return;
             state.children=await state.getChildren();
             const block=document.querySelector("#children");
-            const html=`<h2>Дочерние объекты</h2>${await renderChildren(state.children,state.admin,state.object,state.objects,state.types)}`;
-            if(block)block.innerHTML=html;
-            else if(state.admin||state.children.length)document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
+            const html=`<h2>Дочерние объекты</h2>${await renderChildren(state.children,state.object,state.objects,state.types)}`;
+            if(block){
+                block.innerHTML=html;
+                return;
+            }
+            if(state.children.length)document.querySelector(".page")?.insertAdjacentHTML("beforeend",`<section id="children">${html}</section>`);
         },
         async onObjectDeleted(){
             const parent=state.parents?.[0];
