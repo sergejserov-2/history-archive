@@ -383,7 +383,7 @@
     transition: opacity .2s ease,transform .2s ease;
     text-align: center;
     color: var(--color-text-primary);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-md);
 }
 
 .photo-viewer__original-loading--visible {
