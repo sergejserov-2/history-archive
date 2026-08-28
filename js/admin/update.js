@@ -7,7 +7,7 @@ import{getType,createType,updateType,deleteType}from"../api/types.js";
 import{getRecordType,createRecordType,updateRecordType,deleteRecordType}from"../api/recordTypes.js";
 import{getSubjectType,createSubjectType,updateSubjectType,deleteSubjectType}from"../api/subjectTypes.js";
 import{moveFileToDeleted,uploadPhoto,uploadSourceDocument}from"../api/storage.js";
-import{renderRecord}from"../ui/components/records.js";
+import{renderRecord,insertRecord}from"../ui/components/records.js";
 import{renderPhoto}from"../ui/components/photos.js";
 import{renderSource}from"../ui/components/sources.js";
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
@@ -172,13 +172,9 @@ export function createPageUpdates(state){
         async addRecord(savedRecord){
             if(!savedRecord?.id)return;
             state.records=await getRecords(state.object.id);
-            const recordsBlock=document.querySelector(".records");
-            const list=recordsBlock?.querySelector(".entity-list");
-            if(!list)return;
-            list.insertAdjacentHTML("beforeend",renderRecord(savedRecord,state.subjects));
-            const element=list.querySelector(`[data-record-id="${savedRecord.id}"]`);
+            const element=insertRecord(savedRecord,state.subjects,state.recordTypes);
             if(element)await show(element);
-        },
+        }
         async removeRecord(id){
             state.records=state.records.filter(record=>record.id!==id);
             const element=document.querySelector(`.record[data-record-id="${id}"]`);
