@@ -3,6 +3,7 @@ import{isAdmin}from"../../admin/adminMode.js";
 import{getCurrentModal}from"./modal.js";
 
 let restoring=false;
+let modalContext=null;
 
 function getRegistration(type){
     return modalRegistry.find(modal=>modal.type===type)??null;
@@ -81,6 +82,7 @@ async function reload(){
         const type=url.searchParams.get("modal");
 
         if(!type){
+            modalContext=null;
             await closeCurrentWithoutHistory();
             return;
         }
@@ -88,11 +90,13 @@ async function reload(){
         const registration=getRegistration(type);
 
         if(!registration){
+            modalContext=null;
             await closeCurrentWithoutHistory();
             return;
         }
 
         if(registration.admin&&!isAdmin()){
+            modalContext=null;
             await closeCurrentWithoutHistory();
             const cleanUrl=new URL(window.location.href);
             cleanUrl.searchParams.delete("modal");
@@ -102,9 +106,10 @@ async function reload(){
         }
 
         const params=getUrlParams(registration,url);
-        const data=registration.load?await registration.load(params):null;
+        const data=registration.load?await registration.load(params,modalContext):null;
 
         if(registration.load&&!data){
+            modalContext=null;
             await closeCurrentWithoutHistory();
             const cleanUrl=new URL(window.location.href);
             cleanUrl.searchParams.delete("modal");
@@ -128,12 +133,14 @@ async function reload(){
     }
 }
 
-export async function openModal(type,params={}){
+export async function openModal(type,params={},context=null){
+    modalContext=context;
     setModalUrl(type,params);
     await reload();
 }
 
 export async function restoreModalFromUrl(){
+    modalContext=null;
     await reload();
 }
 
