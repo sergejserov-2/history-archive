@@ -234,29 +234,14 @@ export function animateCollapseGroup(elements){
 
 export function animateChange(el,oldSize){
     if(!el||!Number.isFinite(oldSize))return Promise.resolve();
-
-    const beforeRect=getRect(el);
-    const beforeMargins=getMargins(el);
-    const beforeAxis=getAxis(el);
-    const beforeGap=getGap(el,beforeAxis);
+    void el.offsetHeight;
     const newSize=getSize(el);
+    if(newSize===oldSize)return Promise.resolve();
     const margins=getMargins(el);
     const axis=getAxis(el);
     const delta=newSize-oldSize;
     const from={...margins};
     const to={...margins};
-
-    console.groupCollapsed("[resize] CHANGE");
-    console.log("oldSize:",oldSize);
-    console.log("current rect:",beforeRect);
-    console.log("current rect height:",beforeRect?.height);
-    console.log("current margins:",beforeMargins);
-    console.log("current axis:",beforeAxis);
-    console.log("current gap:",beforeGap);
-    console.log("current getSize:",getSize(el));
-    console.log("newSize:",newSize);
-    console.log("delta:",delta);
-
     if(axis==="vertical"){
         from.top-=delta/2;
         from.bottom-=delta/2;
@@ -264,52 +249,7 @@ export function animateChange(el,oldSize){
         from.left-=delta/2;
         from.right-=delta/2;
     }
-
-    console.log("animation from:",from);
-    console.log("animation to:",to);
-    console.groupEnd();
-
-    let frameCount=0;
-
-    return new Promise(resolve=>{
-        stop(el);
-        setMargins(el,from);
-        void el.offsetHeight;
-        const start=performance.now();
-
-        function frame(now){
-            const t=Math.min(1,(now-start)/CHANGE_DURATION);
-            const e=ease(t);
-            const currentMargins=interpolate(from,to,e);
-            setMargins(el,currentMargins);
-
-            if(frameCount<8){
-                const rect=getRect(el);
-                console.log("[resize] CHANGE FRAME",frameCount,{
-                    t,
-                    ease:e,
-                    rectHeight:rect?.height,
-                    rectWidth:rect?.width,
-                    margins:getMargins(el),
-                    size:getSize(el)
-                });
-                frameCount++;
-            }
-
-            if(t<1){
-                el._animationFrame=requestAnimationFrame(frame);
-                return;
-            }
-
-            el._animationFrame=null;
-            setMargins(el,to);
-            el._animationTimer=setTimeout(()=>{
-                el._animationTimer=null;
-                clear(el);
-                resolve();
-            },20);
-        }
-
-        el._animationFrame=requestAnimationFrame(frame);
+    return animate(el,from,to,CHANGE_DURATION).then(()=>{
+        clear(el);
     });
 }
