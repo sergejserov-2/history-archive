@@ -6,7 +6,6 @@ import{
     cancelSizeAnimation,
     clearSizeAnimation
 }from"./resize.js";
-
 import{
     showVisibility,
     hideVisibility
@@ -14,11 +13,20 @@ import{
 
 const ENTER_DELAY=10;
 const EXIT_DELAY=10;
-
 const HIDDEN_CLASS="animation--hidden";
-
 const ENTER_STATE="enter";
 const EXIT_STATE="exit";
+let animationCount=0;
+
+function lockScrollbars(){
+    animationCount++;
+    if(animationCount===1)document.documentElement.classList.add("animation--running");
+}
+
+function unlockScrollbars(){
+    animationCount=Math.max(0,animationCount-1);
+    if(!animationCount)document.documentElement.classList.remove("animation--running");
+}
 
 function getGroup(element,state){
     const parent=element?.parentElement;
@@ -41,8 +49,7 @@ function getPromise(element){
 
 function clearPromise(group,promise){
     for(const element of group){
-        if(element._groupAnimationPromise===promise)
-            element._groupAnimationPromise=null;
+        if(element._groupAnimationPromise===promise)element._groupAnimationPromise=null;
     }
 }
 
@@ -71,13 +78,14 @@ function runExpand(group){
     if(!group.length)return Promise.resolve();
     const existing=getPromise(group[0]);
     if(existing)return existing;
+    lockScrollbars();
     for(const element of group){
         element.hidden=false;
         element.classList.add(HIDDEN_CLASS);
     }
     void document.documentElement.offsetHeight;
     const resize=group.length>1?animateExpandGroup(group):animateExpand(group[0]);
-    const promise=resize.then(()=>Promise.all(group.map(element=>showVisibility(element)))).then(()=>finishExpand(group));
+    const promise=resize.then(()=>Promise.all(group.map(element=>showVisibility(element)))).then(()=>finishExpand(group)).finally(unlockScrollbars);
     setPromise(group,promise);
     promise.then(()=>clearPromise(group,promise));
     return promise;
@@ -87,8 +95,9 @@ function runCollapse(group){
     if(!group.length)return Promise.resolve();
     const existing=getPromise(group[0]);
     if(existing)return existing;
+    lockScrollbars();
     const visibility=Promise.all(group.map(element=>hideVisibility(element)));
-    const promise=visibility.then(()=>group.length>1?animateCollapseGroup(group):animateCollapse(group[0])).then(()=>finishCollapse(group));
+    const promise=visibility.then(()=>group.length>1?animateCollapseGroup(group):animateCollapse(group[0])).then(()=>finishCollapse(group)).finally(unlockScrollbars);
     setPromise(group,promise);
     promise.then(()=>clearPromise(group,promise));
     return promise;
@@ -111,8 +120,7 @@ export function cancelAnimation(element){
 
 export function show(element){
     if(!element)return Promise.resolve();
-    if(element._animationState===ENTER_STATE)
-        return getPromise(element)||Promise.resolve();
+    if(element._animationState===ENTER_STATE)return getPromise(element)||Promise.resolve();
     cancelAnimation(element);
     element._animationState=ENTER_STATE;
     element.hidden=true;
@@ -134,8 +142,7 @@ export function show(element){
 export function hide(element){
     if(!element)return Promise.resolve();
     if(element.hidden)return Promise.resolve();
-    if(element._animationState===EXIT_STATE)
-        return getPromise(element)||Promise.resolve();
+    if(element._animationState===EXIT_STATE)return getPromise(element)||Promise.resolve();
     cancelAnimation(element);
     element._animationState=EXIT_STATE;
     return new Promise(resolve=>{
