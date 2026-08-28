@@ -16,7 +16,6 @@ import{
 
 const ENTER_DELAY=10;
 const EXIT_DELAY=10;
-const CHANGE_DELAY=10;
 
 const HIDDEN_CLASS="animation--hidden";
 
@@ -124,7 +123,7 @@ function runChange(element,oldSize){
     if(existing)return existing;
     element.hidden=false;
     element.classList.add(HIDDEN_CLASS);
-    void document.documentElement.offsetHeight;
+    void element.offsetHeight;
     const promise=animateChange(element,oldSize)
         .then(()=>showVisibility(element))
         .then(()=>finishChange(element));
@@ -194,16 +193,7 @@ export function change(element,oldSize){
         return getPromise(element)||Promise.resolve();
     cancelAnimation(element);
     element._animationState=CHANGE_STATE;
-    return new Promise(resolve=>{
-        element._animationTimer=setTimeout(()=>{
-            element._animationTimer=null;
-            if(element._animationState!==CHANGE_STATE){
-                resolve();
-                return;
-            }
-            runChange(element,oldSize).then(resolve);
-        },CHANGE_DELAY);
-    });
+    return runChange(element,oldSize);
 }
 
 export function getAnimationSize(element){
