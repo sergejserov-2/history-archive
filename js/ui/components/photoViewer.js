@@ -5,10 +5,7 @@ import{adminEdit,adminDelete}from"./adminButtons.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}){
     if(!photo)return;
-const gallery=[...(photos??[])];
-console.log("VIEWER photo:",photo.id);
-console.log("VIEWER gallery:",gallery.map(item=>item.id));
-console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(photo.id)));
+    const gallery=[...(photos??[])];
     let currentIndex=gallery.findIndex(item=>String(item.id)===String(photo.id));
     if(currentIndex<0){
         gallery.push(photo);
@@ -19,24 +16,31 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
 <div class="photo-viewer">
     <div class="photo-viewer__image-area">
         <div class="photo-viewer__image-bg"></div>
+        <div class="photo-viewer__original-loading">
+            <span>Оригинал загружается, подождите...</span>
+            <div class="photo-viewer__progress"><div></div></div>
+        </div>
         <img id="photoViewerImage" src="" alt="" draggable="false">
     </div>
     ${showInfo?`
     <div class="photo-viewer__info">
-        <div class="photo-viewer__title">
-            <span class="photo-viewer__title-text"></span>
-            <span class="photo-viewer__title-actions"></span>
+        <button class="photo-viewer__info-toggle" type="button" aria-label="Свернуть информацию" title="Свернуть">›</button>
+        <div class="photo-viewer__info-content">
+            <div class="photo-viewer__title">
+                <span class="photo-viewer__title-text"></span>
+                <span class="photo-viewer__title-actions"></span>
+            </div>
+            <div class="photo-viewer__description" hidden></div>
+            <div class="photo-viewer__field photo-viewer__author" hidden>
+                <span class="photo-viewer__label">Автор</span>
+                <span class="photo-viewer__author-value"></span>
+            </div>
+            <div class="photo-viewer__field photo-viewer__date" hidden>
+                <span class="photo-viewer__label">Дата</span>
+                <span class="photo-viewer__date-value"></span>
+            </div>
+            <a class="photo-viewer__download" hidden download target="_blank" rel="noopener">Скачать</a>
         </div>
-        <div class="photo-viewer__description" hidden></div>
-        <div class="photo-viewer__field photo-viewer__author" hidden>
-            <span class="photo-viewer__label">Автор</span>
-            <span class="photo-viewer__author-value"></span>
-        </div>
-        <div class="photo-viewer__field photo-viewer__date" hidden>
-            <span class="photo-viewer__label">Дата</span>
-            <span class="photo-viewer__date-value"></span>
-        </div>
-        <a class="photo-viewer__download" hidden download target="_blank" rel="noopener">Скачать</a>
     </div>`:""}
 </div>`;
 
@@ -47,6 +51,19 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
     const imageArea=root.querySelector(".photo-viewer__image-area");
     const image=root.querySelector("#photoViewerImage");
     const imageBackground=root.querySelector(".photo-viewer__image-bg");
+    const loading=root.querySelector(".photo-viewer__original-loading");
+    const progress=root.querySelector(".photo-viewer__progress div");
+    const infoToggle=root.querySelector(".photo-viewer__info-toggle");
+    const viewer=root.querySelector(".photo-viewer");
+
+    if(infoToggle){
+        infoToggle.onclick=()=>{
+            viewer.classList.toggle("photo-viewer--info-collapsed");
+            const collapsed=viewer.classList.contains("photo-viewer--info-collapsed");
+            infoToggle.setAttribute("aria-label",collapsed?"Развернуть информацию":"Свернуть информацию");
+            infoToggle.title=collapsed?"Развернуть":"Свернуть";
+        };
+    }
 
     root.addEventListener("click",event=>{
         const button=event.target.closest(".admin-button");
@@ -155,17 +172,30 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
         }
     }
 
-    function loadImage(src){
+    function loadImage(src,onProgress){
         return new Promise((resolve,reject)=>{
             const loader=new Image();
             loader.onload=()=>resolve(loader);
             loader.onerror=reject;
             loader.src=src;
+            if(onProgress)onProgress(100);
         });
+    }
+
+    function showOriginalLoading(){
+        if(!loading)return;
+        loading.classList.add("photo-viewer__original-loading--visible");
+        if(progress)progress.style.width="0%";
+    }
+
+    function hideOriginalLoading(){
+        if(!loading)return;
+        loading.classList.remove("photo-viewer__original-loading--visible");
     }
 
     async function loadPhotoImage(nextPhoto){
         resetView();
+        hideOriginalLoading();
 
         if(nextPhoto.previewPath)imageBackground.style.backgroundImage=`url('${nextPhoto.previewPath}')`;
         else imageBackground.style.backgroundImage="";
@@ -195,6 +225,8 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
 
         if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath)return true;
 
+        showOriginalLoading();
+
         try{
             const original=await loadImage(nextPhoto.storagePath);
             saveRelativePosition();
@@ -208,6 +240,8 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
             updateTransform();
         }catch(error){
             console.error("Ошибка загрузки оригинала:",error);
+        }finally{
+            hideOriginalLoading();
         }
 
         return true;
@@ -215,39 +249,34 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
 
     async function showPhoto(nextPhoto,nextIndex,{updateUrl=true,showControls=false}={}){
         if(!nextPhoto)return;
+        controls.element.classList.add("viewer-controls--loading");
         currentIndex=nextIndex;
         controls.update(currentIndex);
         updateInfo(nextPhoto);
 
         if(updateUrl&&nextPhoto.id){
-            replaceModalUrl({
-                entityId:nextPhoto.id
-            });
+            replaceModalUrl({entityId:nextPhoto.id});
         }
 
         const loaded=await loadPhotoImage(nextPhoto);
 
         if(loaded&&showControls){
             requestAnimationFrame(()=>{
-                controls.element.classList.remove("viewer-controls--loading");
+                requestAnimationFrame(()=>{
+                    controls.element.classList.remove("viewer-controls--loading");
+                });
             });
         }
     }
 
     function showPrevious(){
         if(currentIndex<=0)return;
-        void showPhoto(
-            gallery[currentIndex-1],
-            currentIndex-1
-        );
+        void showPhoto(gallery[currentIndex-1],currentIndex-1,{showControls:true});
     }
 
     function showNext(){
         if(currentIndex>=gallery.length-1)return;
-        void showPhoto(
-            gallery[currentIndex+1],
-            currentIndex+1
-        );
+        void showPhoto(gallery[currentIndex+1],currentIndex+1,{showControls:true});
     }
 
     imageArea.addEventListener("mousedown",event=>{
@@ -277,21 +306,16 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
 
     imageArea.addEventListener("wheel",event=>{
         event.preventDefault();
-
         const oldScale=fitScale*zoom;
         const factor=Math.exp(-event.deltaY*0.001);
-
         zoom=Math.max(1,Math.min(zoom*factor,5));
-
         const newScale=fitScale*zoom;
         const rect=imageArea.getBoundingClientRect();
         const mouseX=event.clientX-rect.left-rect.width/2;
         const mouseY=event.clientY-rect.top-rect.height/2;
         const ratio=newScale/oldScale;
-
         translateX=mouseX-(mouseX-translateX)*ratio;
         translateY=mouseY-(mouseY-translateY)*ratio;
-
         updateTransform();
     },{passive:false});
 
@@ -304,35 +328,24 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
             touchStartTranslateX=translateX;
             touchStartTranslateY=translateY;
         }
-
         if(event.touches.length===2){
             dragging=false;
-            pinchStartDistance=getTouchDistance(
-                event.touches[0],
-                event.touches[1]
-            );
+            pinchStartDistance=getTouchDistance(event.touches[0],event.touches[1]);
             pinchStartZoom=zoom;
         }
     },{passive:true});
 
     imageArea.addEventListener("touchmove",event=>{
         event.preventDefault();
-
         if(event.touches.length===1&&dragging){
             const touch=event.touches[0];
             translateX=touchStartTranslateX+touch.clientX-touchStartX;
             translateY=touchStartTranslateY+touch.clientY-touchStartY;
             updateTransform();
         }
-
         if(event.touches.length===2){
-            const distance=getTouchDistance(
-                event.touches[0],
-                event.touches[1]
-            );
-
+            const distance=getTouchDistance(event.touches[0],event.touches[1]);
             if(!pinchStartDistance)return;
-
             zoom=pinchStartZoom*(distance/pinchStartDistance);
             zoom=Math.max(1,Math.min(zoom,5));
             updateTransform();
@@ -360,22 +373,20 @@ console.log("VIEWER index:",gallery.findIndex(item=>String(item.id)===String(pho
     controls.element.classList.add("viewer-controls--loading");
     root.appendChild(controls.element);
 
-    void showPhoto(
-        gallery[currentIndex],
-        currentIndex,
-        {
-            updateUrl:false,
-            showControls:true
-        }
-    );
+    void showPhoto(gallery[currentIndex],currentIndex,{updateUrl:false,showControls:true});
 
     const originalClose=modal.close;
 
     modal.close=()=>{
-        controls.destroy();
+        controls.element.classList.add("viewer-controls--closing");
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
-        return originalClose();
+        return new Promise(resolve=>{
+            setTimeout(()=>{
+                controls.destroy();
+                resolve(originalClose());
+            },250);
+        });
     };
 
     return modal;
