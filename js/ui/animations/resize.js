@@ -294,52 +294,63 @@ export function animateChange(el,oldSize){
                 console.log("[resize] animation from:",from);
                 console.log("[resize] animation to:",to);
 
-                const start=performance.now();
-                let frameNumber=0;
+                // Ставим начальное состояние до запуска анимации.
+                setMargins(el,from);
+                void el.offsetHeight;
 
-                function frame(now){
-                    const t=Math.min(1,Math.max(0,(now-start)/CHANGE_DURATION));
-                    const e=ease(t);
-                    const current=interpolate(from,to,e);
+                console.log("[resize] START STATE SET");
+                console.log("[resize] start state rect:",getRect(el));
+                console.log("[resize] start state size:",getSize(el));
+                console.log("[resize] start state margins:",getMargins(el));
 
-                    setMargins(el,current);
+                requestAnimationFrame(()=>{
+                    const start=performance.now();
+                    let frameNumber=0;
 
-                    if(frameNumber<10){
-                        const rect=getRect(el);
-                        console.log(`[resize] CHANGE FRAME ${frameNumber}`,{
-                            t,
-                            ease:e,
-                            rectHeight:rect?.height,
-                            rectWidth:rect?.width,
+                    function frame(now){
+                        const t=Math.min(1,Math.max(0,(now-start)/CHANGE_DURATION));
+                        const e=ease(t);
+                        const current=interpolate(from,to,e);
+
+                        setMargins(el,current);
+
+                        if(frameNumber<10){
+                            const rect=getRect(el);
+                            console.log(`[resize] CHANGE FRAME ${frameNumber}`,{
+                                t,
+                                ease:e,
+                                rectHeight:rect?.height,
+                                rectWidth:rect?.width,
+                                size:getSize(el),
+                                margins:getMargins(el)
+                            });
+                        }
+
+                        frameNumber++;
+
+                        if(t<1){
+                            el._animationFrame=requestAnimationFrame(frame);
+                            return;
+                        }
+
+                        el._animationFrame=null;
+                        setMargins(el,to);
+
+                        console.log("[resize] CHANGE END",{
+                            rect:getRect(el),
                             size:getSize(el),
                             margins:getMargins(el)
                         });
+
+                        el._animationTimer=setTimeout(()=>{
+                            el._animationTimer=null;
+                            clear(el);
+                            resolve();
+                        },20);
                     }
 
-                    frameNumber++;
-
-                    if(t<1){
-                        el._animationFrame=requestAnimationFrame(frame);
-                        return;
-                    }
-
-                    el._animationFrame=null;
-                    setMargins(el,to);
-
-                    console.log("[resize] CHANGE END",{
-                        rect:getRect(el),
-                        size:getSize(el),
-                        margins:getMargins(el)
-                    });
-
-                    el._animationTimer=setTimeout(()=>{
-                        el._animationTimer=null;
-                        clear(el);
-                        resolve();
-                    },20);
-                }
-
-                el._animationFrame=requestAnimationFrame(frame);
+                    el._animationFrame=requestAnimationFrame(frame);
+                });
             });
         });
     });
