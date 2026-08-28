@@ -13,22 +13,22 @@ import {
     deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 import {db} from "../firebase.js";
-// ======================================
-// Get record
-// ======================================
-export async function getRecord(id) {
-    if(!id) return null;
-    const snapshot = await getDoc(doc(db, "records", id));
-    if(!snapshot.exists()) return null;
-    return {id: snapshot.id, ...snapshot.data()};
+export async function getRecord(id){
+    if(!id)return null;
+    const snapshot=await getDoc(doc(db,"records",id));
+    if(!snapshot.exists())return null;
+    return{...snapshot.data(),id:snapshot.id};
 }
-// ======================================
-// Get records
-// ======================================
-export async function getRecords(objectId) {
-    const q = query(collection(db, "records"), where("parents", "array-contains", objectId));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+
+export async function getRecords(objectId){
+    const q=query(collection(db,"records"),where("parents","array-contains",objectId));
+    const snapshot=await getDocs(q);
+    return snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));
+}
+
+export async function getAllRecords(){
+    const snapshot=await getDocs(collection(db,"records"));
+    return snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));
 }
 // ======================================
 // Update record
@@ -48,14 +48,4 @@ export async function createRecord(data) {
 // ======================================
 export async function deleteRecord(id) {
     await deleteDoc(doc(db, "records", id));
-}
-
-
-
-export async function getAllRecords(){
-    const snapshot=await getDocs(collection(db,"records"));
-    return snapshot.docs.map(doc=>({
-        id:doc.id,
-        ...doc.data()
-    }));
 }
