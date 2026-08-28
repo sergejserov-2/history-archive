@@ -255,106 +255,107 @@ export function animateChange(el,oldSize){
 
     void el.offsetHeight;
 
-    const afterLayoutRect=getRect(el);
-    const afterLayoutSize=getSize(el);
-
-    console.log("[resize] after forced layout rect:",afterLayoutRect);
-    console.log("[resize] after forced layout height:",afterLayoutRect?.height);
-    console.log("[resize] after forced layout getSize:",afterLayoutSize);
-
-    const newSize=getSize(el);
-
-    console.log("[resize] newSize:",newSize);
-
-    if(newSize===oldSize){
-        console.log("[resize] CHANGE SKIPPED: sizes equal");
-        return Promise.resolve();
-    }
-
-    const margins=getMargins(el);
-    const axis=getAxis(el);
-    const delta=newSize-oldSize;
-    const from={...margins};
-    const to={...margins};
-
-    if(axis==="vertical"){
-        from.top-=delta/2;
-        from.bottom-=delta/2;
-    }else{
-        from.left-=delta/2;
-        from.right-=delta/2;
-    }
-
-    console.log("[resize] delta:",delta);
-    console.log("[resize] animation from:",from);
-    console.log("[resize] animation to:",to);
-
-    stop(el);
-    setMargins(el,from);
-
-    const afterMarginsRect=getRect(el);
-    const afterMarginsSize=getSize(el);
-
-    console.log("[resize] AFTER SET MARGINS");
-    console.log("[resize] rect:",afterMarginsRect);
-    console.log("[resize] rect height:",afterMarginsRect?.height);
-    console.log("[resize] getSize:",afterMarginsSize);
-    console.log("[resize] margins:",getMargins(el));
-
-    void el.offsetHeight;
-
-    const afterFlushRect=getRect(el);
-    const afterFlushSize=getSize(el);
-
-    console.log("[resize] AFTER MARGIN LAYOUT");
-    console.log("[resize] rect:",afterFlushRect);
-    console.log("[resize] rect height:",afterFlushRect?.height);
-    console.log("[resize] getSize:",afterFlushSize);
-
-    const start=performance.now();
-    let frameNumber=0;
+    console.log("[resize] after forced layout rect:",getRect(el));
+    console.log("[resize] after forced layout height:",getRect(el)?.height);
+    console.log("[resize] after forced layout getSize:",getSize(el));
 
     return new Promise(resolve=>{
-        function frame(now){
-            const t=Math.min(1,(now-start)/CHANGE_DURATION);
-            const e=ease(t);
-            const currentMargins=interpolate(from,to,e);
-            setMargins(el,currentMargins);
+        requestAnimationFrame(()=>{
+            requestAnimationFrame(()=>{
+                const newSize=getSize(el);
 
-            if(frameNumber<10){
-                const rect=getRect(el);
-                console.log(`[resize] CHANGE FRAME ${frameNumber}`,{
-                    t,
-                    ease:e,
-                    rectHeight:rect?.height,
-                    rectWidth:rect?.width,
-                    size:getSize(el),
-                    margins:getMargins(el)
-                });
-            }
+                console.log("[resize] AFTER 2 RAF");
+                console.log("[resize] after 2 RAF rect:",getRect(el));
+                console.log("[resize] after 2 RAF rect height:",getRect(el)?.height);
+                console.log("[resize] after 2 RAF getSize:",newSize);
 
-            frameNumber++;
+                if(newSize===oldSize){
+                    console.log("[resize] size unchanged");
+                    resolve();
+                    return;
+                }
 
-            if(t<1){
+                const margins=getMargins(el);
+                const axis=getAxis(el);
+                const delta=newSize-oldSize;
+                const from={...margins};
+                const to={...margins};
+
+                if(axis==="vertical"){
+                    from.top-=delta/2;
+                    from.bottom-=delta/2;
+                }else{
+                    from.left-=delta/2;
+                    from.right-=delta/2;
+                }
+
+                console.log("[resize] newSize:",newSize);
+                console.log("[resize] delta:",delta);
+                console.log("[resize] animation from:",from);
+                console.log("[resize] animation to:",to);
+
+                setMargins(el,from);
+
+                console.log("[resize] AFTER SET MARGINS");
+                console.log("[resize] rect:",getRect(el));
+                console.log("[resize] rect height:",getRect(el)?.height);
+                console.log("[resize] getSize:",getSize(el));
+                console.log("[resize] margins:",getMargins(el));
+
+                void el.offsetHeight;
+
+                console.log("[resize] AFTER MARGIN LAYOUT");
+                console.log("[resize] rect:",getRect(el));
+                console.log("[resize] rect height:",getRect(el)?.height);
+                console.log("[resize] getSize:",getSize(el));
+
+                const start=performance.now();
+                let frameNumber=0;
+
+                function frame(now){
+                    const t=(now-start)/CHANGE_DURATION;
+                    const clamped=Math.min(1,Math.max(0,t));
+                    const e=ease(clamped);
+
+                    setMargins(el,interpolate(from,to,e));
+
+                    if(frameNumber<10){
+                        const rect=getRect(el);
+                        console.log(`[resize] CHANGE FRAME ${frameNumber}`,{
+                            t,
+                            ease:e,
+                            rectHeight:rect?.height,
+                            rectWidth:rect?.width,
+                            size:getSize(el),
+                            margins:getMargins(el)
+                        });
+                    }
+
+                    frameNumber++;
+
+                    if(clamped<1){
+                        el._animationFrame=requestAnimationFrame(frame);
+                        return;
+                    }
+
+                    el._animationFrame=null;
+                    setMargins(el,to);
+
+                    console.log("[resize] CHANGE END",{
+                        rect:getRect(el),
+                        size:getSize(el),
+                        margins:getMargins(el)
+                    });
+
+                    el._animationTimer=setTimeout(()=>{
+                        el._animationTimer=null;
+                        clear(el);
+                        resolve();
+                    },20);
+                }
+
                 el._animationFrame=requestAnimationFrame(frame);
-                return;
-            }
-
-            el._animationFrame=null;
-            setMargins(el,to);
-
-            el._animationTimer=setTimeout(()=>{
-                el._animationTimer=null;
-                console.log("[resize] CHANGE END",{
-                    rect:getRect(el),
-                    size:getSize(el),
-                    margins:getMargins(el)
-                });
-                clear(el);
-                resolve();
-            },20);
-        }
-
-        el._animationFrame=requestAnimationFrame(frame);
+            });
+        });
     });
 }
