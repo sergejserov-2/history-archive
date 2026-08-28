@@ -37,7 +37,6 @@ export async function openTypesModal(){
     });
 
     currentTypesModal=modal;
-
     modal.objectTypes=objectTypes;
     modal.recordTypes=recordTypes;
     modal.subjectTypes=subjectTypes;
@@ -46,6 +45,8 @@ export async function openTypesModal(){
     modal.subjects=subjects;
 
     modal.root.addEventListener("click",async event=>{
+        if(!modal.element.contains(event.target))return;
+
         const adminButton=event.target.closest(".admin-button");
 
         if(adminButton?.classList.contains("admin-button--disabled"))return;
@@ -96,7 +97,6 @@ export async function openTypesModal(){
                 const typeEntity=getTypeById(type,id,modal);
 
                 if(!typeEntity)return;
-
                 if(isTypeUsed(type,id,modal))return;
 
                 if(!confirm(`Удалить тип «${typeEntity.title??id}»?`))return;
