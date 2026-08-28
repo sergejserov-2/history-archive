@@ -25,6 +25,14 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
         nextButton.disabled=index>=total-1;
     }
 
+    function show(){
+        controls.classList.remove("viewer-controls--hidden");
+    }
+
+    function hide(){
+        controls.classList.add("viewer-controls--hidden");
+    }
+
     previousButton.onclick=event=>{
         event.preventDefault();
         if(!previousButton.disabled)onPrevious();
@@ -69,6 +77,8 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
     return{
         element:controls,
         update,
+        show,
+        hide,
         destroy
     };
 }
