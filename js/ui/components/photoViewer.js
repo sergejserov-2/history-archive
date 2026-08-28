@@ -1,3 +1,4 @@
+
 import{createModal}from"./modal.js";
 import{replaceModalUrl}from"./modalReload.js";
 import{createViewerControls}from"./viewerControls.js";
@@ -111,30 +112,30 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return false;
 
         fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
-        scale=fitScale*zoom;
         updateTransform();
 
         return true;
     }
 
     function saveViewPosition(){
-        const imageWidth=image.naturalWidth*scale;
-        const imageHeight=image.naturalHeight*scale;
-
         savedZoom=zoom;
-        savedRelativeX=imageWidth?translateX/imageWidth:0;
-        savedRelativeY=imageHeight?translateY/imageHeight:0;
+
+        const displayedWidth=image.naturalWidth*scale;
+        const displayedHeight=image.naturalHeight*scale;
+
+        savedRelativeX=displayedWidth?translateX/displayedWidth:0;
+        savedRelativeY=displayedHeight?translateY/displayedHeight:0;
     }
 
     function restoreViewPosition(){
         zoom=savedZoom;
         scale=fitScale*zoom;
 
-        const imageWidth=image.naturalWidth*scale;
-        const imageHeight=image.naturalHeight*scale;
+        const displayedWidth=image.naturalWidth*scale;
+        const displayedHeight=image.naturalHeight*scale;
 
-        translateX=savedRelativeX*imageWidth;
-        translateY=savedRelativeY*imageHeight;
+        translateX=savedRelativeX*displayedWidth;
+        translateY=savedRelativeY*displayedHeight;
 
         updateTransform();
     }
@@ -262,6 +263,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         const total=Number(contentLength);
 
         if(!response.body||!total){
+            setIndeterminateProgress();
+
             const blob=await response.blob();
 
             if(token!==loadToken)throw new Error("Загрузка отменена");
@@ -313,9 +316,16 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
             if(token!==loadToken)return;
 
-            if(!calculateFitScale())return;
+            const areaWidth=imageArea.clientWidth;
+            const areaHeight=imageArea.clientHeight;
+            const imageWidth=image.naturalWidth;
+            const imageHeight=image.naturalHeight;
 
+            if(!areaWidth||!areaHeight||!imageWidth||!imageHeight)return;
+
+            fitScale=Math.min(areaWidth/imageWidth,areaHeight/imageHeight);
             restoreViewPosition();
+
             image.style.visibility="visible";
             updateOriginalProgress(100);
         }catch(error){
