@@ -1,6 +1,6 @@
 const EXPAND_DURATION=320;
 const COLLAPSE_DURATION=320;
-const CHANGE_DURATION=320;
+const CHANGE_DURATION=6320;
 
 function getRect(el){
     return el?.getBoundingClientRect()||null;
