@@ -25,11 +25,7 @@ export const photoPreviewModal={
         if(params.feedbackId){
             const feedback=await getFeedback(params.feedbackId);
             if(!feedback)return null;
-
-            const photos=Array.isArray(feedback.photoIds)
-                ?feedback.photoIds
-                :[];
-
+            const photos=Array.isArray(feedback.photoIds)?feedback.photoIds:[];
             const gallery=photos.map((item,index)=>({
                 id:String(index),
                 title:"",
@@ -37,13 +33,8 @@ export const photoPreviewModal={
                 previewPath:item.previewPath,
                 storagePath:item.storagePath
             }));
-
-            const photo=gallery.find(
-                item=>item.id===String(params.entityId)
-            );
-
+            const photo=gallery.find(item=>item.id===String(params.entityId));
             if(!photo)return null;
-
             return{
                 photo,
                 photos:gallery,
@@ -51,66 +42,25 @@ export const photoPreviewModal={
                 urlParams:{feedbackId:params.feedbackId}
             };
         }
-
         if(!params.entityId)return null;
-
-        const pageId=
-            new URL(window.location.href)
-                .searchParams
-                .get("id");
-
+        const pageId=new URL(window.location.href).searchParams.get("id");
         if(!pageId)return null;
-
         const photos=await getPhotos(pageId);
-
         const sortedPhotos=[...(photos??[])].sort((a,b)=>{
-            const dateA=a.date||"";
-            const dateB=b.date||"";
-
+            const dateA=a.date||"",dateB=b.date||"";
             if(!dateA&&!dateB){
-                const author=
-                    (a.author??"").localeCompare(
-                        b.author??"",
-                        "ru"
-                    );
-
-                return author!==0
-                    ?author
-                    :(a.title??"").localeCompare(
-                        b.title??"",
-                        "ru"
-                    );
+                const author=(a.author??"").localeCompare(b.author??"","ru");
+                return author!==0?author:(a.title??"").localeCompare(b.title??"","ru");
             }
-
             if(!dateA)return 1;
             if(!dateB)return -1;
-
-            const date=String(dateB).localeCompare(
-                String(dateA)
-            );
-
+            const date=String(dateB).localeCompare(String(dateA));
             if(date!==0)return date;
-
-            const author=
-                (a.author??"").localeCompare(
-                    b.author??"",
-                    "ru"
-                );
-
-            return author!==0
-                ?author
-                :(a.title??"").localeCompare(
-                    b.title??"",
-                    "ru"
-                );
+            const author=(a.author??"").localeCompare(b.author??"","ru");
+            return author!==0?author:(a.title??"").localeCompare(b.title??"","ru");
         });
-
-        const photo=sortedPhotos.find(
-            item=>item.id===params.entityId
-        );
-
+        const photo=sortedPhotos.find(item=>item.id===params.entityId);
         if(!photo)return null;
-
         return{
             photo,
             photos:sortedPhotos,
@@ -134,76 +84,51 @@ export const editorModal={
     type:"editor",
     admin:true,
     params:["entityId","entityType"],
-
     load:async(params,runtimeContext)=>{
         runtimeContext=runtimeContext??{};
 
         if(!params.entityType)return null;
 
-        const pageId=
-            new URL(window.location.href)
-                .searchParams
-                .get("id");
+        const pageId=new URL(window.location.href).searchParams.get("id");
+        const objects=runtimeContext.objects??await getAllObjects();
 
-        const objects=
-            runtimeContext.objects??
-            await getAllObjects();
-
-        if(
-            [
-                "objectType",
-                "recordType",
-                "subjectType"
-            ].includes(params.entityType)
-        ){
-            if(!params.entityId)return null;
-
+        if(["objectType","recordType","subjectType"].includes(params.entityType)){
             let entity=null;
             let context={...runtimeContext};
 
             if(params.entityType==="objectType"){
-                entity=await getType(params.entityId);
-
-                if(!entity)return null;
-
+                if(params.entityId){
+                    entity=await getType(params.entityId);
+                    if(!entity)return null;
+                }
                 context={
                     ...context,
                     objects,
-                    types:
-                        runtimeContext.types??
-                        await getTypes()
+                    types:runtimeContext.types??await getTypes()
                 };
             }
 
             if(params.entityType==="recordType"){
-                entity=await getRecordType(
-                    params.entityId
-                );
-
-                if(!entity)return null;
-
+                if(params.entityId){
+                    entity=await getRecordType(params.entityId);
+                    if(!entity)return null;
+                }
                 context={
                     ...context,
                     objects,
-                    recordTypes:
-                        runtimeContext.recordTypes??
-                        await getRecordTypes()
+                    recordTypes:runtimeContext.recordTypes??await getRecordTypes()
                 };
             }
 
             if(params.entityType==="subjectType"){
-                entity=await getSubjectType(
-                    params.entityId
-                );
-
-                if(!entity)return null;
-
+                if(params.entityId){
+                    entity=await getSubjectType(params.entityId);
+                    if(!entity)return null;
+                }
                 context={
                     ...context,
                     objects,
-                    subjectTypes:
-                        runtimeContext.subjectTypes??
-                        await getSubjectTypes()
+                    subjectTypes:runtimeContext.subjectTypes??await getSubjectTypes()
                 };
             }
 
@@ -217,20 +142,12 @@ export const editorModal={
 
         if(params.entityType==="subject"){
             if(params.entityId){
-                const[
-                    subject,
-                    subjects,
-                    subjectTypes
-                ]=await Promise.all([
+                const[subject,subjects,subjectTypes]=await Promise.all([
                     getSubject(params.entityId),
-                    runtimeContext.subjects??
-                        getSubjects(),
-                    runtimeContext.subjectTypes??
-                        getSubjectTypes()
+                    runtimeContext.subjects??getSubjects(),
+                    runtimeContext.subjectTypes??getSubjectTypes()
                 ]);
-
                 if(!subject)return null;
-
                 return{
                     entity:subject,
                     type:"subject",
@@ -248,14 +165,9 @@ export const editorModal={
 
             if(!pageId)return null;
 
-            const[
-                subjects,
-                subjectTypes
-            ]=await Promise.all([
-                runtimeContext.subjects??
-                    getSubjects(),
-                runtimeContext.subjectTypes??
-                    getSubjectTypes()
+            const[subjects,subjectTypes]=await Promise.all([
+                runtimeContext.subjects??getSubjects(),
+                runtimeContext.subjectTypes??getSubjectTypes()
             ]);
 
             return{
@@ -278,25 +190,14 @@ export const editorModal={
 
         if(params.entityType==="object"){
             if(params.entityId){
-                const object=await getObject(
-                    params.entityId
-                );
-
+                const object=await getObject(params.entityId);
                 if(!object)return null;
 
-                const[
-                    type,
-                    types,
-                    children,
-                    photos
-                ]=await Promise.all([
+                const[type,types,children,photos]=await Promise.all([
                     getType(object.typeId),
-                    runtimeContext.types??
-                        getTypes(),
-                    runtimeContext.children??
-                        getChildren(object.id),
-                    runtimeContext.photos??
-                        getPhotos(object.id)
+                    runtimeContext.types??getTypes(),
+                    runtimeContext.children??getChildren(object.id),
+                    runtimeContext.photos??getPhotos(object.id)
                 ]);
 
                 return{
@@ -309,9 +210,7 @@ export const editorModal={
                     context:{
                         ...runtimeContext,
                         objects,
-                        parentId:
-                            runtimeContext.parentId??
-                            pageId
+                        parentId:runtimeContext.parentId??pageId
                     }
                 };
             }
@@ -320,50 +219,31 @@ export const editorModal={
                 entity:null,
                 type:"object",
                 objects,
-                children:
-                    runtimeContext.children??[],
-                photos:
-                    runtimeContext.photos??[],
-                types:
-                    runtimeContext.types??
-                    await getTypes(),
+                children:runtimeContext.children??[],
+                photos:runtimeContext.photos??[],
+                types:runtimeContext.types??await getTypes(),
                 context:{
                     ...runtimeContext,
                     objects,
-                    parentId:
-                        runtimeContext.parentId??
-                        pageId
+                    parentId:runtimeContext.parentId??pageId
                 }
             };
         }
 
-        if(
-            ![
-                "photo",
-                "source",
-                "record"
-            ].includes(params.entityType)
-        )
-            return null;
+        if(!["photo","source","record"].includes(params.entityType))return null;
 
         let entities=[];
 
         if(params.entityType==="photo"){
-            entities=
-                runtimeContext.photos??
-                await getPhotos(pageId);
+            entities=runtimeContext.photos??await getPhotos(pageId);
         }
 
         if(params.entityType==="source"){
-            entities=
-                runtimeContext.sources??
-                await getSources(pageId);
+            entities=runtimeContext.sources??await getSources(pageId);
         }
 
         if(params.entityType==="record"){
-            entities=
-                runtimeContext.records??
-                await getRecords(pageId);
+            entities=runtimeContext.records??await getRecords(pageId);
         }
 
         if(!params.entityId){
@@ -373,18 +253,13 @@ export const editorModal={
                 objects,
                 context:{
                     ...runtimeContext,
-                    parentId:
-                        runtimeContext.parentId??
-                        pageId,
+                    parentId:runtimeContext.parentId??pageId,
                     objects
                 }
             };
         }
 
-        const entity=entities.find(
-            item=>item.id===params.entityId
-        );
-
+        const entity=entities.find(item=>item.id===params.entityId);
         if(!entity)return null;
 
         return{
@@ -393,24 +268,15 @@ export const editorModal={
             objects,
             context:{
                 ...runtimeContext,
-                parentId:
-                    runtimeContext.parentId??
-                    pageId,
+                parentId:runtimeContext.parentId??pageId,
                 objects
             }
         };
     },
-
     open:async data=>{
         if(!data)return;
 
-        if(
-            [
-                "objectType",
-                "recordType",
-                "subjectType"
-            ].includes(data.type)
-        ){
+        if(["objectType","recordType","subjectType"].includes(data.type)){
             return openEditor(
                 data.type,
                 data.entity,
@@ -419,37 +285,25 @@ export const editorModal={
         }
 
         if(data.type==="object"){
-            return openEditor(
-                "object",
-                data.entity,
-                {
-                    ...data.context,
-                    types:data.types,
-                    objects:data.objects,
-                    children:data.children,
-                    photos:data.photos
-                }
-            );
+            return openEditor("object",data.entity,{
+                ...data.context,
+                types:data.types,
+                objects:data.objects,
+                children:data.children,
+                photos:data.photos
+            });
         }
 
         if(data.type==="subject"){
-            return openEditor(
-                "subject",
-                data.entity,
-                {
-                    ...data.context,
-                    objects:data.objects,
-                    subjects:data.subjects,
-                    subjectTypes:data.subjectTypes
-                }
-            );
+            return openEditor("subject",data.entity,{
+                ...data.context,
+                objects:data.objects,
+                subjects:data.subjects,
+                subjectTypes:data.subjectTypes
+            });
         }
 
-        return openEditor(
-            data.type,
-            data.entity,
-            data.context
-        );
+        return openEditor(data.type,data.entity,data.context);
     }
 };
 
@@ -457,27 +311,16 @@ export const loginModal={
     type:"login",
     params:[],
     load:null,
-    open:async()=>openLoginModal({
-        fromUrl:true
-    })
+    open:async()=>openLoginModal({fromUrl:true})
 };
 
 export const subjectModal={
     type:"subject",
     params:["entityId"],
-
     load:async params=>{
         if(!params.entityId)return null;
 
-        const[
-            subject,
-            subjects,
-            objects,
-            photos,
-            sources,
-            records,
-            subjectTypes
-        ]=await Promise.all([
+        const[subject,subjects,objects,photos,sources,records,subjectTypes]=await Promise.all([
             getSubject(params.entityId),
             getSubjects(),
             getAllObjects(),
@@ -499,21 +342,17 @@ export const subjectModal={
             subjectTypes
         };
     },
-
     open:async data=>{
         if(data){
-            openSubjectModal(
-                data.subject,
-                {
-                    subjects:data.subjects,
-                    objects:data.objects,
-                    photos:data.photos,
-                    sources:data.sources,
-                    records:data.records,
-                    subjectTypes:data.subjectTypes,
-                    fromUrl:true
-                }
-            );
+            openSubjectModal(data.subject,{
+                subjects:data.subjects,
+                objects:data.objects,
+                photos:data.photos,
+                sources:data.sources,
+                records:data.records,
+                subjectTypes:data.subjectTypes,
+                fromUrl:true
+            });
         }
     }
 };
@@ -552,48 +391,25 @@ export const feedbacksModal={
 export const feedbackViewModal={
     type:"feedback-view",
     params:["entityId"],
-
     load:async params=>{
         if(!params.entityId)return null;
-
-        const feedback=
-            await getFeedback(
-                params.entityId
-            );
-
-        return feedback
-            ?{feedback}
-            :null;
+        const feedback=await getFeedback(params.entityId);
+        return feedback?{feedback}:null;
     },
-
     open:async data=>{
-        if(data){
-            openFeedbackModal(
-                data.feedback,
-                {fromUrl:true}
-            );
-        }
+        if(data)openFeedbackModal(data.feedback,{fromUrl:true});
     }
 };
 
 export const feedbackModal={
     type:"feedback",
     params:["objectId"],
-
     load:async params=>{
         if(!params.objectId)return null;
-
-        return{
-            objectId:params.objectId
-        };
+        return{objectId:params.objectId};
     },
-
     open:async data=>{
-        if(data){
-            return await openFeedbackFormByObjectId(
-                data.objectId
-            );
-        }
+        if(data)return await openFeedbackFormByObjectId(data.objectId);
     }
 };
 
