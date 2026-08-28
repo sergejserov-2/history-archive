@@ -113,6 +113,7 @@ export function show(element){
     if(element._animationState===ENTER_STATE)
         return getPromise(element)||Promise.resolve();
     cancelAnimation(element);
+    element.classList.add(HIDDEN_CLASS);
     element._animationState=ENTER_STATE;
     return new Promise(resolve=>{
         element._animationTimer=setTimeout(()=>{
