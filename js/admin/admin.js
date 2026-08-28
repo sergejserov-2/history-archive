@@ -51,7 +51,7 @@ export function initAdmin(page,updates={}){
             await openModal("editor",{
                 entityId:object.id,
                 entityType:"object"
-            });
+            },context);
             return;
         }
 
@@ -75,14 +75,14 @@ export function initAdmin(page,updates={}){
         if(action==="add-object"){
             await openModal("editor",{
                 entityType:"object"
-            });
+            },context);
             return;
         }
 
         if(action==="add-photo"){
             await openModal("editor",{
                 entityType:"photo"
-            });
+            },context);
             return;
         }
 
@@ -92,7 +92,7 @@ export function initAdmin(page,updates={}){
             await openModal("editor",{
                 entityId:id,
                 entityType:"photo"
-            });
+            },context);
             return;
         }
 
@@ -112,7 +112,7 @@ export function initAdmin(page,updates={}){
         if(action==="add-source"){
             await openModal("editor",{
                 entityType:"source"
-            });
+            },context);
             return;
         }
 
@@ -122,7 +122,7 @@ export function initAdmin(page,updates={}){
             await openModal("editor",{
                 entityId:id,
                 entityType:"source"
-            });
+            },context);
             return;
         }
 
@@ -142,7 +142,7 @@ export function initAdmin(page,updates={}){
         if(action==="add-record"){
             await openModal("editor",{
                 entityType:"record"
-            });
+            },context);
             return;
         }
 
@@ -152,7 +152,7 @@ export function initAdmin(page,updates={}){
             await openModal("editor",{
                 entityId:id,
                 entityType:"record"
-            });
+            },context);
             return;
         }
 
@@ -172,7 +172,7 @@ export function initAdmin(page,updates={}){
         if(action==="add-subject"){
             await openModal("editor",{
                 entityType:"subject"
-            });
+            },context);
             return;
         }
 
@@ -182,7 +182,7 @@ export function initAdmin(page,updates={}){
             await openModal("editor",{
                 entityId:id,
                 entityType:"subject"
-            });
+            },context);
             return;
         }
 
