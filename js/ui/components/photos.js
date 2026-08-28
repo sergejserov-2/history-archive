@@ -64,4 +64,3 @@ export function renderPhotos(photos,objectId=null){
     },0);
     return html;
 }
-export{uploadPhoto,uploadSourceDocument};
