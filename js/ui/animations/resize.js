@@ -112,7 +112,6 @@ function animate(el,from,to,duration){
     if(!el)return Promise.resolve();
     stop(el);
     setMargins(el,from);
-    void el.offsetHeight;
     const start=performance.now();
     return new Promise(resolve=>{
         function frame(now){
@@ -147,7 +146,6 @@ function animateGroup(elements,mode,duration){
         setMargins(item.el,item.visible);
     }
     const first=items[0];
-    void first.el.offsetHeight;
     const axis=getAxis(first.el);
     const shift=total/2;
     const animations=items.map(item=>({
