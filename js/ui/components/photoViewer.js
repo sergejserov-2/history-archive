@@ -303,7 +303,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     async function showPhoto(nextPhoto,nextIndex,{updateUrl=true,showControls=false}={}){
         if(!nextPhoto)return;
 
-        controls.element.classList.add("viewer-controls--loading");
+        controls.hide();
         currentIndex=nextIndex;
         controls.update(currentIndex);
         updateInfo(nextPhoto);
@@ -315,11 +315,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         const loaded=await loadPhotoImage(nextPhoto);
 
         if(loaded&&showControls){
-            requestAnimationFrame(()=>{
-                requestAnimationFrame(()=>{
-                    controls.element.classList.remove("viewer-controls--loading");
-                });
-            });
+            requestAnimationFrame(()=>controls.show());
         }
     }
 
@@ -427,7 +423,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         onNext:showNext
     });
 
-    controls.element.classList.add("viewer-controls--loading");
+    controls.hide();
     root.appendChild(controls.element);
 
     void showPhoto(gallery[currentIndex],currentIndex,{updateUrl:false,showControls:true});
@@ -435,7 +431,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     const originalClose=modal.close;
 
     modal.close=()=>{
-        controls.element.classList.add("viewer-controls--closing");
+        controls.hide();
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
 
@@ -449,7 +445,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
                 }
 
                 resolve(originalClose());
-            },250);
+            },180);
         });
     };
 
