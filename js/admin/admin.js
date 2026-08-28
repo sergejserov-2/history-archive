@@ -7,10 +7,11 @@ let initialized=false;
 export function initAdmin(page,updates={}){
     if(initialized)return;
     initialized=true;
+
     document.addEventListener("click",async event=>{
         const button=event.target.closest(".admin-button");
-        if(!button)return;
-        if(button.classList.contains("admin-button--disabled"))return;
+        if(!button||button.classList.contains("admin-button--disabled"))return;
+
         const action=button.dataset.action;
         const id=button.dataset.id;
         const object=page.object;
@@ -21,11 +22,14 @@ export function initAdmin(page,updates={}){
         const records=page.records;
         const children=page.children;
         const subjects=page.subjects??[];
-        const recordTypes=page.recordTypes;
+        const recordTypes=page.recordTypes??[];
         const subjectTypes=page.subjectTypes??[];
+
         const objectType=types.find(type=>type.id===object?.typeId);
         const objectLevel=Number(objectType?.level);
-        const availableRecordTypes=(recordTypes??[]).filter(recordType=>recordType.levels?.map(Number).includes(objectLevel));
+
+        const availableRecordTypes=recordTypes.filter(recordType=>recordType.levels?.map(Number).includes(objectLevel));
+
         const context={
             objects,
             parentId:object?.id,
