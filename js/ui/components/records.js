@@ -3,61 +3,150 @@ import{renderEntityList}from"./entityList.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
 
 function formatBoundary(value,prefix){
-    if(!value)return"";
-    let result=value;
-    if(result.endsWith("-е"))result=result.slice(0,-2)+"-х";
-    if(result.startsWith("вер., "))return"вер., "+prefix+" "+result.slice(6);
-    return prefix+" "+result;
+if(!value)return"";
+let result=value;
+if(result.endsWith("-е"))result=result.slice(0,-2)+"-х";
+if(result.startsWith("вер., "))return"вер., "+prefix+" "+result.slice(6);
+return prefix+" "+result;
+}
+
+function getPeriod(record){
+if(record.dateMode==="date")return record.date||"—";
+if(record.dateStart&&record.dateEnd)return`${record.dateStart} – ${record.dateEnd}`;
+if(record.dateStart)return formatBoundary(record.dateStart,"с");
+if(record.dateEnd)return formatBoundary(record.dateEnd,"до");
+return"—";
+}
+
+function getRecordData(record,subjects=[]){
+return{
+title:record.title??"",
+description:record.description?.trim()?renderMentions(record.description.trim(),subjects,getSubjectHref):"",
+meta:getPeriod(record),
+actions:`${adminEdit("record",record.id)}${adminDelete("record",record.id)}`
+};
+}
+
+function getFirstNumber(value){
+if(!value)return null;
+const match=value.match(/\d+/);
+if(!match)return null;
+const number=Number(match[0]);
+return Number.isFinite(number)?number:null;
+}
+
+function compareItems(a,b){
+const aMeta=String(a.meta??"").trim();
+const bMeta=String(b.meta??"").trim();
+const aNumber=getFirstNumber(aMeta);
+const bNumber=getFirstNumber(bMeta);
+
+if(aNumber!==null&&bNumber===null)return-1;
+if(aNumber===null&&bNumber!==null)return 1;
+if(aNumber!==null&&bNumber!==null&&aNumber!==bNumber)return aNumber-bNumber;
+
+const metaCompare=aMeta.localeCompare(bMeta,"ru",{numeric:true,sensitivity:"base"});
+if(metaCompare!==0)return metaCompare;
+
+return String(a.title??"").localeCompare(String(b.title??""),"ru",{sensitivity:"base"});
+
+}
+
+function getRecordGroupTitle(record,recordTypes=[]){
+if(!record.typeId)return"Без типа";
+const type=recordTypes.find(type=>type.id===record.typeId);
+return type?.title??"Без типа";
+}
+
+function findRecordGroup(record,recordTypes=[]){
+const title=getRecordGroupTitle(record,recordTypes);
+return[...document.querySelectorAll(".entity-list__group")].find(group=>{
+return group.querySelector(".entity-list__group-title")?.textContent.trim()===title;
+})||null;
 }
 
 export function renderRecord(record,subjects=[]){
-    let period="";
-    if(record.dateMode==="date")period=record.date||"—";
-    else if(record.dateStart&&record.dateEnd)period=`${record.dateStart} – ${record.dateEnd}`;
-    else if(record.dateStart)period=formatBoundary(record.dateStart,"с");
-    else if(record.dateEnd)period=formatBoundary(record.dateEnd,"до");
-    else period="—";
-    return`
-        <div class="entity-list__item record" data-record-id="${record.id}">
-            <div class="entity-list__item-content">
-                <div class="entity-list__item-title">
-                    ${record.title??""}
-                    ${adminEdit("record",record.id)}
-                    ${adminDelete("record",record.id)}
-                </div>
-                ${record.description?.trim()?`<div class="entity-list__item-description">${renderMentions(record.description.trim(),subjects,getSubjectHref)}</div>`:""}
-            </div>
-            <div class="entity-list__item-meta">${period}</div>
-        </div>
+const item=getRecordData(record,subjects);
+const hasDescription=Boolean(item.description?.trim());
+const hasMeta=Boolean(item.meta?.trim());
+const rowClass=[
+"entity-list-row",
+hasDescription?"entity-list-row--description":"entity-list-row--title-only",
+hasMeta?"entity-list-row--meta":""
+].filter(Boolean).join(" ");
+return`         <div class="${rowClass} record" data-record-id="${record.id}">             <div class="entity-list-row__title">                 <span class="entity-list-row__title-text">${item.title}</span>
+                ${item.actions}             </div>
+            ${hasDescription?`<div class="entity-list-row__description">${item.description}</div>`:""}
+            ${hasMeta?`<div class="entity-list-row__meta">${item.meta}</div>`:""}         </div>
     `;
 }
 
-export function renderRecords(records,recordTypes=[],subjects=[]){
-    function buildRecordItem(record){
-        let period="";
-        if(record.dateMode==="date")period=record.date||"—";
-        else if(record.dateStart&&record.dateEnd)period=`${record.dateStart} – ${record.dateEnd}`;
-        else if(record.dateStart)period=formatBoundary(record.dateStart,"с");
-        else if(record.dateEnd)period=formatBoundary(record.dateEnd,"до");
-        else period="—";
-        return{
-            title:record.title??"",
-            description:record.description?.trim()?renderMentions(record.description.trim(),subjects,getSubjectHref):"",
-            meta:period,
-            actions:`${adminEdit("record",record.id)}${adminDelete("record",record.id)}`
-        };
-    }
-    const groups=[];
-    const typedRecords=recordTypes.map(recordType=>({
-        type:recordType,
-        records:(records??[]).filter(record=>record.typeId===recordType.id)
-    })).filter(group=>group.records.length>0);
-    const recordsWithoutType=(records??[]).filter(record=>!record.typeId||!recordTypes.some(type=>type.id===record.typeId));
-    typedRecords.forEach(group=>groups.push({title:group.type.title??"",items:group.records.map(buildRecordItem)}));
-    if(recordsWithoutType.length)groups.push({title:"Без типа",items:recordsWithoutType.map(buildRecordItem)});
-    return`
-    <div class="records">
-        ${renderEntityList({groups,addButton:adminAdd("add-record","Добавить запись")})}
-    </div>
+export function insertRecord(record,subjects=[],recordTypes=[]){
+const list=document.querySelector(".entity-list");
+if(!list)return null;
+
+let group=findRecordGroup(record,recordTypes);
+
+if(!group){
+    const title=getRecordGroupTitle(record,recordTypes);
+    group=document.createElement("div");
+    group.className="entity-list__group";
+    group.innerHTML=`
+        <div class="entity-list__group-title">${title}</div>
     `;
+    list.appendChild(group);
+}
+
+const html=renderRecord(record,subjects);
+const template=document.createElement("template");
+template.innerHTML=html.trim();
+const element=template.content.firstElementChild;
+if(!element)return null;
+
+const item=getRecordData(record,subjects);
+const rows=[...group.querySelectorAll(".record")];
+
+const before=rows.find(row=>{
+    const meta=row.querySelector(".entity-list-row__meta")?.textContent.trim()??"";
+    const title=row.querySelector(".entity-list-row__title-text")?.textContent.trim()??"";
+    return compareItems({meta,title},{meta:item.meta,title:item.title})>0;
+});
+
+if(before)group.insertBefore(element,before);
+else group.appendChild(element);
+
+return element;
+
+}
+
+export function renderRecords(records,recordTypes=[],subjects=[]){
+const groups=[];
+const typedRecords=recordTypes.map(recordType=>({
+type:recordType,
+records:(records??[]).filter(record=>record.typeId===recordType.id)
+})).filter(group=>group.records.length>0);
+
+const recordsWithoutType=(records??[]).filter(record=>{
+    return!record.typeId||!recordTypes.some(type=>type.id===record.typeId);
+});
+
+typedRecords.forEach(group=>groups.push({
+    title:group.type.title??"",
+    items:group.records.map(record=>getRecordData(record,subjects))
+}));
+
+if(recordsWithoutType.length)groups.push({
+    title:"Без типа",
+    items:recordsWithoutType.map(record=>getRecordData(record,subjects))
+});
+
+return`
+<div class="records">
+    ${renderEntityList({
+        groups,
+        addButton:adminAdd("add-record","Добавить запись")
+    })}
+</div>
+`;
+
 }
