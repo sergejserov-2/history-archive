@@ -5,18 +5,14 @@
 .status-badge {
     display: inline-flex;
     align-items: center;
-
     width: max-content;
-
-    padding: 3px 7px;
-
+    padding: 0 7px;
     border-radius: var(--radius-md);
-
     font-size: var(--font-size-xs);
     line-height: 1;
-
     text-transform: uppercase;
     white-space: nowrap;
+    height:20px
 }
 
 .status-badge--lost {
