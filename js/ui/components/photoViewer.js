@@ -90,13 +90,14 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     if(!imageArea||!image)return modal;
 
-    image.style.visibility="hidden";
-
     let fitScale=1,zoom=1,scale=1,translateX=0,translateY=0;
     let dragging=false,startX=0,startY=0,startTranslateX=0,startTranslateY=0;
     let touchStartX=0,touchStartY=0,touchStartTranslateX=0,touchStartTranslateY=0;
     let pinchStartDistance=null,pinchStartZoom=1,relativeX=0,relativeY=0;
     let originalObjectUrl=null;
+    let originalLoadingTimer=null;
+    let originalLoadingVisible=false;
+    let loadToken=0;
 
     function updateTransform(){
         scale=fitScale*zoom;
@@ -129,7 +130,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         translateY=relativeY*height;
     }
 
-    function resetView(){
+    function resetTransform(){
         fitScale=1;
         zoom=1;
         scale=1;
@@ -142,7 +143,6 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         imageArea.classList.remove("is-dragging");
         image.style.transform="";
-        image.style.visibility="hidden";
     }
 
     function updateInfo(nextPhoto){
@@ -199,13 +199,32 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         });
     }
 
-    function showOriginalLoading(){
-        if(!loading)return;
+    function clearOriginalLoadingTimer(){
+        if(originalLoadingTimer){
+            clearTimeout(originalLoadingTimer);
+            originalLoadingTimer=null;
+        }
+    }
 
+    function showOriginalLoading(){
+        if(!loading||originalLoadingVisible)return;
+
+        originalLoadingVisible=true;
         loading.classList.add("photo-viewer__original-loading--visible");
         loading.classList.remove("photo-viewer__original-loading--indeterminate");
 
         if(progress)progress.style.width="0%";
+    }
+
+    function scheduleOriginalLoading(){
+        clearOriginalLoadingTimer();
+
+        originalLoadingVisible=false;
+
+        originalLoadingTimer=setTimeout(()=>{
+            originalLoadingTimer=null;
+            showOriginalLoading();
+        },1000);
     }
 
     function updateOriginalProgress(value){
@@ -215,12 +234,18 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function setIndeterminateProgress(){
         if(!loading)return;
 
+        if(!originalLoadingVisible)showOriginalLoading();
+
         loading.classList.add("photo-viewer__original-loading--indeterminate");
 
         if(progress)progress.style.width="100%";
     }
 
     function hideOriginalLoading(){
+        clearOriginalLoadingTimer();
+
+        originalLoadingVisible=false;
+
         if(!loading)return;
 
         loading.classList.remove("photo-viewer__original-loading--visible","photo-viewer__original-loading--indeterminate");
@@ -261,7 +286,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     async function loadPhotoImage(nextPhoto){
-        resetView();
+        const token=++loadToken;
+
         hideOriginalLoading();
 
         if(originalObjectUrl){
@@ -279,13 +305,15 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             if(!nextPhoto.storagePath)return false;
 
             try{
-                await loadImage(nextPhoto.storagePath);
+                const loadedImage=await loadImage(nextPhoto.storagePath);
 
-                image.src=nextPhoto.storagePath;
+                if(token!==loadToken)return false;
 
-                if(calculateFitScale()){
-                    image.style.visibility="visible";
-                }
+                resetTransform();
+
+                image.src=loadedImage.src;
+
+                calculateFitScale();
 
                 return true;
             }catch(error){
@@ -294,43 +322,70 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             }
         }
 
-        try{
-            await loadImage(nextPhoto.previewPath);
+        let preview;
 
-            image.src=nextPhoto.previewPath;
-            calculateFitScale();
-            image.style.visibility="visible";
+        try{
+            preview=await loadImage(nextPhoto.previewPath);
+
+            if(token!==loadToken)return false;
         }catch(error){
             console.error("Ошибка загрузки preview:",error);
             return false;
         }
 
+        resetTransform();
+
+        image.src=preview.src;
+
+        fitScale=Math.min(
+            imageArea.clientWidth/preview.naturalWidth,
+            imageArea.clientHeight/preview.naturalHeight
+        );
+
+        updateTransform();
+
         if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath){
             return true;
         }
 
-        showOriginalLoading();
+        scheduleOriginalLoading();
 
         try{
-            originalObjectUrl=await loadOriginal(nextPhoto.storagePath);
+            const objectUrl=await loadOriginal(nextPhoto.storagePath);
+
+            if(token!==loadToken){
+                URL.revokeObjectURL(objectUrl);
+                return false;
+            }
+
+            originalObjectUrl=objectUrl;
 
             saveRelativePosition();
 
-            image.src=originalObjectUrl;
+            const original=await loadImage(objectUrl);
 
-            await new Promise((resolve,reject)=>{
-                image.onload=resolve;
-                image.onerror=reject;
-            });
+            if(token!==loadToken){
+                URL.revokeObjectURL(objectUrl);
+                originalObjectUrl=null;
+                return false;
+            }
 
-            calculateFitScale();
+            image.src=original.src;
+
+            fitScale=Math.min(
+                imageArea.clientWidth/original.naturalWidth,
+                imageArea.clientHeight/original.naturalHeight
+            );
+
             restoreRelativePosition();
             updateTransform();
             updateOriginalProgress(100);
         }catch(error){
-            console.error("Ошибка загрузки оригинала:",error);
+            if(token===loadToken){
+                console.error("Ошибка загрузки оригинала:",error);
+            }
         }finally{
-            hideOriginalLoading();
+            if(token===loadToken)hideOriginalLoading();
         }
 
         return true;
@@ -487,15 +542,15 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     const originalClose=modal.close;
 
-const originalClose=modal.close;
+    modal.close=()=>{
+        controls.hide();
+        hideOriginalLoading();
+        loadToken++;
 
-modal.close=()=>{
-    controls.hide();
-    window.removeEventListener("mousemove",handleMouseMove);
-    window.removeEventListener("mouseup",handleMouseUp);
+        window.removeEventListener("mousemove",handleMouseMove);
+        window.removeEventListener("mouseup",handleMouseUp);
 
-    return new Promise(resolve=>{
-        requestAnimationFrame(()=>{
+        return new Promise(resolve=>{
             setTimeout(()=>{
                 controls.destroy();
 
@@ -507,8 +562,7 @@ modal.close=()=>{
                 resolve(originalClose());
             },180);
         });
-    });
-};
+    };
 
     return modal;
 }
