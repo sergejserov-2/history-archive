@@ -95,7 +95,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     let fitScale=1,zoom=1,scale=1,translateX=0,translateY=0;
     let dragging=false,startX=0,startY=0,startTranslateX=0,startTranslateY=0;
     let touchStartX=0,touchStartY=0,touchStartTranslateX=0,touchStartTranslateY=0;
-    let pinchStartDistance=null,pinchStartZoom=1,relativeX=0,relativeY=0;
+    let pinchStartDistance=null,pinchStartZoom=1;
+    let relativeX=0,relativeY=0;
     let originalObjectUrl=null;
     let loadingTimer=null;
     let loadToken=0;
@@ -117,15 +118,17 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         return true;
     }
 
-    function saveRelativePosition(){
-        const width=image.naturalWidth*scale,height=image.naturalHeight*scale;
+    function saveViewPosition(){
+        const width=image.naturalWidth*scale;
+        const height=image.naturalHeight*scale;
 
         relativeX=width?translateX/width:0;
         relativeY=height?translateY/height:0;
     }
 
-    function restoreRelativePosition(){
-        const width=image.naturalWidth*scale,height=image.naturalHeight*scale;
+    function restoreViewPosition(){
+        const width=image.naturalWidth*scale;
+        const height=image.naturalHeight*scale;
 
         translateX=relativeX*width;
         translateY=relativeY*height;
@@ -284,7 +287,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     function loadBlobIntoImage(src){
         return new Promise((resolve,reject)=>{
-            image.onload=()=>resolve();
+            image.onload=resolve;
             image.onerror=reject;
             image.src=src;
         });
@@ -346,12 +349,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         }
 
         startDelayedLoading();
+        saveViewPosition();
 
         try{
-            const previewScale=scale;
-            const previewTranslateX=translateX;
-            const previewTranslateY=translateY;
-
             const objectUrl=await loadOriginal(nextPhoto.storagePath,token);
 
             if(token!==loadToken){
@@ -361,23 +361,14 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
             originalObjectUrl=objectUrl;
 
-            image.onload=null;
-            image.onerror=null;
-
             await loadBlobIntoImage(originalObjectUrl);
 
             if(token!==loadToken)return false;
 
-            fitScale=Math.min(imageArea.clientWidth/image.naturalWidth,imageArea.clientHeight/image.naturalHeight);
-            zoom=1;
-            scale=fitScale;
-
-            const relativeScale=fitScale/previewScale;
-
-            translateX=previewTranslateX*relativeScale;
-            translateY=previewTranslateY*relativeScale;
-
+            calculateFitScale();
+            restoreViewPosition();
             updateTransform();
+
             image.style.visibility="visible";
             updateOriginalProgress(100);
         }catch(error){
@@ -546,47 +537,48 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     const originalClose=modal.close;
 
-modal.close=()=>{
-    hideOriginalLoading();
-    window.removeEventListener("mousemove",handleMouseMove);
-    window.removeEventListener("mouseup",handleMouseUp);
+    modal.close=()=>{
+        hideOriginalLoading();
+        window.removeEventListener("mousemove",handleMouseMove);
+        window.removeEventListener("mouseup",handleMouseUp);
 
-    controls.hide();
+        controls.hide();
 
-    return new Promise(resolve=>{
-        const finish=()=>{
-            controls.destroy();
+        return new Promise(resolve=>{
+            const finish=()=>{
+                controls.destroy();
 
-            if(originalObjectUrl){
-                URL.revokeObjectURL(originalObjectUrl);
-                originalObjectUrl=null;
+                if(originalObjectUrl){
+                    URL.revokeObjectURL(originalObjectUrl);
+                    originalObjectUrl=null;
+                }
+
+                originalClose();
+                resolve();
+            };
+
+            const element=controls.element;
+
+            if(!element){
+                finish();
+                return;
             }
 
-            originalClose();
-            resolve();
-        };
+            const onTransitionEnd=event=>{
+                if(event.propertyName!=="opacity")return;
 
-        const element=controls.element;
+                element.removeEventListener("transitionend",onTransitionEnd);
+                finish();
+            };
 
-        if(!element){
-            finish();
-            return;
-        }
+            element.addEventListener("transitionend",onTransitionEnd);
 
-        const onTransitionEnd=event=>{
-            if(event.propertyName!=="opacity")return;
-            element.removeEventListener("transitionend",onTransitionEnd);
-            finish();
-        };
-
-        element.addEventListener("transitionend",onTransitionEnd);
-
-        setTimeout(()=>{
-            element.removeEventListener("transitionend",onTransitionEnd);
-            finish();
-        },250);
-    });
-};
+            setTimeout(()=>{
+                element.removeEventListener("transitionend",onTransitionEnd);
+                finish();
+            },250);
+        });
+    };
 
     return modal;
 }
