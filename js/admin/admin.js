@@ -27,7 +27,6 @@ export function initAdmin(page,updates={}){
 
         const objectType=types.find(type=>type.id===object?.typeId);
         const objectLevel=Number(objectType?.level);
-
         const availableRecordTypes=recordTypes.filter(recordType=>recordType.levels?.map(Number).includes(objectLevel));
 
         const context={
@@ -124,7 +123,7 @@ export function initAdmin(page,updates={}){
         if(action==="delete-record"){
             if(!confirm("Удалить запись?"))return;
             try{
-                await deleteEntity("record",id,{...context,records});
+                await deleteEntity("record",id,{...context,records:page.records});
             }catch(error){
                 console.error("Ошибка удаления записи:",error);
                 alert("Не удалось удалить запись");
