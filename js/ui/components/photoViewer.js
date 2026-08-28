@@ -128,6 +128,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         savedPreviewHeight=image.naturalHeight;
 
         console.log("[VIEWER] CAPTURE VIEW",{
+            time:performance.now(),
             naturalWidth:image.naturalWidth,
             naturalHeight:image.naturalHeight,
             fitScale,
@@ -152,6 +153,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         translateY=savedRelativeY*height;
 
         console.log("[VIEWER] RESTORE VIEW",{
+            time:performance.now(),
             naturalWidth:image.naturalWidth,
             naturalHeight:image.naturalHeight,
             fitScale,
@@ -230,7 +232,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function loadImage(src){
         return new Promise((resolve,reject)=>{
             const loader=new Image();
-            loader.onload=()=>resolve(loader);
+            loader.onload=resolve;
             loader.onerror=reject;
             loader.src=src;
         });
@@ -314,7 +316,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             updateOriginalProgress(loaded/total*100);
         }
 
-        console.log("[VIEWER] ORIGINAL DOWNLOAD COMPLETE",{size:loaded,total});
+        console.log("[VIEWER] ORIGINAL DOWNLOAD COMPLETE",{time:performance.now(),size:loaded,total});
 
         return URL.createObjectURL(new Blob(chunks));
     }
@@ -338,16 +340,9 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
                 return;
             }
 
-            console.log("[VIEWER] ORIGINAL READY TO APPLY");
+            console.log("[VIEWER] ORIGINAL READY TO APPLY",{time:performance.now()});
 
             originalObjectUrl=objectUrl;
-
-            /*
-             * ВАЖНО:
-             * здесь preview ещё является текущим изображением.
-             * Поэтому только сейчас сохраняем актуальный zoom и позицию,
-             * которые пользователь мог менять всё время загрузки оригинала.
-             */
             captureView();
 
             await loadBlobIntoImage(originalObjectUrl);
@@ -355,6 +350,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             if(token!==loadToken)return;
 
             console.log("[VIEWER] ORIGINAL IMAGE READY",{
+                time:performance.now(),
                 naturalWidth:image.naturalWidth,
                 naturalHeight:image.naturalHeight
             });
@@ -366,6 +362,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             updateOriginalProgress(100);
 
             console.log("[VIEWER] ORIGINAL APPLIED",{
+                time:performance.now(),
                 zoom,
                 scale,
                 translateX,
@@ -439,6 +436,14 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     async function showPhoto(nextPhoto,nextIndex,{updateUrl=true,showControls=false}={}){
         if(!nextPhoto)return;
 
+        console.log("[VIEWER] SHOW PHOTO",{
+            time:performance.now(),
+            index:nextIndex,
+            showControls,
+            controlsHidden:controls?.element?.hidden,
+            controlsConnected:controls?.element?.isConnected
+        });
+
         currentIndex=nextIndex;
         controls.update(currentIndex);
         updateInfo(nextPhoto);
@@ -449,12 +454,20 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         const loaded=await loadPhotoImage(nextPhoto);
 
+        console.log("[VIEWER] SHOW PHOTO LOADED",{
+            time:performance.now(),
+            loaded,
+            showControls
+        });
+
         if(loaded&&showControls){
             controls.show();
         }
     }
 
     function showPrevious(){
+        console.log("[VIEWER] SHOW PREVIOUS",{time:performance.now(),currentIndex});
+
         if(currentIndex<=0)return;
 
         controls.hide();
@@ -462,6 +475,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     }
 
     function showNext(){
+        console.log("[VIEWER] SHOW NEXT",{time:performance.now(),currentIndex});
+
         if(currentIndex>=gallery.length-1)return;
 
         controls.hide();
@@ -588,23 +603,58 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     const originalClose=modal.close;
 
-modal.close=()=>{
-    controls.hide();
-    hideOriginalLoading();
-    ++loadToken;
+    modal.close=()=>{
+        console.log("[VIEWER] CLOSE START",{
+            time:performance.now(),
+            controlsHidden:controls.element.hidden,
+            controlsOpacity:getComputedStyle(controls.element).opacity,
+            controlsVisibility:getComputedStyle(controls.element).visibility,
+            controlsConnected:controls.element.isConnected,
+            rootConnected:root.isConnected
+        });
 
-    window.removeEventListener("mousemove",handleMouseMove);
-    window.removeEventListener("mouseup",handleMouseUp);
+        controls.hide();
 
-    controls.destroy();
+        console.log("[VIEWER] AFTER CONTROLS HIDE",{
+            time:performance.now(),
+            controlsHidden:controls.element.hidden,
+            controlsOpacity:getComputedStyle(controls.element).opacity,
+            controlsVisibility:getComputedStyle(controls.element).visibility,
+            controlsConnected:controls.element.isConnected,
+            rootConnected:root.isConnected
+        });
 
-    if(originalObjectUrl){
-        URL.revokeObjectURL(originalObjectUrl);
-        originalObjectUrl=null;
-    }
+        hideOriginalLoading();
+        ++loadToken;
 
-    originalClose();
-};
+        window.removeEventListener("mousemove",handleMouseMove);
+        window.removeEventListener("mouseup",handleMouseUp);
+
+        controls.destroy();
+
+        console.log("[VIEWER] AFTER CONTROLS DESTROY",{
+            time:performance.now(),
+            controlsConnected:controls.element.isConnected,
+            rootConnected:root.isConnected
+        });
+
+        if(originalObjectUrl){
+            URL.revokeObjectURL(originalObjectUrl);
+            originalObjectUrl=null;
+        }
+
+        console.log("[VIEWER] BEFORE ORIGINAL CLOSE",{
+            time:performance.now(),
+            rootConnected:root.isConnected
+        });
+
+        originalClose();
+
+        console.log("[VIEWER] CLOSE END",{
+            time:performance.now(),
+            rootConnected:root.isConnected
+        });
+    };
 
     return modal;
 }
