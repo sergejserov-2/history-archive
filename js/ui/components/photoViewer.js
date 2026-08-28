@@ -90,13 +90,14 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     if(!imageArea||!image)return modal;
 
+    image.style.visibility="hidden";
+
     let fitScale=1,zoom=1,scale=1,translateX=0,translateY=0;
     let dragging=false,startX=0,startY=0,startTranslateX=0,startTranslateY=0;
     let touchStartX=0,touchStartY=0,touchStartTranslateX=0,touchStartTranslateY=0;
     let pinchStartDistance=null,pinchStartZoom=1,relativeX=0,relativeY=0;
     let originalObjectUrl=null;
-    let originalLoadingTimer=null;
-    let originalLoadingVisible=false;
+    let loadingTimer=null;
     let loadToken=0;
 
     function updateTransform(){
@@ -130,7 +131,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         translateY=relativeY*height;
     }
 
-    function resetTransform(){
+    function resetView(){
         fitScale=1;
         zoom=1;
         scale=1;
@@ -143,6 +144,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
         imageArea.classList.remove("is-dragging");
         image.style.transform="";
+        image.style.visibility="hidden";
     }
 
     function updateInfo(nextPhoto){
@@ -199,32 +201,13 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         });
     }
 
-    function clearOriginalLoadingTimer(){
-        if(originalLoadingTimer){
-            clearTimeout(originalLoadingTimer);
-            originalLoadingTimer=null;
-        }
-    }
-
     function showOriginalLoading(){
-        if(!loading||originalLoadingVisible)return;
+        if(!loading)return;
 
-        originalLoadingVisible=true;
         loading.classList.add("photo-viewer__original-loading--visible");
         loading.classList.remove("photo-viewer__original-loading--indeterminate");
 
         if(progress)progress.style.width="0%";
-    }
-
-    function scheduleOriginalLoading(){
-        clearOriginalLoadingTimer();
-
-        originalLoadingVisible=false;
-
-        originalLoadingTimer=setTimeout(()=>{
-            originalLoadingTimer=null;
-            showOriginalLoading();
-        },1000);
     }
 
     function updateOriginalProgress(value){
@@ -234,27 +217,38 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function setIndeterminateProgress(){
         if(!loading)return;
 
-        if(!originalLoadingVisible)showOriginalLoading();
-
         loading.classList.add("photo-viewer__original-loading--indeterminate");
 
         if(progress)progress.style.width="100%";
     }
 
     function hideOriginalLoading(){
-        clearOriginalLoadingTimer();
-
-        originalLoadingVisible=false;
+        if(loadingTimer){
+            clearTimeout(loadingTimer);
+            loadingTimer=null;
+        }
 
         if(!loading)return;
 
         loading.classList.remove("photo-viewer__original-loading--visible","photo-viewer__original-loading--indeterminate");
+
+        if(progress)progress.style.width="0%";
     }
 
-    async function loadOriginal(src){
+    function startDelayedLoading(){
+        hideOriginalLoading();
+
+        loadingTimer=setTimeout(()=>{
+            loadingTimer=null;
+            showOriginalLoading();
+        },1000);
+    }
+
+    async function loadOriginal(src,token){
         const response=await fetch(src);
 
         if(!response.ok)throw new Error(`HTTP ${response.status}`);
+        if(token!==loadToken)throw new Error("Загрузка отменена");
 
         const contentLength=response.headers.get("Content-Length");
         const total=Number(contentLength);
@@ -263,6 +257,8 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             setIndeterminateProgress();
 
             const blob=await response.blob();
+
+            if(token!==loadToken)throw new Error("Загрузка отменена");
 
             return URL.createObjectURL(blob);
         }
@@ -275,6 +271,7 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             const{done,value}=await reader.read();
 
             if(done)break;
+            if(token!==loadToken)throw new Error("Загрузка отменена");
 
             chunks.push(value);
             loaded+=value.length;
@@ -285,9 +282,18 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         return URL.createObjectURL(new Blob(chunks));
     }
 
+    function loadBlobIntoImage(src){
+        return new Promise((resolve,reject)=>{
+            image.onload=()=>resolve();
+            image.onerror=reject;
+            image.src=src;
+        });
+    }
+
     async function loadPhotoImage(nextPhoto){
         const token=++loadToken;
 
+        resetView();
         hideOriginalLoading();
 
         if(originalObjectUrl){
@@ -305,53 +311,48 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
             if(!nextPhoto.storagePath)return false;
 
             try{
-                const loadedImage=await loadImage(nextPhoto.storagePath);
+                await loadImage(nextPhoto.storagePath);
 
                 if(token!==loadToken)return false;
 
-                resetTransform();
+                image.src=nextPhoto.storagePath;
 
-                image.src=loadedImage.src;
-
-                calculateFitScale();
+                if(calculateFitScale()){
+                    image.style.visibility="visible";
+                }
 
                 return true;
             }catch(error){
-                console.error("Ошибка загрузки изображения:",error);
+                if(token===loadToken)console.error("Ошибка загрузки изображения:",error);
                 return false;
             }
         }
 
-        let preview;
-
         try{
-            preview=await loadImage(nextPhoto.previewPath);
+            await loadImage(nextPhoto.previewPath);
 
             if(token!==loadToken)return false;
+
+            image.src=nextPhoto.previewPath;
+            calculateFitScale();
+            image.style.visibility="visible";
         }catch(error){
-            console.error("Ошибка загрузки preview:",error);
+            if(token===loadToken)console.error("Ошибка загрузки preview:",error);
             return false;
         }
-
-        resetTransform();
-
-        image.src=preview.src;
-
-        fitScale=Math.min(
-            imageArea.clientWidth/preview.naturalWidth,
-            imageArea.clientHeight/preview.naturalHeight
-        );
-
-        updateTransform();
 
         if(!nextPhoto.storagePath||nextPhoto.storagePath===nextPhoto.previewPath){
             return true;
         }
 
-        scheduleOriginalLoading();
+        startDelayedLoading();
 
         try{
-            const objectUrl=await loadOriginal(nextPhoto.storagePath);
+            const previewScale=scale;
+            const previewTranslateX=translateX;
+            const previewTranslateY=translateY;
+
+            const objectUrl=await loadOriginal(nextPhoto.storagePath,token);
 
             if(token!==loadToken){
                 URL.revokeObjectURL(objectUrl);
@@ -360,32 +361,33 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
             originalObjectUrl=objectUrl;
 
-            saveRelativePosition();
+            image.onload=null;
+            image.onerror=null;
 
-            const original=await loadImage(objectUrl);
+            await loadBlobIntoImage(originalObjectUrl);
 
-            if(token!==loadToken){
-                URL.revokeObjectURL(objectUrl);
-                originalObjectUrl=null;
-                return false;
-            }
+            if(token!==loadToken)return false;
 
-            image.src=original.src;
+            fitScale=Math.min(imageArea.clientWidth/image.naturalWidth,imageArea.clientHeight/image.naturalHeight);
+            zoom=1;
+            scale=fitScale;
 
-            fitScale=Math.min(
-                imageArea.clientWidth/original.naturalWidth,
-                imageArea.clientHeight/original.naturalHeight
-            );
+            const relativeScale=fitScale/previewScale;
 
-            restoreRelativePosition();
+            translateX=previewTranslateX*relativeScale;
+            translateY=previewTranslateY*relativeScale;
+
             updateTransform();
+            image.style.visibility="visible";
             updateOriginalProgress(100);
         }catch(error){
-            if(token===loadToken){
+            if(token===loadToken&&!String(error.message).includes("Загрузка отменена")){
                 console.error("Ошибка загрузки оригинала:",error);
             }
         }finally{
-            if(token===loadToken)hideOriginalLoading();
+            if(token===loadToken){
+                hideOriginalLoading();
+            }
         }
 
         return true;
@@ -413,13 +415,15 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
     function showPrevious(){
         if(currentIndex<=0)return;
 
-        void showPhoto(gallery[currentIndex-1],currentIndex-1);
+        controls.hide();
+        void showPhoto(gallery[currentIndex-1],currentIndex-1,{showControls:true});
     }
 
     function showNext(){
         if(currentIndex>=gallery.length-1)return;
 
-        void showPhoto(gallery[currentIndex+1],currentIndex+1);
+        controls.hide();
+        void showPhoto(gallery[currentIndex+1],currentIndex+1,{showControls:true});
     }
 
     imageArea.addEventListener("mousedown",event=>{
@@ -544,24 +548,25 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
 
     modal.close=()=>{
         controls.hide();
-        hideOriginalLoading();
-        loadToken++;
+
+        if(loadingTimer){
+            clearTimeout(loadingTimer);
+            loadingTimer=null;
+        }
+
+        ++loadToken;
 
         window.removeEventListener("mousemove",handleMouseMove);
         window.removeEventListener("mouseup",handleMouseUp);
 
-        return new Promise(resolve=>{
-            setTimeout(()=>{
-                controls.destroy();
+        controls.destroy();
 
-                if(originalObjectUrl){
-                    URL.revokeObjectURL(originalObjectUrl);
-                    originalObjectUrl=null;
-                }
+        if(originalObjectUrl){
+            URL.revokeObjectURL(originalObjectUrl);
+            originalObjectUrl=null;
+        }
 
-                resolve(originalClose());
-            },180);
-        });
+        return originalClose();
     };
 
     return modal;
