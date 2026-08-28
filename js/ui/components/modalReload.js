@@ -1,6 +1,6 @@
 import{modalRegistry}from"./modalRegistry.js";
 import{isAdmin}from"../../admin/adminMode.js";
-import{getCurrentModal,closeCurrentModal}from"./modal.js";
+import{getCurrentModal}from"./modal.js";
 
 let restoring=false;
 
@@ -37,7 +37,7 @@ export function setModalUrl(type,params={}){
         else url.searchParams.set(key,String(value));
     }
 
-    window.history.pushState({}, "", url);
+    window.history.pushState({},"",url);
 }
 
 export function replaceModalUrl(params={}){
@@ -49,7 +49,7 @@ export function replaceModalUrl(params={}){
         else url.searchParams.set(key,String(value));
     }
 
-    window.history.replaceState({}, "", url);
+    window.history.replaceState({},"",url);
 }
 
 export function clearModalUrl(){
@@ -61,7 +61,7 @@ export function clearModalUrl(){
     url.searchParams.delete("modal");
     cleanModalParams(url,registration);
 
-    window.history.pushState({}, "", url);
+    window.history.pushState({},"",url);
 }
 
 async function closeCurrentWithoutHistory(){
@@ -96,7 +96,7 @@ async function reload(){
             const cleanUrl=new URL(window.location.href);
             cleanUrl.searchParams.delete("modal");
             cleanModalParams(cleanUrl,registration);
-            window.history.replaceState({}, "", cleanUrl);
+            window.history.replaceState({},"",cleanUrl);
             return;
         }
 
@@ -108,11 +108,10 @@ async function reload(){
             const cleanUrl=new URL(window.location.href);
             cleanUrl.searchParams.delete("modal");
             cleanModalParams(cleanUrl,registration);
-            window.history.replaceState({}, "", cleanUrl);
+            window.history.replaceState({},"",cleanUrl);
             return;
         }
 
-        await closeCurrentWithoutHistory();
         await registration.open?.(data);
 
         const modal=getCurrentModal();
