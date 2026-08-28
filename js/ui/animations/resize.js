@@ -234,16 +234,13 @@ export function animateCollapseGroup(elements){
 
 export function animateChange(el,oldSize){
     if(!el||!Number.isFinite(oldSize))return Promise.resolve();
-
     const newSize=getSize(el);
     if(newSize===oldSize)return Promise.resolve();
-
     const margins=getMargins(el);
     const axis=getAxis(el);
     const delta=newSize-oldSize;
     const from={...margins};
     const to={...margins};
-
     if(axis==="vertical"){
         from.top-=delta/2;
         from.bottom-=delta/2;
@@ -251,7 +248,6 @@ export function animateChange(el,oldSize){
         from.left-=delta/2;
         from.right-=delta/2;
     }
-
     return animate(el,from,to,CHANGE_DURATION).then(()=>{
         clear(el);
     });
