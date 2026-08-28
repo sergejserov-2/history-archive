@@ -234,14 +234,49 @@ export function animateCollapseGroup(elements){
 
 export function animateChange(el,oldSize){
     if(!el||!Number.isFinite(oldSize))return Promise.resolve();
+
+    console.log("[resize] CHANGE START");
+    console.log("[resize] oldSize:",oldSize);
+
+    const beforeRect=getRect(el);
+    const beforeMargins=getMargins(el);
+    const beforeAxis=getAxis(el);
+    const beforeGap=getGap(el,beforeAxis);
+
+    console.log("[resize] before rect:",beforeRect);
+    console.log("[resize] before rect height:",beforeRect?.height);
+    console.log("[resize] before margins:",beforeMargins);
+    console.log("[resize] before axis:",beforeAxis);
+    console.log("[resize] before gap:",beforeGap);
+    console.log("[resize] before getSize:",getSize(el));
+    console.log("[resize] before scrollHeight:",el.scrollHeight);
+    console.log("[resize] before offsetHeight:",el.offsetHeight);
+    console.log("[resize] before computed height:",getComputedStyle(el).height);
+
     void el.offsetHeight;
+
+    const afterLayoutRect=getRect(el);
+    const afterLayoutSize=getSize(el);
+
+    console.log("[resize] after forced layout rect:",afterLayoutRect);
+    console.log("[resize] after forced layout height:",afterLayoutRect?.height);
+    console.log("[resize] after forced layout getSize:",afterLayoutSize);
+
     const newSize=getSize(el);
-    if(newSize===oldSize)return Promise.resolve();
+
+    console.log("[resize] newSize:",newSize);
+
+    if(newSize===oldSize){
+        console.log("[resize] CHANGE SKIPPED: sizes equal");
+        return Promise.resolve();
+    }
+
     const margins=getMargins(el);
     const axis=getAxis(el);
     const delta=newSize-oldSize;
     const from={...margins};
     const to={...margins};
+
     if(axis==="vertical"){
         from.top-=delta/2;
         from.bottom-=delta/2;
@@ -249,7 +284,77 @@ export function animateChange(el,oldSize){
         from.left-=delta/2;
         from.right-=delta/2;
     }
-    return animate(el,from,to,CHANGE_DURATION).then(()=>{
-        clear(el);
+
+    console.log("[resize] delta:",delta);
+    console.log("[resize] animation from:",from);
+    console.log("[resize] animation to:",to);
+
+    stop(el);
+    setMargins(el,from);
+
+    const afterMarginsRect=getRect(el);
+    const afterMarginsSize=getSize(el);
+
+    console.log("[resize] AFTER SET MARGINS");
+    console.log("[resize] rect:",afterMarginsRect);
+    console.log("[resize] rect height:",afterMarginsRect?.height);
+    console.log("[resize] getSize:",afterMarginsSize);
+    console.log("[resize] margins:",getMargins(el));
+
+    void el.offsetHeight;
+
+    const afterFlushRect=getRect(el);
+    const afterFlushSize=getSize(el);
+
+    console.log("[resize] AFTER MARGIN LAYOUT");
+    console.log("[resize] rect:",afterFlushRect);
+    console.log("[resize] rect height:",afterFlushRect?.height);
+    console.log("[resize] getSize:",afterFlushSize);
+
+    const start=performance.now();
+    let frameNumber=0;
+
+    return new Promise(resolve=>{
+        function frame(now){
+            const t=Math.min(1,(now-start)/CHANGE_DURATION);
+            const e=ease(t);
+            const currentMargins=interpolate(from,to,e);
+            setMargins(el,currentMargins);
+
+            if(frameNumber<10){
+                const rect=getRect(el);
+                console.log(`[resize] CHANGE FRAME ${frameNumber}`,{
+                    t,
+                    ease:e,
+                    rectHeight:rect?.height,
+                    rectWidth:rect?.width,
+                    size:getSize(el),
+                    margins:getMargins(el)
+                });
+            }
+
+            frameNumber++;
+
+            if(t<1){
+                el._animationFrame=requestAnimationFrame(frame);
+                return;
+            }
+
+            el._animationFrame=null;
+            setMargins(el,to);
+
+            el._animationTimer=setTimeout(()=>{
+                el._animationTimer=null;
+                console.log("[resize] CHANGE END",{
+                    rect:getRect(el),
+                    size:getSize(el),
+                    margins:getMargins(el)
+                });
+                clear(el);
+                resolve();
+            },20);
+        }
+
+        el._animationFrame=requestAnimationFrame(frame);
     });
 }
