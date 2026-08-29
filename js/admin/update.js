@@ -243,55 +243,49 @@ export async function updateEntity(type,entity,data,context={},updates={}){
         });
     }
 
-    let updateNames;
+   let updateNames;
 
-    if(Array.isArray(updates)){
-        updateNames=updates;
-    }else{
-        updateNames=
-            isUpdate
-                ?updates.update??[]
-                :updates.create??[];
+if(Array.isArray(updates)){
+    updateNames=updates;
+}else{
+    updateNames=isUpdate
+        ?updates.update??[]
+        :updates.create??[];
+}
+
+console.log("[updateEntity] callbacks start",{
+    type,
+    isUpdate,
+    updateNames
+});
+
+for(const updateName of updateNames){
+    const callback=context.updates?.[updateName];
+
+    if(typeof callback!=="function"){
+        console.warn("[updateEntity] callback not found",updateName);
+        continue;
     }
 
-    console.log("[updateEntity] callbacks",{
-        type,
-        isUpdate,
-        updateNames
-    });
+    console.log("[updateEntity] callback launch",updateName);
 
-    for(const updateName of updateNames){
-        const callback=
-            context.updates?.[updateName];
+    Promise.resolve()
+        .then(()=>callback(savedData))
+        .then(()=>{
+            console.log("[updateEntity] callback complete",updateName);
+        })
+        .catch(error=>{
+            console.error("[updateEntity] callback error",{
+                updateName,
+                error
+            });
+        });
+}
 
-        if(typeof callback!=="function"){
-            console.warn(
-                "[updateEntity] callback not found",
-                updateName
-            );
+console.log("[updateEntity] complete",savedData);
 
-            continue;
-        }
+return savedData;
 
-        console.log(
-            "[updateEntity] callback start",
-            updateName
-        );
-
-        await callback(savedData);
-
-        console.log(
-            "[updateEntity] callback complete",
-            updateName
-        );
-    }
-
-    console.log(
-        "[updateEntity] complete",
-        savedData
-    );
-
-    return savedData;
 }
 
 
