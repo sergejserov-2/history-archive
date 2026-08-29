@@ -297,60 +297,204 @@ export async function updateEntity(type,entity,data,context={},updates={}){
 
 
 export async function deleteEntity(type,id,context={}){
+    console.log("[deleteEntity] start",{
+        type,
+        id,
+        parentId:context.parentId??null
+    });
+
     if(type==="object"){
+        console.log("[deleteEntity] object: find");
         const object=(context.objects??[]).find(item=>item.id===id);
         const parentId=object?.parents?.[0]?.objectId??object?.parents?.[0]??null;
-        await createActivity({action:"delete",entityType:"object",entityId:id,title:object?.title??"",parentId,adminEmail:getAdminEmail(),createdAt:Date.now()});
+
+        console.log("[deleteEntity] object: activity start",{id,parentId});
+        await createActivity({
+            action:"delete",
+            entityType:"object",
+            entityId:id,
+            title:object?.title??"",
+            parentId,
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
+
+        console.log("[deleteEntity] object: activity complete");
+        console.log("[deleteEntity] object: API delete start",{id});
         await deleteObject(id);
+        console.log("[deleteEntity] object: API delete complete",{id});
+
         await context.updates?.onObjectDeleted?.(id);
+        console.log("[deleteEntity] object: callback complete");
+
         return{parentId};
     }
 
     if(type==="photo"){
+        console.log("[deleteEntity] photo: find");
         const photo=(context.photos??[]).find(item=>item.id===id);
-        if(photo?.storagePath)await moveFileToDeleted(photo.storagePath);
-        if(photo?.previewPath)await moveFileToDeleted(photo.previewPath);
-        await createActivity({action:"delete",entityType:"photo",entityId:id,title:photo?.title??"",parentId:context.parentId??null,adminEmail:getAdminEmail(),createdAt:Date.now()});
+
+        if(photo?.storagePath){
+            console.log("[deleteEntity] photo: move storage file");
+            await moveFileToDeleted(photo.storagePath);
+        }
+
+        if(photo?.previewPath){
+            console.log("[deleteEntity] photo: move preview file");
+            await moveFileToDeleted(photo.previewPath);
+        }
+
+        console.log("[deleteEntity] photo: activity start");
+        await createActivity({
+            action:"delete",
+            entityType:"photo",
+            entityId:id,
+            title:photo?.title??"",
+            parentId:context.parentId??null,
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
+
+        console.log("[deleteEntity] photo: API delete start",{id});
         await deletePhoto(id);
+        console.log("[deleteEntity] photo: API delete complete",{id});
+
+        console.log("[deleteEntity] photo: callback start");
         await context.updates?.removePhoto?.(id);
+        console.log("[deleteEntity] photo: callback complete");
+
         return;
     }
 
     if(type==="source"){
+        console.log("[deleteEntity] source: find");
         const source=(context.sources??[]).find(item=>item.id===id);
-        if(source?.storagePath)await moveFileToDeleted(source.storagePath);
-        await createActivity({action:"delete",entityType:"source",entityId:id,title:source?.title??"",parentId:context.parentId??null,adminEmail:getAdminEmail(),createdAt:Date.now()});
+
+        if(source?.storagePath){
+            console.log("[deleteEntity] source: move storage file");
+            await moveFileToDeleted(source.storagePath);
+        }
+
+        console.log("[deleteEntity] source: activity start");
+        await createActivity({
+            action:"delete",
+            entityType:"source",
+            entityId:id,
+            title:source?.title??"",
+            parentId:context.parentId??null,
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
+
+        console.log("[deleteEntity] source: API delete start",{id});
         await deleteSource(id);
+        console.log("[deleteEntity] source: API delete complete",{id});
+
+        console.log("[deleteEntity] source: callback start");
         await context.updates?.removeSource?.(id);
+        console.log("[deleteEntity] source: callback complete");
+
         return;
     }
 
     if(type==="record"){
+        console.log("[deleteEntity] record: find");
         const record=(context.records??[]).find(item=>item.id===id);
-        await createActivity({action:"delete",entityType:"record",entityId:id,title:record?.title??"",parentId:context.parentId??null,adminEmail:getAdminEmail(),createdAt:Date.now()});
+
+        console.log("[deleteEntity] record: found",{
+            id:record?.id??null,
+            title:record?.title??null
+        });
+
+        console.log("[deleteEntity] record: activity start",{id});
+        await createActivity({
+            action:"delete",
+            entityType:"record",
+            entityId:id,
+            title:record?.title??"",
+            parentId:context.parentId??null,
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
+        console.log("[deleteEntity] record: activity complete",{id});
+
+        console.log("[deleteEntity] record: API delete start",{id});
         await deleteRecord(id);
+        console.log("[deleteEntity] record: API delete complete",{id});
+
+        console.log("[deleteEntity] record: callback start removeRecord",{id});
         await context.updates?.removeRecord?.(id);
+        console.log("[deleteEntity] record: callback complete removeRecord",{id});
+
+        console.log("[deleteEntity] record: complete",{id});
+
         return;
     }
 
     if(type==="subject"){
+        console.log("[deleteEntity] subject: find");
         const subject=(context.subjects??[]).find(item=>item.id===id);
-        if(subject?.storagePath)await moveFileToDeleted(subject.storagePath);
-        await createActivity({action:"delete",entityType:"subject",entityId:id,title:subject?.title??"",adminEmail:getAdminEmail(),createdAt:Date.now()});
+
+        if(subject?.storagePath){
+            console.log("[deleteEntity] subject: move storage file");
+            await moveFileToDeleted(subject.storagePath);
+        }
+
+        console.log("[deleteEntity] subject: activity start");
+        await createActivity({
+            action:"delete",
+            entityType:"subject",
+            entityId:id,
+            title:subject?.title??"",
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
+
+        console.log("[deleteEntity] subject: API delete start",{id});
         await deleteSubject(id);
+        console.log("[deleteEntity] subject: API delete complete",{id});
+
+        console.log("[deleteEntity] subject: callback start");
         await context.updates?.onSubjectDeleted?.();
+        console.log("[deleteEntity] subject: callback complete");
+
         return;
     }
 
     if(type==="objectType"||type==="recordType"||type==="subjectType"){
-        await createActivity({action:"delete",entityType:type,entityId:id,title:id,adminEmail:getAdminEmail(),createdAt:Date.now()});
+        console.log("[deleteEntity] type: activity start");
+
+        await createActivity({
+            action:"delete",
+            entityType:type,
+            entityId:id,
+            title:id,
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
+
+        console.log("[deleteEntity] type: API delete start",{type,id});
         await API[type].delete(id);
-        await context.updates?.[`remove${type[0].toUpperCase()}${type.slice(1)}`]?.(id);
+        console.log("[deleteEntity] type: API delete complete",{type,id});
+
+        const callbackName=
+            `remove${type[0].toUpperCase()}${type.slice(1)}`;
+
+        console.log("[deleteEntity] type: callback start",{callbackName});
+
+        await context.updates?.[callbackName]?.(id);
+
+        console.log("[deleteEntity] type: callback complete",{callbackName});
+
         return;
     }
 
+    console.error("[deleteEntity] unknown type",{type,id});
+
     throw new Error(`Unknown entity type: ${type}`);
 }
+
+
 
 export function createPageUpdates(state){
     function getRecordSortValue(record){
