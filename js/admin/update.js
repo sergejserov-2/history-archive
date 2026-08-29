@@ -483,37 +483,59 @@ export function createPageUpdates(state){
             await removeRecordFromList(id);
         },
 
-        async updateRecord(savedRecord){
-            if(!savedRecord?.id)return;
+   async updateRecord(savedRecord){
+    console.log("[updateRecord] start",savedRecord);
 
-            const fresh=await getRecord(savedRecord.id);
-            if(!fresh)return;
+    if(!savedRecord?.id){
+        console.warn("[updateRecord] no record id");
+        return;
+    }
 
-            state.records=state.records.map(record=>
-                record.id===fresh.id
-                    ?fresh
-                    :record
-            );
+    const fresh=await getRecord(savedRecord.id);
 
-            const oldElement=document.querySelector(
-                `.record[data-record-id="${fresh.id}"]`
-            );
+    console.log("[updateRecord] getRecord complete",fresh);
 
-            if(!oldElement)return;
+    if(!fresh){
+        console.warn("[updateRecord] record not found");
+        return;
+    }
 
-            const template=document.createElement("template");
-            template.innerHTML=renderRecord(
-                fresh,
-                state.subjects
-            ).trim();
+    state.records=state.records.map(record=>
+        record.id===fresh.id?fresh:record
+    );
 
-            const newElement=template.content.firstElementChild;
-            if(!newElement)return;
+    const oldElement=document.querySelector(
+        `.record[data-record-id="${fresh.id}"]`
+    );
 
-            console.log("[updateRecord] immediate DOM replace",fresh.id);
+    if(!oldElement){
+        console.warn("[updateRecord] element not found, adding");
+        await addRecordToList(
+            fresh,
+            state.subjects,
+            state.recordTypes
+        );
+        return;
+    }
 
-            oldElement.replaceWith(newElement);
-        },
+    const template=document.createElement("template");
+
+    template.innerHTML=renderRecord(
+        fresh,
+        state.subjects
+    ).trim();
+
+    const newElement=template.content.firstElementChild;
+
+    if(!newElement){
+        console.warn("[updateRecord] new element not created");
+        return;
+    }
+
+    oldElement.replaceWith(newElement);
+
+    console.log("[updateRecord] DOM updated",fresh.id);
+},
 
         async addPhoto(savedPhoto,uploading=false){
             if(!savedPhoto?.id)return;
