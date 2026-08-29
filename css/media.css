@@ -17,7 +17,7 @@
 .photo-card {
     flex: 0 0 150px;
 
-    height: 265px;
+    height: 230px;
 
     overflow: hidden;
 
@@ -89,7 +89,7 @@
 }
 
 .photo-card__content {
-    height: 115px;
+    height: 80px;
 
     display: flex;
     flex-direction: column;
@@ -168,7 +168,7 @@
     align-items: center;
     justify-content: center;
 
-    height: 265px;
+    height: 230px;
 }
 
 
