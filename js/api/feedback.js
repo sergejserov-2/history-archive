@@ -1,7 +1,3 @@
-// ======================================
-// Feedback API
-// ======================================
-
 import{db}from"../firebase.js";
 import{
     collection,
@@ -12,16 +8,13 @@ import{
     deleteDoc,
     query,
     orderBy,
-    limit
+    limit,
+    startAfter
 }from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
 import{uploadPhoto}from"./storage.js";
 
-// ======================================
-// Get feedback
-// ======================================
-
 export async function getFeedback(id){
-
     if(!id)return null;
 
     const snapshot=await getDoc(
@@ -36,12 +29,7 @@ export async function getFeedback(id){
     };
 }
 
-// ======================================
-// Get feedbacks
-// ======================================
-
 export async function getFeedbacks(){
-
     const snapshot=await getDocs(
         query(
             collection(db,"feedback"),
@@ -55,12 +43,7 @@ export async function getFeedbacks(){
     }));
 }
 
-// ======================================
-// Get recent feedbacks
-// ======================================
-
 export async function getRecentFeedbacks(count=100){
-
     const snapshot=await getDocs(
         query(
             collection(db,"feedback"),
@@ -75,34 +58,73 @@ export async function getRecentFeedbacks(count=100){
     }));
 }
 
-// ======================================
-// Create feedback
-// ======================================
+export async function getFeedbackPage(
+    lastDoc=null,
+    count=500
+){
+    const constraints=[
+        orderBy("createdAt","desc")
+    ];
+
+    if(lastDoc){
+        constraints.push(
+            startAfter(lastDoc)
+        );
+    }
+
+    constraints.push(
+        limit(count)
+    );
+
+    const snapshot=await getDocs(
+        query(
+            collection(db,"feedback"),
+            ...constraints
+        )
+    );
+
+    return{
+        feedbacks:snapshot.docs.map(doc=>({
+            id:doc.id,
+            ...doc.data()
+        })),
+        lastDoc:
+            snapshot.docs.at(-1)??null,
+        hasMore:
+            snapshot.docs.length===count
+    };
+}
 
 export async function createFeedback(data){
-
     if(!data?.name?.trim()){
-        throw new Error("Укажите имя");
+        throw new Error(
+            "Укажите имя"
+        );
     }
 
     if(!data?.title?.trim()){
-        throw new Error("Укажите заголовок");
+        throw new Error(
+            "Укажите заголовок"
+        );
     }
 
     if(!data?.message?.trim()){
-        throw new Error("Напишите сообщение");
+        throw new Error(
+            "Напишите сообщение"
+        );
     }
 
     const photoIds=[];
 
     for(const file of(data.files??[])){
-
         const uploadResult=
             await uploadPhoto(file);
 
         photoIds.push({
-            storagePath:uploadResult.storagePath,
-            previewPath:uploadResult.previewPath
+            storagePath:
+                uploadResult.storagePath,
+            previewPath:
+                uploadResult.previewPath
         });
     }
 
@@ -129,12 +151,7 @@ export async function createFeedback(data){
     };
 }
 
-// ======================================
-// Delete feedback
-// ======================================
-
 export async function deleteFeedback(id){
-
     if(!id)return;
 
     await deleteDoc(
