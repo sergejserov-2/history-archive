@@ -104,7 +104,7 @@ export function renderPhoto(photo){
 }
 
 function sortPhotos(photos=[]){
-    return [...photos].sort((a,b)=>{
+    return[...photos].sort((a,b)=>{
         const dateA=a.date??a.dateStart??"";
         const dateB=b.date??b.dateStart??"";
 
@@ -178,7 +178,9 @@ export function renderPhotos(photos,objectId=null){
 
             const media=event.target.closest(".photo-card__media");
 
-            if(!media)return;
+            if(!media||!photosList.contains(media)){
+                return;
+            }
 
             if(media.dataset.loading==="true"){
                 return;
