@@ -1,39 +1,30 @@
 export function initPhotoDrag(root=document){
-    const lists=
-        root.querySelectorAll(".photos-list");
-
-    lists.forEach(setupPhotoDrag);
+    root.querySelectorAll(".photos-list").forEach(setupPhotoDrag);
 }
 
 function setupPhotoDrag(list){
-    if(list.dataset.photoDragInitialized){
-        return;
-    }
+    if(list.dataset.photoDragInitialized)return;
 
     list.dataset.photoDragInitialized="true";
 
     let dragging=false;
+    let moved=false;
     let activeCard=null;
+    let pointerId=null;
     let startX=0;
     let offsetX=0;
     let direction=0;
+    let bounds={min:0,max:0};
 
     function getCards(){
-        return[
-            ...list.querySelectorAll(
-                "[data-photo-drag]"
-            )
-        ];
+        return [...list.querySelectorAll("[data-photo-drag]")];
     }
 
     function getContentWidth(cards){
-        if(!cards.length)return 0;
+        if(cards.length<2)return 0;
 
-        const first=
-            cards[0].getBoundingClientRect();
-
-        const last=
-            cards.at(-1).getBoundingClientRect();
+        const first=cards[0].getBoundingClientRect();
+        const last=cards.at(-1).getBoundingClientRect();
 
         return last.right-first.left;
     }
@@ -41,60 +32,34 @@ function setupPhotoDrag(list){
     function canDrag(){
         const cards=getCards();
 
-        if(cards.length<2){
-            return false;
-        }
+        if(cards.length<2)return false;
 
-        const contentWidth=
-            getContentWidth(cards);
-
-        return contentWidth<
-            list.clientWidth;
+        return getContentWidth(cards)<list.clientWidth;
     }
 
     function getMovingCards(){
         const cards=getCards();
 
-        if(!activeCard){
-            return[];
-        }
+        if(!activeCard)return[];
 
-        const index=
-            cards.indexOf(activeCard);
+        const index=cards.indexOf(activeCard);
 
-        if(index<0){
-            return[];
-        }
+        if(index<0)return[];
 
-        if(direction>0){
-            return cards.slice(index);
-        }
-
-        if(direction<0){
-            return cards.slice(0,index+1);
-        }
+        if(direction>0)return cards.slice(index);
+        if(direction<0)return cards.slice(0,index+1);
 
         return[activeCard];
     }
 
-    function getBounds(){
+    function calculateBounds(){
         const cards=getCards();
 
-        if(!cards.length){
-            return{
-                min:0,
-                max:0
-            };
-        }
+        if(!cards.length)return{min:0,max:0};
 
-        const first=
-            cards[0].getBoundingClientRect();
-
-        const last=
-            cards.at(-1).getBoundingClientRect();
-
-        const listRect=
-            list.getBoundingClientRect();
+        const first=cards[0].getBoundingClientRect();
+        const last=cards.at(-1).getBoundingClientRect();
+        const listRect=list.getBoundingClientRect();
 
         return{
             min:listRect.left-first.left,
@@ -103,79 +68,57 @@ function setupPhotoDrag(list){
     }
 
     function applyOffset(){
-        const cards=
-            getMovingCards();
+        getMovingCards().forEach(card=>{
+            card.style.transform=`translate3d(${offsetX}px,0,0)`;
+        });
+    }
 
-        cards.forEach(card=>{
-            card.style.transform=
-                `translate3d(${offsetX}px,0,0)`;
+    function clearTransforms(){
+        getCards().forEach(card=>{
+            card.style.transform="translate3d(0,0,0)";
         });
     }
 
     function resetCards(){
         getCards().forEach(card=>{
-            card.classList.remove(
-                "photo-card--dragging"
-            );
-
-            card.classList.add(
-                "photo-card--spring"
-            );
-
-            card.style.transform=
-                "translate3d(0,0,0)";
+            card.classList.remove("photo-card--dragging");
+            card.classList.add("photo-card--spring");
+            card.style.transform="translate3d(0,0,0)";
         });
     }
 
     function start(event){
-        if(
-            event.pointerType==="mouse"&&
-            event.button!==0
-        ){
-            return;
-        }
+        if(event.pointerType==="mouse"&&event.button!==0)return;
 
-        const card=
-            event.target.closest(
-                "[data-photo-drag]"
-            );
+        const media=event.target.closest(".photo-card__media");
 
-        if(!card||!list.contains(card)){
-            return;
-        }
+        if(!media||!list.contains(media))return;
 
-        if(
-            event.target.closest(
-                ".admin-button"
-            )
-        ){
-            return;
-        }
+        const card=media.closest("[data-photo-drag]");
 
-        if(!canDrag){
-            return;
-        }
+        if(!card)return;
+        if(!canDrag)return;
 
         dragging=true;
+        moved=false;
         activeCard=card;
+        pointerId=event.pointerId;
         startX=event.clientX;
         offsetX=0;
         direction=0;
+        bounds=calculateBounds();
 
-        activeCard.setPointerCapture?.(
-            event.pointerId
-        );
+        media.setPointerCapture?.(pointerId);
 
         event.preventDefault();
     }
 
     function move(event){
-        if(!dragging||!activeCard){
-            return;
-        }
+        if(!dragging||event.pointerId!==pointerId)return;
 
-        const delta=
-            event.clientX-startX;
+        const delta=event.clientX-startX;
+
+        if(Math.abs(delta)>4)moved=true;
 
         const newDirection=
             delta>0
@@ -185,85 +128,58 @@ function setupPhotoDrag(list){
                     :0;
 
         if(newDirection!==direction){
-            resetTransformsOnly();
-
+            clearTransforms();
             direction=newDirection;
         }
 
-        const bounds=
-            getBounds();
+        const movingCards=getMovingCards();
 
-        offsetX=
-            Math.max(
-                bounds.min,
-                Math.min(
-                    bounds.max,
-                    delta
-                )
-            );
+        if(!movingCards.length)return;
 
-        getMovingCards().forEach(card=>{
-            card.classList.remove(
-                "photo-card--spring"
-            );
+        offsetX=Math.max(
+            bounds.min,
+            Math.min(bounds.max,delta)
+        );
 
-            card.classList.add(
-                "photo-card--dragging"
-            );
+        movingCards.forEach(card=>{
+            card.classList.remove("photo-card--spring");
+            card.classList.add("photo-card--dragging");
+            card.style.transform=`translate3d(${offsetX}px,0,0)`;
         });
-
-        applyOffset();
 
         event.preventDefault();
     }
 
-    function resetTransformsOnly(){
-        getCards().forEach(card=>{
-            card.style.transform=
-                "translate3d(0,0,0)";
-        });
-    }
-
     function end(event){
-        if(!dragging){
-            return;
-        }
+        if(!dragging)return;
+        if(event.pointerId!==pointerId)return;
 
         dragging=false;
 
-        activeCard?.releasePointerCapture?.(
-            event.pointerId
-        );
+        activeCard?.querySelector(".photo-card__media")
+            ?.releasePointerCapture?.(pointerId);
+
+        if(moved){
+            list.dataset.photoDragMoved="true";
+
+            setTimeout(()=>{
+                delete list.dataset.photoDragMoved;
+            },0);
+        }
 
         resetCards();
 
         activeCard=null;
+        pointerId=null;
+        startX=0;
         offsetX=0;
         direction=0;
+        bounds={min:0,max:0};
     }
 
-    list.addEventListener(
-        "pointerdown",
-        start
-    );
-
-    list.addEventListener(
-        "pointermove",
-        move
-    );
-
-    list.addEventListener(
-        "pointerup",
-        end
-    );
-
-    list.addEventListener(
-        "pointercancel",
-        end
-    );
-
-    list.addEventListener(
-        "lostpointercapture",
-        end
-    );
+    list.addEventListener("pointerdown",start);
+    list.addEventListener("pointermove",move);
+    list.addEventListener("pointerup",end);
+    list.addEventListener("pointercancel",end);
+    list.addEventListener("lostpointercapture",end);
 }
