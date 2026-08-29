@@ -10,8 +10,6 @@
 
     overflow-x: auto;
     overflow-y: hidden;
-
-    padding-bottom: var(--space-4);
 }
 
 .photo-card {
