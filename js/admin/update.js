@@ -81,9 +81,7 @@ export async function getEntity(type,id){
     if(type==="recordType")return await getRecordType(id);
     if(type==="subjectType")return await getSubjectType(id);
 
-    throw new Error(
-        `Unknown entity type: ${type}`
-    );
+    throw new Error(`Unknown entity type: ${type}`);
 }
 
 export async function updateEntity(
@@ -93,21 +91,9 @@ export async function updateEntity(
     context={},
     updates={}
 ){
-    console.log("[updateEntity] start",{
-        type,
-        entityId:entity?.id??null,
-        updates,
-        data
-    });
-
     const api=API[type];
 
     if(!api){
-        console.error(
-            "[updateEntity] Unknown entity type",
-            type
-        );
-
         throw new Error(
             `Unknown entity type: ${type}`
         );
@@ -124,9 +110,7 @@ export async function updateEntity(
         const newTarget=data?.target??oldTarget;
 
         if(!newId){
-            throw new Error(
-                "ID типа не указан"
-            );
+            throw new Error("ID типа не указан");
         }
 
         const targetApi=API[newTarget];
@@ -147,11 +131,10 @@ export async function updateEntity(
                 target:newTarget
             };
 
-            const saved=
-                await targetApi.create(
-                    newId,
-                    savedData
-                );
+            const saved=await targetApi.create(
+                newId,
+                savedData
+            );
 
             await createActivity({
                 action:"create",
@@ -180,9 +163,7 @@ export async function updateEntity(
                 savedData
             );
 
-            await API[oldTarget].delete(
-                oldId
-            );
+            await API[oldTarget].delete(oldId);
 
             await createActivity({
                 action:"update",
@@ -196,9 +177,7 @@ export async function updateEntity(
             return savedData;
         }
 
-        const updateData={
-            ...data
-        };
+        const updateData={...data};
 
         delete updateData.id;
 
@@ -222,20 +201,8 @@ export async function updateEntity(
         };
     }
 
-    const isUpdate=Boolean(
-        entity?.id
-    );
-
+    const isUpdate=Boolean(entity?.id);
     let savedData;
-
-    console.log(
-        "[updateEntity] operation",
-        {
-            type,
-            isUpdate,
-            entityId:entity?.id??null
-        }
-    );
 
     if(isUpdate){
         await api.update(
@@ -252,10 +219,7 @@ export async function updateEntity(
             action:"update",
             entityType:type,
             entityId:entity.id,
-            title:
-                data.title??
-                entity.title??
-                "",
+            title:data.title??entity.title??"",
             ...(
                 type==="object"||
                 type==="record"||
@@ -272,8 +236,7 @@ export async function updateEntity(
             createdAt:Date.now()
         });
     }else{
-        savedData=
-            await api.create(data);
+        savedData=await api.create(data);
 
         await createActivity({
             action:"create",
@@ -300,11 +263,9 @@ export async function updateEntity(
     const updateNames=
         Array.isArray(updates)
             ?updates
-            :(
-                isUpdate
-                    ?updates.update??[]
-                    :updates.create??[]
-            );
+            :isUpdate
+                ?updates.update??[]
+                :updates.create??[];
 
     for(const updateName of updateNames){
         const callback=
@@ -341,10 +302,9 @@ export async function deleteEntity(
     context={}
 ){
     if(type==="object"){
-        const object=
-            (context.objects??[]).find(
-                item=>item.id===id
-            );
+        const object=(context.objects??[]).find(
+            item=>item.id===id
+        );
 
         const parentId=
             object?.parents?.[0]?.objectId??
@@ -362,19 +322,15 @@ export async function deleteEntity(
         });
 
         await deleteObject(id);
-
-        await context.updates
-            ?.onObjectDeleted
-            ?.(id);
+        await context.updates?.onObjectDeleted?.(id);
 
         return{parentId};
     }
 
     if(type==="photo"){
-        const photo=
-            (context.photos??[]).find(
-                item=>item.id===id
-            );
+        const photo=(context.photos??[]).find(
+            item=>item.id===id
+        );
 
         if(photo?.storagePath){
             await moveFileToDeleted(
@@ -393,27 +349,21 @@ export async function deleteEntity(
             entityType:"photo",
             entityId:id,
             title:photo?.title??"",
-            parentId:
-                context.parentId??
-                null,
+            parentId:context.parentId??null,
             adminEmail:getAdminEmail(),
             createdAt:Date.now()
         });
 
         await deletePhoto(id);
-
-        await context.updates
-            ?.removePhoto
-            ?.(id);
+        await context.updates?.removePhoto?.(id);
 
         return;
     }
 
     if(type==="source"){
-        const source=
-            (context.sources??[]).find(
-                item=>item.id===id
-            );
+        const source=(context.sources??[]).find(
+            item=>item.id===id
+        );
 
         if(source?.storagePath){
             await moveFileToDeleted(
@@ -426,54 +376,42 @@ export async function deleteEntity(
             entityType:"source",
             entityId:id,
             title:source?.title??"",
-            parentId:
-                context.parentId??
-                null,
+            parentId:context.parentId??null,
             adminEmail:getAdminEmail(),
             createdAt:Date.now()
         });
 
         await deleteSource(id);
-
-        await context.updates
-            ?.removeSource
-            ?.(id);
+        await context.updates?.removeSource?.(id);
 
         return;
     }
 
     if(type==="record"){
-        const record=
-            (context.records??[]).find(
-                item=>item.id===id
-            );
+        const record=(context.records??[]).find(
+            item=>item.id===id
+        );
 
         await createActivity({
             action:"delete",
             entityType:"record",
             entityId:id,
             title:record?.title??"",
-            parentId:
-                context.parentId??
-                null,
+            parentId:context.parentId??null,
             adminEmail:getAdminEmail(),
             createdAt:Date.now()
         });
 
         await deleteRecord(id);
-
-        await context.updates
-            ?.removeRecord
-            ?.(id);
+        await context.updates?.removeRecord?.(id);
 
         return;
     }
 
     if(type==="subject"){
-        const subject=
-            (context.subjects??[]).find(
-                item=>item.id===id
-            );
+        const subject=(context.subjects??[]).find(
+            item=>item.id===id
+        );
 
         if(subject?.storagePath){
             await moveFileToDeleted(
@@ -491,10 +429,7 @@ export async function deleteEntity(
         });
 
         await deleteSubject(id);
-
-        await context.updates
-            ?.onSubjectDeleted
-            ?.();
+        await context.updates?.onSubjectDeleted?.();
 
         return;
     }
@@ -518,16 +453,12 @@ export async function deleteEntity(
         const callbackName=
             `remove${type[0].toUpperCase()}${type.slice(1)}`;
 
-        await context.updates
-            ?.[callbackName]
-            ?.(id);
+        await context.updates?.[callbackName]?.(id);
 
         return;
     }
 
-    throw new Error(
-        `Unknown entity type: ${type}`
-    );
+    throw new Error(`Unknown entity type: ${type}`);
 }
 
 export function createPageUpdates(state){
@@ -540,27 +471,24 @@ export function createPageUpdates(state){
                 };
             }
 
-            state.object=
-                await getObject(
-                    state.object.id
-                );
+            state.object=await getObject(
+                state.object.id
+            );
 
             if(!state.object)return;
 
-            const title=
-                document.querySelector(
-                    ".object__title-text"
-                );
+            const title=document.querySelector(
+                ".object__title-text"
+            );
 
             if(title){
                 title.textContent=
                     state.object.title??"";
             }
 
-            const description=
-                document.querySelector(
-                    ".object__description"
-                );
+            const description=document.querySelector(
+                ".object__description"
+            );
 
             if(description){
                 const{
@@ -583,10 +511,9 @@ export function createPageUpdates(state){
                     !state.object.description?.trim();
             }
 
-            const type=
-                document.querySelector(
-                    ".object__type"
-                );
+            const type=document.querySelector(
+                ".object__type"
+            );
 
             if(type){
                 const objectType=
@@ -619,10 +546,9 @@ export function createPageUpdates(state){
                 Boolean(uploading)
             );
 
-            state.subject=
-                await getSubject(
-                    state.subject.id
-                );
+            state.subject=await getSubject(
+                state.subject.id
+            );
 
             if(!state.subject)return;
 
@@ -645,17 +571,15 @@ export function createPageUpdates(state){
         async addRecord(savedRecord){
             if(!savedRecord?.id)return;
 
-            const fresh=
-                await getRecord(
-                    savedRecord.id
-                );
+            const fresh=await getRecord(
+                savedRecord.id
+            );
 
             if(!fresh)return;
 
             state.records=[
                 ...state.records.filter(
-                    record=>
-                        record.id!==fresh.id
+                    record=>record.id!==fresh.id
                 ),
                 fresh
             ];
@@ -668,10 +592,9 @@ export function createPageUpdates(state){
         },
 
         async removeRecord(id){
-            state.records=
-                state.records.filter(
-                    record=>record.id!==id
-                );
+            state.records=state.records.filter(
+                record=>record.id!==id
+            );
 
             await removeRecordFromList(id);
         },
@@ -679,20 +602,18 @@ export function createPageUpdates(state){
         async updateRecord(savedRecord){
             if(!savedRecord?.id)return;
 
-            const fresh=
-                await getRecord(
-                    savedRecord.id
-                );
+            const fresh=await getRecord(
+                savedRecord.id
+            );
 
             if(!fresh)return;
 
-            state.records=
-                state.records.map(
-                    record=>
-                        record.id===fresh.id
-                            ?fresh
-                            :record
-                );
+            state.records=state.records.map(
+                record=>
+                    record.id===fresh.id
+                        ?fresh
+                        :record
+            );
 
             await updateRecordInList(
                 fresh,
@@ -707,35 +628,29 @@ export function createPageUpdates(state){
         ){
             if(!savedPhoto?.id)return;
 
-            const fresh=
-                await getPhoto(
-                    savedPhoto.id
-                );
+            const fresh=await getPhoto(
+                savedPhoto.id
+            );
 
             if(!fresh)return;
 
             state.photos=[
                 ...state.photos.filter(
-                    photo=>
-                        photo.id!==fresh.id
+                    photo=>photo.id!==fresh.id
                 ),
                 fresh
             ];
 
-            await addPhotoToList(
-                {
-                    ...fresh,
-                    isUploading:
-                        Boolean(uploading)
-                }
-            );
+            await addPhotoToList({
+                ...fresh,
+                isUploading:Boolean(uploading)
+            });
         },
 
         async removePhoto(id){
-            state.photos=
-                state.photos.filter(
-                    photo=>photo.id!==id
-                );
+            state.photos=state.photos.filter(
+                photo=>photo.id!==id
+            );
 
             await removePhotoFromList(id);
         },
@@ -746,44 +661,37 @@ export function createPageUpdates(state){
         ){
             if(!savedPhoto?.id)return;
 
-            const fresh=
-                await getPhoto(
-                    savedPhoto.id
-                );
+            const fresh=await getPhoto(
+                savedPhoto.id
+            );
 
             if(!fresh)return;
 
-            state.photos=
-                state.photos.map(
-                    photo=>
-                        photo.id===fresh.id
-                            ?fresh
-                            :photo
-                );
-
-            await updatePhotoInList(
-                {
-                    ...fresh,
-                    isUploading:
-                        Boolean(uploading)
-                }
+            state.photos=state.photos.map(
+                photo=>
+                    photo.id===fresh.id
+                        ?fresh
+                        :photo
             );
+
+            await updatePhotoInList({
+                ...fresh,
+                isUploading:Boolean(uploading)
+            });
         },
 
         async addSource(savedSource){
             if(!savedSource?.id)return;
 
-            const fresh=
-                await getSource(
-                    savedSource.id
-                );
+            const fresh=await getSource(
+                savedSource.id
+            );
 
             if(!fresh)return;
 
             state.sources=[
                 ...state.sources.filter(
-                    source=>
-                        source.id!==fresh.id
+                    source=>source.id!==fresh.id
                 ),
                 fresh
             ];
@@ -795,10 +703,9 @@ export function createPageUpdates(state){
         },
 
         async removeSource(id){
-            state.sources=
-                state.sources.filter(
-                    source=>source.id!==id
-                );
+            state.sources=state.sources.filter(
+                source=>source.id!==id
+            );
 
             await removeSourceFromList(id);
         },
@@ -806,20 +713,18 @@ export function createPageUpdates(state){
         async updateSource(savedSource){
             if(!savedSource?.id)return;
 
-            const fresh=
-                await getSource(
-                    savedSource.id
-                );
+            const fresh=await getSource(
+                savedSource.id
+            );
 
             if(!fresh)return;
 
-            state.sources=
-                state.sources.map(
-                    source=>
-                        source.id===fresh.id
-                            ?fresh
-                            :source
-                );
+            state.sources=state.sources.map(
+                source=>
+                    source.id===fresh.id
+                        ?fresh
+                        :source
+            );
 
             await updateSourceInList(
                 fresh,
@@ -830,8 +735,7 @@ export function createPageUpdates(state){
         async updateChildrenBlock(){},
 
         async onObjectDeleted(){
-            const parent=
-                state.parents?.[0];
+            const parent=state.parents?.[0];
 
             window.location.href=
                 parent?.id
