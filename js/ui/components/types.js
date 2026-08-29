@@ -1,12 +1,3 @@
-
-
-
-
-
-
-
-
-
 import{getTypes}from"../../api/types.js";
 import{getRecordTypes}from"../../api/recordTypes.js";
 import{getSubjectTypes}from"../../api/subjectTypes.js";
@@ -410,4 +401,3 @@ return String(value)
 .replaceAll('"',""")
 .replaceAll("'","'");
 }
-
