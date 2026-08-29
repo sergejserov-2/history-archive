@@ -207,308 +207,313 @@ export function renderEntityEditor(
 
 
 export function setupEditorComponents(
-    root,
-    cfg,
-    context={},
-    entity={}
+root,
+cfg,
+context={},
+entity={}
 ){
 
-    if(cfg.entityType==="type"){
+if(cfg.entityType==="type"){
 
-        return{
-            typeEditor:
-                setupTypeEditor(
-                    root,
-                    entity,
-                    cfg
-                ),
+    return{
+        typeEditor:
+            setupTypeEditor(
+                root,
+                entity,
+                cfg
+            ),
 
-            async getData(){
+        async getData(){
 
-                const typeEditor=
-                    this.typeEditor;
+            const typeEditor=
+                this.typeEditor;
 
-                if(!typeEditor){
-                    return null;
+            if(!typeEditor){
+                return null;
+            }
+
+            return{
+                data:
+                    typeEditor.getData(),
+
+                backgroundTask:null
+            };
+
+        }
+    };
+
+}
+
+const options=
+    cfg.options??{};
+
+const fileEditor=
+    cfg.file
+        ?
+        setupFileEditor(
+            root,
+            entity,
+            cfg.upload,
+            {
+                required:
+                    cfg.fileRequired===true,
+
+                requiredMessage:
+                    cfg.fileRequiredMessage
+            }
+        )
+        :
+        null;
+
+const fieldsEditor=
+    setupFieldsEditor(
+        root,
+        cfg,
+        entity
+    );
+
+const typeEditor=
+    options.typeSelector
+        ?
+        setupTypesEditor(
+            root,
+            entity,
+            {
+                types:
+                    options.types??[],
+
+                objects:
+                    options.objects??
+                    context.objects??
+                    [],
+
+                children:
+                    entity?.id
+                        ?options.children??
+                            context.children??
+                            []
+                        :[],
+
+                parentId:
+                    options.parentId??
+                    context.parentId,
+
+                parents:
+                    entity.parents??[]
+            }
+        )
+        :
+        null;
+
+const parents=
+    entity.parents
+        ?
+        [...entity.parents]
+        :
+        context.parentId
+            ?
+            cfg.parentsType==="objectsWithAddress"
+                ?
+                [
+                    {
+                        objectId:
+                            context.parentId,
+
+                        address:""
+                    }
+                ]
+                :
+                [
+                    context.parentId
+                ]
+            :
+            [];
+
+const parentsEditor=
+    cfg.parentsType
+        ?
+        setupParentsEditor(
+            root,
+            context.objects??[],
+            entity,
+            parents,
+            {
+                address:
+                    cfg.parentsType==="objectsWithAddress",
+
+                types:
+                    options.types??
+                    context.types??
+                    [],
+
+                typeSelector:
+                    options.typeSelector===true,
+
+                children:
+                    entity?.id
+                        ?options.children??
+                            context.children??
+                            []
+                        :[],
+
+                getTypeId:
+                    ()=>typeEditor?.getTypeId(),
+
+                requiredMessage:
+                    cfg.parentsRequiredMessage
+            }
+        )
+        :
+        null;
+
+const statusEditor=
+    setupStatusEditor(
+        root,
+        entity,
+        cfg.status===true
+    );
+
+const dateModeEditor=
+    cfg.dateMode
+        ?
+        setupDateModeEditor(
+            root,
+            cfg,
+            entity
+        )
+        :
+        null;
+
+const coverEditor=
+    cfg.cover
+        ?
+        setupCoverEditor(
+            root,
+            cfg.cover.photos??[],
+            entity
+        )
+        :
+        null;
+
+return{
+
+    fileEditor,
+
+    parentsEditor,
+
+    fieldsEditor,
+
+    typeEditor,
+
+    statusEditor,
+
+    dateModeEditor,
+
+    coverEditor,
+
+    async getData(){
+
+        if(
+            fileEditor&&
+            !fileEditor.validate()
+        ){
+            return null;
+        }
+
+        if(
+            parentsEditor&&
+            !parentsEditor.validate()
+        ){
+            return null;
+        }
+
+        if(
+            dateModeEditor&&
+            !dateModeEditor.validate()
+        ){
+            return null;
+        }
+
+        const data={};
+
+        Object.assign(
+            data,
+            fieldsEditor.getData()
+        );
+
+        if(typeEditor?.getTypeId()){
+            data.typeId=
+                typeEditor.getTypeId();
+        }
+
+        if(cfg.status){
+            data.status=
+                statusEditor.getStatus();
+        }
+
+        if(dateModeEditor){
+
+            Object.assign(
+                data,
+                dateModeEditor.getData()
+            );
+
+        }
+
+        if(parentsEditor){
+
+            data.parents=
+                parentsEditor.getParents();
+
+        }
+
+        if(coverEditor){
+
+            Object.assign(
+                data,
+                coverEditor.getData()
+            );
+
+        }
+
+        let backgroundTask=null;
+
+        if(fileEditor){
+
+            const fileData=
+                fileEditor.getData();
+
+            if(fileData){
+
+                if(fileData.backgroundTask){
+
+                    backgroundTask=
+                        fileData.backgroundTask;
+
                 }
 
-                return{
-                    data:
-                        typeEditor.getData(),
+                delete fileData.backgroundTask;
 
-                    backgroundTask:null
-                };
+                Object.assign(
+                    data,
+                    fileData
+                );
 
             }
+
+        }
+
+        return{
+            data,
+            backgroundTask
         };
 
     }
 
-    const options=
-        cfg.options??{};
-
-    const fileEditor=
-        cfg.file
-            ?
-            setupFileEditor(
-                root,
-                entity,
-                cfg.upload,
-                {
-                    required:
-                        cfg.fileRequired===true,
-
-                    requiredMessage:
-                        cfg.fileRequiredMessage
-                }
-            )
-            :
-            null;
-
-    const fieldsEditor=
-        setupFieldsEditor(
-            root,
-            cfg,
-            entity
-        );
-
-    const typeEditor=
-        options.typeSelector
-            ?
-            setupTypesEditor(
-                root,
-                entity,
-                {
-                    types:
-                        options.types??[],
-
-                    objects:
-                        options.objects??
-                        context.objects??
-                        [],
-
-                    children:
-                        options.children??
-                        context.children??
-                        [],
-
-                    parentId:
-                        options.parentId??
-                        context.parentId,
-
-                    parents:
-                        entity.parents??[]
-                }
-            )
-            :
-            null;
-
-    const parents=
-        entity.parents
-            ?
-            [...entity.parents]
-            :
-            context.parentId
-                ?
-                cfg.parentsType==="objectsWithAddress"
-                    ?
-                    [
-                        {
-                            objectId:
-                                context.parentId,
-
-                            address:""
-                        }
-                    ]
-                    :
-                    [
-                        context.parentId
-                    ]
-                :
-                [];
-
-    const parentsEditor=
-        cfg.parentsType
-            ?
-            setupParentsEditor(
-                root,
-                context.objects??[],
-                entity,
-                parents,
-                {
-                    address:
-                        cfg.parentsType==="objectsWithAddress",
-
-                    types:
-                        options.types??
-                        context.types??
-                        [],
-
-                    typeSelector:
-                        options.typeSelector===true,
-
-                    children:
-                        options.children??
-                        context.children??
-                        [],
-
-                    getTypeId:
-                        ()=>typeEditor?.getTypeId(),
-
-                    requiredMessage:
-                        cfg.parentsRequiredMessage
-                }
-            )
-            :
-            null;
-
-    const statusEditor=
-        setupStatusEditor(
-            root,
-            entity,
-            cfg.status===true
-        );
-
-    const dateModeEditor=
-        cfg.dateMode
-            ?
-            setupDateModeEditor(
-                root,
-                cfg,
-                entity
-            )
-            :
-            null;
-
-    const coverEditor=
-        cfg.cover
-            ?
-            setupCoverEditor(
-                root,
-                cfg.cover.photos??[],
-                entity
-            )
-            :
-            null;
-
-    return{
-
-        fileEditor,
-
-        parentsEditor,
-
-        fieldsEditor,
-
-        typeEditor,
-
-        statusEditor,
-
-        dateModeEditor,
-
-        coverEditor,
-
-        async getData(){
-
-            if(
-                fileEditor&&
-                !fileEditor.validate()
-            ){
-                return null;
-            }
-
-            if(
-                parentsEditor&&
-                !parentsEditor.validate()
-            ){
-                return null;
-            }
-
-            if(
-                dateModeEditor&&
-                !dateModeEditor.validate()
-            ){
-                return null;
-            }
-
-            const data={};
-
-            Object.assign(
-                data,
-                fieldsEditor.getData()
-            );
-
-            if(typeEditor?.getTypeId()){
-                data.typeId=
-                    typeEditor.getTypeId();
-            }
-
-            if(cfg.status){
-                data.status=
-                    statusEditor.getStatus();
-            }
-
-            if(dateModeEditor){
-
-                Object.assign(
-                    data,
-                    dateModeEditor.getData()
-                );
-
-            }
-
-            if(parentsEditor){
-
-                data.parents=
-                    parentsEditor.getParents();
-
-            }
-
-            if(coverEditor){
-
-                Object.assign(
-                    data,
-                    coverEditor.getData()
-                );
-
-            }
-
-            let backgroundTask=null;
-
-            if(fileEditor){
-
-                const fileData=
-                    fileEditor.getData();
-
-                if(fileData){
-
-                    if(fileData.backgroundTask){
-
-                        backgroundTask=
-                            fileData.backgroundTask;
-
-                    }
-
-                    delete fileData.backgroundTask;
-
-                    Object.assign(
-                        data,
-                        fileData
-                    );
-
-                }
-
-            }
-
-            return{
-                data,
-                backgroundTask
-            };
-
-        }
-
-    };
+};
 
 }
+
 
 
 export function setupEditorButtons(
