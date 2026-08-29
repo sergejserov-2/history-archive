@@ -1,9 +1,10 @@
 import{getActivityPage}from"../../api/activity.js";
 import{createModal}from"./modal.js";
 import{openModal}from"./modalReload.js";
-import{renderEntityList}from"./entityList.js";
-import{getSubject}from"../../api/subjects.js";
+import{renderEntityList,insertEntityListItem}from"./entityList.js";
 import{renderDateTime}from"./date.js";
+import{getSubject}from"../../api/subjects.js";
+import{compareEntities}from"./sort.js";
 
 const PAGE_SIZE=500;
 
@@ -106,27 +107,79 @@ function setupActivityInfiniteScroll(modal){
     );
 }
 
-function appendActivities(root,activities){
-    const list=
-        root.querySelector(".entity-list");
+function appendActivities(root,activities=[]){
+    activities.forEach(activity=>{
+        const item=getActivityItem(activity);
+        const element=createEntityElement(item);
 
-    if(!list)return;
+        if(!element)return;
 
-    const html=renderActivityList(activities);
+        const date=new Date(
+            Number(activity.createdAt??0)
+        );
 
-    const temp=document.createElement("div");
+        const result=insertEntityListItem({
+            groupId:getActivityGroupId(date),
+            groupTitle:formatActivityGroupDate(date),
+            element,
+            compare:(newElement,row)=>{
+                const current=getEntityData(row);
 
-    temp.innerHTML=html;
+                return compareEntities(
+                    current,
+                    item
+                );
+            }
+        });
 
-    const groups=[
-        ...temp.querySelectorAll(
-            ".entity-list__group"
-        )
-    ];
-
-    groups.forEach(group=>{
-        list.appendChild(group);
+        if(result?.group){
+            result.group.dataset.sortDirection="desc";
+        }
     });
+}
+
+function createEntityElement(item){
+    const template=document.createElement("template");
+
+    template.innerHTML=`
+        <div
+            class="entity-list-row entity-list-row--clickable entity-list-row--description entity-list-row--meta"
+            data-id="${item.id}"
+            data-sort-value="${item.sortValue}"
+        >
+            <div class="entity-list-row__title">
+                <span class="entity-list-row__title-text">
+                    ${item.title}
+                </span>
+            </div>
+
+            <div class="entity-list-row__description">
+                ${item.description}
+            </div>
+
+            <div class="entity-list-row__meta">
+                ${item.meta}
+            </div>
+        </div>
+    `.trim();
+
+    return template.content.firstElementChild;
+}
+
+function getEntityData(row){
+    return{
+        sortValue:Number(
+            row.dataset.sortValue??0
+        ),
+        title:
+            row.querySelector(
+                ".entity-list-row__title-text"
+            )?.textContent.trim()??"",
+        meta:
+            row.querySelector(
+                ".entity-list-row__meta"
+            )?.textContent.trim()??""
+    };
 }
 
 export async function refreshActivityModal(){
@@ -215,65 +268,71 @@ async function openActivityTarget(activity){
     }
 }
 
+function getActivityGroupId(date){
+    return[
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    ].join("-");
+}
+
+function getActivityItem(activity){
+    return{
+        id:activity.id,
+        clickable:true,
+        sortValue:Number(activity.createdAt??0),
+        title:escapeHTML(
+            activity.adminName||
+            activity.adminEmail||
+            "Неизвестный администратор"
+        ),
+        description:
+            formatActivityDescription(activity),
+        meta:
+            renderDateTime(
+                activity.createdAt
+            )
+    };
+}
+
 function renderActivityList(activities=[]){
     const groups=new Map();
 
-    [...activities]
-        .sort(
-            (a,b)=>
-                Number(b.createdAt??0)-
-                Number(a.createdAt??0)
-        )
-        .forEach(activity=>{
-            const date=
-                new Date(
-                    Number(activity.createdAt??0)
-                );
+    activities.forEach(activity=>{
+        const date=new Date(
+            Number(activity.createdAt??0)
+        );
 
-            const key=
-                `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        const key=getActivityGroupId(date);
 
-            if(!groups.has(key)){
-                groups.set(
-                    key,
-                    {
-                        date,
-                        items:[]
-                    }
-                );
-            }
+        if(!groups.has(key)){
+            groups.set(
+                key,
+                {
+                    id:key,
+                    date,
+                    items:[]
+                }
+            );
+        }
 
-            groups.get(key).items.push({
-                id:activity.id,
-                clickable:true,
-                sortValue:Number(activity.createdAt??0),
-                title:escapeHTML(
-                    activity.adminName||
-                    activity.adminEmail||
-                    "Неизвестный администратор"
-                ),
-                description:
-                    formatActivityDescription(activity),
-                meta:
-                    renderDateTime(
-                        activity.createdAt
-                    )
-            });
-        });
+        groups.get(key).items.push(
+            getActivityItem(activity)
+        );
+    });
 
     return renderEntityList({
         groups:[
-            ...groups.values().map(
-                group=>({
-                    title:
-                        formatActivityGroupDate(
-                            group.date
-                        ),
-                    items:group.items,
-                    sortDirection:"desc"
-                })
-            )
-        ]
+            ...groups.values()
+        ].map(group=>({
+            id:group.id,
+            title:
+                formatActivityGroupDate(
+                    group.date
+                ),
+            items:group.items,
+            sortDirection:"desc"
+        }))
     });
 }
 
