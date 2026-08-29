@@ -92,7 +92,7 @@
     min-width: 0;
 }
 
-.entity-date-editor__label
+.entity-date-editor__label,
 .entity-status-editor__label{
     display: block;
     color: var(--color-text-dim);
