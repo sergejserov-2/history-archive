@@ -10,6 +10,8 @@ function setupPhotoDrag(list){
 
     let dragging=false;
     let activeCard=null;
+    let activeMedia=null;
+    let pointerId=null;
     let startX=0;
     let offsetX=0;
     let direction=0;
@@ -79,7 +81,8 @@ function setupPhotoDrag(list){
 
     function applyOffset(){
         getMovingCards().forEach(card=>{
-            card.style.transform=`translate3d(${offsetX}px,0,0)`;
+            card.style.transform=
+                `translate3d(${offsetX}px,0,0)`;
         });
     }
 
@@ -113,17 +116,25 @@ function setupPhotoDrag(list){
 
         dragging=true;
         activeCard=card;
+        activeMedia=media;
+        pointerId=event.pointerId;
         startX=event.clientX;
         offsetX=0;
         direction=0;
         moved=false;
         bounds=calculateBounds();
 
-        media.setPointerCapture?.(event.pointerId);
+        activeMedia.setPointerCapture?.(pointerId);
     }
 
     function move(event){
-        if(!dragging||!activeCard)return;
+        if(
+            !dragging||
+            !activeCard||
+            event.pointerId!==pointerId
+        ){
+            return;
+        }
 
         const delta=event.clientX-startX;
 
@@ -131,14 +142,19 @@ function setupPhotoDrag(list){
             moved=true;
         }
 
-        const newDirection=delta>0?1:delta<0?-1:0;
+        if(!moved)return;
+
+        const newDirection=
+            delta>0
+                ?1
+                :delta<0
+                    ?-1
+                    :0;
 
         if(newDirection!==direction){
             resetTransformsOnly();
             direction=newDirection;
         }
-
-        if(!moved)return;
 
         offsetX=Math.max(
             bounds.min,
@@ -151,51 +167,51 @@ function setupPhotoDrag(list){
         });
 
         applyOffset();
+
         event.preventDefault();
     }
 
-    function end(event){
+    function finish(event,cancelled=false){
         if(!dragging)return;
+
+        if(
+            event.pointerId!==undefined&&
+            event.pointerId!==pointerId
+        ){
+            return;
+        }
 
         const wasMoved=moved;
 
         dragging=false;
 
-        activeCard?.querySelector(".photo-card__media")
-            ?.releasePointerCapture?.(event.pointerId);
+        activeMedia?.releasePointerCapture?.(pointerId);
 
-        if(wasMoved){
+        if(wasMoved&&!cancelled){
             list.dataset.photoDragMoved="true";
 
             window.setTimeout(()=>{
                 delete list.dataset.photoDragMoved;
-            },0);
+            },50);
         }
 
         resetCards();
 
         activeCard=null;
+        activeMedia=null;
+        pointerId=null;
         offsetX=0;
         direction=0;
         bounds={min:0,max:0};
         moved=false;
     }
 
+    function end(event){
+        finish(event);
+    }
+
     function cancel(event){
-        if(!dragging)return;
-
-        dragging=false;
-
-        activeCard?.querySelector(".photo-card__media")
-            ?.releasePointerCapture?.(event.pointerId);
-
-        resetCards();
-
-        activeCard=null;
-        offsetX=0;
-        direction=0;
-        bounds={min:0,max:0};
-        moved=false;
+        finish(event,true);
     }
 
     list.addEventListener("pointerdown",start);
@@ -204,4 +220,3 @@ function setupPhotoDrag(list){
     list.addEventListener("pointercancel",cancel);
     list.addEventListener("lostpointercapture",cancel);
 }
-
