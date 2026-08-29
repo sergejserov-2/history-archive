@@ -223,7 +223,7 @@ export function renderSubject(
                         )}</div>
                     `:""}
 
-                <div class="mention-list"${renderMentionList(
+                <div class="mention-list">${renderMentionList(
                     subject,
                     objects,
                     photos,
