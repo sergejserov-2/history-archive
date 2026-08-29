@@ -122,7 +122,7 @@ export function setupStatusEditor(root, entity, enabled = false) {
 export function renderStatusEditorHTML() {
     return `
     <div class="entity-status-editor">
-<span class="entity-status__label">Статус</span>
+<span class="entity-status-editor__label">Статус</span>
             <div
                 id="entityStatus"
                 class="entity-status"
