@@ -460,30 +460,63 @@ export function createPageUpdates(state){
             await state.renderSubjectBlock?.();
         },
 
-        async addRecord(savedRecord){
-            if(!savedRecord?.id)return;
+async addRecord(savedRecord){
+    console.log("[addRecord] start",savedRecord);
 
-            const fresh=await getRecord(savedRecord.id);
-            if(!fresh)return;
+    if(!savedRecord?.id){
+        console.warn("[addRecord] no record id");
+        return;
+    }
 
-            state.records=[
-                ...state.records.filter(record=>record.id!==fresh.id),
-                fresh
-            ];
+    const fresh=await getRecord(savedRecord.id);
 
-            await addRecordToList(
-                fresh,
-                state.subjects,
-                state.recordTypes
-            );
-        },
+    console.log("[addRecord] getRecord complete",fresh);
 
-        async removeRecord(id){
-            state.records=state.records.filter(record=>record.id!==id);
-            await removeRecordFromList(id);
-        },
+    if(!fresh){
+        console.warn("[addRecord] record not found");
+        return;
+    }
 
-   async updateRecord(savedRecord){
+    state.records=[
+        ...state.records.filter(record=>record.id!==fresh.id),
+        fresh
+    ];
+
+    console.log("[addRecord] state updated",{
+        id:fresh.id,
+        records:state.records.length
+    });
+
+    await addRecordToList(
+        fresh,
+        state.subjects,
+        state.recordTypes
+    );
+
+    console.log("[addRecord] complete",fresh.id);
+},
+
+async removeRecord(id){
+    console.log("[removeRecord] start",{
+        id,
+        recordsBefore:state.records.length
+    });
+
+    state.records=state.records.filter(
+        record=>record.id!==id
+    );
+
+    console.log("[removeRecord] state updated",{
+        id,
+        recordsAfter:state.records.length
+    });
+
+    await removeRecordFromList(id);
+
+    console.log("[removeRecord] complete",id);
+},
+
+async updateRecord(savedRecord){
     console.log("[updateRecord] start",savedRecord);
 
     if(!savedRecord?.id){
@@ -500,21 +533,51 @@ export function createPageUpdates(state){
         return;
     }
 
-    state.records=state.records.map(record=>
-        record.id===fresh.id?fresh:record
+    state.records=state.records.map(
+        record=>record.id===fresh.id?fresh:record
     );
 
     const oldElement=document.querySelector(
-        `.record[data-record-id="${fresh.id}"]`
+        `.entity-list-row[data-id="${fresh.id}"]`
     );
+
+    console.log("[updateRecord] element",oldElement);
 
     if(!oldElement){
         console.warn("[updateRecord] element not found, adding");
+
         await addRecordToList(
             fresh,
             state.subjects,
             state.recordTypes
         );
+
+        return;
+    }
+
+    const oldGroup=oldElement.closest(
+        ".entity-list__group"
+    );
+
+    const newGroupId=fresh.typeId||"__without-type__";
+    const oldGroupId=oldGroup?.dataset.entityGroup??null;
+
+    if(oldGroupId!==newGroupId){
+        console.log("[updateRecord] group changed",{
+            oldGroupId,
+            newGroupId
+        });
+
+        await removeRecordFromList(fresh.id);
+
+        await addRecordToList(
+            fresh,
+            state.subjects,
+            state.recordTypes
+        );
+
+        console.log("[updateRecord] complete with group move",fresh.id);
+
         return;
     }
 
