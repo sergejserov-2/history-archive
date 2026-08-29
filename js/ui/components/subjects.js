@@ -12,214 +12,222 @@ import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
 let currentSubjectsModal=null;
 
 export async function openSubjectsModal({page=null,updates=null}={}){
-const[
-subjects,
-subjectTypes,
-objects,
-photos,
-sources,
-records
-]=await Promise.all([
-getSubjects(),
-getSubjectTypes(),
-getAllObjects(),
-getAllPhotos(),
-getAllSources(),
-getAllRecords()
-]);
-
-const modal=createModal({
-    title:"Субъекты",
-    content:renderSubjectsList(
+    const[
         subjects,
-        subjectTypes
-    ),
-    width:525
-});
+        subjectTypes,
+        objects,
+        photos,
+        sources,
+        records
+    ]=await Promise.all([
+        getSubjects(),
+        getSubjectTypes(),
+        getAllObjects(),
+        getAllPhotos(),
+        getAllSources(),
+        getAllRecords()
+    ]);
 
-currentSubjectsModal=modal;
-modal.subjects=subjects;
-modal.subjectTypes=subjectTypes;
-modal.objects=objects;
-modal.photos=photos;
-modal.sources=sources;
-modal.records=records;
-modal.page=page;
-modal.updates=updates;
+    const modal=createModal({
+        title:"Субъекты",
+        content:renderSubjectsList(
+            subjects,
+            subjectTypes
+        ),
+        width:525
+    });
 
-modal.root.addEventListener("click",event=>{
-    const adminButton=event.target.closest(
-        ".admin-button"
-    );
+    currentSubjectsModal=modal;
+    modal.subjects=subjects;
+    modal.subjectTypes=subjectTypes;
+    modal.objects=objects;
+    modal.photos=photos;
+    modal.sources=sources;
+    modal.records=records;
+    modal.page=page;
+    modal.updates=updates;
 
-    if(adminButton){
+    modal.root.addEventListener("click",event=>{
+        const adminButton=event.target.closest(
+            ".admin-button"
+        );
+
+        if(adminButton){
+            event.preventDefault();
+            return;
+        }
+
+        const addButton=event.target.closest(
+            ".entity-list__add"
+        );
+
+        if(addButton){
+            event.preventDefault();
+            return;
+        }
+
+        const row=event.target.closest(
+            ".entity-list-row"
+        );
+
+        if(!row)return;
+
+        const id=row.dataset.id;
+
+        if(!id)return;
+
+        const subject=modal.subjects.find(
+            item=>item.id===id
+        );
+
+        if(!subject)return;
+
         event.preventDefault();
-        return;
-    }
 
-    const addButton=event.target.closest(
-        ".entity-list__add"
-    );
+        void openModal(
+            "subject",
+            {entityId:id}
+        );
+    });
 
-    if(addButton){
-        event.preventDefault();
-        return;
-    }
-
-    const row=event.target.closest(
-        ".entity-list-row"
-    );
-
-    if(!row)return;
-
-    const id=row.dataset.id;
-
-    if(!id)return;
-
-    const subject=modal.subjects.find(
-        item=>item.id===id
-    );
-
-    if(!subject)return;
-
-    event.preventDefault();
-
-    void openModal(
-        "subject",
-        {entityId:id}
-    );
-});
-
-return modal;
-
+    return modal;
 }
 
 export async function refreshSubjectsModal(){
-if(!currentSubjectsModal?.root?.isConnected){
-currentSubjectsModal=null;
-return;
-}
+    if(!currentSubjectsModal?.root?.isConnected){
+        currentSubjectsModal=null;
+        return;
+    }
 
-const[
-    subjects,
-    subjectTypes,
-    objects,
-    photos,
-    sources,
-    records
-]=await Promise.all([
-    getSubjects(),
-    getSubjectTypes(),
-    getAllObjects(),
-    getAllPhotos(),
-    getAllSources(),
-    getAllRecords()
-]);
-
-currentSubjectsModal.subjects=subjects;
-currentSubjectsModal.subjectTypes=
-    subjectTypes;
-currentSubjectsModal.objects=objects;
-currentSubjectsModal.photos=photos;
-currentSubjectsModal.sources=sources;
-currentSubjectsModal.records=records;
-
-currentSubjectsModal.setContent(
-    renderSubjectsList(
+    const[
         subjects,
-        subjectTypes
-    )
-);
+        subjectTypes,
+        objects,
+        photos,
+        sources,
+        records
+    ]=await Promise.all([
+        getSubjects(),
+        getSubjectTypes(),
+        getAllObjects(),
+        getAllPhotos(),
+        getAllSources(),
+        getAllRecords()
+    ]);
 
+    currentSubjectsModal.subjects=subjects;
+    currentSubjectsModal.subjectTypes=subjectTypes;
+    currentSubjectsModal.objects=objects;
+    currentSubjectsModal.photos=photos;
+    currentSubjectsModal.sources=sources;
+    currentSubjectsModal.records=records;
+
+    currentSubjectsModal.setContent(
+        renderSubjectsList(
+            subjects,
+            subjectTypes
+        )
+    );
 }
 
 function renderSubjectsList(
-subjects=[],
-subjectTypes=[]
+    subjects=[],
+    subjectTypes=[]
 ){
-const groups=subjectTypes.map(type=>{
-const items=subjects
-.filter(
-subject=>
-subject.typeId===type.id
-)
-.map(subject=>createSubjectItem(subject));
-
-    return{
-        id:type.id,
-        title:escapeHTML(
-            type.title??""
-        ),
-        items
-    };
-}).filter(group=>group.items.length);
-
-const untypedItems=subjects
-    .filter(
-        subject=>
-            !subject.typeId||
-            !subjectTypes.some(
-                type=>
-                    type.id===
-                    subject.typeId
+    const groups=subjectTypes.map(type=>{
+        const items=subjects
+            .filter(
+                subject=>
+                    subject.typeId===type.id
             )
-    )
-    .map(subject=>createSubjectItem(subject));
+            .map(subject=>createSubjectItem(subject));
 
-if(untypedItems.length){
-    groups.push({
-        id:"__without-type__",
-        title:"Без типа",
-        items:untypedItems
+        return{
+            id:type.id,
+            title:escapeHTML(
+                type.title??""
+            ),
+            items
+        };
+    }).filter(group=>group.items.length);
+
+    const untypedItems=subjects
+        .filter(
+            subject=>
+                !subject.typeId||
+                !subjectTypes.some(
+                    type=>
+                        type.id===
+                        subject.typeId
+                )
+        )
+        .map(subject=>createSubjectItem(subject));
+
+    if(untypedItems.length){
+        groups.push({
+            id:"__without-type__",
+            title:"Без типа",
+            items:untypedItems
+        });
+    }
+
+    return renderEntityList({
+        groups,
+        addButton:adminAdd(
+            "add-subject",
+            "Добавить субъект"
+        )
     });
 }
 
-return renderEntityList({
-    groups,
-    addButton:adminAdd(
-        "add-subject",
-        "Добавить субъект"
-    )
-});
-
-}
-
 function createSubjectItem(subject){
-return{
-id:subject.id,
-clickable:true,
-title:escapeHTML(
-subject.title??"Без названия"
-),
-meta:formatSubjectYears(subject),
-actions:"${adminEdit( "subject", escapeHTML(subject.id) )} ${adminDelete( "subject", escapeHTML(subject.id) )}"
-};
+    return{
+        id:subject.id,
+        clickable:true,
+        title:escapeHTML(
+            subject.title??"Без названия"
+        ),
+        meta:formatSubjectYears(subject),
+        actions:`
+            ${adminEdit(
+                "subject",
+                escapeHTML(subject.id)
+            )}
+            ${adminDelete(
+                "subject",
+                escapeHTML(subject.id)
+            )}
+        `
+    };
 }
 
 function formatSubjectYears(subject){
-if(
-subject.dateStart&&
-subject.dateEnd
-){
-return"${escapeHTML(subject.dateStart)} – ${escapeHTML(subject.dateEnd)}".trim();
-}
+    if(
+        subject.dateStart&&
+        subject.dateEnd
+    ){
+        return`
+            ${escapeHTML(subject.dateStart)} –
+            ${escapeHTML(subject.dateEnd)}
+        `.trim();
+    }
 
-if(subject.dateStart){
-    return`с ${escapeHTML(subject.dateStart)}`;}
+    if(subject.dateStart){
+        return`с ${escapeHTML(subject.dateStart)}`;
+    }
 
-if(subject.dateEnd){
-    return`до ${escapeHTML(subject.dateEnd)}`;
-}
+    if(subject.dateEnd){
+        return`до ${escapeHTML(subject.dateEnd)}`;
+    }
 
-return"";
-
+    return"";
 }
 
 function escapeHTML(value=""){
-return String(value)
-.replaceAll("&","&")
-.replaceAll("<","<")
-.replaceAll(">",">")
-.replaceAll('"',""")
-.replaceAll("'","'");
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
 }
