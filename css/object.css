@@ -580,16 +580,11 @@
 }
 
 
-.records{
-   margin-top:var(--space-10);
-   overflow-y:auto;
-}
-
+.records,
 .mention-list{
    margin-top:var(--space-10);
    overflow-y:auto;
 }
-
 
 /* ==========================================
    COVER DRAG
