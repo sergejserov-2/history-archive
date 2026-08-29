@@ -84,14 +84,16 @@
     flex: 1;
 }
 
-.entity-date-editor {
+.entity-date-editor,
+.entity-status-editor{
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     min-width: 0;
 }
 
-.entity-date-editor__label {
+.entity-date-editor__label
+.entity-status-editor__label{
     display: block;
     color: var(--color-text-dim);
     font-size: var(--font-size-sm);
