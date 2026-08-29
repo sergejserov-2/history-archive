@@ -5,22 +5,18 @@ import{
     showEntityListItem,
     removeEntityListItem
 }from"./entityList.js";
-import{compareEntities,sortEntities}from"./sort.js";
+import{sortEntities,insertSortedElement}from"./sort.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
 
 function formatBoundary(value,prefix){
     if(!value)return"";
-
     let result=value;
-
     if(result.endsWith("-е")){
         result=result.slice(0,-2)+"-х";
     }
-
     if(result.startsWith("вер., ")){
         return"вер., "+prefix+" "+result.slice(6);
     }
-
     return prefix+" "+result;
 }
 
@@ -28,19 +24,15 @@ function getPeriod(record){
     if(record.dateMode==="date"){
         return record.date||"—";
     }
-
     if(record.dateStart&&record.dateEnd){
         return`${record.dateStart} – ${record.dateEnd}`;
     }
-
     if(record.dateStart){
         return formatBoundary(record.dateStart,"с");
     }
-
     if(record.dateEnd){
         return formatBoundary(record.dateEnd,"до");
     }
-
     return"—";
 }
 
@@ -64,6 +56,7 @@ function getRecordData(record,subjects=[]){
 function getRecordSortData(record){
     return{
         meta:getPeriod(record),
+        author:"",
         title:record.title??""
     };
 }
@@ -112,7 +105,6 @@ export function renderRecord(record,subjects=[]){
                 <span class="entity-list-row__title-text">
                     ${item.title}
                 </span>
-
                 ${item.actions}
             </div>
 
@@ -142,6 +134,7 @@ export function renderRecord(record,subjects=[]){
 function createRecordElement(record,subjects=[]){
     const template=document.createElement("template");
     template.innerHTML=renderRecord(record,subjects).trim();
+
     return template.content.firstElementChild;
 }
 
@@ -150,37 +143,76 @@ function getRecordElementData(row){
         meta:row.querySelector(
             ".entity-list-row__meta"
         )?.textContent.trim()??"",
+        author:"",
         title:row.querySelector(
             ".entity-list-row__title-text"
         )?.textContent.trim()??""
     };
 }
 
-function getInsertResult(record,subjects=[],recordTypes=[]){
-    const element=createRecordElement(record,subjects);
+function insertRecordElement(
+    record,
+    subjects=[],
+    recordTypes=[]
+){
+    const element=createRecordElement(
+        record,
+        subjects
+    );
+
     if(!element)return null;
 
-    const item=getRecordSortData(record);
+    const groupId=getRecordGroupId(
+        record,
+        recordTypes
+    );
 
-    return insertEntityListItem({
-        groupId:getRecordGroupId(record,recordTypes),
-        groupTitle:getRecordGroupTitle(record,recordTypes),
+    const groupTitle=getRecordGroupTitle(
+        record,
+        recordTypes
+    );
+
+    const result=insertEntityListItem({
+        groupId,
+        groupTitle,
         element,
-        compare:(_,row)=>compareEntities(
-            item,
-            getRecordElementData(row)
-        )
+        compare:null
     });
+
+    if(!result?.element){
+        return null;
+    }
+
+    const rowContainer=result.element.parentElement;
+
+    if(!rowContainer){
+        return result.element;
+    }
+
+    result.element.remove();
+
+    insertSortedElement({
+        container:rowContainer,
+        element:result.element,
+        item:getRecordSortData(record),
+        selector:".entity-list-row",
+        direction:"asc",
+        getItem:getRecordElementData
+    });
+
+    return result.element;
 }
 
-export function insertRecord(record,subjects=[],recordTypes=[]){
-    const result=getInsertResult(
+export function insertRecord(
+    record,
+    subjects=[],
+    recordTypes=[]
+){
+    return insertRecordElement(
         record,
         subjects,
         recordTypes
     );
-
-    return result?.element??null;
 }
 
 export async function addRecordToList(
@@ -188,17 +220,19 @@ export async function addRecordToList(
     subjects=[],
     recordTypes=[]
 ){
-    const result=getInsertResult(
+    const element=insertRecordElement(
         record,
         subjects,
         recordTypes
     );
 
-    if(!result)return null;
+    if(!element)return null;
 
-    await showEntityListItem(result);
+    await showEntityListItem({
+        element
+    });
 
-    return result.element;
+    return element;
 }
 
 export async function removeRecordFromList(id){
@@ -230,42 +264,25 @@ export async function updateRecordInList(
         );
     }
 
-    const oldGroup=oldElement.closest(".entity-list__group");
-    const oldGroupId=oldGroup?.dataset.entityGroup??null;
+    const oldGroup=oldElement.closest(
+        ".entity-list__group"
+    );
+
+    const oldGroupId=
+        oldGroup?.dataset.entityGroup??null;
+
     const newGroupId=getRecordGroupId(
         record,
         recordTypes
     );
 
-    if(oldGroupId!==newGroupId){
-        await removeRecordFromList(record.id);
-
-        return await addRecordToList(
-            record,
-            subjects,
-            recordTypes
-        );
-    }
-
-    const element=createRecordElement(record,subjects);
-    if(!element)return null;
-
     oldElement.remove();
 
-    const item=getRecordSortData(record);
-
-    return insertEntityListItem({
-        groupId:newGroupId,
-        groupTitle:getRecordGroupTitle(
-            record,
-            recordTypes
-        ),
-        element,
-        compare:(_,row)=>compareEntities(
-            item,
-            getRecordElementData(row)
-        )
-    })?.element??null;
+    return insertRecordElement(
+        record,
+        subjects,
+        recordTypes
+    );
 }
 
 export function renderRecords(
@@ -337,3 +354,6 @@ export function renderRecords(
         </div>
     `;
 }
+
+
+
