@@ -69,14 +69,29 @@ export function renderRecord(record,subjects=[]){
         hasDescription?"entity-list-row--description":"entity-list-row--title-only",
         hasMeta?"entity-list-row--meta":""
     ].filter(Boolean).join(" ");
+
     return`
-        <div class="${rowClass} record" data-record-id="${record.id}" data-id="${record.id}">
+        <div class="${rowClass} record" data-id="${record.id}">
             <div class="entity-list-row__title">
                 <span class="entity-list-row__title-text">${item.title}</span>
                 ${item.actions}
             </div>
-            ${hasDescription?`<div class="entity-list-row__description">${item.description}</div>`:""}
-            ${hasMeta?`<div class="entity-list-row__meta">${item.meta}</div>`:""}
+
+            ${
+                hasDescription
+                    ?
+                    `<div class="entity-list-row__description">${item.description}</div>`
+                    :
+                    ""
+            }
+
+            ${
+                hasMeta
+                    ?
+                    `<div class="entity-list-row__meta">${item.meta}</div>`
+                    :
+                    ""
+            }
         </div>
     `;
 }
@@ -89,61 +104,158 @@ function createRecordElement(record,subjects=[]){
 
 function getInsertResult(record,subjects=[],recordTypes=[]){
     const element=createRecordElement(record,subjects);
+
     if(!element)return null;
+
     const item=getRecordData(record,subjects);
+
     return insertEntityListItem({
         groupId:getRecordGroupId(record,recordTypes),
         groupTitle:getRecordGroupTitle(record,recordTypes),
         element,
         compare:(newElement,row)=>{
-            const meta=row.querySelector(".entity-list-row__meta")?.textContent.trim()??"";
-            const title=row.querySelector(".entity-list-row__title-text")?.textContent.trim()??"";
-            return compareItems({meta,title},{meta:item.meta,title:item.title});
+            const meta=
+                row.querySelector(
+                    ".entity-list-row__meta"
+                )?.textContent.trim()??"";
+
+            const title=
+                row.querySelector(
+                    ".entity-list-row__title-text"
+                )?.textContent.trim()??"";
+
+            return compareItems(
+                {meta,title},
+                {
+                    meta:item.meta,
+                    title:item.title
+                }
+            );
         }
     });
 }
 
 export function insertRecord(record,subjects=[],recordTypes=[]){
-    const result=getInsertResult(record,subjects,recordTypes);
+    const result=
+        getInsertResult(
+            record,
+            subjects,
+            recordTypes
+        );
+
     return result?.element??null;
 }
 
 export async function addRecordToList(record,subjects=[],recordTypes=[]){
-    const result=getInsertResult(record,subjects,recordTypes);
+    const result=
+        getInsertResult(
+            record,
+            subjects,
+            recordTypes
+        );
+
     if(!result)return null;
+
     await showEntityListItem(result);
+
     return result.element;
 }
 
 export async function removeRecordFromList(id){
-    const element=document.querySelector(`.record[data-record-id="${id}"]`);
-    if(!element)return;
-    await removeEntityListItem({element});
+    const element=
+        document.querySelector(
+            `.entity-list-row[data-id="${id}"]`
+        );
+
+    if(!element){
+        console.warn(
+            "[removeRecordFromList] element not found",
+            {id}
+        );
+
+        return;
+    }
+
+    await removeEntityListItem({
+        element
+    });
 }
 
 export function renderRecords(records,recordTypes=[],subjects=[]){
     const groups=[];
-    const typedRecords=recordTypes.map(recordType=>({
-        type:recordType,
-        records:(records??[]).filter(record=>record.typeId===recordType.id)
-    })).filter(group=>group.records.length>0);
-const recordsWithoutType=(records??[]).filter(record=>!record.typeId||!recordTypes.some(type=>type.id===record.typeId));
-    typedRecords.forEach(group=>groups.push({
-        id:group.type.id,
-        title:group.type.title??"",
-        items:group.records.map(record=>getRecordData(record,subjects))
-    }));
-    if(recordsWithoutType.length)groups.push({
-        id:"__without-type__",
-        title:"Без типа",
-        items:recordsWithoutType.map(record=>getRecordData(record,subjects))
-    });
+
+    const typedRecords=
+        recordTypes
+            .map(recordType=>({
+                type:recordType,
+                records:
+                    (records??[])
+                        .filter(
+                            record=>
+                                record.typeId===
+                                recordType.id
+                        )
+            }))
+            .filter(
+                group=>
+                    group.records.length>0
+            );
+
+    const recordsWithoutType=
+        (records??[])
+            .filter(
+                record=>
+                    !record.typeId||
+                    !recordTypes.some(
+                        type=>
+                            type.id===
+                            record.typeId
+                    )
+            );
+
+    typedRecords.forEach(
+        group=>
+            groups.push({
+                id:group.type.id,
+                title:group.type.title??"",
+                items:
+                    group.records.map(
+                        record=>
+                            getRecordData(
+                                record,
+                                subjects
+                            )
+                    )
+            })
+    );
+
+    if(recordsWithoutType.length){
+        groups.push({
+            id:"__without-type__",
+            title:"Без типа",
+            items:
+                recordsWithoutType.map(
+                    record=>
+                        getRecordData(
+                            record,
+                            subjects
+                        )
+                )
+        });
+    }
+
     return`
         <div class="records">
-            ${renderEntityList({
-                groups,
-                addButton:adminAdd("add-record","Добавить запись")
-            })}
+            ${
+                renderEntityList({
+                    groups,
+                    addButton:
+                        adminAdd(
+                            "add-record",
+                            "Добавить запись"
+                        )
+                })
+            }
         </div>
     `;
 }
