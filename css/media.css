@@ -24,8 +24,6 @@
     background: var(--color-surface-dark);
     border-radius: var(--radius-2xl);
 
-    touch-action: pan-x;
-
     transition:
         transform 420ms cubic-bezier(.12,.82,.25,1);
 }
@@ -48,10 +46,15 @@
     position: relative;
 
     background: var(--color-border);
+
     cursor: grab;
 
     touch-action: none;
     user-select: none;
+}
+
+.photo-card__media:active {
+    cursor: grabbing;
 }
 
 .photo-card__image {
@@ -63,6 +66,7 @@
     object-fit: cover;
 
     user-select: none;
+    pointer-events: none;
 }
 
 .photo-card__placeholder {
@@ -80,6 +84,8 @@
     line-height: 1.5;
 
     text-align: center;
+
+    user-select: none;
 }
 
 .photo-card__content {
@@ -164,6 +170,7 @@
 
     height: 265px;
 }
+
 
 
 /* ==========================================
