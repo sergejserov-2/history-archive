@@ -22,6 +22,7 @@ import{restoreModalFromUrl}from"../components/modalReload.js";
 import{createPageUpdates}from"../../admin/update.js";
 import{renderFeedbackPrompt,initFeedbackPrompt}from"../components/feedbackPrompt.js";
 import{initCoverDrag}from"../components/coverDrag.js";
+import{initPhotoDrag}from"../components/photoDrag.js";
 import{initPageLoader,revealPage}from"../components/pageLoader.js";
 
 initPageLoader();
@@ -188,6 +189,7 @@ async function renderPage(){
         </main>
     `;
     initCoverDrag(document);
+    initPhotoDrag(document);
     initFeedbackPrompt();
 }
 
