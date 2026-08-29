@@ -2,15 +2,7 @@ import{openPhotoModal}from"./modalReload.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
 
-function renderPhotoMedia(photo){
-    const uploading=photo.isUploading===true;
-    const hasPreview=Boolean(photo.previewPath);
-    if(uploading&&!hasPreview)return renderLoadingPlaceholder();
-    if(hasPreview)return`${uploading?renderLoadingPlaceholder():""}<img class="photo-card__image${uploading?" photo-card__image--loading":""}" src="${photo.previewPath}" alt="${photo.title??""}" draggable="false">`;
-    return`<div class="photo-card__placeholder">Фото отсутствует</div>`;
-}
-
-function getPhotoDate(photo){
+function getPhotoPeriod(photo){
     if(photo.dateMode==="period"){
         if(photo.dateStart&&photo.dateEnd)return`${photo.dateStart} – ${photo.dateEnd}`;
         if(photo.dateStart)return`с ${photo.dateStart}`;
@@ -20,18 +12,35 @@ function getPhotoDate(photo){
     return photo.date??"";
 }
 
+function renderPhotoMedia(photo){
+    const uploading=photo.isUploading===true;
+    const hasPreview=Boolean(photo.previewPath);
+    if(uploading&&!hasPreview)return renderLoadingPlaceholder();
+    if(hasPreview)return`${uploading?renderLoadingPlaceholder():""}<img class="photo-card__image${uploading?" photo-card__image--loading":""}" src="${photo.previewPath}" alt="${photo.title??""}" draggable="false">`;
+    return`<div class="photo-card__placeholder">Фото отсутствует</div>`;
+}
+
 function renderPhotoMeta(photo){
     const author=photo.author?.trim()??"";
-    const date=getPhotoDate(photo);
+    const date=getPhotoPeriod(photo);
 
     if(author&&date){
-        return`${author}, <span class="photo-card__date">${date}</span>`;
+        return`
+            <span class="photo-card__author-name">${author}</span>,
+            <span class="photo-card__date">${date}</span>
+        `;
     }
 
-    if(author)return author;
+    if(author){
+        return`
+            <span class="photo-card__author-name">${author}</span>
+        `;
+    }
 
     if(date){
-        return`<span class="photo-card__date">${date}</span>`;
+        return`
+            <span class="photo-card__date">${date}</span>
+        `;
     }
 
     return"";
@@ -45,6 +54,7 @@ export function renderPhoto(photo){
             <div class="photo-card__media" data-photo-id="${photo.id}" data-loading="${uploading}">
                 ${renderPhotoMedia(photo)}
             </div>
+
             <div class="photo-card__content">
                 <div class="photo-card__title">
                     <span class="photo-card__title-text">${photo.title??""}</span>
@@ -53,6 +63,7 @@ export function renderPhoto(photo){
                         ${adminDelete("photo",photo.id)}
                     </span>
                 </div>
+
                 <div class="photo-card__author">
                     ${renderPhotoMeta(photo)}
                 </div>
@@ -61,58 +72,45 @@ export function renderPhoto(photo){
     `;
 }
 
-export function renderPhotos(photos,objectId=null){
-    const cards=[
-        adminAdd(
-            "add-photo",
-            "Добавить фото",
-            {className:"photo-card photo-card--add"}
-        )
-    ];
-
-    const sortedPhotos=[...(photos??[])].sort((a,b)=>{
-        const dateA=a.date||"";
-        const dateB=b.date||"";
+function sortPhotos(photos=[]){
+    return[...photos].sort((a,b)=>{
+        const dateA=a.date??a.dateStart??"";
+        const dateB=b.date??b.dateStart??"";
 
         if(!dateA&&!dateB){
-            const author=(a.author??"").localeCompare(
-                b.author??"",
-                "ru"
-            );
-
+            const author=(a.author??"").localeCompare(b.author??"","ru");
             return author!==0
                 ?author
-                :(a.title??"").localeCompare(
-                    b.title??"",
-                    "ru"
-                );
+                :(a.title??"").localeCompare(b.title??"","ru");
         }
 
         if(!dateA)return 1;
         if(!dateB)return-1;
 
-        const date=String(dateB).localeCompare(
-            String(dateA)
-        );
+        const date=String(dateB).localeCompare(String(dateA));
 
         if(date!==0)return date;
 
-        const author=(a.author??"").localeCompare(
-            b.author??"",
-            "ru"
-        );
+        const author=(a.author??"").localeCompare(b.author??"","ru");
 
         return author!==0
             ?author
-            :(a.title??"").localeCompare(
-                b.title??"",
-                "ru"
-            );
+            :(a.title??"").localeCompare(b.title??"","ru");
     });
+}
 
-    sortedPhotos.forEach(
-        photo=>cards.push(renderPhoto(photo))
-    );
+export function renderPhotos(photos,objectId=null){
+    const sortedPhotos=
+        sortPhotos(photos??[]);
+
+    const cards=[
+        adminAdd(
+            "add-photo",
+            "Добавить фото",
+            {className:"photo-card photo-card--add"}
+        ),
+        ...sortedPhotos.map(renderPhoto)
+    ];
 
     const html=`
         <div class="photos-list">
@@ -121,36 +119,42 @@ export function renderPhotos(photos,objectId=null){
     `;
 
     setTimeout(()=>{
-        const photosList=document.querySelector(
-            ".photos-list"
-        );
+        const photosList=
+            document.querySelector(".photos-list");
 
         if(!photosList)return;
 
         photosList.onclick=event=>{
-            if(event.target.closest(".admin-button")){
+            const media=
+                event.target.closest(
+                    ".photo-card__media"
+                );
+
+            if(!media)return;
+
+            if(media.dataset.loading==="true"){
+                return;
+                }
+
+            const photo=
+                sortedPhotos.find(
+                    item=>item.id===media.dataset.photoId
+                );
+
+            if(!photo?.storagePath){
                 return;
             }
 
-            const media=event.target.closest(
-                ".photo-card__media"
-            );
+            const image=
+                media.querySelector(
+                    ".photo-card__image"
+                );
 
-            if(!media||media.dataset.loading==="true"){
-                return;
-            }
-
-            const photo=sortedPhotos.find(
-                item=>item.id===media.dataset.photoId
-            );
-
-            if(!photo||!photo.storagePath)return;
-
-            const image=media.querySelector(
-                ".photo-card__image"
-            );
-
-            if(!image||!image.complete||image.naturalWidth===0){
+            if(
+                !image||
+                !image.complete||
+                image.naturalWidth===0
+            ){
                 return;
             }
 
