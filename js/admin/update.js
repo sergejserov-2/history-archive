@@ -7,25 +7,68 @@ import{getType,createType,updateType,deleteType}from"../api/types.js";
 import{getRecordType,createRecordType,updateRecordType,deleteRecordType}from"../api/recordTypes.js";
 import{getSubjectType,createSubjectType,updateSubjectType,deleteSubjectType}from"../api/subjectTypes.js";
 import{moveFileToDeleted,uploadPhoto,uploadSourceDocument}from"../api/storage.js";
-import{addRecordToList,removeRecordFromList,renderRecord}from"../ui/components/records.js";
-import{renderPhoto}from"../ui/components/photos.js";
-import{renderSource}from"../ui/components/sources.js";
+import{
+    addRecordToList,
+    removeRecordFromList,
+    updateRecordInList
+}from"../ui/components/records.js";
+import{
+    addPhotoToList,
+    removePhotoFromList,
+    updatePhotoInList
+}from"../ui/components/photos.js";
+import{
+    addSourceToList,
+    removeSourceFromList,
+    updateSourceInList
+}from"../ui/components/sources.js";
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
-import{show,hide}from"../ui/animations/controller.js";
 import{getCurrentUser}from"./adminMode.js";
 import{createActivity}from"../api/activity.js";
 
-function getAdminEmail(){return getCurrentUser()?.email??"";}
+function getAdminEmail(){
+    return getCurrentUser()?.email??"";
+}
 
 const API={
-    object:{create:createObject,update:updateObject},
-    photo:{create:createPhoto,update:updatePhoto},
-    source:{create:createSource,update:updateSource},
-    record:{create:createRecord,update:updateRecord},
-    subject:{create:createSubject,update:updateSubject},
-    objectType:{create:createType,update:updateType,delete:deleteType,get:getType},
-    recordType:{create:createRecordType,update:updateRecordType,delete:deleteRecordType,get:getRecordType},
-    subjectType:{create:createSubjectType,update:updateSubjectType,delete:deleteSubjectType,get:getSubjectType}
+    object:{
+        create:createObject,
+        update:updateObject
+    },
+    photo:{
+        create:createPhoto,
+        update:updatePhoto
+    },
+    source:{
+        create:createSource,
+        update:updateSource
+    },
+    record:{
+        create:createRecord,
+        update:updateRecord
+    },
+    subject:{
+        create:createSubject,
+        update:updateSubject
+    },
+    objectType:{
+        create:createType,
+        update:updateType,
+        delete:deleteType,
+        get:getType
+    },
+    recordType:{
+        create:createRecordType,
+        update:updateRecordType,
+        delete:deleteRecordType,
+        get:getRecordType
+    },
+    subjectType:{
+        create:createSubjectType,
+        update:updateSubjectType,
+        delete:deleteSubjectType,
+        get:getSubjectType
+    }
 };
 
 export async function getEntity(type,id){
@@ -37,10 +80,19 @@ export async function getEntity(type,id){
     if(type==="objectType")return await getType(id);
     if(type==="recordType")return await getRecordType(id);
     if(type==="subjectType")return await getSubjectType(id);
-    throw new Error(`Unknown entity type: ${type}`);
+
+    throw new Error(
+        `Unknown entity type: ${type}`
+    );
 }
 
-export async function updateEntity(type,entity,data,context={},updates={}){
+export async function updateEntity(
+    type,
+    entity,
+    data,
+    context={},
+    updates={}
+){
     console.log("[updateEntity] start",{
         type,
         entityId:entity?.id??null,
@@ -51,27 +103,55 @@ export async function updateEntity(type,entity,data,context={},updates={}){
     const api=API[type];
 
     if(!api){
-        console.error("[updateEntity] Unknown entity type",type);
-        throw new Error(`Unknown entity type: ${type}`);
+        console.error(
+            "[updateEntity] Unknown entity type",
+            type
+        );
+
+        throw new Error(
+            `Unknown entity type: ${type}`
+        );
     }
 
-    if(type==="objectType"||type==="recordType"||type==="subjectType"){
+    if(
+        type==="objectType"||
+        type==="recordType"||
+        type==="subjectType"
+    ){
         const oldId=entity?.id??null;
         const newId=data?.id?.trim()??"";
         const oldTarget=entity?.target??type;
         const newTarget=data?.target??oldTarget;
 
-        if(!newId)throw new Error("ID типа не указан");
+        if(!newId){
+            throw new Error(
+                "ID типа не указан"
+            );
+        }
 
         const targetApi=API[newTarget];
 
-        if(!targetApi?.create||!targetApi?.delete){
-            throw new Error(`Unknown type target: ${newTarget}`);
+        if(
+            !targetApi?.create||
+            !targetApi?.delete
+        ){
+            throw new Error(
+                `Unknown type target: ${newTarget}`
+            );
         }
 
         if(!oldId){
-            const savedData={...data,id:newId,target:newTarget};
-            const saved=await targetApi.create(newId,savedData);
+            const savedData={
+                ...data,
+                id:newId,
+                target:newTarget
+            };
+
+            const saved=
+                await targetApi.create(
+                    newId,
+                    savedData
+                );
 
             await createActivity({
                 action:"create",
@@ -85,11 +165,24 @@ export async function updateEntity(type,entity,data,context={},updates={}){
             return saved??savedData;
         }
 
-        if(oldId!==newId||oldTarget!==newTarget){
-            const savedData={...data,id:newId,target:newTarget};
+        if(
+            oldId!==newId||
+            oldTarget!==newTarget
+        ){
+            const savedData={
+                ...data,
+                id:newId,
+                target:newTarget
+            };
 
-            await targetApi.create(newId,savedData);
-            await API[oldTarget].delete(oldId);
+            await targetApi.create(
+                newId,
+                savedData
+            );
+
+            await API[oldTarget].delete(
+                oldId
+            );
 
             await createActivity({
                 action:"update",
@@ -103,10 +196,16 @@ export async function updateEntity(type,entity,data,context={},updates={}){
             return savedData;
         }
 
-        const updateData={...data};
+        const updateData={
+            ...data
+        };
+
         delete updateData.id;
 
-        await api.update(oldId,updateData);
+        await api.update(
+            oldId,
+            updateData
+        );
 
         await createActivity({
             action:"update",
@@ -117,101 +216,140 @@ export async function updateEntity(type,entity,data,context={},updates={}){
             createdAt:Date.now()
         });
 
-        return{id:oldId,...data};
+        return{
+            id:oldId,
+            ...data
+        };
     }
 
-    const isUpdate=Boolean(entity?.id);
+    const isUpdate=Boolean(
+        entity?.id
+    );
+
     let savedData;
 
-    console.log("[updateEntity] operation",{
-        type,
-        isUpdate,
-        entityId:entity?.id??null
-    });
+    console.log(
+        "[updateEntity] operation",
+        {
+            type,
+            isUpdate,
+            entityId:entity?.id??null
+        }
+    );
 
     if(isUpdate){
-        console.log("[updateEntity] API update start",entity.id);
+        await api.update(
+            entity.id,
+            data
+        );
 
-        await api.update(entity.id,data);
-
-        savedData={id:entity.id,...data};
-
-        console.log("[updateEntity] API update complete",savedData);
+        savedData={
+            id:entity.id,
+            ...data
+        };
 
         await createActivity({
             action:"update",
             entityType:type,
             entityId:entity.id,
-            title:data.title??entity.title??"",
-            ...(type==="object"||type==="record"||type==="photo"||type==="source"
-                ?{parentId:context.parentId??null}
-                :{}),
+            title:
+                data.title??
+                entity.title??
+                "",
+            ...(
+                type==="object"||
+                type==="record"||
+                type==="photo"||
+                type==="source"
+                    ?{
+                        parentId:
+                            context.parentId??
+                            null
+                    }
+                    :{}
+            ),
             adminEmail:getAdminEmail(),
             createdAt:Date.now()
         });
     }else{
-        console.log("[updateEntity] API create start");
-
-        savedData=await api.create(data);
-
-        console.log("[updateEntity] API create complete",savedData);
+        savedData=
+            await api.create(data);
 
         await createActivity({
             action:"create",
             entityType:type,
             entityId:savedData.id,
             title:savedData.title??"",
-            ...(type==="object"||type==="record"||type==="photo"||type==="source"
-                ?{parentId:context.parentId??null}
-                :{}),
+            ...(
+                type==="object"||
+                type==="record"||
+                type==="photo"||
+                type==="source"
+                    ?{
+                        parentId:
+                            context.parentId??
+                            null
+                    }
+                    :{}
+            ),
             adminEmail:getAdminEmail(),
             createdAt:Date.now()
         });
     }
 
-    const updateNames=Array.isArray(updates)
-        ?updates
-        :(isUpdate?updates.update??[]:updates.create??[]);
-
-    console.log("[updateEntity] callbacks",{
-        type,
-        isUpdate,
-        updateNames
-    });
+    const updateNames=
+        Array.isArray(updates)
+            ?updates
+            :(
+                isUpdate
+                    ?updates.update??[]
+                    :updates.create??[]
+            );
 
     for(const updateName of updateNames){
-        const callback=context.updates?.[updateName];
+        const callback=
+            context.updates?.[updateName];
 
         if(typeof callback!=="function"){
-            console.warn("[updateEntity] callback not found",updateName);
+            console.warn(
+                "[updateEntity] callback not found",
+                updateName
+            );
+
             continue;
         }
 
-        console.log("[updateEntity] callback start",updateName);
-
-        Promise.resolve(callback(savedData))
-            .then(()=>console.log("[updateEntity] callback complete",updateName))
-            .catch(error=>console.error("[updateEntity] callback error",{
-                updateName,
-                error
-            }));
+        Promise.resolve(
+            callback(savedData)
+        ).catch(error=>{
+            console.error(
+                "[updateEntity] callback error",
+                {
+                    updateName,
+                    error
+                }
+            );
+        });
     }
-
-    console.log("[updateEntity] complete",savedData);
 
     return savedData;
 }
 
-export async function deleteEntity(type,id,context={}){
-    console.log("[deleteEntity] start",{
-        type,
-        id,
-        parentId:context.parentId??null
-    });
-
+export async function deleteEntity(
+    type,
+    id,
+    context={}
+){
     if(type==="object"){
-        const object=(context.objects??[]).find(item=>item.id===id);
-        const parentId=object?.parents?.[0]?.objectId??object?.parents?.[0]??null;
+        const object=
+            (context.objects??[]).find(
+                item=>item.id===id
+            );
+
+        const parentId=
+            object?.parents?.[0]?.objectId??
+            object?.parents?.[0]??
+            null;
 
         await createActivity({
             action:"delete",
@@ -224,77 +362,124 @@ export async function deleteEntity(type,id,context={}){
         });
 
         await deleteObject(id);
-        await context.updates?.onObjectDeleted?.(id);
+
+        await context.updates
+            ?.onObjectDeleted
+            ?.(id);
 
         return{parentId};
     }
 
     if(type==="photo"){
-        const photo=(context.photos??[]).find(item=>item.id===id);
+        const photo=
+            (context.photos??[]).find(
+                item=>item.id===id
+            );
 
-        if(photo?.storagePath)await moveFileToDeleted(photo.storagePath);
-        if(photo?.previewPath)await moveFileToDeleted(photo.previewPath);
+        if(photo?.storagePath){
+            await moveFileToDeleted(
+                photo.storagePath
+            );
+        }
+
+        if(photo?.previewPath){
+            await moveFileToDeleted(
+                photo.previewPath
+            );
+        }
 
         await createActivity({
             action:"delete",
             entityType:"photo",
             entityId:id,
             title:photo?.title??"",
-            parentId:context.parentId??null,
+            parentId:
+                context.parentId??
+                null,
             adminEmail:getAdminEmail(),
             createdAt:Date.now()
         });
 
         await deletePhoto(id);
-        await context.updates?.removePhoto?.(id);
+
+        await context.updates
+            ?.removePhoto
+            ?.(id);
 
         return;
     }
 
     if(type==="source"){
-        const source=(context.sources??[]).find(item=>item.id===id);
+        const source=
+            (context.sources??[]).find(
+                item=>item.id===id
+            );
 
-        if(source?.storagePath)await moveFileToDeleted(source.storagePath);
+        if(source?.storagePath){
+            await moveFileToDeleted(
+                source.storagePath
+            );
+        }
 
         await createActivity({
             action:"delete",
             entityType:"source",
             entityId:id,
             title:source?.title??"",
-            parentId:context.parentId??null,
+            parentId:
+                context.parentId??
+                null,
             adminEmail:getAdminEmail(),
             createdAt:Date.now()
         });
 
         await deleteSource(id);
-        await context.updates?.removeSource?.(id);
+
+        await context.updates
+            ?.removeSource
+            ?.(id);
 
         return;
     }
 
     if(type==="record"){
-        const record=(context.records??[]).find(item=>item.id===id);
+        const record=
+            (context.records??[]).find(
+                item=>item.id===id
+            );
 
         await createActivity({
             action:"delete",
             entityType:"record",
             entityId:id,
             title:record?.title??"",
-            parentId:context.parentId??null,
+            parentId:
+                context.parentId??
+                null,
             adminEmail:getAdminEmail(),
             createdAt:Date.now()
         });
 
         await deleteRecord(id);
-        await context.updates?.removeRecord?.(id);
+
+        await context.updates
+            ?.removeRecord
+            ?.(id);
 
         return;
     }
 
     if(type==="subject"){
-        const subject=(context.subjects??[]).find(item=>item.id===id);
+        const subject=
+            (context.subjects??[]).find(
+                item=>item.id===id
+            );
 
-        if(subject?.storagePath)await moveFileToDeleted(subject.storagePath);
+        if(subject?.storagePath){
+            await moveFileToDeleted(
+                subject.storagePath
+            );
+        }
 
         await createActivity({
             action:"delete",
@@ -306,12 +491,19 @@ export async function deleteEntity(type,id,context={}){
         });
 
         await deleteSubject(id);
-        await context.updates?.onSubjectDeleted?.();
+
+        await context.updates
+            ?.onSubjectDeleted
+            ?.();
 
         return;
     }
 
-    if(type==="objectType"||type==="recordType"||type==="subjectType"){
+    if(
+        type==="objectType"||
+        type==="recordType"||
+        type==="subjectType"
+    ){
         await createActivity({
             action:"delete",
             entityType:type,
@@ -323,432 +515,328 @@ export async function deleteEntity(type,id,context={}){
 
         await API[type].delete(id);
 
-        const callbackName=`remove${type[0].toUpperCase()}${type.slice(1)}`;
+        const callbackName=
+            `remove${type[0].toUpperCase()}${type.slice(1)}`;
 
-        await context.updates?.[callbackName]?.(id);
+        await context.updates
+            ?.[callbackName]
+            ?.(id);
 
         return;
     }
 
-    throw new Error(`Unknown entity type: ${type}`);
+    throw new Error(
+        `Unknown entity type: ${type}`
+    );
 }
 
 export function createPageUpdates(state){
-    function insertSortedPhoto(list,element,photo){
-        const cards=[...list.querySelectorAll(".photo-card")].filter(item=>item.dataset.photoId);
-        const dateA=photo.date||"";
-        let before=null;
-
-        for(const card of cards){
-            const other=state.photos.find(item=>item.id===card.dataset.photoId);
-            if(!other)continue;
-
-            const dateB=other.date||"";
-
-            if(!dateA&&!dateB){
-                const author=(photo.author??"").localeCompare(other.author??"","ru");
-
-                if(author<0||(author===0&&(photo.title??"").localeCompare(other.title??"","ru")<0)){
-                    before=card;
-                    break;
-                }
-            }else if(!dateA){
-                continue;
-            }else if(!dateB||String(dateA).localeCompare(String(dateB))<0){
-                before=card;
-                break;
-            }else if(String(dateA).localeCompare(String(dateB))===0){
-                const author=(photo.author??"").localeCompare(other.author??"","ru");
-
-                if(author<0||(author===0&&(photo.title??"").localeCompare(other.title??"","ru")<0)){
-                    before=card;
-                    break;
-                }
-            }
-        }
-
-        if(before)list.insertBefore(element,before);
-        else list.appendChild(element);
-    }
-
-    function insertSortedSource(list,element,source){
-        const items=[...list.querySelectorAll(".source")];
-        let before=null;
-
-        for(const item of items){
-            const other=state.sources.find(sourceItem=>sourceItem.id===item.dataset.sourceId);
-            if(!other)continue;
-
-            const dateA=source.date||"";
-            const dateB=other.date||"";
-
-            if(!dateA&&!dateB){
-                const author=(source.author??"").localeCompare(other.author??"","ru");
-
-                if(author<0||(author===0&&(source.title??"").localeCompare(other.title??"","ru")<0)){
-                    before=item;
-                    break;
-                }
-            }else if(!dateA){
-                continue;
-            }else if(!dateB||String(dateA).localeCompare(String(dateB))<0){
-                before=item;
-                break;
-            }else if(String(dateA).localeCompare(String(dateB))===0){
-                const author=(source.author??"").localeCompare(other.author??"","ru");
-
-                if(author<0||(author===0&&(source.title??"").localeCompare(other.title??"","ru")<0)){
-                    before=item;
-                    break;
-                }
-            }
-        }
-
-        if(before)list.insertBefore(element,before);
-        else list.appendChild(element);
-    }
-
     return{
         async updateObjectBlock(data){
-            if(data)state.object={...state.object,...data};
-
-            state.object=await getObject(state.object.id);
-            if(!state.object)return;
-
-            const title=document.querySelector(".object__title-text");
-
-            if(title)title.textContent=state.object.title??"";
-
-            const description=document.querySelector(".object__description");
-
-            if(description){
-                const{renderMentions,getSubjectHref}=await import("../ui/components/mentionLink.js");
-
-                description.innerHTML=state.object.description?.trim()
-                    ?renderMentions(state.object.description.trim(),state.subjects,getSubjectHref)
-                    :"";
-
-                description.hidden=!state.object.description?.trim();
+            if(data){
+                state.object={
+                    ...state.object,
+                    ...data
+                };
             }
 
-            const type=document.querySelector(".object__type");
+            state.object=
+                await getObject(
+                    state.object.id
+                );
+
+            if(!state.object)return;
+
+            const title=
+                document.querySelector(
+                    ".object__title-text"
+                );
+
+            if(title){
+                title.textContent=
+                    state.object.title??"";
+            }
+
+            const description=
+                document.querySelector(
+                    ".object__description"
+                );
+
+            if(description){
+                const{
+                    renderMentions,
+                    getSubjectHref
+                }=await import(
+                    "../ui/components/mentionLink.js"
+                );
+
+                description.innerHTML=
+                    state.object.description?.trim()
+                        ?renderMentions(
+                            state.object.description.trim(),
+                            state.subjects,
+                            getSubjectHref
+                        )
+                        :"";
+
+                description.hidden=
+                    !state.object.description?.trim();
+            }
+
+            const type=
+                document.querySelector(
+                    ".object__type"
+                );
 
             if(type){
-                const objectType=state.types?.find(item=>item.id===state.object.typeId);
-                type.textContent=objectType?.title??"";
+                const objectType=
+                    state.types?.find(
+                        item=>
+                            item.id===
+                            state.object.typeId
+                    );
+
+                type.textContent=
+                    objectType?.title??"";
             }
         },
 
-        async updateSubjectBlock(savedSubject=null,uploading=false){
-            if(savedSubject?.id)state.subject={...state.subject,...savedSubject};
+        async updateSubjectBlock(
+            savedSubject=null,
+            uploading=false
+        ){
+            if(savedSubject?.id){
+                state.subject={
+                    ...state.subject,
+                    ...savedSubject
+                };
+            }
+
             if(!state.subject?.id)return;
 
-            setSubjectUploading(state.subject.id,Boolean(uploading));
+            setSubjectUploading(
+                state.subject.id,
+                Boolean(uploading)
+            );
 
-            state.subject=await getSubject(state.subject.id);
+            state.subject=
+                await getSubject(
+                    state.subject.id
+                );
+
             if(!state.subject)return;
 
-            updateSubjectModal(state.subject,{
-                subjects:state.subjects,
-                objects:state.objects,
-                photos:state.photos,
-                sources:state.sources,
-                records:state.records,
-                subjectTypes:state.subjectTypes
-            });
+            updateSubjectModal(
+                state.subject,
+                {
+                    subjects:state.subjects,
+                    objects:state.objects,
+                    photos:state.photos,
+                    sources:state.sources,
+                    records:state.records,
+                    subjectTypes:
+                        state.subjectTypes
+                }
+            );
 
             await state.renderSubjectBlock?.();
         },
 
-async addRecord(savedRecord){
-    console.log("[addRecord] start",savedRecord);
+        async addRecord(savedRecord){
+            if(!savedRecord?.id)return;
 
-    if(!savedRecord?.id){
-        console.warn("[addRecord] no record id");
-        return;
-    }
+            const fresh=
+                await getRecord(
+                    savedRecord.id
+                );
 
-    const fresh=await getRecord(savedRecord.id);
-
-    console.log("[addRecord] getRecord complete",fresh);
-
-    if(!fresh){
-        console.warn("[addRecord] record not found");
-        return;
-    }
-
-    state.records=[
-        ...state.records.filter(record=>record.id!==fresh.id),
-        fresh
-    ];
-
-    console.log("[addRecord] state updated",{
-        id:fresh.id,
-        records:state.records.length
-    });
-
-    await addRecordToList(
-        fresh,
-        state.subjects,
-        state.recordTypes
-    );
-
-    console.log("[addRecord] complete",fresh.id);
-},
-
-async removeRecord(id){
-    console.log("[removeRecord] start",{
-        id,
-        recordsBefore:state.records.length
-    });
-
-    state.records=state.records.filter(
-        record=>record.id!==id
-    );
-
-    console.log("[removeRecord] state updated",{
-        id,
-        recordsAfter:state.records.length
-    });
-
-    await removeRecordFromList(id);
-
-    console.log("[removeRecord] complete",id);
-},
-
-async updateRecord(savedRecord){
-    console.log("[updateRecord] start",savedRecord);
-
-    if(!savedRecord?.id){
-        console.warn("[updateRecord] no record id");
-        return;
-    }
-
-    const fresh=await getRecord(savedRecord.id);
-
-    console.log("[updateRecord] getRecord complete",fresh);
-
-    if(!fresh){
-        console.warn("[updateRecord] record not found");
-        return;
-    }
-
-    state.records=state.records.map(
-        record=>record.id===fresh.id?fresh:record
-    );
-
-    const oldElement=document.querySelector(
-        `.entity-list-row[data-id="${fresh.id}"]`
-    );
-
-    console.log("[updateRecord] element",oldElement);
-
-    if(!oldElement){
-        console.warn("[updateRecord] element not found, adding");
-
-        await addRecordToList(
-            fresh,
-            state.subjects,
-            state.recordTypes
-        );
-
-        return;
-    }
-
-    const oldGroup=oldElement.closest(
-        ".entity-list__group"
-    );
-
-    const newGroupId=fresh.typeId||"__without-type__";
-    const oldGroupId=oldGroup?.dataset.entityGroup??null;
-
-    if(oldGroupId!==newGroupId){
-        console.log("[updateRecord] group changed",{
-            oldGroupId,
-            newGroupId
-        });
-
-        await removeRecordFromList(fresh.id);
-
-        await addRecordToList(
-            fresh,
-            state.subjects,
-            state.recordTypes
-        );
-
-        console.log("[updateRecord] complete with group move",fresh.id);
-
-        return;
-    }
-
-    const template=document.createElement("template");
-
-    template.innerHTML=renderRecord(
-        fresh,
-        state.subjects
-    ).trim();
-
-    const newElement=template.content.firstElementChild;
-
-    if(!newElement){
-        console.warn("[updateRecord] new element not created");
-        return;
-    }
-
-    oldElement.replaceWith(newElement);
-
-    console.log("[updateRecord] DOM updated",fresh.id);
-},
-
-        async addPhoto(savedPhoto,uploading=false){
-            if(!savedPhoto?.id)return;
-
-            const fresh=await getPhoto(savedPhoto.id);
             if(!fresh)return;
 
-            state.photos=[
-                ...state.photos.filter(photo=>photo.id!==fresh.id),
+            state.records=[
+                ...state.records.filter(
+                    record=>
+                        record.id!==fresh.id
+                ),
                 fresh
             ];
 
-            const photo={
-                ...fresh,
-                isUploading:Boolean(uploading)
-            };
+            await addRecordToList(
+                fresh,
+                state.subjects,
+                state.recordTypes
+            );
+        },
 
-            const list=document.querySelector(".photos-list");
-            if(!list)return;
+        async removeRecord(id){
+            state.records=
+                state.records.filter(
+                    record=>record.id!==id
+                );
 
-            const template=document.createElement("template");
-            template.innerHTML=renderPhoto(photo).trim();
+            await removeRecordFromList(id);
+        },
 
-            const element=template.content.firstElementChild;
-            if(!element)return;
+        async updateRecord(savedRecord){
+            if(!savedRecord?.id)return;
 
-            insertSortedPhoto(list,element,fresh);
-            await show(element);
+            const fresh=
+                await getRecord(
+                    savedRecord.id
+                );
+
+            if(!fresh)return;
+
+            state.records=
+                state.records.map(
+                    record=>
+                        record.id===fresh.id
+                            ?fresh
+                            :record
+                );
+
+            await updateRecordInList(
+                fresh,
+                state.subjects,
+                state.recordTypes
+            );
+        },
+
+        async addPhoto(
+            savedPhoto,
+            uploading=false
+        ){
+            if(!savedPhoto?.id)return;
+
+            const fresh=
+                await getPhoto(
+                    savedPhoto.id
+                );
+
+            if(!fresh)return;
+
+            state.photos=[
+                ...state.photos.filter(
+                    photo=>
+                        photo.id!==fresh.id
+                ),
+                fresh
+            ];
+
+            await addPhotoToList(
+                {
+                    ...fresh,
+                    isUploading:
+                        Boolean(uploading)
+                }
+            );
         },
 
         async removePhoto(id){
-            state.photos=state.photos.filter(photo=>photo.id!==id);
+            state.photos=
+                state.photos.filter(
+                    photo=>photo.id!==id
+                );
 
-            const element=document.querySelector(
-                `.photo-card[data-photo-id="${id}"]`
-            );
-
-            if(!element)return;
-
-            await hide(element);
-            element.remove();
+            await removePhotoFromList(id);
         },
 
-        async updatePhoto(savedPhoto,uploading=false){
+        async updatePhoto(
+            savedPhoto,
+            uploading=false
+        ){
             if(!savedPhoto?.id)return;
 
-            const fresh=await getPhoto(savedPhoto.id);
+            const fresh=
+                await getPhoto(
+                    savedPhoto.id
+                );
+
             if(!fresh)return;
 
-            state.photos=state.photos.map(photo=>
-                photo.id===fresh.id
-                    ?fresh
-                    :photo
+            state.photos=
+                state.photos.map(
+                    photo=>
+                        photo.id===fresh.id
+                            ?fresh
+                            :photo
+                );
+
+            await updatePhotoInList(
+                {
+                    ...fresh,
+                    isUploading:
+                        Boolean(uploading)
+                }
             );
-
-            const oldElement=document.querySelector(
-                `.photo-card[data-photo-id="${fresh.id}"]`
-            );
-
-            if(!oldElement)return;
-
-            const template=document.createElement("template");
-
-            template.innerHTML=renderPhoto({
-                ...fresh,
-                isUploading:Boolean(uploading)
-            }).trim();
-
-            const newElement=template.content.firstElementChild;
-            if(!newElement)return;
-
-            console.log("[updatePhoto] immediate DOM replace",fresh.id);
-
-            oldElement.replaceWith(newElement);
         },
 
         async addSource(savedSource){
             if(!savedSource?.id)return;
 
-            const fresh=await getSource(savedSource.id);
+            const fresh=
+                await getSource(
+                    savedSource.id
+                );
+
             if(!fresh)return;
 
             state.sources=[
-                ...state.sources.filter(source=>source.id!==fresh.id),
+                ...state.sources.filter(
+                    source=>
+                        source.id!==fresh.id
+                ),
                 fresh
             ];
 
-            const list=document.querySelector(".sources-list");
-            if(!list)return;
-
-            const template=document.createElement("template");
-            template.innerHTML=renderSource(fresh,state.subjects).trim();
-
-            const element=template.content.firstElementChild;
-            if(!element)return;
-
-            insertSortedSource(list,element,fresh);
-            await show(element);
+            await addSourceToList(
+                fresh,
+                state.subjects
+            );
         },
 
         async removeSource(id){
-            state.sources=state.sources.filter(source=>source.id!==id);
+            state.sources=
+                state.sources.filter(
+                    source=>source.id!==id
+                );
 
-            const element=document.querySelector(
-                `.source[data-source-id="${id}"]`
-            );
-
-            if(!element)return;
-
-            await hide(element);
-            element.remove();
+            await removeSourceFromList(id);
         },
 
         async updateSource(savedSource){
             if(!savedSource?.id)return;
 
-            const fresh=await getSource(savedSource.id);
+            const fresh=
+                await getSource(
+                    savedSource.id
+                );
+
             if(!fresh)return;
 
-            state.sources=state.sources.map(source=>
-                source.id===fresh.id
-                    ?fresh
-                    :source
+            state.sources=
+                state.sources.map(
+                    source=>
+                        source.id===fresh.id
+                            ?fresh
+                            :source
+                );
+
+            await updateSourceInList(
+                fresh,
+                state.subjects
             );
-
-            const oldElement=document.querySelector(
-                `.source[data-source-id="${fresh.id}"]`
-            );
-
-            if(!oldElement)return;
-
-            const template=document.createElement("template");
-            template.innerHTML=renderSource(fresh,state.subjects).trim();
-
-            const newElement=template.content.firstElementChild;
-            if(!newElement)return;
-
-            console.log("[updateSource] immediate DOM replace",fresh.id);
-
-            oldElement.replaceWith(newElement);
         },
 
         async updateChildrenBlock(){},
 
         async onObjectDeleted(){
-            const parent=state.parents?.[0];
+            const parent=
+                state.parents?.[0];
 
-            window.location.href=parent?.id
-                ?`object.html?id=${parent.id}`
-                :"index.html";
+            window.location.href=
+                parent?.id
+                    ?`object.html?id=${parent.id}`
+                    :"index.html";
         },
 
         async onSubjectDeleted(){
@@ -757,4 +845,7 @@ async updateRecord(savedRecord){
     };
 }
 
-export{uploadPhoto,uploadSourceDocument};
+export{
+    uploadPhoto,
+    uploadSourceDocument
+};
