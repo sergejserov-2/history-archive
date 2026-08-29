@@ -1,136 +1,109 @@
-import { renderEntityList } from "./entityList.js";
+import{renderEntityList}from"./entityList.js";
 
-const MENTION_PATTERN =
-    /\[([^|\]]+)\|([^\]]*)\]/g;
+const MENTION_PATTERN=/\[([^|\]]+)\|([^\]]*)\]/g;
 
 export function getMentionedObjects(
     subjectId,
-    objects = [],
-    photos = [],
-    sources = [],
-    records = []
-) {
+    objects=[],
+    photos=[],
+    sources=[],
+    records=[]
+){
+    if(!subjectId)return[];
 
-    if (!subjectId)
-        return [];
+    const result=new Map();
 
-    const result = new Map();
+    const hasMention=text=>{
+        if(typeof text!=="string")return false;
 
-    const hasMention = text => {
-
-        if (typeof text !== "string")
-            return false;
-
-        return [...text.matchAll(MENTION_PATTERN)]
-            .some(
-                match =>
-                    match[1].trim() === subjectId
-            );
+        return[...text.matchAll(MENTION_PATTERN)].some(
+            match=>match[1].trim()===subjectId
+        );
     };
 
-    const addParents = entity => {
+    const addParents=entity=>{
+        if(!hasMention(entity?.description))return;
 
-        if (!hasMention(entity?.description))
-            return;
+        for(const parentId of entity?.parents??[]){
+            const id=
+                typeof parentId==="object"
+                    ?parentId.objectId??parentId.id
+                    :parentId;
 
-        for (const parentId of entity?.parents ?? []) {
+            const object=objects.find(
+                item=>item.id===id
+            );
 
-            const id =
-                typeof parentId === "object"
-                ?
-                parentId.objectId ??
-                parentId.id
-                :
-                parentId;
-
-            const object =
-                objects.find(
-                    item => item.id === id
-                );
-
-            if (object)
+            if(object){
                 result.set(
                     object.id,
                     object
                 );
+            }
         }
     };
 
-    for (const object of objects) {
-
-        if (hasMention(object?.description))
+    for(const object of objects){
+        if(hasMention(object?.description)){
             result.set(
                 object.id,
                 object
             );
+        }
     }
 
-    for (const photo of photos)
-        addParents(photo);
+    for(const photo of photos)addParents(photo);
+    for(const source of sources)addParents(source);
+    for(const record of records)addParents(record);
 
-    for (const source of sources)
-        addParents(source);
-
-    for (const record of records)
-        addParents(record);
-
-    return [...result.values()];
+    return[...result.values()];
 }
 
 export function renderMentionList(
     subject,
-    objects = [],
-    photos = [],
-    sources = [],
-    records = []
-) {
+    objects=[],
+    photos=[],
+    sources=[],
+    records=[]
+){
+    const mentionedObjects=getMentionedObjects(
+        subject?.id,
+        objects,
+        photos,
+        sources,
+        records
+    );
 
-    const mentionedObjects =
-        getMentionedObjects(
-            subject?.id,
-            objects,
-            photos,
-            sources,
-            records
-        );
+    if(!mentionedObjects.length)return"";
 
-    if (!mentionedObjects.length)
-        return "";
-
-    return renderEntityList({
-
-        groups: [
-            {
-                title:
-                    "Упоминается на страницах",
-
-                items:
-                    mentionedObjects.map(
-                        object => ({
-                            title:
-                                escapeHTML(
-                                    object.title ??
-                                    "Без названия"
+    return`
+        <div class="mention-list">
+            ${renderEntityList({
+                groups:[
+                    {
+                        title:"Упоминается на страницах",
+                        items:mentionedObjects.map(
+                            object=>({
+                                title:escapeHTML(
+                                    object.title??"Без названия"
                                 ),
-
-                            description: "",
-                            meta: "",
-
-                            href:
-                                `object.html?id=${encodeURIComponent(object.id)}`
-                        })
-                    )
-            }
-        ]
-    });
+                                description:"",
+                                meta:"",
+                                href:`object.html?id=${encodeURIComponent(object.id)}`
+                            })
+                        )
+                    }
+                ]
+            })}
+        </div>
+    `;
 }
 
-function escapeHTML(value = "") {
-
+function escapeHTML(value=""){
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "'");
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#39;");
 }
