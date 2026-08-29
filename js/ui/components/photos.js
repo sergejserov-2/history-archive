@@ -1,32 +1,16 @@
 import{openPhotoModal}from"./modalReload.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
-import{
-    adminEdit,
-    adminDelete,
-    adminAdd
-}from"./adminButtons.js";
-import{
-    sortEntities,
-    insertSortedElement
-}from"./sort.js";
+import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
+import{sortEntities,insertSortedElement}from"./sort.js";
+import{show,hide}from"../animations/controller.js";
 
 function getPhotoPeriod(photo){
     if(photo.dateMode==="period"){
-        if(
-            photo.dateStart&&
-            photo.dateEnd
-        ){
+        if(photo.dateStart&&photo.dateEnd){
             return`${photo.dateStart} – ${photo.dateEnd}`;
         }
-
-        if(photo.dateStart){
-            return`с ${photo.dateStart}`;
-        }
-
-        if(photo.dateEnd){
-            return`до ${photo.dateEnd}`;
-        }
-
+        if(photo.dateStart)return`с ${photo.dateStart}`;
+        if(photo.dateEnd)return`до ${photo.dateEnd}`;
         return"";
     }
 
@@ -42,11 +26,8 @@ function getPhotoData(photo){
 }
 
 function renderPhotoMedia(photo){
-    const uploading=
-        photo.isUploading===true;
-
-    const hasPreview=
-        Boolean(photo.previewPath);
+    const uploading=photo.isUploading===true;
+    const hasPreview=Boolean(photo.previewPath);
 
     if(uploading&&!hasPreview){
         return renderLoadingPlaceholder();
@@ -54,18 +35,9 @@ function renderPhotoMedia(photo){
 
     if(hasPreview){
         return`
-            ${
-                uploading
-                    ?renderLoadingPlaceholder()
-                    :""
-            }
-
+            ${uploading?renderLoadingPlaceholder():""}
             <img
-                class="photo-card__image${
-                    uploading
-                        ?" photo-card__image--loading"
-                        :""
-                }"
+                class="photo-card__image${uploading?" photo-card__image--loading":""}"
                 src="${photo.previewPath}"
                 alt="${photo.title??""}"
                 draggable="false"
@@ -81,35 +53,25 @@ function renderPhotoMedia(photo){
 }
 
 function renderPhotoMeta(photo){
-    const author=
-        photo.author?.trim()??"";
-
+    const author=photo.author?.trim()??"";
     const date=getPhotoPeriod(photo);
 
     if(author&&date){
         return`
-            <span class="photo-card__author-name">
-                ${author}
-            </span>,
-            <span class="photo-card__date">
-                ${date}
-            </span>
+            <span class="photo-card__author-name">${author}</span>,
+            <span class="photo-card__date">${date}</span>
         `;
     }
 
     if(author){
         return`
-            <span class="photo-card__author-name">
-                ${author}
-            </span>
+            <span class="photo-card__author-name">${author}</span>
         `;
     }
 
     if(date){
         return`
-            <span class="photo-card__date">
-                ${date}
-            </span>
+            <span class="photo-card__date">${date}</span>
         `;
     }
 
@@ -117,16 +79,11 @@ function renderPhotoMeta(photo){
 }
 
 export function renderPhoto(photo){
-    const uploading=
-        photo.isUploading===true;
+    const uploading=photo.isUploading===true;
 
     return`
         <div
-            class="photo-card${
-                uploading
-                    ?" photo-card--uploading"
-                    :""
-            }"
+            class="photo-card${uploading?" photo-card--uploading":""}"
             data-photo-id="${photo.id}"
             data-photo-drag
         >
@@ -145,15 +102,8 @@ export function renderPhoto(photo){
                     </span>
 
                     <span class="photo-card__actions">
-                        ${adminEdit(
-                            "photo",
-                            photo.id
-                        )}
-
-                        ${adminDelete(
-                            "photo",
-                            photo.id
-                        )}
+                        ${adminEdit("photo",photo.id)}
+                        ${adminDelete("photo",photo.id)}
                     </span>
                 </div>
 
@@ -166,80 +116,100 @@ export function renderPhoto(photo){
 }
 
 function createPhotoElement(photo){
-    const template=
-        document.createElement("template");
-
-    template.innerHTML=
-        renderPhoto(photo).trim();
-
+    const template=document.createElement("template");
+    template.innerHTML=renderPhoto(photo).trim();
     return template.content.firstElementChild;
 }
 
-export function insertPhoto(photo){
-    const list=document.querySelector(
-        ".photos-list"
-    );
+function getPhotoElementData(element){
+    return{
+        meta:element.querySelector(".photo-card__date")?.textContent.trim()??"",
+        author:element.querySelector(".photo-card__author-name")?.textContent.trim()??"",
+        title:element.querySelector(".photo-card__title-text")?.textContent.trim()??""
+    };
+}
 
+export function insertPhoto(photo){
+    const list=document.querySelector(".photos-list");
     if(!list)return null;
 
     const element=createPhotoElement(photo);
-
     if(!element)return null;
 
     insertSortedElement({
         container:list,
         element,
         item:getPhotoData(photo),
-        selector:
-            ".photo-card:not(.photo-card--add)",
+        selector:".photo-card:not(.photo-card--add)",
         direction:"asc",
-        getItem:existing=>({
-            meta:
-                existing.querySelector(
-                    ".photo-card__date"
-                )?.textContent.trim()??"",
-            author:
-                existing.querySelector(
-                    ".photo-card__author-name"
-                )?.textContent.trim()??"",
-            title:
-                existing.querySelector(
-                    ".photo-card__title-text"
-                )?.textContent.trim()??""
-        })
+        getItem:getPhotoElementData
     });
 
     return element;
 }
 
-export function removePhotoFromList(id){
+export async function addPhotoToList(photo){
+    const element=insertPhoto(photo);
+    if(!element)return null;
+
+    await show(element);
+
+    return element;
+}
+
+export async function removePhotoFromList(id){
     const element=document.querySelector(
         `.photo-card[data-photo-id="${id}"]`
     );
 
-    element?.remove();
+    if(!element)return;
+
+    await hide(element);
+    element.remove();
 }
 
-export function renderPhotos(
-    photos,
-    objectId=null
-){
+export async function updatePhotoInList(photo){
+    const oldElement=document.querySelector(
+        `.photo-card[data-photo-id="${photo.id}"]`
+    );
+
+    if(!oldElement){
+        return await addPhotoToList(photo);
+    }
+
+    const list=oldElement.parentElement;
+
+    oldElement.remove();
+
+    const element=createPhotoElement(photo);
+    if(!element)return null;
+
+    insertSortedElement({
+        container:list,
+        element,
+        item:getPhotoData(photo),
+        selector:".photo-card:not(.photo-card--add)",
+        direction:"asc",
+        getItem:getPhotoElementData
+    });
+
+    return element;
+}
+
+export function renderPhotos(photos,objectId=null){
     const sortedPhotos=sortEntities(
         (photos??[]).map(photo=>({
             photo,
             ...getPhotoData(photo)
         }))
-    ).map(
-        item=>item.photo
-    );
+    ).map(item=>item.photo);
 
     const cards=[
         adminAdd(
             "add-photo",
             "Добавить фото",
             {
-                className:
-                    "photo-card photo-card--add",
+                className:"photo-card photo-card--add",
                 attributes:{
                     "data-photo-drag":""
                 }
@@ -255,53 +225,33 @@ export function renderPhotos(
     `;
 
     setTimeout(()=>{
-        const photosList=document.querySelector(
-            ".photos-list"
-        );
-
+        const photosList=document.querySelector(".photos-list");
         if(!photosList)return;
 
         photosList.onclick=event=>{
-            if(
-                photosList.dataset.photoDragMoved===
-                "true"
-            ){
+            if(photosList.dataset.photoDragMoved==="true"){
                 return;
             }
 
-            const media=
-                event.target.closest(
-                    ".photo-card__media"
-                );
+            const media=event.target.closest(".photo-card__media");
 
-            if(
-                !media||
-                !photosList.contains(media)
-            ){
+            if(!media||!photosList.contains(media)){
                 return;
             }
 
-            if(
-                media.dataset.loading===
-                "true"
-            ){
+            if(media.dataset.loading==="true"){
                 return;
             }
 
             const photo=sortedPhotos.find(
-                item=>
-                    item.id===
-                    media.dataset.photoId
+                item=>item.id===media.dataset.photoId
             );
 
             if(!photo?.storagePath){
                 return;
             }
 
-            const image=
-                media.querySelector(
-                    ".photo-card__image"
-                );
+            const image=media.querySelector(".photo-card__image");
 
             if(
                 !image||
