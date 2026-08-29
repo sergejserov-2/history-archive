@@ -666,9 +666,38 @@ async addRecord(savedRecord){
 
 
 async removeRecord(id){
-    state.records=state.records.filter(record=>record.id!==id);
+    console.log("[removeRecord] start",{
+        id,
+        recordsBefore:state.records.length
+    });
+
+    state.records=
+        state.records.filter(
+            record=>record.id!==id
+        );
+
+    console.log("[removeRecord] state updated",{
+        id,
+        recordsAfter:state.records.length
+    });
+
+    console.log(
+        "[removeRecord] removeRecordFromList start",
+        id
+    );
+
     await removeRecordFromList(id);
-},
+
+    console.log(
+        "[removeRecord] removeRecordFromList complete",
+        id
+    );
+}
+
+
+
+
+
 
 async updateRecord(savedRecord){
     if(!savedRecord?.id)return;
