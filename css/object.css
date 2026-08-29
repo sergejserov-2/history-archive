@@ -130,8 +130,6 @@
 .object__description {
     max-width: 700px;
 
-    margin-bottom: var(--space-3);
-
     color: var(--color-text-secondary);
     font-size: var(--font-size-lg);
     line-height: 1.5;
@@ -326,8 +324,6 @@
     box-shadow: var(--shadow-object-cover);
 
 }
-
-
 
 .subject-modal__cover-placeholder {
     position: relative;
@@ -585,12 +581,12 @@
 
 
 .records{
-   margin-top:var(--space-8);
+   margin-top:var(--space-10);
    overflow-y:auto;
 }
 
 .mention-list{
-   margin-top:var(--space-8);
+   margin-top:var(--space-10);
    overflow-y:auto;
 }
 
