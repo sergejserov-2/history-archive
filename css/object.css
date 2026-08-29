@@ -373,7 +373,6 @@
 .entity-list {
     display:flex;
     flex-direction:column;
-   margin-top:var(--space-8);
    gap:var(--space-8);
 }
 
@@ -585,7 +584,15 @@
 }
 
 
-.records{overflow-y:auto;}
+.records{
+   margin-top:var(--space-8);
+   overflow-y:auto;
+}
+
+.mention-list{
+   margin-top:var(--space-8);
+   overflow-y:auto;
+}
 
 
 /* ==========================================
