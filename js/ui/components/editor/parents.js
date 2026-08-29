@@ -201,47 +201,45 @@ export function setupParentsEditor(
 
     }
 
-    function validateObjectLevels(){
+  function validateObjectLevels(){
+if(!entity?.id){
+    return true;
+}
 
-        if(!withAddress){
+if(!withAddress){
+    return true;
+}
 
-            return true;
+const objectType=
+    getObjectType();
 
-        }
+if(!objectType){
+    return true;
+}
 
-        const objectType =
-            getObjectType();
+const maxChildLevel=
+    getMaxChildLevel();
 
-        if(!objectType){
+if(maxChildLevel===-Infinity){
+    return true;
+}
 
-            return true;
+if(
+    Number(objectType.level)<=
+    Number(maxChildLevel)
+){
 
-        }
+    alert(
+        "Тип объекта должен быть выше уровня всех его детей."
+    );
 
-        const maxChildLevel =
-            getMaxChildLevel();
+    return false;
 
-        if(maxChildLevel === -Infinity){
+}
 
-            return true;
+return true;
 
-        }
-
-        if(
-            Number(objectType.level) <=
-            Number(maxChildLevel)
-        ){
-
-            alert(
-                "Тип объекта должен быть выше уровня всех его детей."
-            );
-            return false;
-
-        }
-
-        return true;
-
-    }
+}
 
     function validateParents(){
 
