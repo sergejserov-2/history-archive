@@ -453,12 +453,73 @@ export function createPageUpdates(state){
         },
 
 async addRecord(savedRecord){
-    if(!savedRecord?.id)return;
-    const fresh=await getRecord(savedRecord.id);
-    if(!fresh)return;
-    state.records=[...state.records.filter(record=>record.id!==fresh.id),fresh];
-    await addRecordToList(fresh,state.subjects,state.recordTypes);
-},
+    console.log(
+        "[addRecord] start",
+        savedRecord
+    );
+
+    if(!savedRecord?.id){
+        console.warn(
+            "[addRecord] no record id"
+        );
+
+        return;
+    }
+
+    console.log(
+        "[addRecord] getRecord start",
+        savedRecord.id
+    );
+
+    const fresh=
+        await getRecord(
+            savedRecord.id
+        );
+
+    console.log(
+        "[addRecord] getRecord complete",
+        fresh
+    );
+
+    if(!fresh){
+        console.warn(
+            "[addRecord] record not found"
+        );
+
+        return;
+    }
+
+    console.log(
+        "[addRecord] state update start"
+    );
+
+    state.records=[
+        ...state.records.filter(
+            record=>record.id!==fresh.id
+        ),
+        fresh
+    ];
+
+    console.log(
+        "[addRecord] state update complete",
+        state.records
+    );
+
+    console.log(
+        "[addRecord] addRecordToList start"
+    );
+
+    await addRecordToList(
+        fresh,
+        state.subjects,
+        state.recordTypes
+    );
+
+    console.log(
+        "[addRecord] addRecordToList complete"
+    );
+}
+
 
 async removeRecord(id){
     state.records=state.records.filter(record=>record.id!==id);
