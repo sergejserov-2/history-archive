@@ -9,15 +9,35 @@ function getPhotoPeriod(photo){
         if(photo.dateEnd)return`до ${photo.dateEnd}`;
         return"";
     }
+
     return photo.date??"";
 }
 
 function renderPhotoMedia(photo){
     const uploading=photo.isUploading===true;
     const hasPreview=Boolean(photo.previewPath);
-    if(uploading&&!hasPreview)return renderLoadingPlaceholder();
-    if(hasPreview)return`${uploading?renderLoadingPlaceholder():""}<img class="photo-card__image${uploading?" photo-card__image--loading":""}" src="${photo.previewPath}" alt="${photo.title??""}" draggable="false">`;
-    return`<div class="photo-card__placeholder">Фото отсутствует</div>`;
+
+    if(uploading&&!hasPreview){
+        return renderLoadingPlaceholder();
+    }
+
+    if(hasPreview){
+        return`
+            ${uploading?renderLoadingPlaceholder():""}
+            <img
+                class="photo-card__image${uploading?" photo-card__image--loading":""}"
+                src="${photo.previewPath}"
+                alt="${photo.title??""}"
+                draggable="false"
+            >
+        `;
+    }
+
+    return`
+        <div class="photo-card__placeholder">
+            Фото отсутствует
+        </div>
+    `;
 }
 
 function renderPhotoMeta(photo){
@@ -50,14 +70,25 @@ export function renderPhoto(photo){
     const uploading=photo.isUploading===true;
 
     return`
-        <div class="photo-card${uploading?" photo-card--uploading":""}" data-photo-id="${photo.id}" data-photo-drag>
-            <div class="photo-card__media" data-photo-id="${photo.id}" data-loading="${uploading}">
+        <div
+            class="photo-card${uploading?" photo-card--uploading":""}"
+            data-photo-id="${photo.id}"
+            data-photo-drag
+        >
+            <div
+                class="photo-card__media"
+                data-photo-id="${photo.id}"
+                data-loading="${uploading}"
+            >
                 ${renderPhotoMedia(photo)}
             </div>
 
             <div class="photo-card__content">
                 <div class="photo-card__title">
-                    <span class="photo-card__title-text">${photo.title??""}</span>
+                    <span class="photo-card__title-text">
+                        ${photo.title??""}
+                    </span>
+
                     <span class="photo-card__actions">
                         ${adminEdit("photo",photo.id)}
                         ${adminDelete("photo",photo.id)}
@@ -73,41 +104,58 @@ export function renderPhoto(photo){
 }
 
 function sortPhotos(photos=[]){
-    return[...photos].sort((a,b)=>{
+    return [...photos].sort((a,b)=>{
         const dateA=a.date??a.dateStart??"";
         const dateB=b.date??b.dateStart??"";
 
         if(!dateA&&!dateB){
-            const author=(a.author??"").localeCompare(b.author??"","ru");
+            const author=(a.author??"").localeCompare(
+                b.author??"",
+                "ru"
+            );
+
             return author!==0
                 ?author
-                :(a.title??"").localeCompare(b.title??"","ru");
+                :(a.title??"").localeCompare(
+                    b.title??"",
+                    "ru"
+                );
         }
 
         if(!dateA)return 1;
         if(!dateB)return-1;
 
-        const date=String(dateB).localeCompare(String(dateA));
+        const date=String(dateB).localeCompare(
+            String(dateA)
+        );
 
         if(date!==0)return date;
 
-        const author=(a.author??"").localeCompare(b.author??"","ru");
+        const author=(a.author??"").localeCompare(
+            b.author??"",
+            "ru"
+        );
 
         return author!==0
             ?author
-            :(a.title??"").localeCompare(b.title??"","ru");
+            :(a.title??"").localeCompare(
+                b.title??"",
+                "ru"
+            );
     });
 }
 
 export function renderPhotos(photos,objectId=null){
-    const sortedPhotos=
-        sortPhotos(photos??[]);
+    const sortedPhotos=sortPhotos(photos??[]);
 
     const cards=[
         adminAdd(
             "add-photo",
             "Добавить фото",
-            {className:"photo-card photo-card--add"}
+            {
+                className:"photo-card photo-card--add",
+                attributes:{"data-photo-drag":""}
+            }
         ),
         ...sortedPhotos.map(renderPhoto)
     ];
@@ -119,36 +167,32 @@ export function renderPhotos(photos,objectId=null){
     `;
 
     setTimeout(()=>{
-        const photosList=
-            document.querySelector(".photos-list");
+        const photosList=document.querySelector(".photos-list");
 
         if(!photosList)return;
 
         photosList.onclick=event=>{
-            const media=
-                event.target.closest(
-                    ".photo-card__media"
-                );
+            if(photosList.dataset.photoDragMoved==="true"){
+                return;
+            }
+
+            const media=event.target.closest(".photo-card__media");
 
             if(!media)return;
 
             if(media.dataset.loading==="true"){
                 return;
-                }
+            }
 
-            const photo=
-                sortedPhotos.find(
-                    item=>item.id===media.dataset.photoId
-                );
+            const photo=sortedPhotos.find(
+                item=>item.id===media.dataset.photoId
+            );
 
             if(!photo?.storagePath){
                 return;
             }
 
-            const image=
-                media.querySelector(
-                    ".photo-card__image"
-                );
+            const image=media.querySelector(".photo-card__image");
 
             if(
                 !image||
