@@ -1,9 +1,4 @@
-// ======================================
-// Activity API
-// ======================================
-
 import{db}from"../firebase.js";
-
 import{
     collection,
     getDocs,
@@ -13,35 +8,21 @@ import{
     deleteDoc,
     query,
     orderBy,
-    limit
+    limit,
+    startAfter
 }from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-// ======================================
-// Get activity
-// ======================================
-
 export async function getActivity(id){
-
     if(!id)return null;
-
-    const snapshot=await getDoc(
-        doc(db,"activity",id)
-    );
-
+    const snapshot=await getDoc(doc(db,"activity",id));
     if(!snapshot.exists())return null;
-
     return{
         id:snapshot.id,
         ...snapshot.data()
     };
 }
 
-// ======================================
-// Get activities
-// ======================================
-
 export async function getActivities(){
-
     const snapshot=await getDocs(
         query(
             collection(db,"activity"),
@@ -55,12 +36,7 @@ export async function getActivities(){
     }));
 }
 
-// ======================================
-// Get recent activities
-// ======================================
-
 export async function getRecentActivities(count=100){
-
     const snapshot=await getDocs(
         query(
             collection(db,"activity"),
@@ -75,12 +51,35 @@ export async function getRecentActivities(count=100){
     }));
 }
 
-// ======================================
-// Create activity
-// ======================================
+export async function getActivityPage(lastDoc=null,count=500){
+    const constraints=[
+        orderBy("createdAt","desc")
+    ];
+
+    if(lastDoc){
+        constraints.push(startAfter(lastDoc));
+    }
+
+    constraints.push(limit(count));
+
+    const snapshot=await getDocs(
+        query(
+            collection(db,"activity"),
+            ...constraints
+        )
+    );
+
+    return{
+        activities:snapshot.docs.map(doc=>({
+            id:doc.id,
+            ...doc.data()
+        })),
+        lastDoc:snapshot.docs.at(-1)??null,
+        hasMore:snapshot.docs.length===count
+    };
+}
 
 export async function createActivity(data){
-
     const ref=await addDoc(
         collection(db,"activity"),
         data
@@ -92,12 +91,7 @@ export async function createActivity(data){
     };
 }
 
-// ======================================
-// Delete activity
-// ======================================
-
 export async function deleteActivity(id){
-
     if(!id)return;
 
     await deleteDoc(
