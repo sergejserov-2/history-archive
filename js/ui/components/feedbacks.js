@@ -1,8 +1,9 @@
 import{getFeedbackPage}from"../../api/feedback.js";
 import{createModal}from"./modal.js";
 import{openModal}from"./modalReload.js";
-import{renderEntityList}from"./entityList.js";
+import{renderEntityList,insertEntityListItem}from"./entityList.js";
 import{renderDateTime}from"./date.js";
+import{compareEntities}from"./sort.js";
 
 const PAGE_SIZE=500;
 
@@ -103,29 +104,75 @@ function setupFeedbacksInfiniteScroll(modal){
     );
 }
 
-function appendFeedbacks(root,feedbacks){
-    const list=
-        root.querySelector(".entity-list");
+function appendFeedbacks(root,feedbacks=[]){
+    feedbacks.forEach(feedback=>{
+        const item=getFeedbackItem(feedback);
+        const element=createEntityElement(item);
 
-    if(!list)return;
+        if(!element)return;
 
-    const html=
-        renderFeedbackList(feedbacks);
+        const date=new Date(
+            Number(feedback.createdAt??0)
+        );
 
-    const temp=
-        document.createElement("div");
+        insertEntityListItem({
+            groupId:getFeedbackGroupId(date),
+            groupTitle:formatFeedbackGroupDate(date),
+            element,
+            compare:(newElement,row)=>{
+                const current=getEntityData(row);
 
-    temp.innerHTML=html;
-
-    const groups=[
-        ...temp.querySelectorAll(
-            ".entity-list__group"
-        )
-    ];
-
-    groups.forEach(group=>{
-        list.appendChild(group);
+                return compareEntities(
+                    current,
+                    item
+                );
+            }
+        });
     });
+}
+
+function createEntityElement(item){
+    const template=document.createElement("template");
+
+    template.innerHTML=`
+        <div
+            class="entity-list-row entity-list-row--clickable entity-list-row--description entity-list-row--meta"
+            data-id="${item.id}"
+            data-sort-value="${item.sortValue}"
+        >
+            <div class="entity-list-row__title">
+                <span class="entity-list-row__title-text">
+                    ${item.title}
+                </span>
+            </div>
+
+            <div class="entity-list-row__description">
+                ${item.description}
+            </div>
+
+            <div class="entity-list-row__meta">
+                ${item.meta}
+            </div>
+        </div>
+    `.trim();
+
+    return template.content.firstElementChild;
+}
+
+function getEntityData(row){
+    return{
+        sortValue:Number(
+            row.dataset.sortValue??0
+        ),
+        title:
+            row.querySelector(
+                ".entity-list-row__title-text"
+            )?.textContent.trim()??"",
+        meta:
+            row.querySelector(
+                ".entity-list-row__meta"
+            )?.textContent.trim()??""
+    };
 }
 
 export async function refreshFeedbacksModal(){
@@ -155,71 +202,76 @@ export async function refreshFeedbacksModal(){
     );
 }
 
+function getFeedbackGroupId(date){
+    return[
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    ].join("-");
+}
+
+function getFeedbackItem(feedback){
+    return{
+        id:feedback.id,
+        clickable:true,
+        sortValue:Number(
+            feedback.createdAt??0
+        ),
+        title:
+            escapeHTML(
+                feedback.name||
+                "Без имени"
+            ),
+        description:
+            escapeHTML(
+                feedback.title||
+                "Без заголовка"
+            ),
+        meta:
+            renderDateTime(
+                feedback.createdAt
+            )
+    };
+}
+
 function renderFeedbackList(feedbacks=[]){
     const groups=new Map();
 
-    [...feedbacks]
-        .sort(
-            (a,b)=>
-                Number(b.createdAt??0)-
-                Number(a.createdAt??0)
-        )
-        .forEach(feedback=>{
-            const date=
-                new Date(
-                    Number(feedback.createdAt??0)
-                );
+    feedbacks.forEach(feedback=>{
+        const date=new Date(
+            Number(feedback.createdAt??0)
+        );
 
-            const key=
-                `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        const key=getFeedbackGroupId(date);
 
-            if(!groups.has(key)){
-                groups.set(
-                    key,
-                    {
-                        date,
-                        items:[]
-                    }
-                );
-            }
+        if(!groups.has(key)){
+            groups.set(
+                key,
+                {
+                    id:key,
+                    date,
+                    items:[]
+                }
+            );
+        }
 
-            groups.get(key).items.push({
-                id:feedback.id,
-                clickable:true,
-                sortValue:
-                    Number(
-                        feedback.createdAt??0
-                    ),
-                title:
-                    escapeHTML(
-                        feedback.name||
-                        "Без имени"
-                    ),
-                description:
-                    escapeHTML(
-                        feedback.title||
-                        "Без заголовка"
-                    ),
-                meta:
-                    renderDateTime(
-                        feedback.createdAt
-                    )
-            });
-        });
+        groups.get(key).items.push(
+            getFeedbackItem(feedback)
+        );
+    });
 
     return renderEntityList({
         groups:[
-            ...groups.values().map(
-                group=>({
-                    title:
-                        formatFeedbackGroupDate(
-                            group.date
-                        ),
-                    items:group.items,
-                    sortDirection:"desc"
-                })
-            )
-        ]
+            ...groups.values()
+        ].map(group=>({
+            id:group.id,
+            title:
+                formatFeedbackGroupDate(
+                    group.date
+                ),
+            items:group.items,
+            sortDirection:"desc"
+        }))
     });
 }
 
