@@ -692,7 +692,7 @@ async removeRecord(id){
         "[removeRecord] removeRecordFromList complete",
         id
     );
-}
+},
 
 
 
