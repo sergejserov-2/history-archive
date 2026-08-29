@@ -68,7 +68,7 @@ currentSubjectsModal.setContent(
 );
 
 }
-function renderSubjectsList(subjects=[],subjectTypes=[]){ const groups=subjectTypes.map(type=>{ const items=subjects .filter(subject=>subject.typeId===type.id) .map(subject=>({ id:subject.id, clickable:true, title:escapeHTML(subject.title??"Без названия"), meta:formatSubjectYears(subject), actions:${adminEdit("subject",escapeHTML(subject.id))} ${adminDelete("subject",escapeHTML(subject.id))} }));
+function renderSubjectsList(subjects=[],subjectTypes=[]){ const groups=subjectTypes.map(type=>{ const items=subjects .filter(subject=>subject.typeId===type.id) .map(subject=>({ id:subject.id, clickable:true, title:escapeHTML(subject.title??"Без названия"), meta:formatSubjectYears(subject), actions:`${adminEdit("subject",escapeHTML(subject.id))} ${adminDelete("subject",escapeHTML(subject.id))}` }));
    return{
         title:escapeHTML(type.title??""),
         items
@@ -110,7 +110,7 @@ return renderEntityList({
 });
 
 }
-function formatSubjectYears(subject){ if(subject.dateStart&&subject.dateEnd){ return${escapeHTML(subject.dateStart)} – ${escapeHTML(subject.dateEnd)}; }
+function formatSubjectYears(subject){ if(subject.dateStart&&subject.dateEnd){ return`${escapeHTML(subject.dateStart)}` – `${escapeHTML(subject.dateEnd)}`; }
 if(subject.dateStart){
     return`с ${escapeHTML(subject.dateStart)}`;
 }
