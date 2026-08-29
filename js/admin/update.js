@@ -85,9 +85,12 @@ export async function updateEntity(type,entity,data,context={},updates={}){
     }
 
     const updateName=isUpdate?updates.update:updates.create;
-    const callback=context.updates?.[updateName];
-    if(typeof callback==="function")await callback(savedData);
-
+for(const update of updates){
+    const callback=context.updates?.[update];
+    if(typeof callback==="function"){
+        await callback(savedData);
+    }
+}
     return savedData;
 }
 
