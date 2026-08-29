@@ -161,5 +161,47 @@ function setupPhotoDrag(list){
 
         dragging=false;
 
-        active
+        activeCard?.querySelector(".photo-card__media")
+            ?.releasePointerCapture?.(event.pointerId);
+
+        if(wasMoved){
+            list.dataset.photoDragMoved="true";
+
+            window.setTimeout(()=>{
+                delete list.dataset.photoDragMoved;
+            },0);
+        }
+
+        resetCards();
+
+        activeCard=null;
+        offsetX=0;
+        direction=0;
+        bounds={min:0,max:0};
+        moved=false;
+    }
+
+    function cancel(event){
+        if(!dragging)return;
+
+        dragging=false;
+
+        activeCard?.querySelector(".photo-card__media")
+            ?.releasePointerCapture?.(event.pointerId);
+
+        resetCards();
+
+        activeCard=null;
+        offsetX=0;
+        direction=0;
+        bounds={min:0,max:0};
+        moved=false;
+    }
+
+    list.addEventListener("pointerdown",start);
+    list.addEventListener("pointermove",move);
+    list.addEventListener("pointerup",end);
+    list.addEventListener("pointercancel",cancel);
+    list.addEventListener("lostpointercapture",cancel);
+}
 
