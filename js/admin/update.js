@@ -518,7 +518,7 @@ async addRecord(savedRecord){
     console.log(
         "[addRecord] addRecordToList complete"
     );
-}
+},
 
 
 async removeRecord(id){
