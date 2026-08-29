@@ -656,8 +656,8 @@
     padding: 0 var(--space-5);
     border-radius: var(--radius-xl);   
     transition: var(--transition-fast);
-    height: 26px;   
-    font-size:var(--font-size);
+    height: 22px;   
+    font-size:var(--font-size-sm);
 }
 
 .status-editor__badge,
