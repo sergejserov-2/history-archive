@@ -293,7 +293,7 @@ input {
     gap: 0;
 }
 .breadcrumbs__item {
-    color: var(--color-text-faded);
+    color: var(--color-text-disabled);
     text-decoration: none;
     line-height: 1.5;
     transition: color .15s ease;
@@ -303,7 +303,7 @@ input {
 }
 .breadcrumbs__separator {
     margin: 0 var(--space-5);
-    color: var(--color-text-disabled);
+    color: var(--color-border-hover);
     font-size: var(--font-size-md);
 }
 
