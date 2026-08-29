@@ -374,6 +374,7 @@
     display:flex;
     flex-direction:column;
    margin-top:var(--space-8);
+   gap:var(--space-8);
 }
 
 /* ---------- Add button ---------- */
@@ -384,8 +385,6 @@
     justify-content:center;
 
     min-height:38px;
-
-    margin-bottom:var(--space-8);
     padding:0 var(--space-8);
 
     background:rgba(220,170,40,.18);
@@ -411,8 +410,6 @@
 .entity-list__group {
     display:flex;
     flex-direction:column;
-
-    margin-bottom:var(--space-8);
 }
 
 .entity-list__group-title {
