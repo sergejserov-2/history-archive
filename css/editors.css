@@ -299,46 +299,7 @@
     width: 100%;
 }
 
-.entity-file__select, .entity-file__current, .parent-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-4);
-    width: max-content;
-    padding: 0 var(--space-5);
-    background: var(--color-admin-bg);
-    border: 1px solid var(--color-admin-border);
-    border-radius: var(--radius-xl);
-    color: var(--color-admin);
-    height: 26px;
-}
 
-#entityFileSelect {
-    cursor:pointer;
-}
-
-#entityFileName {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.entity-file__remove,
-.parent-remove {
-    width: auto;
-    height: auto;
-
-    margin: 0;
-    padding: 0;
-
-    background: none;
-    border: none;
-
-    color: var(--color-admin);
-    font-size: var(--font-size-xl);
-    line-height: 1;
-
-    cursor: pointer;
-}
 /* ==========================================
    EDITOR BUTTONS
 ========================================== */
@@ -436,40 +397,6 @@
     flex-wrap: wrap;
 
     gap: var(--space-4);
-}
-
-.status-editor__badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-4);
-    width: auto !important;
-    padding: 0 var(--space-5) !important;
-    background: var(--color-card) !important;
-    border: var(--border-thin) !important;
-    border-radius: var(--radius-lg) !important;
-    color: var(--color-text-faded) !important;
-    font-size: var(--font-size-sm) !important;
-    line-height: 1.3;
-    cursor: pointer;
-    transition: var(--transition-fast);
-    height: 26px;
-}
-
-.status-editor__badge:hover {
-    background: var(--color-card-hover) !important;
-    border-color: var(--color-border-hover) !important;
-    color: var(--color-text-secondary) !important;
-}
-
-.status-editor__badge.is-selected {
-    background: var(--color-admin-bg) !important;
-    border-color: var(--color-admin-border) !important;
-    color: var(--color-admin) !important;
-}
-
-.status-editor__remove {
-    font-size: var(--font-size-xl);
-    line-height: 1;
 }
 
 .historical-date {
@@ -709,4 +636,81 @@
 .entity-cover__input:disabled{
     color:var(--color-text-faded) !important;
     cursor:not-allowed;
+}
+
+
+
+
+/* B A D G E S */
+
+.parent-badge,
+.entity-file__current,
+.entity-file__select,
+.status-editor__badge{
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-4);
+    width: max-content;
+    padding: 0 var(--space-5);
+    border-radius: var(--radius-xl);   
+    transition: var(--transition-fast);
+    height: 26px;   
+}
+
+.status-editor__badge,
+.entity-file__select{
+    border: var(--border-thin) !important;
+    background: var(--color-card) !important;
+    color: var(--color-text-faded) !important;
+    cursor: pointer;
+}
+
+.parent-badge,
+.entity-file__current,
+.status-editor__badge.is-selected{
+    border: 1px solid var(--color-admin-border) !important;
+    background: var(--color-admin-bg) !important;
+    color: var(--color-admin) !important;
+}
+
+
+.status-editor__badge:hover,
+.entity-file__select:hover{
+    background: var(--color-card-hover) !important;
+    border-color: var(--color-border-hover) !important;
+    color: var(--color-text-secondary) !important;
+}
+
+.parent-badge:hover,
+.entity-file__current:hover,
+.status-editor__badge.is-selected:hover{
+    border: 1px solid var(--color-admin) !important;
+    background: var(--color-admin-bg-hover) !important;
+}
+
+.entity-file__remove,
+.parent-remove,
+.status-editor__remove{
+    width: auto;
+    height: auto;
+
+    margin: 0;
+    padding: 0;
+
+    background: none;
+    border: none;
+
+    color: var(--color-admin);
+    font-size: var(--font-size-xl);
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+
+
+#entityFileName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
