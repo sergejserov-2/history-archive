@@ -129,6 +129,17 @@ function getPhotoElementData(element){
     };
 }
 
+function updateListPhotos(list,photo){
+    if(!list)return;
+
+    list.photos=[
+        ...(list.photos??[]).filter(
+            item=>item.id!==photo.id
+        ),
+        photo
+    ];
+}
+
 export function insertPhoto(photo){
     const list=document.querySelector(".photos-list");
     if(!list)return null;
@@ -152,6 +163,17 @@ export async function addPhotoToList(photo){
     const element=insertPhoto(photo);
     if(!element)return null;
 
+    const list=element.parentElement;
+
+    updateListPhotos(
+        list,
+        photo
+    );
+
+    await new Promise(
+        requestAnimationFrame
+    );
+
     await show(element);
 
     return element;
@@ -164,7 +186,16 @@ export async function removePhotoFromList(id){
 
     if(!element)return;
 
+    const list=element.parentElement;
+
     await hide(element);
+
+    if(list){
+        list.photos=(list.photos??[]).filter(
+            photo=>photo.id!==id
+        );
+    }
+
     element.remove();
 }
 
@@ -192,6 +223,11 @@ export async function updatePhotoInList(photo){
         direction:"asc",
         getItem:getPhotoElementData
     });
+
+    updateListPhotos(
+        list,
+        photo
+    );
 
     return element;
 }
@@ -228,6 +264,8 @@ export function renderPhotos(photos,objectId=null){
         const photosList=document.querySelector(".photos-list");
         if(!photosList)return;
 
+        photosList.photos=sortedPhotos;
+
         photosList.onclick=event=>{
             if(photosList.dataset.photoDragMoved==="true"){
                 return;
@@ -243,7 +281,7 @@ export function renderPhotos(photos,objectId=null){
                 return;
             }
 
-            const photo=sortedPhotos.find(
+            const photo=photosList.photos?.find(
                 item=>item.id===media.dataset.photoId
             );
 
@@ -265,7 +303,7 @@ export function renderPhotos(photos,objectId=null){
                 photo,
                 {
                     id:objectId,
-                    photos:sortedPhotos
+                    photos:photosList.photos
                 }
             );
         };
