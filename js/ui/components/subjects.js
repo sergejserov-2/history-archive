@@ -110,7 +110,7 @@ return renderEntityList({
 });
 
 }
-function formatSubjectYears(subject){ if(subject.dateStart&&subject.dateEnd){ return`${escapeHTML(subject.dateStart)}` – `${escapeHTML(subject.dateEnd)}`; }
+function formatSubjectYears(subject){ if(subject.dateStart&&subject.dateEnd){ return`${escapeHTML(subject.dateStart)} – ${escapeHTML(subject.dateEnd)}`; }
 if(subject.dateStart){
     return`с ${escapeHTML(subject.dateStart)}`;
 }
