@@ -1,144 +1,227 @@
 export function initPhotoDrag(root=document){
-    console.log("[photoDrag] init",root);
-
-    const lists=root.querySelectorAll(".photos-list");
-
-    console.log("[photoDrag] lists found",lists.length);
+    const lists=
+        root.querySelectorAll(".photos-list");
 
     lists.forEach(setupPhotoDrag);
 }
 
 function setupPhotoDrag(list){
-    console.log("[photoDrag] setup start",list);
-
     if(list.dataset.photoDragInitialized){
-        console.log("[photoDrag] already initialized");
         return;
     }
 
     list.dataset.photoDragInitialized="true";
 
-    console.log("[photoDrag] initialized",{
-        scrollWidth:list.scrollWidth,
-        clientWidth:list.clientWidth,
-        maxScroll:list.scrollWidth-list.clientWidth
-    });
-
     let dragging=false;
-    let dragged=false;
-    let pointerId=null;
+    let activeCard=null;
     let startX=0;
-    let startScrollLeft=0;
+    let offsetX=0;
+    let direction=0;
 
-    function getMaxScroll(){
-        return Math.max(
-            0,
-            list.scrollWidth-list.clientWidth
-        );
+    function getCards(){
+        return[
+            ...list.querySelectorAll(
+                "[data-photo-drag]"
+            )
+        ];
+    }
+
+    function getContentWidth(cards){
+        if(!cards.length)return 0;
+
+        const first=
+            cards[0].getBoundingClientRect();
+
+        const last=
+            cards.at(-1).getBoundingClientRect();
+
+        return last.right-first.left;
+    }
+
+    function canDrag(){
+        const cards=getCards();
+
+        if(cards.length<2){
+            return false;
+        }
+
+        const contentWidth=
+            getContentWidth(cards);
+
+        return contentWidth<
+            list.clientWidth;
+    }
+
+    function getMovingCards(){
+        const cards=getCards();
+
+        if(!activeCard){
+            return[];
+        }
+
+        const index=
+            cards.indexOf(activeCard);
+
+        if(index<0){
+            return[];
+        }
+
+        if(direction>0){
+            return cards.slice(index);
+        }
+
+        if(direction<0){
+            return cards.slice(0,index+1);
+        }
+
+        return[activeCard];
+    }
+
+    function getBounds(){
+        const cards=getCards();
+
+        if(!cards.length){
+            return{
+                min:0,
+                max:0
+            };
+        }
+
+        const first=
+            cards[0].getBoundingClientRect();
+
+        const last=
+            cards.at(-1).getBoundingClientRect();
+
+        const listRect=
+            list.getBoundingClientRect();
+
+        return{
+            min:listRect.left-first.left,
+            max:listRect.right-last.right
+        };
+    }
+
+    function applyOffset(){
+        const cards=
+            getMovingCards();
+
+        cards.forEach(card=>{
+            card.style.transform=
+                `translate3d(${offsetX}px,0,0)`;
+        });
+    }
+
+    function resetCards(){
+        getCards().forEach(card=>{
+            card.classList.remove(
+                "photo-card--dragging"
+            );
+
+            card.classList.add(
+                "photo-card--spring"
+            );
+
+            card.style.transform=
+                "translate3d(0,0,0)";
+        });
     }
 
     function start(event){
-        console.log("[photoDrag] pointerdown",{
-            pointerType:event.pointerType,
-            button:event.button,
-            target:event.target
-        });
-
-        if(event.pointerType==="mouse"&&event.button!==0){
-            console.log("[photoDrag] ignored: not left mouse button");
+        if(
+            event.pointerType==="mouse"&&
+            event.button!==0
+        ){
             return;
         }
 
-        const card=event.target.closest(
-            "[data-photo-drag]"
-        );
-
-        console.log("[photoDrag] card",card);
-
-        if(!card){
-            console.log("[photoDrag] ignored: card not found");
-            return;
-        }
-
-        if(event.target.closest(".admin-button")){
-            console.log("[photoDrag] ignored: admin button");
-            return;
-        }
-
-        const maxScroll=getMaxScroll();
-
-        console.log("[photoDrag] max scroll",{
-            scrollWidth:list.scrollWidth,
-            clientWidth:list.clientWidth,
-            maxScroll
-        });
-
-        if(maxScroll<=0){
-            console.log(
-                "[photoDrag] ignored: list does not overflow"
+        const card=
+            event.target.closest(
+                "[data-photo-drag]"
             );
+
+        if(!card||!list.contains(card)){
+            return;
+        }
+
+        if(
+            event.target.closest(
+                ".admin-button"
+            )
+        ){
+            return;
+        }
+
+        if(!canDrag){
             return;
         }
 
         dragging=true;
-        dragged=false;
-        pointerId=event.pointerId;
-
+        activeCard=card;
         startX=event.clientX;
-        startScrollLeft=list.scrollLeft;
+        offsetX=0;
+        direction=0;
 
-        console.log("[photoDrag] drag start",{
-            pointerId,
-            startX,
-            startScrollLeft,
-            card
-        });
-
-        list.setPointerCapture?.(
-            pointerId
-        );
-
-        list.classList.add(
-            "photos-list--dragging"
+        activeCard.setPointerCapture?.(
+            event.pointerId
         );
 
         event.preventDefault();
     }
 
     function move(event){
-        if(!dragging){
+        if(!dragging||!activeCard){
             return;
         }
 
         const delta=
             event.clientX-startX;
 
-        if(Math.abs(delta)>4){
-            dragged=true;
+        const newDirection=
+            delta>0
+                ?1
+                :delta<0
+                    ?-1
+                    :0;
+
+        if(newDirection!==direction){
+            resetTransformsOnly();
+
+            direction=newDirection;
         }
 
-        const maxScroll=getMaxScroll();
+        const bounds=
+            getBounds();
 
-        const nextScrollLeft=
+        offsetX=
             Math.max(
-                0,
+                bounds.min,
                 Math.min(
-                    maxScroll,
-                    startScrollLeft-delta
+                    bounds.max,
+                    delta
                 )
             );
 
-        console.log("[photoDrag] move",{
-            clientX:event.clientX,
-            delta,
-            maxScroll,
-            before:list.scrollLeft,
-            nextScrollLeft
+        getMovingCards().forEach(card=>{
+            card.classList.remove(
+                "photo-card--spring"
+            );
+
+            card.classList.add(
+                "photo-card--dragging"
+            );
         });
 
-        list.scrollLeft=nextScrollLeft;
+        applyOffset();
 
         event.preventDefault();
+    }
+
+    function resetTransformsOnly(){
+        getCards().forEach(card=>{
+            card.style.transform=
+                "translate3d(0,0,0)";
+        });
     }
 
     function end(event){
@@ -146,41 +229,17 @@ function setupPhotoDrag(list){
             return;
         }
 
-        console.log("[photoDrag] drag end",{
-            pointerId,
-            dragged,
-            scrollLeft:list.scrollLeft
-        });
-
         dragging=false;
 
-        list.classList.remove(
-            "photos-list--dragging"
+        activeCard?.releasePointerCapture?.(
+            event.pointerId
         );
 
-        if(pointerId!==null){
-            list.releasePointerCapture?.(
-                pointerId
-            );
-        }
+        resetCards();
 
-        pointerId=null;
-
-        if(dragged){
-            list.dataset.photoDragged="true";
-
-            console.log(
-                "[photoDrag] click suppression enabled"
-            );
-
-            setTimeout(()=>{
-                delete list.dataset.photoDragged;
-
-                console.log(
-                    "[photoDrag] click suppression removed"
-                );
-            },0);
-        }
+        activeCard=null;
+        offsetX=0;
+        direction=0;
     }
 
     list.addEventListener(
@@ -207,26 +266,4 @@ function setupPhotoDrag(list){
         "lostpointercapture",
         end
     );
-
-    list.addEventListener(
-        "click",
-        event=>{
-            if(list.dataset.photoDragged!=="true"){
-                return;
-            }
-
-            console.log(
-                "[photoDrag] click suppressed"
-            );
-
-            event.preventDefault();
-            event.stopImmediatePropagation();
-        },
-        true
-    );
-
-    console.log(
-        "[photoDrag] event listeners attached"
-    );
 }
-
