@@ -14,6 +14,7 @@ function setupPhotoDrag(list){
     let offsetX=0;
     let direction=0;
     let moved=false;
+    let bounds={min:0,max:0};
 
     function getCards(){
         return[
@@ -23,22 +24,28 @@ function setupPhotoDrag(list){
 
     function getContentWidth(cards){
         if(!cards.length)return 0;
+
         const first=cards[0].getBoundingClientRect();
         const last=cards.at(-1).getBoundingClientRect();
+
         return last.right-first.left;
     }
 
     function canDrag(){
         const cards=getCards();
+
         if(cards.length<2)return false;
+
         return getContentWidth(cards)<list.clientWidth;
     }
 
     function getMovingCards(){
         const cards=getCards();
+
         if(!activeCard)return[];
 
         const index=cards.indexOf(activeCard);
+
         if(index<0)return[];
 
         if(direction>0)return cards.slice(index);
@@ -47,7 +54,7 @@ function setupPhotoDrag(list){
         return[activeCard];
     }
 
-    function getBounds(){
+    function calculateBounds(){
         const cards=getCards();
 
         if(!cards.length){
@@ -78,34 +85,64 @@ function setupPhotoDrag(list){
 
     function applyOffset(){
         getMovingCards().forEach(card=>{
-            card.style.transform=`translate3d(${offsetX}px,0,0)`;
+            card.style.transform=
+                `translate3d(${offsetX}px,0,0)`;
         });
     }
 
     function resetTransformsOnly(){
         getCards().forEach(card=>{
-            card.style.transform="translate3d(0,0,0)";
+            card.style.transform=
+                "translate3d(0,0,0)";
         });
     }
 
     function resetCards(){
         getCards().forEach(card=>{
-            card.classList.remove("photo-card--dragging");
-            card.classList.add("photo-card--spring");
-            card.style.transform="translate3d(0,0,0)";
+            card.classList.remove(
+                "photo-card--dragging"
+            );
+
+            card.classList.add(
+                "photo-card--spring"
+            );
+
+            card.style.transform=
+                "translate3d(0,0,0)";
         });
     }
 
     function start(event){
-        if(event.pointerType==="mouse"&&event.button!==0)return;
+        if(
+            event.pointerType==="mouse"&&
+            event.button!==0
+        ){
+            return;
+        }
 
-        const media=event.target.closest(".photo-card__media");
-        if(!media||!list.contains(media))return;
+        const media=
+            event.target.closest(
+                ".photo-card__media"
+            );
 
-        const card=media.closest("[data-photo-drag]");
+        if(!media||!list.contains(media)){
+            return;
+        }
 
-        if(!card||!list.contains(card))return;
-        if(!canDrag())return;
+        const card=
+            media.closest(
+                "[data-photo-drag]"
+            );
+
+        if(!card||!list.contains(card)){
+            return;
+        }
+
+        if(!canDrag){
+            return;
+        }
+
+        resetTransformsOnly();
 
         dragging=true;
         activeCard=card;
@@ -114,35 +151,54 @@ function setupPhotoDrag(list){
         direction=0;
         moved=false;
 
-        activeCard.setPointerCapture?.(event.pointerId);
+        bounds=calculateBounds();
+
+        activeCard.setPointerCapture?.(
+            event.pointerId
+        );
     }
 
     function move(event){
-        if(!dragging||!activeCard)return;
+        if(!dragging||!activeCard){
+            return;
+        }
 
-        const delta=event.clientX-startX;
+        const delta=
+            event.clientX-startX;
 
         if(Math.abs(delta)>5){
             moved=true;
         }
 
-        const newDirection=delta>0?1:delta<0?-1:0;
+        const newDirection=
+            delta>0
+                ?1
+                :delta<0
+                    ?-1
+                    :0;
 
         if(newDirection!==direction){
             resetTransformsOnly();
+
             direction=newDirection;
         }
 
-        const bounds=getBounds();
-
         offsetX=Math.max(
             bounds.min,
-            Math.min(bounds.max,delta)
+            Math.min(
+                bounds.max,
+                delta
+            )
         );
 
         getMovingCards().forEach(card=>{
-            card.classList.remove("photo-card--spring");
-            card.classList.add("photo-card--dragging");
+            card.classList.remove(
+                "photo-card--spring"
+            );
+
+            card.classList.add(
+                "photo-card--dragging"
+            );
         });
 
         applyOffset();
@@ -157,7 +213,9 @@ function setupPhotoDrag(list){
 
         dragging=false;
 
-        activeCard?.releasePointerCapture?.(event.pointerId);
+        activeCard?.releasePointerCapture?.(
+            event.pointerId
+        );
 
         if(moved){
             event.preventDefault();
@@ -168,6 +226,7 @@ function setupPhotoDrag(list){
         activeCard=null;
         offsetX=0;
         direction=0;
+        bounds={min:0,max:0};
 
         window.setTimeout(()=>{
             moved=false;
@@ -179,20 +238,42 @@ function setupPhotoDrag(list){
 
         dragging=false;
 
-        activeCard?.releasePointerCapture?.(event.pointerId);
+        activeCard?.releasePointerCapture?.(
+            event.pointerId
+        );
 
         resetCards();
 
         activeCard=null;
         offsetX=0;
         direction=0;
+        bounds={min:0,max:0};
         moved=false;
     }
 
-    list.addEventListener("pointerdown",start);
-    list.addEventListener("pointermove",move);
-    list.addEventListener("pointerup",end);
-    list.addEventListener("pointercancel",cancel);
-    list.addEventListener("lostpointercapture",cancel);
+    list.addEventListener(
+        "pointerdown",
+        start
+    );
+
+    list.addEventListener(
+        "pointermove",
+        move
+    );
+
+    list.addEventListener(
+        "pointerup",
+        end
+    );
+
+    list.addEventListener(
+        "pointercancel",
+        cancel
+    );
+
+    list.addEventListener(
+        "lostpointercapture",
+        cancel
+    );
 }
 
