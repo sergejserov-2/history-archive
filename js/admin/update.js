@@ -709,7 +709,7 @@ export function createPageUpdates(state){
 
             await removeSourceFromList(id);
         },
-        
+
         async updateSource(savedSource){
             if(!savedSource?.id)return;
 
