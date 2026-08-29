@@ -41,58 +41,260 @@ export async function getEntity(type,id){
 }
 
 export async function updateEntity(type,entity,data,context={},updates={}){
+    console.log("[updateEntity] start",{
+        type,
+        entityId:entity?.id??null,
+        updates,
+        data
+    });
+
     const api=API[type];
-    if(!api)throw new Error(`Unknown entity type: ${type}`);
+
+    if(!api){
+        console.error("[updateEntity] Unknown entity type",type);
+        throw new Error(`Unknown entity type: ${type}`);
+    }
 
     if(type==="objectType"||type==="recordType"||type==="subjectType"){
+        console.log("[updateEntity] type editor save");
+
         const oldId=entity?.id??null;
         const newId=data?.id?.trim()??"";
         const oldTarget=entity?.target??type;
         const newTarget=data?.target??oldTarget;
-        if(!newId)throw new Error("ID типа не указан");
+
+        if(!newId){
+            console.error("[updateEntity] Type ID is empty");
+            throw new Error("ID типа не указан");
+        }
+
         const targetApi=API[newTarget];
-        if(!targetApi?.create||!targetApi?.delete)throw new Error(`Unknown type target: ${newTarget}`);
+
+        if(!targetApi?.create||!targetApi?.delete){
+            console.error("[updateEntity] Unknown type target",newTarget);
+            throw new Error(`Unknown type target: ${newTarget}`);
+        }
+
         if(!oldId){
-            const savedData={...data,id:newId,target:newTarget};
-            const saved=await targetApi.create(newId,savedData);
-            await createActivity({action:"create",entityType:type,entityId:newId,title:data.title??newId,adminEmail:getAdminEmail(),createdAt:Date.now()});
+            console.log("[updateEntity] create type",newId);
+
+            const savedData={
+                ...data,
+                id:newId,
+                target:newTarget
+            };
+
+            const saved=
+                await targetApi.create(
+                    newId,
+                    savedData
+                );
+
+            await createActivity({
+                action:"create",
+                entityType:type,
+                entityId:newId,
+                title:data.title??newId,
+                adminEmail:getAdminEmail(),
+                createdAt:Date.now()
+            });
+
+            console.log("[updateEntity] type created",saved??savedData);
+
             return saved??savedData;
         }
+
         if(oldId!==newId||oldTarget!==newTarget){
-            const savedData={...data,id:newId,target:newTarget};
-            await targetApi.create(newId,savedData);
+            console.log("[updateEntity] move type",{
+                oldId,
+                newId,
+                oldTarget,
+                newTarget
+            });
+
+            const savedData={
+                ...data,
+                id:newId,
+                target:newTarget
+            };
+
+            await targetApi.create(
+                newId,
+                savedData
+            );
+
             await API[oldTarget].delete(oldId);
-            await createActivity({action:"update",entityType:type,entityId:newId,title:data.title??newId,adminEmail:getAdminEmail(),createdAt:Date.now()});
+
+            await createActivity({
+                action:"update",
+                entityType:type,
+                entityId:newId,
+                title:data.title??newId,
+                adminEmail:getAdminEmail(),
+                createdAt:Date.now()
+            });
+
+            console.log("[updateEntity] type moved",savedData);
+
             return savedData;
         }
+
+        console.log("[updateEntity] update type",oldId);
+
         const updateData={...data};
+
         delete updateData.id;
-        await api.update(oldId,updateData);
-        await createActivity({action:"update",entityType:type,entityId:newId,title:data.title??newId,adminEmail:getAdminEmail(),createdAt:Date.now()});
-        return{id:oldId,...data};
+
+        await api.update(
+            oldId,
+            updateData
+        );
+
+        await createActivity({
+            action:"update",
+            entityType:type,
+            entityId:newId,
+            title:data.title??newId,
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
+
+        const savedData={
+            id:oldId,
+            ...data
+        };
+
+        console.log("[updateEntity] type updated",savedData);
+
+        return savedData;
     }
 
     let savedData;
-    const isUpdate=Boolean(entity?.id);
+
+    const isUpdate=
+        Boolean(entity?.id);
+
+    console.log("[updateEntity] operation",{
+        type,
+        isUpdate,
+        entityId:entity?.id??null
+    });
 
     if(isUpdate){
-        await api.update(entity.id,data);
-        savedData={id:entity.id,...data};
-        await createActivity({action:"update",entityType:type,entityId:entity.id,title:data.title??entity.title??"",...(type==="object"||type==="record"||type==="photo"||type==="source"?{parentId:context.parentId??null}:{}),adminEmail:getAdminEmail(),createdAt:Date.now()});
+        console.log("[updateEntity] API update start",entity.id);
+
+        await api.update(
+            entity.id,
+            data
+        );
+
+        console.log("[updateEntity] API update complete",entity.id);
+
+        savedData={
+            id:entity.id,
+            ...data
+        };
+
+        await createActivity({
+            action:"update",
+            entityType:type,
+            entityId:entity.id,
+            title:data.title??entity.title??"",
+            ...(
+                type==="object"||
+                type==="record"||
+                type==="photo"||
+                type==="source"
+                    ?{
+                        parentId:
+                            context.parentId??null
+                    }
+                    :{}
+            ),
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
     }else{
-        savedData=await api.create(data);
-        await createActivity({action:"create",entityType:type,entityId:savedData.id,title:savedData.title??"",...(type==="object"||type==="record"||type==="photo"||type==="source"?{parentId:context.parentId??null}:{}),adminEmail:getAdminEmail(),createdAt:Date.now()});
+        console.log("[updateEntity] API create start");
+
+        savedData=
+            await api.create(data);
+
+        console.log("[updateEntity] API create complete",savedData);
+
+        await createActivity({
+            action:"create",
+            entityType:type,
+            entityId:savedData.id,
+            title:savedData.title??"",
+            ...(
+                type==="object"||
+                type==="record"||
+                type==="photo"||
+                type==="source"
+                    ?{
+                        parentId:
+                            context.parentId??null
+                    }
+                    :{}
+            ),
+            adminEmail:getAdminEmail(),
+            createdAt:Date.now()
+        });
     }
 
-    const updateName=isUpdate?updates.update:updates.create;
-for(const update of updates){
-    const callback=context.updates?.[update];
-    if(typeof callback==="function"){
-        await callback(savedData);
+    let updateNames;
+
+    if(Array.isArray(updates)){
+        updateNames=updates;
+    }else{
+        updateNames=
+            isUpdate
+                ?updates.update??[]
+                :updates.create??[];
     }
-}
+
+    console.log("[updateEntity] callbacks",{
+        type,
+        isUpdate,
+        updateNames
+    });
+
+    for(const updateName of updateNames){
+        const callback=
+            context.updates?.[updateName];
+
+        if(typeof callback!=="function"){
+            console.warn(
+                "[updateEntity] callback not found",
+                updateName
+            );
+
+            continue;
+        }
+
+        console.log(
+            "[updateEntity] callback start",
+            updateName
+        );
+
+        await callback(savedData);
+
+        console.log(
+            "[updateEntity] callback complete",
+            updateName
+        );
+    }
+
+    console.log(
+        "[updateEntity] complete",
+        savedData
+    );
+
     return savedData;
 }
+
+
 
 export async function deleteEntity(type,id,context={}){
     if(type==="object"){
