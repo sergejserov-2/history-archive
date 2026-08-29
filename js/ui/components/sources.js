@@ -1,23 +1,11 @@
-import{
-    renderMentions,
-    getSubjectHref
-}from"./mentionLink.js";
-import{
-    adminEdit,
-    adminDelete,
-    adminAdd
-}from"./adminButtons.js";
-import{
-    sortEntities,
-    insertSortedElement
-}from"./sort.js";
+import{renderMentions,getSubjectHref}from"./mentionLink.js";
+import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
+import{sortEntities,insertSortedElement}from"./sort.js";
+import{show,hide}from"../animations/controller.js";
 
 function getSourcePeriod(source){
     if(source.dateMode==="period"){
-        if(
-            source.dateStart&&
-            source.dateEnd
-        ){
+        if(source.dateStart&&source.dateEnd){
             return`${source.dateStart} – ${source.dateEnd}`;
         }
 
@@ -43,10 +31,7 @@ function getSourceData(source){
     };
 }
 
-export function renderSource(
-    source,
-    subjects=[]
-){
+export function renderSource(source,subjects=[]){
     return`
         <div
             class="source"
@@ -68,15 +53,8 @@ export function renderSource(
                         ${source.title??""}
                     </strong>
 
-                    ${adminEdit(
-                        "source",
-                        source.id
-                    )}
-
-                    ${adminDelete(
-                        "source",
-                        source.id
-                    )}
+                    ${adminEdit("source",source.id)}
+                    ${adminDelete("source",source.id)}
                 </div>
 
                 ${
@@ -124,30 +102,35 @@ export function renderSource(
     `;
 }
 
-function createSourceElement(
-    source,
-    subjects=[]
-){
-    const template=
-        document.createElement("template");
+function createSourceElement(source,subjects=[]){
+    const template=document.createElement("template");
 
-    template.innerHTML=
-        renderSource(
-            source,
-            subjects
-        ).trim();
+    template.innerHTML=renderSource(
+        source,
+        subjects
+    ).trim();
 
     return template.content.firstElementChild;
 }
 
-export function insertSource(
-    source,
-    subjects=[]
-){
-    const list=document.querySelector(
-        ".sources-list"
-    );
+function getSourceElementData(element){
+    return{
+        meta:element.querySelector(
+            ".source__date"
+        )?.textContent.trim()??"",
+        author:element.querySelector(
+            ".source__author"
+        )?.textContent
+            .replace(/,\s*$/,"")
+            .trim()??"",
+        title:element.querySelector(
+            ".source__title-text"
+        )?.textContent.trim()??""
+    };
+}
 
+export function insertSource(source,subjects=[]){
+    const list=document.querySelector(".sources-list");
     if(!list)return null;
 
     const element=createSourceElement(
@@ -163,33 +146,75 @@ export function insertSource(
         item:getSourceData(source),
         selector:".source",
         direction:"asc",
-        getItem:existing=>({
-            meta:
-                existing.querySelector(
-                    ".source__date"
-                )?.textContent.trim()??"",
-            author:
-                existing.querySelector(
-                    ".source__author"
-                )?.textContent
-                    .replace(/,\s*$/,"")
-                    .trim()??"",
-            title:
-                existing.querySelector(
-                    ".source__title-text"
-                )?.textContent.trim()??""
-        })
+        getItem:getSourceElementData
     });
 
     return element;
 }
 
-export function removeSourceFromList(id){
+export async function addSourceToList(
+    source,
+    subjects=[]
+){
+    const element=insertSource(
+        source,
+        subjects
+    );
+
+    if(!element)return null;
+
+    await show(element);
+
+    return element;
+}
+
+export async function removeSourceFromList(id){
     const element=document.querySelector(
         `.source[data-source-id="${id}"]`
     );
 
-    element?.remove();
+    if(!element)return;
+
+    await hide(element);
+    element.remove();
+}
+
+export async function updateSourceInList(
+    source,
+    subjects=[]
+){
+    const oldElement=document.querySelector(
+        `.source[data-source-id="${source.id}"]`
+    );
+
+    if(!oldElement){
+        return await addSourceToList(
+            source,
+            subjects
+        );
+    }
+
+    const list=oldElement.parentElement;
+
+    oldElement.remove();
+
+    const element=createSourceElement(
+        source,
+        subjects
+    );
+
+    if(!element)return null;
+
+    insertSortedElement({
+        container:list,
+        element,
+        item:getSourceData(source),
+        selector:".source",
+        direction:"asc",
+        getItem:getSourceElementData
+    });
+
+    return element;
 }
 
 export function renderSources(
@@ -209,11 +234,10 @@ export function renderSources(
             "Добавить источник"
         ),
         ...sortedSources.map(
-            item=>
-                renderSource(
-                    item.source,
-                    subjects
-                )
+            item=>renderSource(
+                item.source,
+                subjects
+            )
         )
     ];
 
