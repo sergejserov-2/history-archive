@@ -12,9 +12,58 @@ const ALL_TARGETS={
 };
 
 const CONFIG={
-    object:{title:"Объект",fields:[],status:true,parentsType:"objectsWithAddress",parentsRequiredMessage:"Нужен хотя бы один родитель",limits:{title:60,description:350},cover:{photos:[]},options:{typeSelector:true,types:[],defaultTypeId:"",disabledTypeIds:[]},updates:["updateObjectBlock"]},
-    photo:{title:"Фото",upload:uploadPhoto,file:true,fileRequired:true,fileRequiredMessage:"Для фотографии необходимо выбрать файл",parentsType:"objects",dateMode:"date",limits:{title:45,description:350,author:45},fields:["author","date"],updates:["addPhoto"]},
-    source:{title:"Источник",upload:uploadSourceDocument,file:true,fileRequired:true,fileRequiredMessage:"Для источника необходимо выбрать файл",parentsType:"objects",dateMode:"date",limits:{title:45,description:2000,author:45},fields:["author","date"],updates:["addSource"]},
+    object:{
+        title:"Объект",
+        fields:[],
+        status:true,
+        parentsType:"objectsWithAddress",
+        parentsRequiredMessage:"Нужен хотя бы один родитель",
+        limits:{title:60,description:350},
+        cover:{photos:[]},
+        options:{
+            typeSelector:true,
+            types:[],
+            defaultTypeId:"",
+            disabledTypeIds:[]
+        },
+        updates:{
+            create:["updateObjectBlock"],
+            update:["updateObjectBlock"]
+        }
+    },
+
+    photo:{
+        title:"Фото",
+        upload:uploadPhoto,
+        file:true,
+        fileRequired:true,
+        fileRequiredMessage:"Для фотографии необходимо выбрать файл",
+        parentsType:"objects",
+        dateMode:"date",
+        limits:{title:45,description:350,author:45},
+        fields:["author","date"],
+        updates:{
+            create:["addPhoto"],
+            update:["updatePhoto"]
+        }
+    },
+
+    source:{
+        title:"Источник",
+        upload:uploadSourceDocument,
+        file:true,
+        fileRequired:true,
+        fileRequiredMessage:"Для источника необходимо выбрать файл",
+        parentsType:"objects",
+        dateMode:"date",
+        limits:{title:45,description:2000,author:45},
+        fields:["author","date"],
+        updates:{
+            create:["addSource"],
+            update:["updateSource"]
+        }
+    },
+
     record:{
         title:"Запись",
         file:false,
@@ -24,14 +73,55 @@ const CONFIG={
         fields:["dateStart","dateEnd"],
         options:{typeSelector:true},
         updates:{
-            create:"addRecord",
-            update:"updateRecord"
+            create:["addRecord"],
+            update:["updateRecord"]
         }
     },
-    subject:{title:"Субъект",file:true,upload:uploadPhoto,fileRequired:false,dateMode:"period",limits:{title:60,description:350},fields:["dateStart","dateEnd"],options:{typeSelector:true,types:[]},updates:["updateSubjectBlock"]},
-    objectType:{title:"Тип объекта",entityType:"type",typeEditor:true,limits:{title:45,id:45},typeCategory:"objectType",targets:ALL_TARGETS},
-    recordType:{title:"Тип записи",entityType:"type",typeEditor:true,limits:{title:45,id:45},typeCategory:"recordType",targets:ALL_TARGETS},
-    subjectType:{title:"Тип субъекта",entityType:"type",typeEditor:true,limits:{title:45,id:45},typeCategory:"subjectType",targets:ALL_TARGETS}
+
+    subject:{
+        title:"Субъект",
+        file:true,
+        upload:uploadPhoto,
+        fileRequired:false,
+        dateMode:"period",
+        limits:{title:60,description:350},
+        fields:["dateStart","dateEnd"],
+        options:{
+            typeSelector:true,
+            types:[]
+        },
+        updates:{
+            create:["updateSubjectBlock"],
+            update:["updateSubjectBlock"]
+        }
+    },
+
+    objectType:{
+        title:"Тип объекта",
+        entityType:"type",
+        typeEditor:true,
+        limits:{title:45,id:45},
+        typeCategory:"objectType",
+        targets:ALL_TARGETS
+    },
+
+    recordType:{
+        title:"Тип записи",
+        entityType:"type",
+        typeEditor:true,
+        limits:{title:45,id:45},
+        typeCategory:"recordType",
+        targets:ALL_TARGETS
+    },
+
+    subjectType:{
+        title:"Тип субъекта",
+        entityType:"type",
+        typeEditor:true,
+        limits:{title:45,id:45},
+        typeCategory:"subjectType",
+        targets:ALL_TARGETS
+    }
 };
 
 function getDefaultEntity(type){
@@ -120,9 +210,23 @@ export async function openEditor(type,entity,context={}){
             const hasBackgroundTask=typeof backgroundTask==="function"&&data.hasNewFile===true;
             delete data.hasNewFile;
 
-            const isNewEntity=!entity?.id;
-            const updates=cfg.typeEditor?[]:(cfg.updates??[]);
-            const savedEntity=await updateEntity(type,entity,data,context,updates);
+const isNewEntity=!entity?.id;
+
+const updates=
+    cfg.typeEditor
+        ?[]
+        :isNewEntity
+            ?cfg.updates?.create??[]
+            :cfg.updates?.update??[];
+
+const savedEntity=
+    await updateEntity(
+        type,
+        entity,
+        data,
+        context,
+        updates
+    );
 
             if(type==="photo"&&savedEntity?.id)await context.updates?.updatePhoto?.(savedEntity,hasBackgroundTask);
             if(type==="subject"&&savedEntity?.id)await context.updates?.updateSubjectBlock?.(savedEntity,hasBackgroundTask);
