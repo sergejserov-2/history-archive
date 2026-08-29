@@ -6,7 +6,7 @@ import{renderDateTime}from"./date.js";
 import{getSubject}from"../../api/subjects.js";
 import{compareEntities}from"./sort.js";
 
-const PAGE_SIZE=500;
+const PAGE_SIZE=100;
 
 let currentActivityModal=null;
 
