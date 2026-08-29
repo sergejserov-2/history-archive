@@ -1,19 +1,12 @@
-import{
-    renderMentions,
-    getSubjectHref
-}from"./mentionLink.js";
+import{renderMentions,getSubjectHref}from"./mentionLink.js";
 import{
     renderEntityList,
     insertEntityListItem,
     showEntityListItem,
     removeEntityListItem
 }from"./entityList.js";
-import{compareEntities}from"./sort.js";
-import{
-    adminEdit,
-    adminDelete,
-    adminAdd
-}from"./adminButtons.js";
+import{compareEntities,sortEntities}from"./sort.js";
+import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
 
 function formatBoundary(value,prefix){
     if(!value)return"";
@@ -36,25 +29,16 @@ function getPeriod(record){
         return record.date||"—";
     }
 
-    if(
-        record.dateStart&&
-        record.dateEnd
-    ){
+    if(record.dateStart&&record.dateEnd){
         return`${record.dateStart} – ${record.dateEnd}`;
     }
 
     if(record.dateStart){
-        return formatBoundary(
-            record.dateStart,
-            "с"
-        );
+        return formatBoundary(record.dateStart,"с");
     }
 
     if(record.dateEnd){
-        return formatBoundary(
-            record.dateEnd,
-            "до"
-        );
+        return formatBoundary(record.dateEnd,"до");
     }
 
     return"—";
@@ -64,24 +48,27 @@ function getRecordData(record,subjects=[]){
     return{
         id:record.id,
         title:record.title??"",
-        description:
-            record.description?.trim()
-                ?renderMentions(
-                    record.description.trim(),
-                    subjects,
-                    getSubjectHref
-                )
-                :"",
+        description:record.description?.trim()
+            ?renderMentions(
+                record.description.trim(),
+                subjects,
+                getSubjectHref
+            )
+            :"",
         meta:getPeriod(record),
         actions:
             `${adminEdit("record",record.id)}${adminDelete("record",record.id)}`
     };
 }
 
-function getRecordGroupId(
-    record,
-    recordTypes=[]
-){
+function getRecordSortData(record){
+    return{
+        meta:getPeriod(record),
+        title:record.title??""
+    };
+}
+
+function getRecordGroupId(record,recordTypes=[]){
     if(!record.typeId){
         return"__without-type__";
     }
@@ -91,10 +78,7 @@ function getRecordGroupId(
     )?.id??"__without-type__";
 }
 
-function getRecordGroupTitle(
-    record,
-    recordTypes=[]
-){
+function getRecordGroupTitle(record,recordTypes=[]){
     if(!record.typeId){
         return"Без типа";
     }
@@ -104,22 +88,10 @@ function getRecordGroupTitle(
     )?.title??"Без типа";
 }
 
-export function renderRecord(
-    record,
-    subjects=[]
-){
-    const item=getRecordData(
-        record,
-        subjects
-    );
-
-    const hasDescription=Boolean(
-        item.description?.trim()
-    );
-
-    const hasMeta=Boolean(
-        item.meta?.trim()
-    );
+export function renderRecord(record,subjects=[]){
+    const item=getRecordData(record,subjects);
+    const hasDescription=Boolean(item.description?.trim());
+    const hasMeta=Boolean(item.meta?.trim());
 
     const rowClass=[
         "entity-list-row",
@@ -129,9 +101,7 @@ export function renderRecord(
         hasMeta
             ?"entity-list-row--meta"
             :""
-    ]
-        .filter(Boolean)
-        .join(" ");
+    ].filter(Boolean).join(" ");
 
     return`
         <div
@@ -169,78 +139,41 @@ export function renderRecord(
     `;
 }
 
-function createRecordElement(
-    record,
-    subjects=[]
-){
-    const template=
-        document.createElement("template");
-
-    template.innerHTML=
-        renderRecord(
-            record,
-            subjects
-        ).trim();
-
+function createRecordElement(record,subjects=[]){
+    const template=document.createElement("template");
+    template.innerHTML=renderRecord(record,subjects).trim();
     return template.content.firstElementChild;
 }
 
-function getInsertResult(
-    record,
-    subjects=[],
-    recordTypes=[]
-){
-    const element=createRecordElement(
-        record,
-        subjects
-    );
+function getRecordElementData(row){
+    return{
+        meta:row.querySelector(
+            ".entity-list-row__meta"
+        )?.textContent.trim()??"",
+        title:row.querySelector(
+            ".entity-list-row__title-text"
+        )?.textContent.trim()??""
+    };
+}
 
+function getInsertResult(record,subjects=[],recordTypes=[]){
+    const element=createRecordElement(record,subjects);
     if(!element)return null;
 
-    const item=getRecordData(
-        record,
-        subjects
-    );
+    const item=getRecordSortData(record);
 
     return insertEntityListItem({
-        groupId:
-            getRecordGroupId(
-                record,
-                recordTypes
-            ),
-        groupTitle:
-            getRecordGroupTitle(
-                record,
-                recordTypes
-            ),
+        groupId:getRecordGroupId(record,recordTypes),
+        groupTitle:getRecordGroupTitle(record,recordTypes),
         element,
-        compare:(_,row)=>{
-            const meta=
-                row.querySelector(
-                    ".entity-list-row__meta"
-                )?.textContent.trim()??"";
-
-            const title=
-                row.querySelector(
-                    ".entity-list-row__title-text"
-                )?.textContent.trim()??"";
-
-            return compareEntities(
-                item,
-                {
-                    meta,
-                    title
-                }
-            );
-        }
+        compare:(_,row)=>compareEntities(
+            item,
+            getRecordElementData(row)
+        )
     });
 }
 
-export function insertRecord(
-    record,
-    subjects=[],
-    recordTypes=[]
-){
+export function insertRecord(record,subjects=[],recordTypes=[]){
     const result=getInsertResult(
         record,
         subjects,
@@ -280,6 +213,61 @@ export async function removeRecordFromList(id){
     });
 }
 
+export async function updateRecordInList(
+    record,
+    subjects=[],
+    recordTypes=[]
+){
+    const oldElement=document.querySelector(
+        `.entity-list-row[data-id="${record.id}"]`
+    );
+
+    if(!oldElement){
+        return await addRecordToList(
+            record,
+            subjects,
+            recordTypes
+        );
+    }
+
+    const oldGroup=oldElement.closest(".entity-list__group");
+    const oldGroupId=oldGroup?.dataset.entityGroup??null;
+    const newGroupId=getRecordGroupId(
+        record,
+        recordTypes
+    );
+
+    if(oldGroupId!==newGroupId){
+        await removeRecordFromList(record.id);
+
+        return await addRecordToList(
+            record,
+            subjects,
+            recordTypes
+        );
+    }
+
+    const element=createRecordElement(record,subjects);
+    if(!element)return null;
+
+    oldElement.remove();
+
+    const item=getRecordSortData(record);
+
+    return insertEntityListItem({
+        groupId:newGroupId,
+        groupTitle:getRecordGroupTitle(
+            record,
+            recordTypes
+        ),
+        element,
+        compare:(_,row)=>compareEntities(
+            item,
+            getRecordElementData(row)
+        )
+    })?.element??null;
+}
+
 export function renderRecords(
     records,
     recordTypes=[],
@@ -287,58 +275,53 @@ export function renderRecords(
 ){
     const groups=[];
 
-    const typedRecords=recordTypes
-        .map(recordType=>({
-            type:recordType,
-            records:(records??[]).filter(
-                record=>
-                    record.typeId===
-                    recordType.id
-            )
-        }))
-        .filter(
-            group=>
-                group.records.length>0
+    recordTypes.forEach(recordType=>{
+        const typeRecords=(records??[]).filter(
+            record=>record.typeId===recordType.id
         );
 
-    const recordsWithoutType=
-        (records??[]).filter(
-            record=>
-                !record.typeId||
-                !recordTypes.some(
-                    type=>
-                        type.id===
-                        record.typeId
-                )
-        );
+        if(!typeRecords.length)return;
 
-    typedRecords.forEach(group=>{
+        const items=sortEntities(
+            typeRecords.map(record=>({
+                record,
+                ...getRecordSortData(record)
+            }))
+        ).map(item=>getRecordData(
+            item.record,
+            subjects
+        ));
+
         groups.push({
-            id:group.type.id,
-            title:group.type.title??"",
-            items:
-                group.records.map(
-                    record=>
-                        getRecordData(
-                            record,
-                            subjects
-                        )
-                )
+            id:recordType.id,
+            title:recordType.title??"",
+            items
         });
     });
 
+    const recordsWithoutType=(records??[]).filter(
+        record=>
+            !record.typeId||
+            !recordTypes.some(
+                type=>type.id===record.typeId
+            )
+    );
+
     if(recordsWithoutType.length){
+        const items=sortEntities(
+            recordsWithoutType.map(record=>({
+                record,
+                ...getRecordSortData(record)
+            }))
+        ).map(item=>getRecordData(
+            item.record,
+            subjects
+        ));
+
         groups.push({
             id:"__without-type__",
             title:"Без типа",
-            items:
-                recordsWithoutType.map(
-                    record=>
-                        getRecordData(
-                            record,
-                            subjects
-                        )
-                )
+            items
         });
     }
 
@@ -346,15 +329,11 @@ export function renderRecords(
         <div class="records">
             ${renderEntityList({
                 groups,
-                addButton:
-                    adminAdd(
-                        "add-record",
-                        "Добавить запись"
-                    )
+                addButton:adminAdd(
+                    "add-record",
+                    "Добавить запись"
+                )
             })}
         </div>
     `;
 }
-
-
-
