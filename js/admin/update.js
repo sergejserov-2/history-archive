@@ -25,8 +25,8 @@ import{
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
 import{getCurrentUser}from"./adminMode.js";
 import{createActivity}from"../api/activity.js";
-import{animateResize}from"../ui/components/resize.js";
-import{show,hide}from"../ui/components/animation.js";
+import{animateResize}from"../ui/animations/resize.js";
+import{show,hide}from"../ui/animations/controller.js";
 
 function getAdminEmail(){
     return getCurrentUser()?.email??"";
