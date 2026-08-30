@@ -56,28 +56,30 @@ function setupPhotoDrag(list){
         return[activeCard];
     }
 
-    function calculateBounds(){
-        const cards=getCards();
+function calculateBounds(){
+    const cards=getCards();
 
-        if(!cards.length)return{min:0,max:0};
+    if(!cards.length)return{min:0,max:0};
 
-        const first=cards[0].getBoundingClientRect();
-        const last=cards.at(-1).getBoundingClientRect();
-        const listRect=list.getBoundingClientRect();
+    const first=cards[0].getBoundingClientRect();
+    const last=cards.at(-1).getBoundingClientRect();
+    const listRect=list.getBoundingClientRect();
 
-        const addCard=list.querySelector(".photo-card--add");
-        const addRect=addCard?.getBoundingClientRect();
-        const gap=parseFloat(getComputedStyle(list).gap)||0;
+    const addCard=list.querySelector(".photo-card--add");
+    const addRect=addCard?.getBoundingClientRect();
+    const gap=parseFloat(getComputedStyle(list).gap)||0;
 
-        const leftBoundary=addRect
-            ?addRect.right+gap
-            :listRect.left;
+    const leftBoundary=addRect
+        ?addRect.right+gap
+        :first.left;
 
-        return{
-            min:leftBoundary-first.left,
-            max:listRect.right-last.right
-        };
-    }
+    const rightBoundary=listRect.right;
+
+    return{
+        min:leftBoundary-first.left,
+        max:rightBoundary-last.right
+    };
+}
 
     function applyOffset(){
         getMovingCards().forEach(card=>{
