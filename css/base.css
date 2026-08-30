@@ -40,6 +40,9 @@
     --color-deteriorating-bg: rgba(210, 120, 40, .18);
     --color-deteriorating-border: rgba(230, 140, 55, .8);
 
+   --color-accent:#a5d2ff;
+   --color-accent-hover:#c3e1ff;
+
 
     /* ---------- LAYOUT ---------- */
     --page-width: 1100px;
@@ -201,7 +204,7 @@ input {
     font-size:var(--font-size-xl);
     text-decoration:none;
     font-weight:600;
-    color:#a5d2ff;
+    color:var(--color-accent);
     align-content:center;
     padding:0 16px;
 }
@@ -673,7 +676,7 @@ html.animation--running{
     background:rgba(100,150,190,.12);
     border-radius:var(--radius-2xl);
 
-    color:var(--color-text-secondary);
+    color:var(--color-accent);
 }
 
 .feedback-prompt__content{
@@ -695,7 +698,7 @@ html.animation--running{
     border:none;
     border-radius:var(--radius-lg);
 
-    color:#a5d2ff;
+    color:var(--color-accent);
     font:inherit;
     font-size:var(--font-size-md);
     cursor:pointer;
@@ -721,7 +724,7 @@ html.animation--running{
     background:transparent;
     border:none;
 
-    color:var(--color-text-faded);
+    color:var(--color-accent);
     font-size:20px;
     line-height:24px;
 
@@ -731,7 +734,7 @@ html.animation--running{
 }
 
 .feedback-prompt__close:hover{
-    color:var(--color-text-primary);
+    color:var(--color-accent-hover);
 }
 
 
