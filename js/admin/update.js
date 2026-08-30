@@ -25,13 +25,8 @@ import{
 import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
 import{getCurrentUser}from"./adminMode.js";
 import{createActivity}from"../api/activity.js";
-
-
-
-
-import{animateResize}from"../ui/animations/resize.js";
-import{show,hide}from"../ui/animations/controller.js";
-
+import{animateResize}from"../ui/components/resize.js";
+import{show,hide}from"../ui/components/animation.js";
 
 function getAdminEmail(){
     return getCurrentUser()?.email??"";
@@ -471,119 +466,120 @@ export async function deleteEntity(
 export function createPageUpdates(state){
     return{
         async updateObjectBlock(data){
-    if(data){
-        state.object={
-            ...state.object,
-            ...data
-        };
-    }
+            if(data){
+                state.object={
+                    ...state.object,
+                    ...data
+                };
+            }
 
-    state.object=await getObject(
-        state.object.id
-    );
+            state.object=await getObject(
+                state.object.id
+            );
 
-    if(!state.object)return;
+            if(!state.object)return;
 
-    const title=document.querySelector(
-        ".object__title-text"
-    );
+            const title=document.querySelector(
+                ".object__title-text"
+            );
 
-    if(title){
-        title.textContent=
-            state.object.title??"";
-    }
+            if(title){
+                title.textContent=
+                    state.object.title??"";
+            }
 
-    const description=document.querySelector(
-        ".object__description"
-    );
+            const description=document.querySelector(
+                ".object__description"
+            );
 
-    const{
-        renderMentions,
-        getSubjectHref
-    }=await import(
-        "../ui/components/mentionLink.js"
-    );
-
-    const text=
-        state.object.description?.trim()??"";
-
-    if(description){
-        if(!text){
-            await hide(description);
-        }else{
-            const html=renderMentions(
-                text,
-                state.subjects,
+            const{
+                renderMentions,
                 getSubjectHref
+            }=await import(
+                "../ui/components/mentionLink.js"
             );
 
-            if(description.hidden){
-                description.innerHTML=html;
-                await show(description);
-            }else{
-                await animateResize(
-                    description,
-                    ()=>{
+            const text=
+                state.object.description?.trim()??"";
+
+            if(description){
+                if(!text){
+                    await hide(description);
+                }else{
+                    const html=renderMentions(
+                        text,
+                        state.subjects,
+                        getSubjectHref
+                    );
+
+                    if(description.hidden){
                         description.innerHTML=html;
+                        await show(description);
+                    }else{
+                        await animateResize(
+                            description,
+                            ()=>{
+                                description.innerHTML=html;
+                            }
+                        );
                     }
+                }
+            }else if(text){
+                const info=document.querySelector(
+                    ".object__info"
                 );
+
+                if(info){
+                    const newDescription=
+                        document.createElement("div");
+
+                    newDescription.className=
+                        "object__description";
+
+                    newDescription.innerHTML=
+                        renderMentions(
+                            text,
+                            state.subjects,
+                            getSubjectHref
+                        );
+
+                    const records=info.querySelector(
+                        ".records"
+                    );
+
+                    if(records){
+                        info.insertBefore(
+                            newDescription,
+                            records
+                        );
+                    }else{
+                        info.append(newDescription);
+                    }
+
+                    newDescription.hidden=true;
+
+                    await show(newDescription);
+                }
             }
-        }
-    }else if(text){
-        const info=document.querySelector(
-            ".object__info"
-        );
 
-        if(info){
-            const newDescription=
-                document.createElement("div");
-
-            newDescription.className=
-                "object__description";
-
-            newDescription.innerHTML=
-                renderMentions(
-                    text,
-                    state.subjects,
-                    getSubjectHref
-                );
-
-            const records=info.querySelector(
-                ".records"
+            const type=document.querySelector(
+                ".object__type"
             );
 
-            if(records){
-                info.insertBefore(
-                    newDescription,
-                    records
-                );
-            }else{
-                info.append(newDescription);
+            if(type){
+                const objectType=
+                    state.types?.find(
+                        item=>
+                            item.id===
+                            state.object.typeId
+                    );
+
+                type.textContent=
+                    objectType?.title??"";
             }
 
-            newDescription.hidden=true;
-
-            await show(newDescription);
-        }
-    }
-
-    const type=document.querySelector(
-        ".object__type"
-    );
-
-    if(type){
-        const objectType=
-            state.types?.find(
-                item=>
-                    item.id===
-                    state.object.typeId
-            );
-
-        type.textContent=
-            objectType?.title??"";
-    }
-},
-
+            await state.renderCoverState?.();
+        },
 
         async updateSubjectBlock(
             savedSubject=null,
