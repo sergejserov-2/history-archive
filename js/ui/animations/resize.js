@@ -176,8 +176,12 @@ function animateGroup(elements,mode,duration){
         function frame(now){
             const t=Math.min(1,(now-start)/duration);
             const e=ease(t);
-            for(const item of animations)
-                setMargins(item.el,interpolate(item.from,item.to,e));
+            for(const item of animations){
+                setMargins(
+                    item.el,
+                    interpolate(item.from,item.to,e)
+                );
+            }
             if(t<1){
                 const frameId=requestAnimationFrame(frame);
                 for(const item of animations)item.el._animationFrame=frameId;
@@ -202,11 +206,65 @@ export function cancelSizeAnimation(el){
     if(!el)return;
     stop(el);
     clear(el);
+    el.style.removeProperty("height");
+    el.style.removeProperty("overflow");
 }
 
 export function clearSizeAnimation(el){
     if(!el)return;
     clear(el);
+    el.style.removeProperty("height");
+    el.style.removeProperty("overflow");
+}
+
+export function animateResize(el,update){
+    if(!el)return Promise.resolve();
+
+    stop(el);
+
+    const from=el.getBoundingClientRect().height;
+
+    el.style.height="auto";
+    el.style.overflow="hidden";
+
+    update?.();
+
+    const to=el.getBoundingClientRect().height;
+
+    if(from===to){
+        clearSizeAnimation(el);
+        return Promise.resolve();
+    }
+
+    el.style.height=`${from}px`;
+    void el.offsetHeight;
+
+    return new Promise(resolve=>{
+        const start=performance.now();
+
+        function frame(now){
+            const t=Math.min(1,(now-start)/EXPAND_DURATION);
+            const height=from+(to-from)*ease(t);
+
+            el.style.height=`${height}px`;
+
+            if(t<1){
+                el._animationFrame=requestAnimationFrame(frame);
+                return;
+            }
+
+            el._animationFrame=null;
+            el.style.height=`${to}px`;
+
+            el._animationTimer=setTimeout(()=>{
+                el._animationTimer=null;
+                clearSizeAnimation(el);
+                resolve();
+            },20);
+        }
+
+        el._animationFrame=requestAnimationFrame(frame);
+    });
 }
 
 export function animateExpand(el){
