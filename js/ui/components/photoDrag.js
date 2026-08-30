@@ -71,7 +71,7 @@ function setupPhotoDrag(list){
 
         const leftBoundary=addRect
             ?addRect.right+gap
-            :listRect.left;
+            :first.left;
 
         return{
             min:leftBoundary-first.left,
