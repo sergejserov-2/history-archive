@@ -5,11 +5,11 @@ export function renderFooter(){
                 <div class="footer__main">
                     <div class="footer__project">
                         <div class="footer__title">
-                            История Краснохолмского района
+                            Краснохолмское краеведение
                         </div>
                         <div class="footer__description">
-                            Краеведческий архив, посвящённый истории
-                            Краснохолмского района.
+                            Цифровой архив, посвящённый истории
+                            Краснохолмского района. Авторы проекта - Сергей и Ангелина Серовы.
                         </div>
                     </div>
 
