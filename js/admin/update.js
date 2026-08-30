@@ -26,6 +26,13 @@ import{updateSubjectModal,setSubjectUploading}from"../ui/components/subject.js";
 import{getCurrentUser}from"./adminMode.js";
 import{createActivity}from"../api/activity.js";
 
+
+
+
+import{animateResize}from"../ui/animations/resize.js";
+import{show,hide}from"../ui/animations/controller.js";
+
+
 function getAdminEmail(){
     return getCurrentUser()?.email??"";
 }
@@ -464,69 +471,119 @@ export async function deleteEntity(
 export function createPageUpdates(state){
     return{
         async updateObjectBlock(data){
-            if(data){
-                state.object={
-                    ...state.object,
-                    ...data
-                };
+    if(data){
+        state.object={
+            ...state.object,
+            ...data
+        };
+    }
+
+    state.object=await getObject(
+        state.object.id
+    );
+
+    if(!state.object)return;
+
+    const title=document.querySelector(
+        ".object__title-text"
+    );
+
+    if(title){
+        title.textContent=
+            state.object.title??"";
+    }
+
+    const description=document.querySelector(
+        ".object__description"
+    );
+
+    const{
+        renderMentions,
+        getSubjectHref
+    }=await import(
+        "../ui/components/mentionLink.js"
+    );
+
+    const text=
+        state.object.description?.trim()??"";
+
+    if(description){
+        if(!text){
+            await hide(description);
+        }else{
+            const html=renderMentions(
+                text,
+                state.subjects,
+                getSubjectHref
+            );
+
+            if(description.hidden){
+                description.innerHTML=html;
+                await show(description);
+            }else{
+                await animateResize(
+                    description,
+                    ()=>{
+                        description.innerHTML=html;
+                    }
+                );
             }
+        }
+    }else if(text){
+        const info=document.querySelector(
+            ".object__info"
+        );
 
-            state.object=await getObject(
-                state.object.id
-            );
+        if(info){
+            const newDescription=
+                document.createElement("div");
 
-            if(!state.object)return;
+            newDescription.className=
+                "object__description";
 
-            const title=document.querySelector(
-                ".object__title-text"
-            );
-
-            if(title){
-                title.textContent=
-                    state.object.title??"";
-            }
-
-            const description=document.querySelector(
-                ".object__description"
-            );
-
-            if(description){
-                const{
-                    renderMentions,
+            newDescription.innerHTML=
+                renderMentions(
+                    text,
+                    state.subjects,
                     getSubjectHref
-                }=await import(
-                    "../ui/components/mentionLink.js"
                 );
 
-                description.innerHTML=
-                    state.object.description?.trim()
-                        ?renderMentions(
-                            state.object.description.trim(),
-                            state.subjects,
-                            getSubjectHref
-                        )
-                        :"";
-
-                description.hidden=
-                    !state.object.description?.trim();
-            }
-
-            const type=document.querySelector(
-                ".object__type"
+            const records=info.querySelector(
+                ".records"
             );
 
-            if(type){
-                const objectType=
-                    state.types?.find(
-                        item=>
-                            item.id===
-                            state.object.typeId
-                    );
-
-                type.textContent=
-                    objectType?.title??"";
+            if(records){
+                info.insertBefore(
+                    newDescription,
+                    records
+                );
+            }else{
+                info.append(newDescription);
             }
-        },
+
+            newDescription.hidden=true;
+
+            await show(newDescription);
+        }
+    }
+
+    const type=document.querySelector(
+        ".object__type"
+    );
+
+    if(type){
+        const objectType=
+            state.types?.find(
+                item=>
+                    item.id===
+                    state.object.typeId
+            );
+
+        type.textContent=
+            objectType?.title??"";
+    }
+},
+
 
         async updateSubjectBlock(
             savedSubject=null,
