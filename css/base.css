@@ -916,9 +916,9 @@ button.admin-button:hover {
 
 .footer{
     max-width:var(--page-width);
-    margin:var(--space-10) auto 0;
+    margin:var(--space-10) auto var(--space-10);
     padding:
-        var(--space-10)
+        var(--space-4)
         var(--space-8);
 }
 
@@ -944,14 +944,14 @@ button.admin-button:hover {
 }
 
 .footer__title{
-    color:var(--color-text-primary);
+    color:var(--color-text-dim);
     font-size:var(--font-size-xl);
     font-weight:600;
 }
 
 .footer__description{
     max-width:360px;
-    color:var(--color-text-faded);
+    color:var(--color-border-hover);
     font-size:var(--font-size-md);
     line-height:1.5;
 }
@@ -965,7 +965,7 @@ button.admin-button:hover {
 
 .footer__heading{
     margin-bottom:var(--space-2);
-    color:var(--color-text-secondary);
+    color:var(--color-text-disabled);
     font-size:var(--font-size-md);
     font-weight:600;
 }
@@ -975,7 +975,7 @@ button.admin-button:hover {
     background:none;
     border:none;
 
-    color:var(--color-text-faded);
+    color:var(--color-border-hover);
     font:inherit;
     font-size:var(--font-size-md);
     text-align:left;
@@ -987,7 +987,7 @@ button.admin-button:hover {
 }
 
 .footer__link:hover{
-    color:var(--color-text-primary);
+    color:var(--color-text-dim);
 }
 
 .footer__bottom{
@@ -997,8 +997,8 @@ button.admin-button:hover {
 
     padding-top:var(--space-8);
 
-    border-top:1px solid var(--color-border);
+    border-top:1px solid var(--color-surface);
 
-    color:var(--color-text-disabled);
+    color:var(--color-border-hover);
     font-size:var(--font-size-sm);
 }
