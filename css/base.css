@@ -40,8 +40,8 @@
     --color-deteriorating-bg: rgba(210, 120, 40, .18);
     --color-deteriorating-border: rgba(230, 140, 55, .8);
 
-   --color-accent:#a5d2ff;
-   --color-accent-hover:#c3e1ff;
+   --color-accent-primary:#a5d2ff;
+   --color-accent-secondary:#6a8caf;
 
 
     /* ---------- LAYOUT ---------- */
@@ -204,7 +204,7 @@ input {
     font-size:var(--font-size-xl);
     text-decoration:none;
     font-weight:600;
-    color:var(--color-accent);
+    color:var(--color-accent-primary);
     align-content:center;
     padding:0 16px;
 }
@@ -676,7 +676,7 @@ html.animation--running{
     background:rgba(100,150,190,.12);
     border-radius:var(--radius-2xl);
 
-    color:var(--color-accent);
+    color:var(--color-accent-secondary);
 }
 
 .feedback-prompt__content{
@@ -698,7 +698,7 @@ html.animation--running{
     border:none;
     border-radius:var(--radius-lg);
 
-    color:var(--color-accent-hover);
+    color:var(--color-accent-primary);
     font:inherit;
     font-size:var(--font-size-md);
     cursor:pointer;
@@ -724,7 +724,7 @@ html.animation--running{
     background:transparent;
     border:none;
 
-    color:var(--color-accent);
+    color:var(--color-accent-secondary);
     font-size:20px;
     line-height:24px;
 
@@ -734,7 +734,7 @@ html.animation--running{
 }
 
 .feedback-prompt__close:hover{
-    color:var(--color-accent-hover);
+    color:var(--color-accent-primary);
 }
 
 
