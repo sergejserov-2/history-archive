@@ -21,6 +21,7 @@ import{renderMentions,getSubjectHref}from"../components/mentionLink.js";
 import{restoreModalFromUrl}from"../components/modalReload.js";
 import{createPageUpdates}from"../../admin/update.js";
 import{renderFeedbackPrompt,initFeedbackPrompt}from"../components/feedbackPrompt.js";
+import{renderFooter}from"../components/footer.js";
 import{initCoverDrag}from"../components/coverDrag.js";
 import{initPhotoDrag}from"../components/photoDrag.js";
 import{initPageLoader,revealPage}from"../components/pageLoader.js";
@@ -187,6 +188,7 @@ async function renderPage(){
                 ${childrenHTML}
             </section>
         </main>
+        ${renderFooter()}
     `;
     initCoverDrag(document);
     initPhotoDrag(document);
