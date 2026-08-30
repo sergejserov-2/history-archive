@@ -45,7 +45,7 @@ export function openFeedbackForm(object){
                 ${fields.descriptionField}
                 ${renderFileEditorHTML({multiple:true})}
                 <div class="feedback-form__object">
-                    <div>Объект</div>
+                    <div class="feedback-form__label">Объект</div>
                     <strong>${escapeHTML(object.title??"")}</strong>
                     ${object.address?`
                         <div>${escapeHTML(object.address)}</div>
