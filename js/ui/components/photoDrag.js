@@ -20,9 +20,7 @@ function setupPhotoDrag(list){
     function getCards(){
         return[
             ...list.querySelectorAll("[data-photo-drag]")
-        ].filter(
-            card=>!card.classList.contains("photo-card--add")
-        );
+        ].filter(card=>!card.classList.contains("photo-card--add"));
     }
 
     function getGap(){
@@ -37,16 +35,7 @@ function setupPhotoDrag(list){
         const addCard=list.querySelector(".photo-card--add");
 
         if(addCard){
-            const rect=addCard.getBoundingClientRect();
-
-            return rect.right+getGap();
-        }
-
-        const cards=getCards();
-        const first=cards[0];
-
-        if(first){
-            return first.getBoundingClientRect().left;
+            return addCard.getBoundingClientRect().right+getGap();
         }
 
         return list.getBoundingClientRect().left;
@@ -60,31 +49,23 @@ function setupPhotoDrag(list){
         const cards=getCards();
 
         if(!cards.length){
-            return{
-                min:0,
-                max:0
-            };
+            return{min:0,max:0};
         }
 
         const first=cards[0].getBoundingClientRect();
         const last=cards.at(-1).getBoundingClientRect();
 
-        const leftBoundary=getLeftBoundary();
-        const rightBoundary=getRightBoundary();
-
         return{
-            min:leftBoundary-first.left,
-            max:rightBoundary-last.right
+            min:getLeftBoundary()-first.left,
+            max:getRightBoundary()-last.right
         };
     }
 
     function canDrag(){
-        const newBounds=calculateBounds();
+        const currentBounds=calculateBounds();
 
-        return(
-            newBounds.min<-1||
-            newBounds.max>1
-        );
+        return currentBounds.min<-1||
+            currentBounds.max>1;
     }
 
     function getMovingCards(){
@@ -96,13 +77,8 @@ function setupPhotoDrag(list){
 
         if(index<0)return[];
 
-        if(direction>0){
-            return cards.slice(index);
-        }
-
-        if(direction<0){
-            return cards.slice(0,index+1);
-        }
+        if(direction>0)return cards.slice(index);
+        if(direction<0)return cards.slice(0,index+1);
 
         return[activeCard];
     }
