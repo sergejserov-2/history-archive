@@ -64,18 +64,12 @@ function setupPhotoDrag(list){
             );
         });
 
-        const leftBoundary=addRect
-            ?addRect.right
-            :listRect.left;
-
         console.log("[photoDrag] geometry",{
             listLeft:listRect.left,
             listRight:listRect.right,
             listWidth:listRect.width,
             addLeft:addRect?.left,
             addRight:addRect?.right,
-            leftBoundary,
-            rightBoundary:listRect.right,
             scrollLeft:list.scrollLeft,
             cards:[...cardRects.entries()].map(
                 ([card,rect])=>({
@@ -87,8 +81,9 @@ function setupPhotoDrag(list){
         });
 
         return{
-            leftBoundary,
+            leftBoundary:listRect.left,
             rightBoundary:listRect.right,
+            addRight:addRect?.right??null,
             cards:cardRects
         };
     }
@@ -129,8 +124,18 @@ function setupPhotoDrag(list){
                 )
             );
 
+            let leftBoundary=
+                geometry.leftBoundary;
+
+            if(geometry.addRight!==null){
+                leftBoundary=Math.max(
+                    leftBoundary,
+                    geometry.addRight
+                );
+            }
+
             const minOffset=
-                geometry.leftBoundary-movingLeft;
+                leftBoundary-movingLeft;
 
             return Math.max(
                 minOffset,
@@ -212,6 +217,7 @@ function setupPhotoDrag(list){
             cardId:card.dataset.photoId,
             startX,
             leftBoundary:geometry.leftBoundary,
+            addRight:geometry.addRight,
             rightBoundary:geometry.rightBoundary
         });
     }
@@ -262,15 +268,6 @@ function setupPhotoDrag(list){
 
         applyOffset();
 
-        console.log("[photoDrag] move",{
-            delta,
-            direction,
-            offsetX,
-            movingCards:getMovingCards().map(
-                card=>card.dataset.photoId
-            )
-        });
-
         event.preventDefault();
     }
 
@@ -301,11 +298,6 @@ function setupPhotoDrag(list){
         }
 
         resetCards();
-
-        console.log("[photoDrag] finish",{
-            cancelled,
-            wasMoved
-        });
 
         activeCard=null;
         activeMedia=null;
