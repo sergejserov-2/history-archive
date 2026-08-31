@@ -20,6 +20,10 @@ function setupPhotoDrag(list){
         return [...list.querySelectorAll("[data-photo-drag]")];
     }
 
+    function getAddCard(){
+        return list.querySelector(".photo-card--add");
+    }
+
     function resetTransformsOnly(){
         getCards().forEach(card=>{
             card.style.transform="translate3d(0,0,0)";
@@ -49,6 +53,8 @@ function setupPhotoDrag(list){
         if(!cards.length)return null;
 
         const listRect=list.getBoundingClientRect();
+        const addCard=getAddCard();
+        const addRect=addCard?.getBoundingClientRect();
         const cardRects=new Map();
 
         cards.forEach(card=>{
@@ -58,10 +64,18 @@ function setupPhotoDrag(list){
             );
         });
 
+        const leftBoundary=addRect
+            ?addRect.right
+            :listRect.left;
+
         console.log("[photoDrag] geometry",{
             listLeft:listRect.left,
             listRight:listRect.right,
             listWidth:listRect.width,
+            addLeft:addRect?.left,
+            addRight:addRect?.right,
+            leftBoundary,
+            rightBoundary:listRect.right,
             scrollLeft:list.scrollLeft,
             cards:[...cardRects.entries()].map(
                 ([card,rect])=>({
@@ -73,7 +87,7 @@ function setupPhotoDrag(list){
         });
 
         return{
-            leftBoundary:listRect.left,
+            leftBoundary,
             rightBoundary:listRect.right,
             cards:cardRects
         };
@@ -176,6 +190,7 @@ function setupPhotoDrag(list){
         resetTransformsOnly();
 
         void list.offsetHeight;
+
         geometry=saveGeometry();
 
         if(!geometry)return;
