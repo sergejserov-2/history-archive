@@ -1,10 +1,6 @@
 export function createViewerControls({currentIndex,total,onPrevious,onNext}){
-
     const controls=document.createElement("div");
     controls.className="viewer-controls";
-
-    const position=document.createElement("div");
-    position.className="viewer-controls__position";
 
     const previousButton=document.createElement("button");
     previousButton.type="button";
@@ -18,10 +14,9 @@ export function createViewerControls({currentIndex,total,onPrevious,onNext}){
     nextButton.setAttribute("aria-label","Следующая фотография");
     nextButton.innerHTML="›";
 
-    controls.append(position,previousButton,nextButton);
+    controls.append(previousButton,nextButton);
 
     function update(index){
-        position.textContent=`Фотография ${index+1} из ${total}`;
         previousButton.disabled=index<=0;
         nextButton.disabled=index>=total-1;
     }
