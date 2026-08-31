@@ -2,6 +2,7 @@ import{renderMentions,getSubjectHref}from"./mentionLink.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
 import{sortEntities,insertSortedElement}from"./sort.js";
 import{show,hide}from"../animations/controller.js";
+import{animateResize}from"../animations/resize.js";
 
 function getSourcePeriod(source){
     if(source.dateMode==="period"){
@@ -27,7 +28,10 @@ export function renderSource(source,subjects=[]){
     const period=getSourcePeriod(source);
 
     return`
-        <div class="source" data-source-id="${source.id}">
+        <div
+            class="source"
+            data-source-id="${source.id}"
+        >
             <div class="source__header${description?"":" source__header--single"}">
                 <div class="source__title">
                     ${
@@ -62,7 +66,13 @@ export function renderSource(source,subjects=[]){
             ${
                 description
                     ?`
-                        <div class="source__description">${renderMentions(description,subjects,getSubjectHref)}</div>
+                        <div class="source__description">
+                            ${renderMentions(
+                                description,
+                                subjects,
+                                getSubjectHref
+                            )}
+                        </div>
                     `
                     :""
             }
@@ -103,15 +113,153 @@ function getSourceElementData(element){
         meta:element.querySelector(
             ".source__date"
         )?.textContent.trim()??"",
+
         author:element.querySelector(
             ".source__author"
         )?.textContent
             .replace(/,\s*$/,"")
             .trim()??"",
+
         title:element.querySelector(
             ".source__title-text"
         )?.textContent.trim()??""
     };
+}
+
+async function updateSourceElement(
+    element,
+    source,
+    subjects=[]
+){
+    const description=source.description?.trim();
+    const period=getSourcePeriod(source);
+
+    await animateResize(element,()=>{
+        const header=element.querySelector(
+            ".source__header"
+        );
+
+        const title=element.querySelector(
+            ".source__title"
+        );
+
+        const date=element.querySelector(
+            ".source__date"
+        );
+
+        const descriptionElement=element.querySelector(
+            ".source__description"
+        );
+
+        const download=element.querySelector(
+            ".source__download"
+        );
+
+        if(title){
+            const author=title.querySelector(
+                ".source__author"
+            );
+
+            const titleText=title.querySelector(
+                ".source__title-text"
+            );
+
+            if(source.author){
+                if(author){
+                    author.textContent=`${source.author},`;
+                }else{
+                    const newAuthor=document.createElement(
+                        "span"
+                    );
+
+                    newAuthor.className="source__author";
+                    newAuthor.textContent=`${source.author},`;
+
+                    title.insertBefore(
+                        newAuthor,
+                        title.firstChild
+                    );
+                }
+            }else{
+                author?.remove();
+            }
+
+            if(titleText){
+                titleText.textContent=source.title??"";
+            }
+        }
+
+        if(period){
+            if(date){
+                date.textContent=period;
+            }else if(header){
+                const newDate=document.createElement(
+                    "span"
+                );
+
+                newDate.className="source__date";
+                newDate.textContent=period;
+
+                header.append(newDate);
+            }
+        }else{
+            date?.remove();
+        }
+
+        if(header){
+            header.classList.toggle(
+                "source__header--single",
+                !description
+            );
+        }
+
+        if(description){
+            const html=renderMentions(
+                description,
+                subjects,
+                getSubjectHref
+            );
+
+            if(descriptionElement){
+                descriptionElement.innerHTML=html;
+            }else{
+                const newDescription=document.createElement(
+                    "div"
+                );
+
+                newDescription.className=
+                    "source__description";
+
+                newDescription.innerHTML=html;
+
+                if(download){
+                    element.insertBefore(
+                        newDescription,
+                        download
+                    );
+                }else{
+                    element.append(newDescription);
+                }
+            }
+        }else{
+            descriptionElement?.remove();
+        }
+
+        if(download){
+            download.innerHTML=source.storagePath
+                ?`
+                    <a
+                        class="source__download-button"
+                        href="${source.storagePath}"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        Скачать полный текст
+                    </a>
+                `
+                :"";
+        }
+    });
 }
 
 export function insertSource(source,subjects=[]){
@@ -162,6 +310,7 @@ export async function removeSourceFromList(id){
     if(!element)return;
 
     await hide(element);
+
     element.remove();
 }
 
@@ -169,27 +318,24 @@ export async function updateSourceInList(
     source,
     subjects=[]
 ){
-    const oldElement=document.querySelector(
+    const element=document.querySelector(
         `.source[data-source-id="${source.id}"]`
     );
 
-    if(!oldElement){
+    if(!element){
         return await addSourceToList(
             source,
             subjects
         );
     }
 
-    const list=oldElement.parentElement;
-
-    oldElement.remove();
-
-    const element=createSourceElement(
+    await updateSourceElement(
+        element,
         source,
         subjects
     );
 
-    if(!element)return null;
+    const list=element.parentElement;
 
     insertSortedElement({
         container:list,
