@@ -45,10 +45,10 @@ function setupPhotoDrag(list){
 
     function saveGeometry(){
         const cards=getCards();
-        const listRect=list.getBoundingClientRect();
 
         if(!cards.length)return null;
 
+        const listRect=list.getBoundingClientRect();
         const cardRects=new Map();
 
         cards.forEach(card=>{
@@ -62,6 +62,7 @@ function setupPhotoDrag(list){
             listLeft:listRect.left,
             listRight:listRect.right,
             listWidth:listRect.width,
+            scrollLeft:list.scrollLeft,
             cards:[...cardRects.entries()].map(
                 ([card,rect])=>({
                     id:card.dataset.photoId,
@@ -142,27 +143,6 @@ function setupPhotoDrag(list){
         return 0;
     }
 
-    function canStartDrag(){
-        const cards=getCards();
-
-        if(!cards.length)return false;
-
-        const data=saveGeometry();
-
-        if(!data)return false;
-
-        const firstRect=
-            data.cards.get(cards[0]);
-
-        const lastRect=
-            data.cards.get(cards.at(-1));
-
-        return(
-            firstRect.left<data.leftBoundary||
-            lastRect.right>data.rightBoundary
-        );
-    }
-
     function start(event){
         if(
             event.pointerType==="mouse"&&
@@ -196,26 +176,9 @@ function setupPhotoDrag(list){
         resetTransformsOnly();
 
         void list.offsetHeight;
-
         geometry=saveGeometry();
 
         if(!geometry)return;
-
-        const cards=getCards();
-
-        const firstRect=
-            geometry.cards.get(cards[0]);
-
-        const lastRect=
-            geometry.cards.get(cards.at(-1));
-
-        if(
-            firstRect.left>=geometry.leftBoundary&&
-            lastRect.right<=geometry.rightBoundary
-        ){
-            geometry=null;
-            return;
-        }
 
         dragging=true;
         activeCard=card;
@@ -229,6 +192,13 @@ function setupPhotoDrag(list){
         activeMedia.setPointerCapture?.(
             pointerId
         );
+
+        console.log("[photoDrag] start",{
+            cardId:card.dataset.photoId,
+            startX,
+            leftBoundary:geometry.leftBoundary,
+            rightBoundary:geometry.rightBoundary
+        });
     }
 
     function move(event){
@@ -277,6 +247,15 @@ function setupPhotoDrag(list){
 
         applyOffset();
 
+        console.log("[photoDrag] move",{
+            delta,
+            direction,
+            offsetX,
+            movingCards:getMovingCards().map(
+                card=>card.dataset.photoId
+            )
+        });
+
         event.preventDefault();
     }
 
@@ -307,6 +286,11 @@ function setupPhotoDrag(list){
         }
 
         resetCards();
+
+        console.log("[photoDrag] finish",{
+            cancelled,
+            wasMoved
+        });
 
         activeCard=null;
         activeMedia=null;
