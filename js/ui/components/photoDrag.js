@@ -24,6 +24,14 @@ function setupPhotoDrag(list){
         return list.querySelector(".photo-card--add");
     }
 
+    function getGap(){
+        const style=getComputedStyle(list);
+
+        return parseFloat(style.columnGap)||
+            parseFloat(style.gap)||
+            0;
+    }
+
     function resetTransformsOnly(){
         getCards().forEach(card=>{
             card.style.transform="translate3d(0,0,0)";
@@ -55,6 +63,7 @@ function setupPhotoDrag(list){
         const listRect=list.getBoundingClientRect();
         const addCard=getAddCard();
         const addRect=addCard?.getBoundingClientRect();
+        const gap=getGap();
         const cardRects=new Map();
 
         cards.forEach(card=>{
@@ -68,8 +77,12 @@ function setupPhotoDrag(list){
             listLeft:listRect.left,
             listRight:listRect.right,
             listWidth:listRect.width,
+            gap,
             addLeft:addRect?.left,
             addRight:addRect?.right,
+            addBoundary:addRect
+                ?addRect.right+gap
+                :null,
             scrollLeft:list.scrollLeft,
             cards:[...cardRects.entries()].map(
                 ([card,rect])=>({
@@ -83,7 +96,9 @@ function setupPhotoDrag(list){
         return{
             leftBoundary:listRect.left,
             rightBoundary:listRect.right,
-            addRight:addRect?.right??null,
+            addRight:addRect
+                ?addRect.right+gap
+                :null,
             cards:cardRects
         };
     }
