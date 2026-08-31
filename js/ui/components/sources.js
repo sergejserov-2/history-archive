@@ -5,18 +5,9 @@ import{show,hide}from"../animations/controller.js";
 
 function getSourcePeriod(source){
     if(source.dateMode==="period"){
-        if(source.dateStart&&source.dateEnd){
-            return`${source.dateStart} – ${source.dateEnd}`;
-        }
-
-        if(source.dateStart){
-            return`с ${source.dateStart}`;
-        }
-
-        if(source.dateEnd){
-            return`до ${source.dateEnd}`;
-        }
-
+        if(source.dateStart&&source.dateEnd)return`${source.dateStart} – ${source.dateEnd}`;
+        if(source.dateStart)return`с ${source.dateStart}`;
+        if(source.dateEnd)return`до ${source.dateEnd}`;
         return"";
     }
 
@@ -32,12 +23,12 @@ function getSourceData(source){
 }
 
 export function renderSource(source,subjects=[]){
+    const description=source.description?.trim();
+    const period=getSourcePeriod(source);
+
     return`
-        <div
-            class="source"
-            data-source-id="${source.id}"
-        >
-            <div class="source__header">
+        <div class="source" data-source-id="${source.id}">
+            <div class="source__header${description?"":" source__header--single"}">
                 <div class="source__title">
                     ${
                         source.author
@@ -58,10 +49,10 @@ export function renderSource(source,subjects=[]){
                 </div>
 
                 ${
-                    getSourcePeriod(source)
+                    period
                         ?`
                             <span class="source__date">
-                                ${getSourcePeriod(source)}
+                                ${period}
                             </span>
                         `
                         :""
@@ -69,11 +60,11 @@ export function renderSource(source,subjects=[]){
             </div>
 
             ${
-                source.description?.trim()
+                description
                     ?`
                         <div class="source__description">
                             ${renderMentions(
-                                source.description.trim(),
+                                description,
                                 subjects,
                                 getSubjectHref
                             )}
@@ -82,22 +73,22 @@ export function renderSource(source,subjects=[]){
                     :""
             }
 
-            ${
-                source.storagePath
-                    ?`
-                        <div class="source__download">
+            <div class="source__download">
+                ${
+                    source.storagePath
+                        ?`
                             <a
                                 class="source__download-button"
                                 href="${source.storagePath}"
                                 target="_blank"
                                 rel="noopener"
                             >
-                                Скачать
+                                Скачать полный текст
                             </a>
-                        </div>
-                    `
-                    :""
-            }
+                        `
+                        :""
+                }
+            </div>
         </div>
     `;
 }
@@ -131,6 +122,7 @@ function getSourceElementData(element){
 
 export function insertSource(source,subjects=[]){
     const list=document.querySelector(".sources-list");
+
     if(!list)return null;
 
     const element=createSourceElement(
@@ -179,71 +171,4 @@ export async function removeSourceFromList(id){
     element.remove();
 }
 
-export async function updateSourceInList(
-    source,
-    subjects=[]
-){
-    const oldElement=document.querySelector(
-        `.source[data-source-id="${source.id}"]`
-    );
-
-    if(!oldElement){
-        return await addSourceToList(
-            source,
-            subjects
-        );
-    }
-
-    const list=oldElement.parentElement;
-
-    oldElement.remove();
-
-    const element=createSourceElement(
-        source,
-        subjects
-    );
-
-    if(!element)return null;
-
-    insertSortedElement({
-        container:list,
-        element,
-        item:getSourceData(source),
-        selector:".source",
-        direction:"asc",
-        getItem:getSourceElementData
-    });
-
-    return element;
-}
-
-export function renderSources(
-    sources,
-    subjects=[]
-){
-    const sortedSources=sortEntities(
-        (sources??[]).map(source=>({
-            source,
-            ...getSourceData(source)
-        }))
-    );
-
-    const rows=[
-        adminAdd(
-            "add-source",
-            "Добавить источник"
-        ),
-        ...sortedSources.map(
-            item=>renderSource(
-                item.source,
-                subjects
-            )
-        )
-    ];
-
-    return`
-        <div class="sources-list">
-            ${rows.join("")}
-        </div>
-    `;
-}
+export async function updateSource
