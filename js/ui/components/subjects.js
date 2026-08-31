@@ -1,290 +1,183 @@
-import{
-    adminEdit,
-    adminDelete
-}from"./adminButtons.js";
-import{renderMentions,getSubjectHref}from"./mentionLink.js";
-import{renderMentionList}from"./mentionList.js";
+import{getSubjects}from"../../api/subjects.js";
+import{getSubjectTypes}from"../../api/subjectTypes.js";
+import{getAllObjects}from"../../api/objects.js";
+import{getAllPhotos}from"../../api/photos.js";
+import{getAllSources}from"../../api/sources.js";
+import{getAllRecords}from"../../api/records.js";
+import{openModal}from"./modalReload.js";
 import{createModal}from"./modal.js";
-import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
-import{initCoverDrag}from"./coverDrag.js";
+import{renderEntityList}from"./entityList.js";
+import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
 import{getPeriod}from"./date.js";
 
-let currentSubjectModal=null;
-const uploadingSubjects=new Set();
+let currentSubjectsModal=null;
 
-export function setSubjectUploading(id,value){
-    if(!id)return;
-    if(value)
-        uploadingSubjects.add(id);
-    else
-        uploadingSubjects.delete(id);
-    if(currentSubjectModal?.root?.isConnected){
-        const subject=
-            currentSubjectModal.subject;
-        if(subject?.id===id){
-            currentSubjectModal.setContent(
-                renderSubject(
-                    {
-                        ...subject,
-                        isUploading:value
-                    },
-                    currentSubjectModal.context.subjects,
-                    currentSubjectModal.context.objects,
-                    currentSubjectModal.context.photos,
-                    currentSubjectModal.context.sources,
-                    currentSubjectModal.context.records,
-                    currentSubjectModal.context.subjectTypes
-                )
-            );
-        }
-    }
-}
-
-export function renderSubject(
-    subject,
-    subjects=[],
-    objects=[],
-    photos=[],
-    sources=[],
-    records=[],
-    subjectTypes=[]
-){
-    if(!subject)
-        return "";
-    const type=
-        subjectTypes.find(
-            item=>item.id===subject.typeId
-        );
-    const years=getPeriod(subject);
-    const uploading=
-        subject.isUploading===true;
-    const hasPreview=
-        Boolean(subject.previewPath);
-    const cover=
-        uploading&&!hasPreview
-        ?
-        `
-        <div class="subject-modal__cover">
-            ${renderLoadingPlaceholder()}
-        </div>
-        `
-        :
-        hasPreview
-        ?
-        `
-        <div
-            class="subject-modal__cover"
-            data-cover-drag
-        >
-            ${
-                uploading
-                ?
-                renderLoadingPlaceholder()
-                :
-                ""
-            }
-            <div
-                class="subject-modal__cover-bg"
-                style="
-                background-image:url('${subject.previewPath}')
-                "
-            ></div>
-            <img
-                class="
-                    subject-modal__cover-image
-                    ${uploading?" subject-modal__cover-image--loading":""}
-                "
-                data-cover-image
-                src="${subject.previewPath}"
-                alt="${escapeHTML(subject.title??"")}"
-                draggable="false"
-            >
-        </div>
-        `
-        :
-        `
-        <div class="subject-modal__cover">
-            <div class="subject-modal__cover-placeholder">
-                Фото отсутствует
-            </div>
-        </div>
-        `;
-    return`
-    <div class="subject-modal">
-        <div class="subject-modal__card">
-            ${cover}
-            <div class="subject-modal__info">
-                <div class="object__type">
-                    ${escapeHTML(type?.title??"")}
-                </div>
-                <h1 class="object__title">
-                    <span class="object__title-text">
-                        ${escapeHTML(subject.title??"")}
-                    </span>
-                    ${adminEdit(
-                        "subject",
-                        escapeHTML(subject.id??"")
-                    )}
-                    ${adminDelete(
-                        "subject",
-                        escapeHTML(subject.id??"")
-                    )}
-                </h1>
-                ${
-                    years&&years!=="—"
-                    ?
-                    `
-                    <div class="subject-modal__years">
-                        ${years}
-                    </div>
-                    `
-                    :
-                    ""
-                }
-                ${subject.description?.trim()?`
-                <div class="object__description">${renderMentions(
-                            subject.description.trim(),
-                            subjects,
-                            getSubjectHref
-                        )}</div>
-                    `:""}
-                ${renderMentionList(
-                    subject,
-                    objects,
-                    photos,
-                    sources,
-                    records
-                )}
-            </div>
-        </div>
-    </div>
-    `;
-}
-
-export function openSubjectModal(
-    subject,
-    {
-        subjects=[],
-        objects=[],
-        photos=[],
-        sources=[],
-        records=[],
-        subjectTypes=[],
-        fromUrl=false
-    }={}
-){
-    if(!subject)
-        return null;
-    subject={
-        ...subject,
-        isUploading:
-            uploadingSubjects.has(subject.id)
-    };
-    const context={
+export async function openSubjectsModal({page=null,updates=null}={}){
+    const[
         subjects,
+        subjectTypes,
         objects,
         photos,
         sources,
-        records,
-        subjectTypes
-    };
-    const modal=
-        createModal({
-            title:"Сноска",
-            content:
-                renderSubject(
-                    subject,
-                    subjects,
-                    objects,
-                    photos,
-                    sources,
-                    records,
-                    subjectTypes
-                ),
-            width:525
-        });
-    initCoverDrag(
-        modal.root
-    );
-    modal.subject=subject;
-    modal.context=context;
-    currentSubjectModal=modal;
-    modal.root.addEventListener(
-        "click",
-        event=>{
-            const button=
-                event.target.closest(
-                    ".admin-button"
-                );
-            if(!button)
-                return;
-            const action=
-                button.dataset.action;
-            const id=
-                button.dataset.id;
-            if(!id)
-                return;
-            modal.root.dispatchEvent(
-                new CustomEvent(
-                    "subject-admin-action",
-                    {
-                        bubbles:true,
-                        detail:{
-                            action,
-                            id,
-                            subject
-                        }
-                    }
-                )
-            );
+        records
+    ]=await Promise.all([
+        getSubjects(),
+        getSubjectTypes(),
+        getAllObjects(),
+        getAllPhotos(),
+        getAllSources(),
+        getAllRecords()
+    ]);
+    const modal=createModal({
+        title:"Субъекты",
+        content:renderSubjectsList(
+            subjects,
+            subjectTypes
+        ),
+        width:525
+    });
+    currentSubjectsModal=modal;
+    modal.subjects=subjects;
+    modal.subjectTypes=subjectTypes;
+    modal.objects=objects;
+    modal.photos=photos;
+    modal.sources=sources;
+    modal.records=records;
+    modal.page=page;
+    modal.updates=updates;
+    modal.root.addEventListener("click",event=>{
+        const adminButton=event.target.closest(
+            ".admin-button"
+        );
+        if(adminButton){
+            event.preventDefault();
+            return;
         }
-    );
+        const addButton=event.target.closest(
+            ".entity-list__add"
+        );
+        if(addButton){
+            event.preventDefault();
+            return;
+        }
+        const row=event.target.closest(
+            ".entity-list-row"
+        );
+        if(!row)return;
+        const id=row.dataset.id;
+        if(!id)return;
+        const subject=modal.subjects.find(
+            item=>item.id===id
+        );
+        if(!subject)return;
+        event.preventDefault();
+        void openModal(
+            "subject",
+            {entityId:id}
+        );
+    });
     return modal;
 }
 
-export function updateSubjectModal(
-    subject,
-    {
-        subjects=[],
-        objects=[],
-        photos=[],
-        sources=[],
-        records=[],
-        subjectTypes=[]
-    }={}
-){
-    if(!currentSubjectModal?.root?.isConnected){
-        currentSubjectModal=null;
+export async function refreshSubjectsModal(){
+    if(!currentSubjectsModal?.root?.isConnected){
+        currentSubjectsModal=null;
         return;
     }
-    subject={
-        ...subject,
-        isUploading:
-            uploadingSubjects.has(subject?.id)
-    };
-    currentSubjectModal.subject=subject;
-    currentSubjectModal.context={
+    const[
         subjects,
+        subjectTypes,
         objects,
         photos,
         sources,
-        records,
-        subjectTypes
-    };
-    currentSubjectModal.setContent(
-        renderSubject(
-            subject,
+        records
+    ]=await Promise.all([
+        getSubjects(),
+        getSubjectTypes(),
+        getAllObjects(),
+        getAllPhotos(),
+        getAllSources(),
+        getAllRecords()
+    ]);
+    currentSubjectsModal.subjects=subjects;
+    currentSubjectsModal.subjectTypes=subjectTypes;
+    currentSubjectsModal.objects=objects;
+    currentSubjectsModal.photos=photos;
+    currentSubjectsModal.sources=sources;
+    currentSubjectsModal.records=records;
+    currentSubjectsModal.setContent(
+        renderSubjectsList(
             subjects,
-            objects,
-            photos,
-            sources,
-            records,
             subjectTypes
         )
     );
-    initCoverDrag(
-        currentSubjectModal.root
-    );
+}
+
+function renderSubjectsList(
+    subjects=[],
+    subjectTypes=[]
+){
+    const groups=subjectTypes.map(type=>{
+        const items=subjects
+            .filter(
+                subject=>
+                    subject.typeId===type.id
+            )
+            .map(subject=>createSubjectItem(subject));
+        return{
+            id:type.id,
+            title:escapeHTML(
+                type.title??""
+            ),
+            items
+        };
+    }).filter(group=>group.items.length);
+    const untypedItems=subjects
+        .filter(
+            subject=>
+                !subject.typeId||
+                !subjectTypes.some(
+                    type=>
+                        type.id===
+                        subject.typeId
+                )
+        )
+        .map(subject=>createSubjectItem(subject));
+    if(untypedItems.length){
+        groups.push({
+            id:"__without-type__",
+            title:"Без типа",
+            items:untypedItems
+        });
+    }
+    return renderEntityList({
+        groups,
+        addButton:adminAdd(
+            "add-subject",
+            "Добавить субъект"
+        )
+    });
+}
+
+function createSubjectItem(subject){
+    return{
+        id:subject.id,
+        clickable:true,
+        title:escapeHTML(
+            subject.title??"Без названия"
+        ),
+        meta:getPeriod(subject),
+        actions:`
+            ${adminEdit(
+                "subject",
+                escapeHTML(subject.id)
+            )}
+            ${adminDelete(
+                "subject",
+                escapeHTML(subject.id)
+            )}
+        `
+    };
 }
 
 function escapeHTML(value=""){
@@ -293,5 +186,5 @@ function escapeHTML(value=""){
         .replaceAll("<","&lt;")
         .replaceAll(">","&gt;")
         .replaceAll('"',"&quot;")
-        .replaceAll("'","'");
+        .replaceAll("'","&#039;");
 }
