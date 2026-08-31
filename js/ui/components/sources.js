@@ -171,4 +171,71 @@ export async function removeSourceFromList(id){
     element.remove();
 }
 
-export async function updateSource
+export async function updateSourceInList(
+    source,
+    subjects=[]
+){
+    const oldElement=document.querySelector(
+        `.source[data-source-id="${source.id}"]`
+    );
+
+    if(!oldElement){
+        return await addSourceToList(
+            source,
+            subjects
+        );
+    }
+
+    const list=oldElement.parentElement;
+
+    oldElement.remove();
+
+    const element=createSourceElement(
+        source,
+        subjects
+    );
+
+    if(!element)return null;
+
+    insertSortedElement({
+        container:list,
+        element,
+        item:getSourceData(source),
+        selector:".source",
+        direction:"asc",
+        getItem:getSourceElementData
+    });
+
+    return element;
+}
+
+export function renderSources(
+    sources,
+    subjects=[]
+){
+    const sortedSources=sortEntities(
+        (sources??[]).map(source=>({
+            source,
+            ...getSourceData(source)
+        }))
+    );
+
+    const rows=[
+        adminAdd(
+            "add-source",
+            "Добавить источник"
+        ),
+        ...sortedSources.map(
+            item=>renderSource(
+                item.source,
+                subjects
+            )
+        )
+    ];
+
+    return`
+        <div class="sources-list">
+            ${rows.join("")}
+        </div>
+    `;
+}
