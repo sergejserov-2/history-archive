@@ -464,7 +464,7 @@
     display:grid;
 
     grid-template-columns:
-        150px
+        175px
         minmax(0,1fr)
         max-content;
 }
