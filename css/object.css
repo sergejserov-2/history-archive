@@ -604,5 +604,7 @@
 }
 
 .child-card--add.admin-button {
-    height: 110px;
+    height: 38px;
+    margin-bottom: var(--space-8);
 }
+
