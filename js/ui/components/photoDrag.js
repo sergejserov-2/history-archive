@@ -20,11 +20,6 @@ function setupPhotoDrag(list){
         return [...list.querySelectorAll("[data-photo-drag]")];
     }
 
-    function getGap(){
-        const style=getComputedStyle(list);
-        return parseFloat(style.columnGap)||parseFloat(style.gap)||0;
-    }
-
     function resetTransformsOnly(){
         getCards().forEach(card=>{
             card.style.transform="translate3d(0,0,0)";
@@ -48,55 +43,40 @@ function setupPhotoDrag(list){
         return[activeCard];
     }
 
-function saveGeometry(){
-    const cards=getCards();
-    const firstCard=cards[0];
-    const lastCard=cards.at(-1);
-    const addCard=list.querySelector(".photo-card--add");
+    function saveGeometry(){
+        const cards=getCards();
+        const listRect=list.getBoundingClientRect();
 
-    if(!firstCard||!lastCard)return null;
+        if(!cards.length)return null;
 
-    const listRect=list.getBoundingClientRect();
-    const firstRect=firstCard.getBoundingClientRect();
-    const lastRect=lastCard.getBoundingClientRect();
+        const cardRects=new Map();
 
-    const firstLeft=
-        firstRect.left-listRect.left;
+        cards.forEach(card=>{
+            cardRects.set(
+                card,
+                card.getBoundingClientRect()
+            );
+        });
 
-    const lastRight=
-        lastRect.right-listRect.left;
+        console.log("[photoDrag] geometry",{
+            listLeft:listRect.left,
+            listRight:listRect.right,
+            listWidth:listRect.width,
+            cards:[...cardRects.entries()].map(
+                ([card,rect])=>({
+                    id:card.dataset.photoId,
+                    left:rect.left,
+                    right:rect.right
+                })
+            )
+        });
 
-    let leftBoundary=0;
-
-    if(addCard){
-        const addRect=
-            addCard.getBoundingClientRect();
-
-        leftBoundary=
-            addRect.right-listRect.left+
-            getGap();
+        return{
+            leftBoundary:listRect.left,
+            rightBoundary:listRect.right,
+            cards:cardRects
+        };
     }
-
-    const rightBoundary=
-        list.clientWidth;
-
-    console.log("[photoDrag] geometry",{
-        listLeft:listRect.left,
-        listWidth:listRect.width,
-        firstLeft,
-        lastRight,
-        leftBoundary,
-        rightBoundary
-    });
-
-    return{
-        firstLeft,
-        lastRight,
-        leftBoundary,
-        rightBoundary
-    };
-}
-
 
     function applyOffset(){
         getMovingCards().forEach(card=>{
@@ -107,19 +87,35 @@ function saveGeometry(){
 
     function resetCards(){
         getCards().forEach(card=>{
-            card.classList.remove("photo-card--dragging");
-            card.classList.add("photo-card--spring");
-            card.style.transform="translate3d(0,0,0)";
+            card.classList.remove(
+                "photo-card--dragging"
+            );
+
+            card.classList.add(
+                "photo-card--spring"
+            );
+
+            card.style.transform=
+                "translate3d(0,0,0)";
         });
     }
 
     function clampOffset(delta){
         if(!geometry)return 0;
 
+        const movingCards=getMovingCards();
+
+        if(!movingCards.length)return 0;
+
         if(direction<0){
+            const movingLeft=Math.min(
+                ...movingCards.map(card=>
+                    geometry.cards.get(card).left
+                )
+            );
+
             const minOffset=
-                geometry.leftBoundary-
-                geometry.firstLeft;
+                geometry.leftBoundary-movingLeft;
 
             return Math.max(
                 minOffset,
@@ -128,9 +124,14 @@ function saveGeometry(){
         }
 
         if(direction>0){
+            const movingRight=Math.max(
+                ...movingCards.map(card=>
+                    geometry.cards.get(card).right
+                )
+            );
+
             const maxOffset=
-                geometry.rightBoundary-
-                geometry.lastRight;
+                geometry.rightBoundary-movingRight;
 
             return Math.min(
                 maxOffset,
@@ -139,6 +140,27 @@ function saveGeometry(){
         }
 
         return 0;
+    }
+
+    function canStartDrag(){
+        const cards=getCards();
+
+        if(!cards.length)return false;
+
+        const data=saveGeometry();
+
+        if(!data)return false;
+
+        const firstRect=
+            data.cards.get(cards[0]);
+
+        const lastRect=
+            data.cards.get(cards.at(-1));
+
+        return(
+            firstRect.left<data.leftBoundary||
+            lastRect.right>data.rightBoundary
+        );
     }
 
     function start(event){
@@ -179,10 +201,19 @@ function saveGeometry(){
 
         if(!geometry)return;
 
+        const cards=getCards();
+
+        const firstRect=
+            geometry.cards.get(cards[0]);
+
+        const lastRect=
+            geometry.cards.get(cards.at(-1));
+
         if(
-            geometry.firstLeft<=geometry.leftBoundary&&
-            geometry.lastRight>=geometry.rightBoundary
+            firstRect.left>=geometry.leftBoundary&&
+            lastRect.right<=geometry.rightBoundary
         ){
+            geometry=null;
             return;
         }
 
@@ -195,7 +226,9 @@ function saveGeometry(){
         direction=0;
         moved=false;
 
-        activeMedia.setPointerCapture?.(pointerId);
+        activeMedia.setPointerCapture?.(
+            pointerId
+        );
     }
 
     function move(event){
@@ -209,7 +242,10 @@ function saveGeometry(){
 
         const delta=event.clientX-startX;
 
-        if(!moved&&Math.abs(delta)>5){
+        if(
+            !moved&&
+            Math.abs(delta)>5
+        ){
             moved=true;
         }
 
@@ -290,10 +326,26 @@ function saveGeometry(){
         finish(event,true);
     }
 
-    list.addEventListener("pointerdown",start);
-    list.addEventListener("pointermove",move);
-    list.addEventListener("pointerup",end);
-    list.addEventListener("pointercancel",cancel);
+    list.addEventListener(
+        "pointerdown",
+        start
+    );
+
+    list.addEventListener(
+        "pointermove",
+        move
+    );
+
+    list.addEventListener(
+        "pointerup",
+        end
+    );
+
+    list.addEventListener(
+        "pointercancel",
+        cancel
+    );
+
     list.addEventListener(
         "lostpointercapture",
         cancel
