@@ -255,15 +255,6 @@
     line-height: 1.4;
 }
 
-.child-card--add {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-
-    padding: var(--space-6);
-}
-
-
 /* ==========================================
    SUBJECT MODAL
 ========================================== */
