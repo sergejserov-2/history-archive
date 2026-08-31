@@ -147,6 +147,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-7);
+   margin-top: var(--space-8);
 }
 
 .child-card {
@@ -602,9 +603,3 @@
     transition:
         transform 420ms cubic-bezier(.12, .82, .25, 1);
 }
-
-.child-card--add.admin-button {
-    height: 38px;
-    margin-bottom: var(--space-8);
-}
-
