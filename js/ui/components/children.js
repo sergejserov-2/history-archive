@@ -218,24 +218,26 @@ export async function renderChildren(
         `
     );
 
-    cards.unshift(
-        adminAdd(
-            "add-object",
-            "Добавить объект",
-            {
-                className:
-                    "child-card child-card--add",
-                disabled:
-                    !canHaveChildren,
-                title:
-                    canHaveChildren
-                        ?""
-                        :"У объектов нижнего уровня не должно быть дочерних объектов"
-            }
-        )
+    const addButton=adminAdd(
+        "add-object",
+        "Добавить объект",
+        {
+            className:
+                "child-card child-card--add",
+            disabled:
+                !canHaveChildren,
+            title:
+                canHaveChildren
+                    ?""
+                    :"У объектов нижнего уровня не должно быть дочерних объектов"
+        }
     );
 
     return`
+        <div class="children-add">
+            ${addButton}
+        </div>
+
         <div class="children-list">
             ${cards.join("")}
         </div>
