@@ -191,7 +191,7 @@ padding:var(--space-5) var(--space-8); background:var(--color-surface-dark); bor
 
 .source__title { display:flex; align-items:center;
 
-gap:var(--space-4); min-width:0; width:max-content; max-width:100%; overflow:hidden; color:var(--color-text-primary); font-size:var(--font-size-lg); 
+gap:var(--space-4); min-width:0; width:max-content; max-width:100%; color:var(--color-text-primary); font-size:var(--font-size-lg); 
 
 }
 
