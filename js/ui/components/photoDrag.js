@@ -37,72 +37,57 @@ function setupPhotoDrag(list){
 
         if(index<0)return[];
 
-        if(direction<0)return cards.slice(0,index+1);
-        if(direction>0)return cards.slice(index);
+        if(direction<0){
+            return cards.slice(0,index+1);
+        }
+
+        if(direction>0){
+            return cards.slice(index);
+        }
 
         return[activeCard];
     }
 
-    function getLocalRect(element){
-        const listRect=list.getBoundingClientRect();
-        const rect=element.getBoundingClientRect();
-
-        return{
-            left:
-                rect.left-
-                listRect.left+
-                list.scrollLeft,
-
-            right:
-                rect.right-
-                listRect.left+
-                list.scrollLeft,
-
-            width:rect.width
-        };
-    }
-
     function saveGeometry(){
         const cards=getCards();
-
-        if(!cards.length)return null;
-
-        const addCard=list.querySelector(".photo-card--add");
         const firstCard=cards[0];
         const lastCard=cards.at(-1);
+        const addCard=list.querySelector(".photo-card--add");
 
-        const firstRect=getLocalRect(firstCard);
-        const lastRect=getLocalRect(lastCard);
+        if(!firstCard||!lastCard)return null;
 
-        let leftBoundary=0;
+        const firstLeft=firstCard.offsetLeft;
+        const lastRight=
+            lastCard.offsetLeft+
+            lastCard.offsetWidth;
 
-        if(addCard){
-            const addRect=getLocalRect(addCard);
+        const leftBoundary=addCard
+            ?addCard.offsetLeft+
+                addCard.offsetWidth+
+                getGap()
+            :0;
 
-            leftBoundary=
-                addRect.right+
-                getGap();
-        }
+        const rightBoundary=
+            list.scrollLeft+
+            list.clientWidth;
+
+        console.log("[photoDrag]",{
+            listClientWidth:list.clientWidth,
+            scrollLeft:list.scrollLeft,
+            firstLeft,
+            lastRight,
+            leftBoundary,
+            rightBoundary,
+            firstOffsetParent:firstCard.offsetParent,
+            list
+        });
 
         return{
-            firstLeft:firstRect.left,
-            lastRight:lastRect.right,
+            firstLeft,
+            lastRight,
             leftBoundary,
-            rightBoundary:
-                list.scrollLeft+
-                list.clientWidth
+            rightBoundary
         };
-    }
-
-    function canDrag(){
-        const data=saveGeometry();
-
-        if(!data)return false;
-
-        return(
-            data.firstLeft>data.leftBoundary||
-            data.lastRight<data.rightBoundary
-        );
     }
 
     function applyOffset(){
@@ -124,23 +109,23 @@ function setupPhotoDrag(list){
         if(!geometry)return 0;
 
         if(direction<0){
-            const maxLeft=
+            const minOffset=
                 geometry.leftBoundary-
                 geometry.firstLeft;
 
             return Math.max(
-                maxLeft,
+                minOffset,
                 Math.min(0,delta)
             );
         }
 
         if(direction>0){
-            const maxRight=
+            const maxOffset=
                 geometry.rightBoundary-
                 geometry.lastRight;
 
             return Math.min(
-                maxRight,
+                maxOffset,
                 Math.max(0,delta)
             );
         }
