@@ -1,10 +1,10 @@
 export function initPhotoDrag(root=document){
-    root.querySelectorAll(".photos-list").forEach(setupPhotoDrag);
+    const lists=root.querySelectorAll(".photos-list");
+    lists.forEach(setupPhotoDrag);
 }
 
 function setupPhotoDrag(list){
     if(list.dataset.photoDragInitialized)return;
-
     list.dataset.photoDragInitialized="true";
 
     let dragging=false;
@@ -24,84 +24,100 @@ function setupPhotoDrag(list){
     }
 
     function getGap(){
-        const styles=getComputedStyle(list);
-
-        return parseFloat(styles.columnGap)||
-            parseFloat(styles.gap)||
-            0;
+        const style=getComputedStyle(list);
+        return parseFloat(style.columnGap)||parseFloat(style.gap)||0;
     }
-
-    function getLeftBoundary(){
-        const addCard=list.querySelector(".photo-card--add");
-
-        if(addCard){
-            const rect=addCard.getBoundingClientRect();
-
-            return rect.right+getGap();
-        }
-
-        return list.getBoundingClientRect().left;
-    }
-
-    function getRightBoundary(){
-        return list.getBoundingClientRect().right;
-    }
-
-function calculateBounds(){
-    const cards=getCards();
-    if(!cards.length)return{min:0,max:0};
-
-    const first=cards[0].getBoundingClientRect();
-    const last=cards.at(-1).getBoundingClientRect();
-    const listRect=list.getBoundingClientRect();
-
-    const addCard=list.querySelector(".photo-card--add");
-    const addRect=addCard?.getBoundingClientRect();
-
-    const gap=parseFloat(
-        getComputedStyle(list).gap
-    )||0;
-
-    const leftBoundary=addRect
-        ?addRect.right+gap
-        :listRect.left;
-
-    const rightBoundary=listRect.right;
-
-    return{
-        min:leftBoundary-first.left,
-        max:rightBoundary-last.right
-    };
-}
-
-function canDrag(){
-    const cards=getCards();
-
-    if(cards.length<2)return false;
-
-    const bounds=calculateBounds();
-
-    return bounds.min<0||bounds.max>0;
-}
 
     function getMovingCards(){
         const cards=getCards();
-
         if(!activeCard)return[];
 
         const index=cards.indexOf(activeCard);
-
         if(index<0)return[];
 
         if(direction>0)return cards.slice(index);
-
         if(direction<0)return cards.slice(0,index+1);
 
         return[activeCard];
     }
 
+    function calculateBounds(){
+        const cards=getCards();
+        if(!cards.length)return{min:0,max:0};
+
+        const first=cards[0].getBoundingClientRect();
+        const last=cards.at(-1).getBoundingClientRect();
+        const listRect=list.getBoundingClientRect();
+
+        const addCard=list.querySelector(".photo-card--add");
+        const addRect=addCard?.getBoundingClientRect();
+        const gap=getGap();
+
+        const leftBoundary=addRect
+            ?addRect.right+gap
+            :listRect.left;
+
+        const rightBoundary=listRect.right;
+
+        const result={
+            min:leftBoundary-first.left,
+            max:rightBoundary-last.right
+        };
+
+        console.log("[photoDrag] calculateBounds");
+        console.log("list",{
+            left:listRect.left,
+            right:listRect.right,
+            width:listRect.width
+        });
+        console.log("first card",{
+            left:first.left,
+            right:first.right,
+            width:first.width
+        });
+        console.log("last card",{
+            left:last.left,
+            right:last.right,
+            width:last.width
+        });
+        console.log("add card",addRect?{
+            left:addRect.left,
+            right:addRect.right,
+            width:addRect.width
+        }:null);
+        console.log("gap",gap);
+        console.log("boundaries",{
+            left:leftBoundary,
+            right:rightBoundary
+        });
+        console.log("bounds",result);
+
+        return result;
+    }
+
+    function canDrag(){
+        const cards=getCards();
+        if(!cards.length)return false;
+
+        const currentBounds=calculateBounds();
+        const result=
+            currentBounds.min<0||
+            currentBounds.max>0;
+
+        console.log("[photoDrag] canDrag",{
+            cards:cards.length,
+            min:currentBounds.min,
+            max:currentBounds.max,
+            result
+        });
+
+        return result;
+    }
+
     function applyOffset(){
-        getMovingCards().forEach(card=>{
+        const cards=getMovingCards();
+
+        cards.forEach(card=>{
             card.style.transform=
                 `translate3d(${offsetX}px,0,0)`;
         });
@@ -125,20 +141,15 @@ function canDrag(){
         if(event.pointerType==="mouse"&&event.button!==0)return;
 
         const media=event.target.closest(".photo-card__media");
-
         if(!media||!list.contains(media))return;
 
         const card=media.closest("[data-photo-drag]");
+        if(!card||!list.contains(card))return;
 
-        if(
-            !card||
-            !list.contains(card)||
-            card.classList.contains("photo-card--add")
-        ){
+        if(!canDrag()){
+            console.log("[photoDrag] START BLOCKED");
             return;
         }
-
-        if(!canDrag())return;
 
         resetTransformsOnly();
 
@@ -155,23 +166,14 @@ function canDrag(){
 
         bounds=calculateBounds();
 
-        console.group("[photoDrag] START");
-
+        console.log("[photoDrag] START");
         console.log("active card",activeCard);
-
         console.log("pointer",{
             pointerId,
             startX
         });
-
         console.log("bounds",bounds);
-
-        console.log("list",{
-            clientWidth:list.clientWidth,
-            rect:list.getBoundingClientRect()
-        });
-
-        console.groupEnd();
+        console.log("cards",getCards().length);
 
         activeMedia.setPointerCapture?.(pointerId);
     }
@@ -208,26 +210,42 @@ function canDrag(){
             });
 
             resetTransformsOnly();
-
             direction=newDirection;
         }
 
-        offsetX=Math.max(
-            bounds.min,
-            Math.min(bounds.max,delta)
-        );
-
         const movingCards=getMovingCards();
 
-        console.log("[photoDrag] MOVE",{
-            delta,
-            direction,
-            min:bounds.min,
-            max:bounds.max,
-            offsetX,
-            movingCards:movingCards.length,
-            activeCardId:activeCard.dataset.photoId
-        });
+        if(!movingCards.length)return;
+
+        let min=0;
+        let max=0;
+
+        if(direction<0){
+            const firstMoving=movingCards[0].getBoundingClientRect();
+            const listRect=list.getBoundingClientRect();
+            const addCard=list.querySelector(".photo-card--add");
+            const addRect=addCard?.getBoundingClientRect();
+
+            const leftBoundary=addRect
+                ?addRect.right+getGap()
+                :listRect.left;
+
+            min=leftBoundary-firstMoving.left;
+            max=0;
+        }
+
+        if(direction>0){
+            const lastMoving=movingCards.at(-1).getBoundingClientRect();
+            const listRect=list.getBoundingClientRect();
+
+            min=0;
+            max=listRect.right-lastMoving.right;
+        }
+
+        offsetX=Math.max(
+            min,
+            Math.min(max,delta)
+        );
 
         movingCards.forEach(card=>{
             card.classList.remove("photo-card--spring");
@@ -235,6 +253,15 @@ function canDrag(){
         });
 
         applyOffset();
+
+        console.log("[photoDrag] MOVE",{
+            delta,
+            direction,
+            movingCards:movingCards.length,
+            min,
+            max,
+            offsetX
+        });
 
         event.preventDefault();
     }
@@ -251,17 +278,13 @@ function canDrag(){
 
         const wasMoved=moved;
 
-        console.group("[photoDrag] FINISH");
-
-        console.log({
+        console.log("[photoDrag] FINISH",{
             cancelled,
             wasMoved,
             offsetX,
             direction,
             bounds
         });
-
-        console.groupEnd();
 
         dragging=false;
 
@@ -280,7 +303,6 @@ function canDrag(){
         activeCard=null;
         activeMedia=null;
         pointerId=null;
-        startX=0;
         offsetX=0;
         direction=0;
         bounds={min:0,max:0};
