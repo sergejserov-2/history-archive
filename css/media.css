@@ -225,19 +225,23 @@ background:var(--color-surface-dark); border-top:var(--border-row); border-botto
 
 /* ---------- Download ---------- */
 
-.source__download { display:flex; justify-content:flex-end; align-items:flex-start;
-
-height:28px; padding-top:var(--space-3); 
-
+.source__download {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    height: var(--space-6);
+    padding: var(--space-2) var(--space-8);
 }
 
-.source__download-button { display:inline-block;
-
-width:max-content; color:var(--color-text-faded); font-size:var(--font-size-sm); line-height:1.3; text-decoration:none; 
-
+.source__download-button {
+    display: inline-block;
+    color: var(--color-text-disabled);
+    font-size: var(--font-size-sm);
+    line-height: 1.3;
+    text-decoration: none;
 }
 
-.source__download-button:hover { color:var(--color-text-primary); }
+.source__download-button:hover { color:var(--color-text-dim); }
 
 /* ---------- Add ---------- */
 
