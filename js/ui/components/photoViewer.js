@@ -2,6 +2,7 @@ import{createModal}from"./modal.js";
 import{replaceModalUrl}from"./modalReload.js";
 import{createViewerControls}from"./viewerControls.js";
 import{adminEdit,adminDelete}from"./adminButtons.js";
+import{getPeriod}from"./date.js";
 
 export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}){
     if(!photo)return;
@@ -327,12 +328,16 @@ export function openPhotoViewer(photo,{photos=[],fromUrl=false,showInfo=true}={}
         }
 
         if(date){
+            const period=getPeriod(nextPhoto);
             dateValue.textContent=
-                nextPhoto.date??"";
-
+                period==="—"
+                    ?""
+                    :period;
             date.hidden=
-                !nextPhoto.date;
+                !period||
+                period==="—";
         }
+
 
         if(download){
             if(nextPhoto.storagePath){
