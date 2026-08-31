@@ -48,47 +48,55 @@ function setupPhotoDrag(list){
         return[activeCard];
     }
 
-    function saveGeometry(){
-        const cards=getCards();
-        const firstCard=cards[0];
-        const lastCard=cards.at(-1);
-        const addCard=list.querySelector(".photo-card--add");
+function saveGeometry(){
+    const cards=getCards();
+    const firstCard=cards[0];
+    const lastCard=cards.at(-1);
+    const addCard=list.querySelector(".photo-card--add");
 
-        if(!firstCard||!lastCard)return null;
+    if(!firstCard||!lastCard)return null;
 
-        const firstLeft=firstCard.offsetLeft;
-        const lastRight=
-            lastCard.offsetLeft+
-            lastCard.offsetWidth;
+    const listRect=list.getBoundingClientRect();
+    const firstRect=firstCard.getBoundingClientRect();
+    const lastRect=lastCard.getBoundingClientRect();
 
-        const leftBoundary=addCard
-            ?addCard.offsetLeft+
-                addCard.offsetWidth+
-                getGap()
-            :0;
+    const firstLeft=
+        firstRect.left-listRect.left;
 
-        const rightBoundary=
-            list.scrollLeft+
-            list.clientWidth;
+    const lastRight=
+        lastRect.right-listRect.left;
 
-        console.log("[photoDrag]",{
-            listClientWidth:list.clientWidth,
-            scrollLeft:list.scrollLeft,
-            firstLeft,
-            lastRight,
-            leftBoundary,
-            rightBoundary,
-            firstOffsetParent:firstCard.offsetParent,
-            list
-        });
+    let leftBoundary=0;
 
-        return{
-            firstLeft,
-            lastRight,
-            leftBoundary,
-            rightBoundary
-        };
+    if(addCard){
+        const addRect=
+            addCard.getBoundingClientRect();
+
+        leftBoundary=
+            addRect.right-listRect.left+
+            getGap();
     }
+
+    const rightBoundary=
+        list.clientWidth;
+
+    console.log("[photoDrag] geometry",{
+        listLeft:listRect.left,
+        listWidth:listRect.width,
+        firstLeft,
+        lastRight,
+        leftBoundary,
+        rightBoundary
+    });
+
+    return{
+        firstLeft,
+        lastRight,
+        leftBoundary,
+        rightBoundary
+    };
+}
+
 
     function applyOffset(){
         getMovingCards().forEach(card=>{
