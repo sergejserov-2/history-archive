@@ -7,34 +7,7 @@ import{
 }from"./entityList.js";
 import{sortEntities,insertSortedElement}from"./sort.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
-
-function formatBoundary(value,prefix){
-    if(!value)return"";
-    let result=value;
-    if(result.endsWith("-е")){
-        result=result.slice(0,-2)+"-х";
-    }
-    if(result.startsWith("вер., ")){
-        return"вер., "+prefix+" "+result.slice(6);
-    }
-    return prefix+" "+result;
-}
-
-function getPeriod(record){
-    if(record.dateMode==="date"){
-        return record.date||"—";
-    }
-    if(record.dateStart&&record.dateEnd){
-        return`${record.dateStart} – ${record.dateEnd}`;
-    }
-    if(record.dateStart){
-        return formatBoundary(record.dateStart,"с");
-    }
-    if(record.dateEnd){
-        return formatBoundary(record.dateEnd,"до");
-    }
-    return"—";
-}
+import{getPeriod}from"./date.js";
 
 function getRecordData(record,subjects=[]){
     return{
@@ -65,7 +38,6 @@ function getRecordGroupId(record,recordTypes=[]){
     if(!record.typeId){
         return"__without-type__";
     }
-
     return recordTypes.find(
         type=>type.id===record.typeId
     )?.id??"__without-type__";
@@ -75,7 +47,6 @@ function getRecordGroupTitle(record,recordTypes=[]){
     if(!record.typeId){
         return"Без типа";
     }
-
     return recordTypes.find(
         type=>type.id===record.typeId
     )?.title??"Без типа";
@@ -85,7 +56,6 @@ export function renderRecord(record,subjects=[]){
     const item=getRecordData(record,subjects);
     const hasDescription=Boolean(item.description?.trim());
     const hasMeta=Boolean(item.meta?.trim());
-
     const rowClass=[
         "entity-list-row",
         hasDescription
@@ -95,7 +65,6 @@ export function renderRecord(record,subjects=[]){
             ?"entity-list-row--meta"
             :""
     ].filter(Boolean).join(" ");
-
     return`
         <div
             class="${rowClass}"
@@ -107,7 +76,6 @@ export function renderRecord(record,subjects=[]){
                 </span>
                 ${item.actions}
             </div>
-
             ${
                 hasDescription
                     ?`
@@ -117,7 +85,6 @@ export function renderRecord(record,subjects=[]){
                     `
                     :""
             }
-
             ${
                 hasMeta
                     ?`
@@ -134,7 +101,6 @@ export function renderRecord(record,subjects=[]){
 function createRecordElement(record,subjects=[]){
     const template=document.createElement("template");
     template.innerHTML=renderRecord(record,subjects).trim();
-
     return template.content.firstElementChild;
 }
 
@@ -159,38 +125,29 @@ function insertRecordElement(
         record,
         subjects
     );
-
     if(!element)return null;
-
     const groupId=getRecordGroupId(
         record,
         recordTypes
     );
-
     const groupTitle=getRecordGroupTitle(
         record,
         recordTypes
     );
-
     const result=insertEntityListItem({
         groupId,
         groupTitle,
         element,
         compare:null
     });
-
     if(!result?.element){
         return null;
     }
-
     const rowContainer=result.element.parentElement;
-
     if(!rowContainer){
         return result.element;
     }
-
     result.element.remove();
-
     insertSortedElement({
         container:rowContainer,
         element:result.element,
@@ -199,7 +156,6 @@ function insertRecordElement(
         direction:"asc",
         getItem:getRecordElementData
     });
-
     return result.element;
 }
 
@@ -225,13 +181,10 @@ export async function addRecordToList(
         subjects,
         recordTypes
     );
-
     if(!element)return null;
-
     await showEntityListItem({
         element
     });
-
     return element;
 }
 
@@ -239,9 +192,7 @@ export async function removeRecordFromList(id){
     const element=document.querySelector(
         `.entity-list-row[data-id="${id}"]`
     );
-
     if(!element)return;
-
     await removeEntityListItem({
         element
     });
@@ -255,7 +206,6 @@ export async function updateRecordInList(
     const oldElement=document.querySelector(
         `.entity-list-row[data-id="${record.id}"]`
     );
-
     if(!oldElement){
         return await addRecordToList(
             record,
@@ -263,21 +213,7 @@ export async function updateRecordInList(
             recordTypes
         );
     }
-
-    const oldGroup=oldElement.closest(
-        ".entity-list__group"
-    );
-
-    const oldGroupId=
-        oldGroup?.dataset.entityGroup??null;
-
-    const newGroupId=getRecordGroupId(
-        record,
-        recordTypes
-    );
-
     oldElement.remove();
-
     return insertRecordElement(
         record,
         subjects,
@@ -291,14 +227,11 @@ export function renderRecords(
     subjects=[]
 ){
     const groups=[];
-
     recordTypes.forEach(recordType=>{
         const typeRecords=(records??[]).filter(
             record=>record.typeId===recordType.id
         );
-
         if(!typeRecords.length)return;
-
         const items=sortEntities(
             typeRecords.map(record=>({
                 record,
@@ -308,14 +241,12 @@ export function renderRecords(
             item.record,
             subjects
         ));
-
         groups.push({
             id:recordType.id,
             title:recordType.title??"",
             items
         });
     });
-
     const recordsWithoutType=(records??[]).filter(
         record=>
             !record.typeId||
@@ -323,7 +254,6 @@ export function renderRecords(
                 type=>type.id===record.typeId
             )
     );
-
     if(recordsWithoutType.length){
         const items=sortEntities(
             recordsWithoutType.map(record=>({
@@ -334,14 +264,12 @@ export function renderRecords(
             item.record,
             subjects
         ));
-
         groups.push({
             id:"__without-type__",
             title:"Без типа",
             items
         });
     }
-
     return`
         <div class="records">
             ${renderEntityList({
@@ -354,6 +282,3 @@ export function renderRecords(
         </div>
     `;
 }
-
-
-
