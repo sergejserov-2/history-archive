@@ -62,13 +62,7 @@ export function renderSource(source,subjects=[]){
             ${
                 description
                     ?`
-                        <div class="source__description">
-                            ${renderMentions(
-                                description,
-                                subjects,
-                                getSubjectHref
-                            )}
-                        </div>
+                        <div class="source__description">${renderMentions(description,subjects,getSubjectHref)}</div>
                     `
                     :""
             }
