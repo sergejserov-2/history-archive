@@ -1,3 +1,5 @@
+
+
 import{openPhotoModal}from"./modalReload.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
@@ -17,7 +19,7 @@ function getPhotoPeriod(photo){
     return photo.date??"";
 }
 
-function getPhotoData(photo){
+export function getPhotoData(photo){
     return{
         meta:getPhotoPeriod(photo),
         author:photo.author??"",
