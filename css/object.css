@@ -368,24 +368,8 @@
 /* ---------- Add button ---------- */
 
 .entity-list__add {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
     min-height:40px;
     padding:0 var(--space-8);
-
-    background:rgba(220,170,40,.18);
-
-    border:1px dashed var(--color-admin) !important;
-    border-radius:var(--radius-2xl);
-
-    color:var(--color-admin);
-
-    cursor:pointer;
-
-    font-size:var(--font-size-lg);
-
     transition:var(--transition-fast);
 }
 
