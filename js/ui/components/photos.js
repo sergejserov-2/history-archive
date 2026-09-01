@@ -1,3 +1,16 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
 import{openPhotoModal}from"./modalReload.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
@@ -20,11 +33,9 @@ export function getPhotoData(photo){
 function renderPhotoMedia(photo){
     const uploading=photo.isUploading===true;
     const hasPreview=Boolean(photo.previewPath);
-
     if(uploading&&!hasPreview){
         return renderLoadingPlaceholder();
     }
-
     if(hasPreview){
         return`
             ${uploading?renderLoadingPlaceholder():""}
@@ -36,7 +47,6 @@ function renderPhotoMedia(photo){
             >
         `;
     }
-
     return`
         <div class="photo-card__placeholder">
             Фото отсутствует
@@ -47,7 +57,6 @@ function renderPhotoMedia(photo){
 function renderPhotoMeta(photo){
     const author=photo.author?.trim()??"";
     const date=getPhotoPeriod(photo);
-
     if(author&&date){
         return`
             <span class="photo-card__author-name">
@@ -58,7 +67,6 @@ function renderPhotoMeta(photo){
             </span>
         `;
     }
-
     if(author){
         return`
             <span class="photo-card__author-name">
@@ -66,7 +74,6 @@ function renderPhotoMeta(photo){
             </span>
         `;
     }
-
     if(date){
         return`
             <span class="photo-card__date">
@@ -74,13 +81,11 @@ function renderPhotoMeta(photo){
             </span>
         `;
     }
-
     return"";
 }
 
 export function renderPhoto(photo){
     const uploading=photo.isUploading===true;
-
     return`
         <div
             class="photo-card${uploading?" photo-card--uploading":""}"
@@ -96,7 +101,10 @@ export function renderPhoto(photo){
             </div>
 
             <div class="photo-card__content">
-                <div class="photo-card__title">
+                <div
+                    class="photo-card__title"
+                    lang="ru"
+                >
                     <div class="photo-card__title-row photo-card__title-row--first">
                         <span class="photo-card__title-line photo-card__title-line--first"></span>
                     </div>
@@ -126,9 +134,7 @@ export function renderPhoto(photo){
 
 function createPhotoElement(photo){
     const template=document.createElement("template");
-
     template.innerHTML=renderPhoto(photo).trim();
-
     return template.content.firstElementChild;
 }
 
@@ -138,12 +144,10 @@ function getPhotoElementData(element){
             element.querySelector(
                 ".photo-card__date"
             )?.textContent.trim()??"",
-
         author:
             element.querySelector(
                 ".photo-card__author-name"
             )?.textContent.trim()??"",
-
         title:
             element.querySelector(
                 ".photo-card__title-source"
@@ -153,7 +157,6 @@ function getPhotoElementData(element){
 
 function updateListPhotos(list,photo){
     if(!list)return;
-
     list.photos=[
         ...(list.photos??[]).filter(
             item=>item.id!==photo.id
@@ -193,19 +196,17 @@ function getFullTitle(card){
 
 function getTextWidth(element,text){
     const probe=document.createElement("span");
-
-    probe.textContent=text;
-
     const style=getComputedStyle(element);
 
+    probe.textContent=text;
     probe.style.position="absolute";
     probe.style.visibility="hidden";
     probe.style.pointerEvents="none";
     probe.style.whiteSpace="nowrap";
-    probe.style.font=style.font;
+    probe.style.fontFamily=style.fontFamily;
     probe.style.fontSize=style.fontSize;
     probe.style.fontWeight=style.fontWeight;
-    probe.style.fontFamily=style.fontFamily;
+    probe.style.fontStyle=style.fontStyle;
     probe.style.letterSpacing=style.letterSpacing;
 
     document.body.append(probe);
@@ -352,20 +353,11 @@ function layoutPhotoTitle(card){
         actions
     );
 
-    if(
-        fitsText(
-            secondLine,
-            fullTitle,
-            secondWidth
-        )
-    ){
-        firstRow.hidden=true;
-
-        secondLine.textContent=fullTitle;
-
-        return;
-    }
-
+    /*
+     * Полный текст помещается без кнопок.
+     * Значит заголовок должен оставаться
+     * на одной строке рядом с кнопками.
+     */
     if(
         fitsText(
             firstLine,
@@ -373,13 +365,39 @@ function layoutPhotoTitle(card){
             firstWidth
         )
     ){
-        firstLine.textContent=fullTitle;
+        firstRow.hidden=true;
 
-        secondLine.textContent="";
+        if(
+            fitsText(
+                secondLine,
+                fullTitle,
+                secondWidth
+            )
+        ){
+            secondLine.textContent=fullTitle;
+            return;
+        }
+
+        const truncated=findMaximumText(
+            secondLine,
+            fullTitle,
+            secondWidth,
+            "..."
+        );
+
+        secondLine.textContent=
+            truncated
+                ?`${truncated}...`
+                :"...";
 
         return;
     }
 
+    /*
+     * Текст длиннее одной строки.
+     * Первую строку заполняем полностью,
+     * вторую оставляем рядом с кнопками.
+     */
     const breakPosition=findBreakPosition(
         fullTitle,
         firstLine,
@@ -406,7 +424,6 @@ function layoutPhotoTitle(card){
         )
     ){
         secondLine.textContent=remaining;
-
         return;
     }
 
@@ -426,19 +443,15 @@ function layoutPhotoTitle(card){
 function getLineHeight(element){
     const style=getComputedStyle(element);
     const value=parseFloat(style.lineHeight);
-
     if(Number.isFinite(value)){
         return value;
     }
-
     return parseFloat(style.fontSize)*1.3;
 }
 
 function getMetaHeight(meta){
     const range=document.createRange();
-
     range.selectNodeContents(meta);
-
     return range.getBoundingClientRect().height;
 }
 
@@ -731,3 +744,7 @@ export function renderPhotos(
 
     return html;
 }
+
+
+
+
