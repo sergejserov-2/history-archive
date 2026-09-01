@@ -97,9 +97,7 @@ export function renderPhoto(photo){
 
             <div class="photo-card__content">
                 <div class="photo-card__title">
-                    <div
-                        class="photo-card__title-row"
-                    >
+                    <div class="photo-card__title-row">
                         <span
                             class="photo-card__title-line"
                         ></span>
@@ -120,9 +118,7 @@ export function renderPhoto(photo){
                         ${photo.title??""}
                     </span>
 
-                    <span
-                        class="photo-card__title-actions"
-                    >
+                    <span class="photo-card__title-actions">
                         ${adminEdit("photo",photo.id)}
                         ${adminDelete("photo",photo.id)}
                     </span>
@@ -370,6 +366,7 @@ function layoutPhotoTitle(card){
         firstRow.append(actions);
 
         firstLine.textContent=fullTitle;
+
         firstLine.classList.add(
             "photo-card__title-line--ellipsis"
         );
@@ -413,12 +410,6 @@ function layoutPhotoTitle(card){
         )
     );
 }
-
-
-
-
-
-
 
 function getLineHeight(element){
     const style=getComputedStyle(element);
