@@ -332,9 +332,6 @@ function layoutPhotoTitle(card){
         return;
     }
 
-    const fullTitle=
-        source.dataset.fullTitle??"";
-
     const[
         firstRow,
         secondRow
@@ -344,6 +341,19 @@ function layoutPhotoTitle(card){
         firstLine,
         secondLine
     ]=lines;
+
+    const fullTitle=
+        source.dataset.fullTitle??"";
+
+    firstRow.classList.remove(
+        "photo-card__title-row--single",
+        "photo-card__title-row--multi"
+    );
+
+    secondRow.classList.remove(
+        "photo-card__title-row--single",
+        "photo-card__title-row--multi"
+    );
 
     firstRow.hidden=false;
     secondRow.hidden=true;
@@ -372,6 +382,10 @@ function layoutPhotoTitle(card){
             fullWidth
         )
     ){
+        firstRow.classList.add(
+            "photo-card__title-row--single"
+        );
+
         firstLine.textContent=
             fitsWidth(
                 firstLine,
@@ -388,6 +402,14 @@ function layoutPhotoTitle(card){
         return;
     }
 
+    firstRow.classList.add(
+        "photo-card__title-row--multi"
+    );
+
+    secondRow.classList.add(
+        "photo-card__title-row--multi"
+    );
+
     /*
      * Название длиннее одной строки.
      * Первая строка использует всю ширину.
@@ -399,11 +421,20 @@ function layoutPhotoTitle(card){
     );
 
     if(!breakPosition){
+        firstRow.classList.remove(
+            "photo-card__title-row--multi"
+        );
+
+        firstRow.classList.add(
+            "photo-card__title-row--single"
+        );
+
         firstLine.textContent=findEllipsisText(
             firstLine,
             fullTitle,
             firstWidth
         );
+
         return;
     }
 
@@ -411,7 +442,7 @@ function layoutPhotoTitle(card){
         .slice(0,breakPosition)
         .trim();
 
-    let remaining=fullTitle
+    const remaining=fullTitle
         .slice(breakPosition)
         .trim();
 
@@ -425,8 +456,7 @@ function layoutPhotoTitle(card){
     );
 
     /*
-     * Кнопки визуально переносятся
-     * ко второй строке.
+     * Кнопки переходят ко второй строке.
      */
     secondRow.append(actions);
 
