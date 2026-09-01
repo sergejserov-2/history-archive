@@ -133,7 +133,10 @@
     display: block;
 
     hyphens: auto;
-    overflow-wrap: break-word;
+    overflow-wrap: normal;
+    word-break: normal;
+
+    white-space: normal;
 }
 
 .photo-card__title-row--first .photo-card__title-line {
@@ -204,8 +207,6 @@
 
     height: 230px;
 }
-
-
 
 
 /* ========================================== SOURCES ========================================== */
