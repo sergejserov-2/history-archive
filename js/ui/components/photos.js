@@ -1,7 +1,3 @@
-
-
-
-
 import{openPhotoModal}from"./modalReload.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
@@ -101,13 +97,24 @@ export function renderPhoto(photo){
 
             <div class="photo-card__content">
                 <div class="photo-card__title">
-                    <span class="photo-card__title-text">
-                        ${photo.title??""}
-                    </span>
+                    <div class="photo-card__title-row">
+                        <span class="photo-card__title-line photo-card__title-line--first"></span>
+                    </div>
 
-                    <span class="photo-card__title-actions">
-                        ${adminEdit("photo",photo.id)}
-                        ${adminDelete("photo",photo.id)}
+                    <div class="photo-card__title-row photo-card__title-row--second">
+                        <span class="photo-card__title-line photo-card__title-line--second"></span>
+
+                        <span class="photo-card__title-actions">
+                            ${adminEdit("photo",photo.id)}
+                            ${adminDelete("photo",photo.id)}
+                        </span>
+                    </div>
+
+                    <span
+                        class="photo-card__title-source"
+                        data-full-title="${photo.title??""}"
+                    >
+                        ${photo.title??""}
                     </span>
                 </div>
 
@@ -141,11 +148,8 @@ function getPhotoElementData(element){
 
         title:
             element.querySelector(
-                ".photo-card__title-text"
+                ".photo-card__title-source"
             )?.dataset.fullTitle??
-            element.querySelector(
-                ".photo-card__title-text"
-            )?.textContent.trim()??
             ""
     };
 }
@@ -161,6 +165,212 @@ function updateListPhotos(list,photo){
     ];
 }
 
+function getTitleParts(card){
+    const title=card.querySelector(
+        ".photo-card__title"
+    );
+
+    const firstRow=card.querySelector(
+        ".photo-card__title-row:first-child"
+    );
+
+    const secondRow=card.querySelector(
+        ".photo-card__title-row--second"
+    );
+
+    const firstLine=card.querySelector(
+        ".photo-card__title-line--first"
+    );
+
+    const secondLine=card.querySelector(
+        ".photo-card__title-line--second"
+    );
+
+    const actions=card.querySelector(
+        ".photo-card__title-actions"
+    );
+
+    const source=card.querySelector(
+        ".photo-card__title-source"
+    );
+
+    return{
+        title,
+        firstRow,
+        secondRow,
+        firstLine,
+        secondLine,
+        actions,
+        source
+    };
+}
+
+function getFullTitle(card){
+    const source=card.querySelector(
+        ".photo-card__title-source"
+    );
+
+    return source?.dataset.fullTitle??"";
+}
+
+function getAvailableWidth(element){
+    return element.getBoundingClientRect().width;
+}
+
+function fitsLine(line,text){
+    line.textContent=text;
+
+    return(
+        line.scrollWidth<=
+        getAvailableWidth(
+            line.parentElement
+        )+1
+    );
+}
+
+function fitsSecondLine(
+    line,
+    actions,
+    text
+){
+    line.textContent=text;
+
+    const row=line.parentElement;
+    const gap=parseFloat(
+        getComputedStyle(row).gap
+    )||0;
+
+    const textWidth=
+        line.getBoundingClientRect().width;
+
+    const actionsWidth=
+        actions.getBoundingClientRect().width;
+
+    return(
+        textWidth+
+        actionsWidth+
+        gap<=
+        row.getBoundingClientRect().width+1
+    );
+}
+
+function findMaximumText(
+    value,
+    callback
+){
+    let start=1;
+    let end=value.length;
+    let result="";
+
+    while(start<=end){
+        const middle=Math.floor(
+            (start+end)/2
+        );
+
+        const text=value
+            .slice(0,middle)
+            .trimEnd();
+
+        if(callback(text)){
+            result=text;
+            start=middle+1;
+        }else{
+            end=middle-1;
+        }
+    }
+
+    return result;
+}
+
+function splitTitle(card){
+    const{
+        firstRow,
+        secondRow,
+        firstLine,
+        secondLine,
+        actions
+    }=getTitleParts(card);
+
+    if(
+        !firstRow||
+        !secondRow||
+        !firstLine||
+        !secondLine||
+        !actions
+    ){
+        return;
+    }
+
+    const fullTitle=getFullTitle(card);
+
+    firstLine.textContent="";
+    secondLine.textContent="";
+    firstRow.hidden=false;
+    secondRow.hidden=false;
+
+    if(
+        fitsSecondLine(
+            secondLine,
+            actions,
+            fullTitle
+        )
+    ){
+        firstRow.hidden=true;
+        secondLine.textContent=fullTitle;
+        return;
+    }
+
+    const firstPart=findMaximumText(
+        fullTitle,
+        text=>fitsLine(
+            firstLine,
+            text
+        )
+    );
+
+    firstLine.textContent=firstPart;
+
+    let remaining=fullTitle
+        .slice(firstPart.length)
+        .trimStart();
+
+    if(!remaining){
+        secondRow.hidden=true;
+        return;
+    }
+
+    if(
+        fitsSecondLine(
+            secondLine,
+            actions,
+            remaining
+        )
+    ){
+        secondLine.textContent=remaining;
+        return;
+    }
+
+    const secondPart=findMaximumText(
+        remaining,
+        text=>fitsSecondLine(
+            secondLine,
+            actions,
+            `${text}...`
+        )
+    );
+
+    secondLine.textContent=
+        secondPart
+            ?`${secondPart}...`
+            :"...";
+}
+
+function layoutPhotoTitle(card){
+    requestAnimationFrame(()=>{
+        splitTitle(card);
+    });
+}
+
 function getLineHeight(element){
     const style=getComputedStyle(element);
     const value=parseFloat(style.lineHeight);
@@ -170,182 +380,6 @@ function getLineHeight(element){
     }
 
     return parseFloat(style.fontSize)*1.3;
-}
-
-function getTitleText(card){
-    const text=card.querySelector(
-        ".photo-card__title-text"
-    );
-
-    if(!text)return null;
-
-    if(!text.dataset.fullTitle){
-        text.dataset.fullTitle=text.textContent.trim();
-    }
-
-    return text;
-}
-
-function getTitleButtons(card){
-    return[
-        ...card.querySelectorAll(
-            ".photo-card__title .admin-button"
-        )
-    ];
-}
-
-function getButtonTop(button){
-    return Math.round(
-        button.getBoundingClientRect().top
-    );
-}
-
-function titleUsesMoreThanTwoLines(title,buttons){
-    const titleTop=Math.round(
-        title.getBoundingClientRect().top
-    );
-
-    const lineHeight=getLineHeight(title);
-
-    return buttons.some(
-        button=>
-            getButtonTop(button)-
-            titleTop>
-            lineHeight*1.5
-    );
-}
-
-function buttonsAreSplit(buttons){
-    if(buttons.length<2){
-        return false;
-    }
-
-    const firstTop=getButtonTop(
-        buttons[0]
-    );
-
-    return buttons.some(
-        button=>
-            Math.abs(
-                getButtonTop(button)-
-                firstTop
-            )>2
-    );
-}
-
-function hasTextBeforeButtons(title,text,buttons){
-    const titleRect=title.getBoundingClientRect();
-    const textRect=text.getBoundingClientRect();
-
-    if(
-        textRect.width<=0||
-        textRect.height<=0
-    ){
-        return false;
-    }
-
-    const firstButton=buttons[0];
-
-    if(!firstButton){
-        return true;
-    }
-
-    const buttonRect=
-        firstButton.getBoundingClientRect();
-
-    return(
-        buttonRect.top>=titleRect.top&&
-        text.textContent.trim().length>0
-    );
-}
-
-function titleFits(card){
-    const title=card.querySelector(
-        ".photo-card__title"
-    );
-
-    const text=getTitleText(card);
-    const buttons=getTitleButtons(card);
-
-    if(
-        !title||
-        !text||
-        !buttons.length
-    ){
-        return true;
-    }
-
-    return(
-        !titleUsesMoreThanTwoLines(
-            title,
-            buttons
-        )&&
-        !buttonsAreSplit(buttons)&&
-        hasTextBeforeButtons(
-            title,
-            text,
-            buttons
-        )
-    );
-}
-
-function findTitleText(card,fullTitle){
-    const text=getTitleText(card);
-
-    if(!text)return;
-
-    text.textContent=fullTitle;
-
-    if(titleFits(card)){
-        return;
-    }
-
-    let start=1;
-    let end=fullTitle.length;
-    let result="";
-
-    while(start<=end){
-        const middle=Math.floor(
-            (start+end)/2
-        );
-
-        const value=
-            `${fullTitle.slice(0,middle).trimEnd()}...`;
-
-        text.textContent=value;
-
-        if(titleFits(card)){
-            result=value;
-            start=middle+1;
-        }else{
-            end=middle-1;
-        }
-    }
-
-    if(result){
-        text.textContent=result;
-        return;
-    }
-
-    text.textContent="...";
-}
-
-function layoutPhotoTitle(card){
-    const text=getTitleText(card);
-
-    if(!text)return;
-
-    const fullTitle=
-        text.dataset.fullTitle??"";
-
-    text.textContent=fullTitle;
-
-    requestAnimationFrame(()=>{
-        findTitleText(
-            card,
-            fullTitle
-        );
-    });
 }
 
 function getMetaHeight(meta){
