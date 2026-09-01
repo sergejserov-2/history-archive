@@ -124,8 +124,23 @@
 .photo-card__title-line {
     min-width: 0;
 
-    hyphens: auto;
-    overflow-wrap: break-word;
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.photo-card__title-row--single
+.photo-card__title-line {
+    white-space: nowrap;
+
+    overflow-wrap: normal;
+    word-break: normal;
+}
+
+.photo-card__title-row--multi
+.photo-card__title-line {
+    white-space: normal;
+
+    overflow-wrap: normal;
     word-break: normal;
 }
 
@@ -157,6 +172,7 @@
 .photo-card__title-source {
     display: none;
 }
+
 
 .photo-card__author {
     min-height: calc(
