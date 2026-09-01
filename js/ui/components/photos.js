@@ -1,16 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
 import{openPhotoModal}from"./modalReload.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
@@ -105,17 +94,17 @@ export function renderPhoto(photo){
                     class="photo-card__title"
                     lang="ru"
                 >
-                    <div class="photo-card__title-row photo-card__title-row--first">
-                        <span class="photo-card__title-line photo-card__title-line--first"></span>
-                    </div>
-
-                    <div class="photo-card__title-row photo-card__title-row--second">
-                        <span class="photo-card__title-line photo-card__title-line--second"></span>
+                    <div class="photo-card__title-row">
+                        <span class="photo-card__title-line"></span>
 
                         <span class="photo-card__title-actions">
                             ${adminEdit("photo",photo.id)}
                             ${adminDelete("photo",photo.id)}
                         </span>
+                    </div>
+
+                    <div class="photo-card__title-row photo-card__title-row--second">
+                        <span class="photo-card__title-line"></span>
                     </div>
 
                     <span
@@ -165,41 +154,12 @@ function updateListPhotos(list,photo){
     ];
 }
 
-function getTitleParts(card){
-    return{
-        firstRow:card.querySelector(
-            ".photo-card__title-row--first"
-        ),
-        secondRow:card.querySelector(
-            ".photo-card__title-row--second"
-        ),
-        firstLine:card.querySelector(
-            ".photo-card__title-line--first"
-        ),
-        secondLine:card.querySelector(
-            ".photo-card__title-line--second"
-        ),
-        actions:card.querySelector(
-            ".photo-card__title-actions"
-        ),
-        source:card.querySelector(
-            ".photo-card__title-source"
-        )
-    };
-}
-
-function getFullTitle(card){
-    return card.querySelector(
-        ".photo-card__title-source"
-    )?.dataset.fullTitle??"";
-}
-
 function getTextWidth(element,text){
     const probe=document.createElement("span");
     const style=getComputedStyle(element);
 
     probe.textContent=text;
-    probe.style.position="absolute";
+    probe.style.position="fixed";
     probe.style.visibility="hidden";
     probe.style.pointerEvents="none";
     probe.style.whiteSpace="nowrap";
@@ -218,36 +178,63 @@ function getTextWidth(element,text){
     return width;
 }
 
+function getTitleParts(card){
+    const title=card.querySelector(
+        ".photo-card__title"
+    );
+
+    return{
+        title,
+        rows:[
+            ...card.querySelectorAll(
+                ".photo-card__title-row"
+            )
+        ],
+        lines:[
+            ...card.querySelectorAll(
+                ".photo-card__title-line"
+            )
+        ],
+        actions:card.querySelector(
+            ".photo-card__title-actions"
+        ),
+        source:card.querySelector(
+            ".photo-card__title-source"
+        )
+    };
+}
+
 function getRowGap(row){
     return parseFloat(
         getComputedStyle(row).gap
     )||0;
 }
 
-function getFirstLineWidth(row){
-    return row.getBoundingClientRect().width;
-}
+function getAvailableWidth(row,actions=null){
+    const width=row.getBoundingClientRect().width;
 
-function getSecondLineWidth(row,actions){
+    if(!actions){
+        return width;
+    }
+
     return(
-        row.getBoundingClientRect().width-
+        width-
         actions.getBoundingClientRect().width-
         getRowGap(row)
     );
 }
 
-function fitsText(element,text,width){
-    return getTextWidth(
-        element,
-        text
-    )<=width+0.5;
+function fitsWidth(element,text,width){
+    return(
+        getTextWidth(element,text)<=
+        width+0.5
+    );
 }
 
-function findMaximumText(
+function findEllipsisText(
     element,
     value,
-    width,
-    suffix=""
+    width
 ){
     let start=1;
     let end=value.length;
@@ -259,47 +246,62 @@ function findMaximumText(
         );
 
         const text=
-            value
-                .slice(0,middle)
-                .trimEnd()+
-            suffix;
+            `${value.slice(0,middle).trimEnd()}...`;
 
         if(
-            fitsText(
+            fitsWidth(
                 element,
                 text,
                 width
             )
         ){
-            result=value
-                .slice(0,middle)
-                .trimEnd();
-
+            result=text;
             start=middle+1;
         }else{
             end=middle-1;
         }
     }
 
-    return result;
+    return result||"...";
 }
 
 function findBreakPosition(
-    value,
     element,
+    value,
     width
 ){
-    const maximum=findMaximumText(
-        element,
-        value,
-        width
-    );
+    let start=1;
+    let end=value.length;
+    let result=0;
 
-    if(!maximum){
+    while(start<=end){
+        const middle=Math.floor(
+            (start+end)/2
+        );
+
+        const text=value
+            .slice(0,middle)
+            .trimEnd();
+
+        if(
+            fitsWidth(
+                element,
+                text,
+                width
+            )
+        ){
+            result=middle;
+            start=middle+1;
+        }else{
+            end=middle-1;
+        }
+    }
+
+    if(!result){
         return 0;
     }
 
-    let position=maximum.length;
+    let position=result;
 
     while(
         position>0&&
@@ -310,114 +312,126 @@ function findBreakPosition(
         position--;
     }
 
-    if(position>0){
-        return position;
-    }
-
-    return maximum.length;
+    return position||result;
 }
 
 function layoutPhotoTitle(card){
     const{
-        firstRow,
-        secondRow,
-        firstLine,
-        secondLine,
-        actions
+        rows,
+        lines,
+        actions,
+        source
     }=getTitleParts(card);
 
     if(
-        !firstRow||
-        !secondRow||
-        !firstLine||
-        !secondLine||
-        !actions
+        rows.length<2||
+        lines.length<2||
+        !actions||
+        !source
     ){
         return;
     }
 
-    const fullTitle=getFullTitle(card);
+    const fullTitle=
+        source.dataset.fullTitle??"";
+
+    const[
+        firstRow,
+        secondRow
+    ]=rows;
+
+    const[
+        firstLine,
+        secondLine
+    ]=lines;
 
     firstRow.hidden=false;
-    secondRow.hidden=false;
+    secondRow.hidden=true;
 
     firstLine.textContent="";
     secondLine.textContent="";
 
-    const firstWidth=getFirstLineWidth(
+    const fullWidth=getAvailableWidth(
         firstRow
     );
 
-    const secondWidth=getSecondLineWidth(
-        secondRow,
+    const firstWidth=getAvailableWidth(
+        firstRow,
         actions
     );
 
     /*
-     * Полный текст помещается без кнопок.
-     * Значит заголовок должен оставаться
-     * на одной строке рядом с кнопками.
+     * Название помещается в одну строку
+     * без кнопок. Оно всегда остаётся
+     * на первой строке.
      */
     if(
-        fitsText(
+        fitsWidth(
             firstLine,
             fullTitle,
-            firstWidth
+            fullWidth
         )
     ){
-        firstRow.hidden=true;
-
-        if(
-            fitsText(
-                secondLine,
+        firstLine.textContent=
+            fitsWidth(
+                firstLine,
                 fullTitle,
-                secondWidth
+                firstWidth
             )
-        ){
-            secondLine.textContent=fullTitle;
-            return;
-        }
-
-        const truncated=findMaximumText(
-            secondLine,
-            fullTitle,
-            secondWidth,
-            "..."
-        );
-
-        secondLine.textContent=
-            truncated
-                ?`${truncated}...`
-                :"...";
+                ?fullTitle
+                :findEllipsisText(
+                    firstLine,
+                    fullTitle,
+                    firstWidth
+                );
 
         return;
     }
 
     /*
-     * Текст длиннее одной строки.
-     * Первую строку заполняем полностью,
-     * вторую оставляем рядом с кнопками.
+     * Название длиннее одной строки.
+     * Первая строка использует всю ширину.
      */
     const breakPosition=findBreakPosition(
-        fullTitle,
         firstLine,
-        firstWidth
+        fullTitle,
+        fullWidth
     );
 
-    const firstText=
-        fullTitle
-            .slice(0,breakPosition)
-            .trim();
+    if(!breakPosition){
+        firstLine.textContent=findEllipsisText(
+            firstLine,
+            fullTitle,
+            firstWidth
+        );
+        return;
+    }
 
-    let remaining=
-        fullTitle
-            .slice(breakPosition)
-            .trim();
+    const firstText=fullTitle
+        .slice(0,breakPosition)
+        .trim();
+
+    let remaining=fullTitle
+        .slice(breakPosition)
+        .trim();
 
     firstLine.textContent=firstText;
 
+    secondRow.hidden=false;
+
+    const secondWidth=getAvailableWidth(
+        secondRow,
+        actions
+    );
+
+    /*
+     * Кнопки визуально переносятся
+     * ко второй строке.
+     */
+    secondRow.append(actions);
+
     if(
-        fitsText(
+        fitsWidth(
             secondLine,
             remaining,
             secondWidth
@@ -427,31 +441,29 @@ function layoutPhotoTitle(card){
         return;
     }
 
-    const secondText=findMaximumText(
+    secondLine.textContent=findEllipsisText(
         secondLine,
         remaining,
-        secondWidth,
-        "..."
+        secondWidth
     );
-
-    secondLine.textContent=
-        secondText
-            ?`${secondText}...`
-            :"...";
 }
 
 function getLineHeight(element){
     const style=getComputedStyle(element);
     const value=parseFloat(style.lineHeight);
+
     if(Number.isFinite(value)){
         return value;
     }
+
     return parseFloat(style.fontSize)*1.3;
 }
 
 function getMetaHeight(meta){
     const range=document.createRange();
+
     range.selectNodeContents(meta);
+
     return range.getBoundingClientRect().height;
 }
 
@@ -744,7 +756,3 @@ export function renderPhotos(
 
     return html;
 }
-
-
-
-
