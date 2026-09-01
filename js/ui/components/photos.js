@@ -1,5 +1,3 @@
-
-
 import{openPhotoModal}from"./modalReload.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
@@ -22,9 +20,11 @@ export function getPhotoData(photo){
 function renderPhotoMedia(photo){
     const uploading=photo.isUploading===true;
     const hasPreview=Boolean(photo.previewPath);
+
     if(uploading&&!hasPreview){
         return renderLoadingPlaceholder();
     }
+
     if(hasPreview){
         return`
             ${uploading?renderLoadingPlaceholder():""}
@@ -36,6 +36,7 @@ function renderPhotoMedia(photo){
             >
         `;
     }
+
     return`
         <div class="photo-card__placeholder">
             Фото отсутствует
@@ -46,6 +47,7 @@ function renderPhotoMedia(photo){
 function renderPhotoMeta(photo){
     const author=photo.author?.trim()??"";
     const date=getPhotoPeriod(photo);
+
     if(author&&date){
         return`
             <span class="photo-card__author-name">
@@ -56,6 +58,7 @@ function renderPhotoMeta(photo){
             </span>
         `;
     }
+
     if(author){
         return`
             <span class="photo-card__author-name">
@@ -63,6 +66,7 @@ function renderPhotoMeta(photo){
             </span>
         `;
     }
+
     if(date){
         return`
             <span class="photo-card__date">
@@ -70,11 +74,13 @@ function renderPhotoMeta(photo){
             </span>
         `;
     }
+
     return"";
 }
 
 export function renderPhoto(photo){
     const uploading=photo.isUploading===true;
+
     return`
         <div
             class="photo-card${uploading?" photo-card--uploading":""}"
@@ -90,27 +96,36 @@ export function renderPhoto(photo){
             </div>
 
             <div class="photo-card__content">
-                <div
-                    class="photo-card__title"
-                    lang="ru"
-                >
-                    <div class="photo-card__title-row">
-                        <span class="photo-card__title-line"></span>
-
-                        <span class="photo-card__title-actions">
-                            ${adminEdit("photo",photo.id)}
-                            ${adminDelete("photo",photo.id)}
-                        </span>
+                <div class="photo-card__title">
+                    <div
+                        class="photo-card__title-row"
+                    >
+                        <span
+                            class="photo-card__title-line"
+                        ></span>
                     </div>
 
-                    <div class="photo-card__title-row photo-card__title-row--second">
-                        <span class="photo-card__title-line"></span>
+                    <div
+                        class="photo-card__title-row photo-card__title-row--second"
+                    >
+                        <span
+                            class="photo-card__title-line"
+                        ></span>
                     </div>
 
                     <span
                         class="photo-card__title-source"
                         data-full-title="${photo.title??""}"
-                    ></span>
+                    >
+                        ${photo.title??""}
+                    </span>
+
+                    <span
+                        class="photo-card__title-actions"
+                    >
+                        ${adminEdit("photo",photo.id)}
+                        ${adminDelete("photo",photo.id)}
+                    </span>
                 </div>
 
                 <div class="photo-card__author">
@@ -123,7 +138,9 @@ export function renderPhoto(photo){
 
 function createPhotoElement(photo){
     const template=document.createElement("template");
+
     template.innerHTML=renderPhoto(photo).trim();
+
     return template.content.firstElementChild;
 }
 
@@ -133,19 +150,23 @@ function getPhotoElementData(element){
             element.querySelector(
                 ".photo-card__date"
             )?.textContent.trim()??"",
+
         author:
             element.querySelector(
                 ".photo-card__author-name"
             )?.textContent.trim()??"",
+
         title:
             element.querySelector(
                 ".photo-card__title-source"
-            )?.dataset.fullTitle??""
+            )?.dataset.fullTitle??
+            ""
     };
 }
 
 function updateListPhotos(list,photo){
     if(!list)return;
+
     list.photos=[
         ...(list.photos??[]).filter(
             item=>item.id!==photo.id
@@ -154,165 +175,93 @@ function updateListPhotos(list,photo){
     ];
 }
 
-function getTextWidth(element,text){
-    const probe=document.createElement("span");
-    const style=getComputedStyle(element);
-
-    probe.textContent=text;
-    probe.style.position="fixed";
-    probe.style.visibility="hidden";
-    probe.style.pointerEvents="none";
-    probe.style.whiteSpace="nowrap";
-    probe.style.fontFamily=style.fontFamily;
-    probe.style.fontSize=style.fontSize;
-    probe.style.fontWeight=style.fontWeight;
-    probe.style.fontStyle=style.fontStyle;
-    probe.style.letterSpacing=style.letterSpacing;
-
-    document.body.append(probe);
-
-    const width=probe.getBoundingClientRect().width;
-
-    probe.remove();
-
-    return width;
-}
-
 function getTitleParts(card){
     const title=card.querySelector(
         ".photo-card__title"
     );
 
+    const rows=[
+        ...card.querySelectorAll(
+            ".photo-card__title-row"
+        )
+    ];
+
+    const lines=[
+        ...card.querySelectorAll(
+            ".photo-card__title-line"
+        )
+    ];
+
+    const actions=card.querySelector(
+        ".photo-card__title-actions"
+    );
+
+    const source=card.querySelector(
+        ".photo-card__title-source"
+    );
+
     return{
         title,
-        rows:[
-            ...card.querySelectorAll(
-                ".photo-card__title-row"
-            )
-        ],
-        lines:[
-            ...card.querySelectorAll(
-                ".photo-card__title-line"
-            )
-        ],
-        actions:card.querySelector(
-            ".photo-card__title-actions"
-        ),
-        source:card.querySelector(
-            ".photo-card__title-source"
-        )
+        rows,
+        lines,
+        actions,
+        source
     };
 }
 
-function getRowGap(row){
-    return parseFloat(
-        getComputedStyle(row).gap
-    )||0;
-}
-
 function getAvailableWidth(row,actions=null){
-    const width=row.getBoundingClientRect().width;
+    const rowWidth=row.getBoundingClientRect().width;
 
     if(!actions){
-        return width;
+        return rowWidth;
     }
 
-    return(
-        width-
-        actions.getBoundingClientRect().width-
-        getRowGap(row)
+    const actionsWidth=
+        actions.getBoundingClientRect().width;
+
+    const style=getComputedStyle(row);
+
+    const gap=parseFloat(
+        style.columnGap
+    )||0;
+
+    return Math.max(
+        0,
+        rowWidth-actionsWidth-gap
     );
 }
 
-function fitsWidth(element,text,width){
-    return(
-        getTextWidth(element,text)<=
-        width+0.5
-    );
+function fitsWidth(line,text,width){
+    line.textContent=text;
+
+    return line.scrollWidth<=width+1;
 }
 
-function findEllipsisText(
-    element,
-    value,
-    width
-){
-    let start=1;
-    let end=value.length;
-    let result="";
+function findBreakPosition(line,text,width){
+    const words=text.split(/\s+/);
 
-    while(start<=end){
-        const middle=Math.floor(
-            (start+end)/2
-        );
-
-        const text=
-            `${value.slice(0,middle).trimEnd()}...`;
-
-        if(
-            fitsWidth(
-                element,
-                text,
-                width
-            )
-        ){
-            result=text;
-            start=middle+1;
-        }else{
-            end=middle-1;
-        }
-    }
-
-    return result||"...";
-}
-
-function findBreakPosition(
-    element,
-    value,
-    width
-){
-    let start=1;
-    let end=value.length;
-    let result=0;
-
-    while(start<=end){
-        const middle=Math.floor(
-            (start+end)/2
-        );
-
-        const text=value
-            .slice(0,middle)
-            .trimEnd();
-
-        if(
-            fitsWidth(
-                element,
-                text,
-                width
-            )
-        ){
-            result=middle;
-            start=middle+1;
-        }else{
-            end=middle-1;
-        }
-    }
-
-    if(!result){
+    if(words.length<2){
         return 0;
     }
 
-    let position=result;
+    let result=0;
+    let value="";
 
-    while(
-        position>0&&
-        !/[\s-]/.test(
-            value[position-1]
-        )
-    ){
-        position--;
+    for(let index=0;index<words.length;index++){
+        const next=
+            value
+                ?`${value} ${words[index]}`
+                :words[index];
+
+        if(!fitsWidth(line,next,width)){
+            break;
+        }
+
+        value=next;
+        result=value.length;
     }
 
-    return position||result;
+    return result;
 }
 
 function layoutPhotoTitle(card){
@@ -355,6 +304,14 @@ function layoutPhotoTitle(card){
         "photo-card__title-row--multi"
     );
 
+    firstLine.classList.remove(
+        "photo-card__title-line--ellipsis"
+    );
+
+    secondLine.classList.remove(
+        "photo-card__title-line--ellipsis"
+    );
+
     firstRow.hidden=false;
     secondRow.hidden=true;
 
@@ -365,16 +322,13 @@ function layoutPhotoTitle(card){
         firstRow
     );
 
+    firstRow.append(actions);
+
     const firstWidth=getAvailableWidth(
         firstRow,
         actions
     );
 
-    /*
-     * Название помещается в одну строку
-     * без кнопок. Оно всегда остаётся
-     * на первой строке.
-     */
     if(
         fitsWidth(
             firstLine,
@@ -386,18 +340,16 @@ function layoutPhotoTitle(card){
             "photo-card__title-row--single"
         );
 
-        firstLine.textContent=
-            fitsWidth(
+        firstLine.textContent=fullTitle;
+
+        firstLine.classList.toggle(
+            "photo-card__title-line--ellipsis",
+            !fitsWidth(
                 firstLine,
                 fullTitle,
                 firstWidth
             )
-                ?fullTitle
-                :findEllipsisText(
-                    firstLine,
-                    fullTitle,
-                    firstWidth
-                );
+        );
 
         return;
     }
@@ -410,10 +362,6 @@ function layoutPhotoTitle(card){
         "photo-card__title-row--multi"
     );
 
-    /*
-     * Название длиннее одной строки.
-     * Первая строка использует всю ширину.
-     */
     const breakPosition=findBreakPosition(
         firstLine,
         fullTitle,
@@ -429,10 +377,10 @@ function layoutPhotoTitle(card){
             "photo-card__title-row--single"
         );
 
-        firstLine.textContent=findEllipsisText(
-            firstLine,
-            fullTitle,
-            firstWidth
+        firstLine.textContent=fullTitle;
+
+        firstLine.classList.add(
+            "photo-card__title-line--ellipsis"
         );
 
         return;
@@ -450,31 +398,22 @@ function layoutPhotoTitle(card){
 
     secondRow.hidden=false;
 
+    secondRow.append(actions);
+
     const secondWidth=getAvailableWidth(
         secondRow,
         actions
     );
 
-    /*
-     * Кнопки переходят ко второй строке.
-     */
-    secondRow.append(actions);
+    secondLine.textContent=remaining;
 
-    if(
-        fitsWidth(
+    secondLine.classList.toggle(
+        "photo-card__title-line--ellipsis",
+        !fitsWidth(
             secondLine,
             remaining,
             secondWidth
         )
-    ){
-        secondLine.textContent=remaining;
-        return;
-    }
-
-    secondLine.textContent=findEllipsisText(
-        secondLine,
-        remaining,
-        secondWidth
     );
 }
 
@@ -486,7 +425,9 @@ function getLineHeight(element){
         return value;
     }
 
-    return parseFloat(style.fontSize)*1.3;
+    return parseFloat(
+        style.fontSize
+    )*1.5;
 }
 
 function getMetaHeight(meta){
@@ -525,7 +466,10 @@ function layoutPhotoMeta(card){
     const lineHeight=getLineHeight(meta);
     const maxHeight=lineHeight*2;
 
-    if(getMetaHeight(meta)<=maxHeight+1){
+    if(
+        getMetaHeight(meta)<=
+        maxHeight+1
+    ){
         return;
     }
 
@@ -542,7 +486,9 @@ function layoutPhotoMeta(card){
         );
 
         const value=
-            `${fullAuthor.slice(0,middle).trimEnd()}...`;
+            `${fullAuthor
+                .slice(0,middle)
+                .trimEnd()}...`;
 
         author.textContent=value;
 
@@ -561,10 +507,8 @@ function layoutPhotoMeta(card){
 }
 
 function layoutPhotoText(card){
-    requestAnimationFrame(()=>{
-        layoutPhotoTitle(card);
-        layoutPhotoMeta(card);
-    });
+    layoutPhotoTitle(card);
+    layoutPhotoMeta(card);
 }
 
 export function insertPhoto(photo){
@@ -588,7 +532,9 @@ export function insertPhoto(photo){
         getItem:getPhotoElementData
     });
 
-    layoutPhotoText(element);
+    requestAnimationFrame(()=>{
+        layoutPhotoText(element);
+    });
 
     return element;
 }
@@ -611,7 +557,9 @@ export async function addPhotoToList(photo){
 
     await show(element);
 
-    layoutPhotoText(element);
+    requestAnimationFrame(()=>{
+        layoutPhotoText(element);
+    });
 
     return element;
 }
@@ -671,7 +619,9 @@ export async function updatePhotoInList(photo){
         photo
     );
 
-    layoutPhotoText(element);
+    requestAnimationFrame(()=>{
+        layoutPhotoText(element);
+    });
 
     return element;
 }
