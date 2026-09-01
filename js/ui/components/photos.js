@@ -100,7 +100,6 @@ export function renderPhoto(photo){
                     <div class="photo-card__title-row">
                         <span
                             class="photo-card__title-line"
-                            lang="ru"
                         ></span>
                     </div>
 
@@ -109,7 +108,6 @@ export function renderPhoto(photo){
                     >
                         <span
                             class="photo-card__title-line"
-                            lang="ru"
                         ></span>
                     </div>
 
@@ -136,7 +134,9 @@ export function renderPhoto(photo){
 
 function createPhotoElement(photo){
     const template=document.createElement("template");
+
     template.innerHTML=renderPhoto(photo).trim();
+
     return template.content.firstElementChild;
 }
 
@@ -172,23 +172,36 @@ function updateListPhotos(list,photo){
 }
 
 function getTitleParts(card){
-    return{
-        rows:[
-            ...card.querySelectorAll(
-                ".photo-card__title-row"
-            )
-        ],
-        lines:[
-            ...card.querySelectorAll(
-                ".photo-card__title-line"
-            )
-        ],
-        actions:card.querySelector(
-            ".photo-card__title-actions"
-        ),
-        source:card.querySelector(
-            ".photo-card__title-source"
+    const title=card.querySelector(
+        ".photo-card__title"
+    );
+
+    const rows=[
+        ...card.querySelectorAll(
+            ".photo-card__title-row"
         )
+    ];
+
+    const lines=[
+        ...card.querySelectorAll(
+            ".photo-card__title-line"
+        )
+    ];
+
+    const actions=card.querySelector(
+        ".photo-card__title-actions"
+    );
+
+    const source=card.querySelector(
+        ".photo-card__title-source"
+    );
+
+    return{
+        title,
+        rows,
+        lines,
+        actions,
+        source
     };
 }
 
@@ -202,8 +215,10 @@ function getAvailableWidth(row,actions=null){
     const actionsWidth=
         actions.getBoundingClientRect().width;
 
+    const style=getComputedStyle(row);
+
     const gap=parseFloat(
-        getComputedStyle(row).columnGap
+        style.columnGap
     )||0;
 
     return Math.max(
@@ -212,101 +227,35 @@ function getAvailableWidth(row,actions=null){
     );
 }
 
-function getTextWidth(element,text){
-    const measure=document.createElement("span");
-    const style=getComputedStyle(element);
-
-    measure.textContent=text;
-    measure.style.position="fixed";
-    measure.style.visibility="hidden";
-    measure.style.pointerEvents="none";
-    measure.style.whiteSpace="nowrap";
-    measure.style.width="auto";
-    measure.style.minWidth="max-content";
-    measure.style.fontFamily=style.fontFamily;
-    measure.style.fontSize=style.fontSize;
-    measure.style.fontWeight=style.fontWeight;
-    measure.style.fontStyle=style.fontStyle;
-    measure.style.letterSpacing=style.letterSpacing;
-
-    document.body.append(measure);
-
-    const width=measure.getBoundingClientRect().width;
-
-    measure.remove();
-
-    return width;
-}
-
 function fitsWidth(line,text,width){
-    return getTextWidth(
-        line,
-        text
-    )<=width+1;
+    line.textContent=text;
+
+    return line.scrollWidth<=width+1;
 }
 
-function getNaturalBreakPosition(line,text,width){
-    const measure=document.createElement("span");
-    const style=getComputedStyle(line);
+function findBreakPosition(line,text,width){
+    const words=text.split(/\s+/);
 
-    measure.textContent=text;
-    measure.lang="ru";
-
-    measure.style.position="fixed";
-    measure.style.visibility="hidden";
-    measure.style.pointerEvents="none";
-    measure.style.left="-9999px";
-    measure.style.top="0";
-    measure.style.width=`${width}px`;
-    measure.style.fontFamily=style.fontFamily;
-    measure.style.fontSize=style.fontSize;
-    measure.style.fontWeight=style.fontWeight;
-    measure.style.fontStyle=style.fontStyle;
-    measure.style.letterSpacing=style.letterSpacing;
-    measure.style.lineHeight=style.lineHeight;
-    measure.style.whiteSpace="normal";
-    measure.style.hyphens="auto";
-    measure.style.overflowWrap="normal";
-    measure.style.wordBreak="normal";
-
-    document.body.append(measure);
-
-    const range=document.createRange();
-    const textNode=measure.firstChild;
-    const top=textNode
-        ?textNode.getBoundingClientRect().top
-        :0;
-
-    let result=0;
-
-    if(textNode){
-        for(
-            let index=1;
-            index<=text.length;
-            index++
-        ){
-            range.setStart(textNode,0);
-            range.setEnd(textNode,index);
-
-            const rects=[
-                ...range.getClientRects()
-            ];
-
-            const lastRect=
-                rects[rects.length-1];
-
-            if(
-                lastRect&&
-                lastRect.top>top+1
-            ){
-                break;
-            }
-
-            result=index;
-        }
+    if(words.length<2){
+        return 0;
     }
 
-    measure.remove();
+    let result=0;
+    let value="";
+
+    for(let index=0;index<words.length;index++){
+        const next=
+            value
+                ?`${value} ${words[index]}`
+                :words[index];
+
+        if(!fitsWidth(line,next,width)){
+            break;
+        }
+
+        value=next;
+        result=value.length;
+    }
 
     return result;
 }
@@ -403,12 +352,11 @@ function layoutPhotoTitle(card){
         return;
     }
 
-    const breakPosition=
-        getNaturalBreakPosition(
-            firstLine,
-            fullTitle,
-            fullWidth
-        );
+    const breakPosition=findBreakPosition(
+        firstLine,
+        fullTitle,
+        fullWidth
+    );
 
     if(!breakPosition){
         firstRow.classList.add(
@@ -478,7 +426,9 @@ function getLineHeight(element){
 
 function getMetaHeight(meta){
     const range=document.createRange();
+
     range.selectNodeContents(meta);
+
     return range.getBoundingClientRect().height;
 }
 
@@ -635,7 +585,9 @@ export async function updatePhotoInList(photo){
     );
 
     if(!oldElement){
-        return await addPhotoToList(photo);
+        return await addPhotoToList(
+            photo
+        );
     }
 
     const list=oldElement.parentElement;
@@ -778,5 +730,3 @@ export function renderPhotos(
 
     return html;
 }
-
-
