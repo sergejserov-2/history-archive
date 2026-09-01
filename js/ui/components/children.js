@@ -223,7 +223,7 @@ export async function renderChildren(
         "Добавить объект",
         {
             className:
-                "child-card child-card--add",
+                "entity-list__add",
             disabled:
                 !canHaveChildren,
             title:
