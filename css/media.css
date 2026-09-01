@@ -116,6 +116,18 @@
     overflow-wrap: break-word;
 }
 
+
+.photo-card__title-line {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-4);
+
+    max-width: 100%;
+
+    break-inside: avoid;
+    white-space: nowrap;
+}
+
 .photo-card__title-text {
     hyphens: auto;
     overflow-wrap: break-word;
