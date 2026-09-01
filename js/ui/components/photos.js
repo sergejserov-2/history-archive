@@ -312,6 +312,8 @@ function layoutPhotoTitle(card){
         "photo-card__title-line--ellipsis"
     );
 
+    actions.remove();
+
     firstRow.hidden=false;
     secondRow.hidden=true;
 
@@ -320,13 +322,6 @@ function layoutPhotoTitle(card){
 
     const fullWidth=getAvailableWidth(
         firstRow
-    );
-
-    firstRow.append(actions);
-
-    const firstWidth=getAvailableWidth(
-        firstRow,
-        actions
     );
 
     if(
@@ -338,6 +333,13 @@ function layoutPhotoTitle(card){
     ){
         firstRow.classList.add(
             "photo-card__title-row--single"
+        );
+
+        firstRow.append(actions);
+
+        const firstWidth=getAvailableWidth(
+            firstRow,
+            actions
         );
 
         firstLine.textContent=fullTitle;
@@ -354,14 +356,6 @@ function layoutPhotoTitle(card){
         return;
     }
 
-    firstRow.classList.add(
-        "photo-card__title-row--multi"
-    );
-
-    secondRow.classList.add(
-        "photo-card__title-row--multi"
-    );
-
     const breakPosition=findBreakPosition(
         firstLine,
         fullTitle,
@@ -369,22 +363,27 @@ function layoutPhotoTitle(card){
     );
 
     if(!breakPosition){
-        firstRow.classList.remove(
-            "photo-card__title-row--multi"
-        );
-
         firstRow.classList.add(
             "photo-card__title-row--single"
         );
 
-        firstLine.textContent=fullTitle;
+        firstRow.append(actions);
 
+        firstLine.textContent=fullTitle;
         firstLine.classList.add(
             "photo-card__title-line--ellipsis"
         );
 
         return;
     }
+
+    firstRow.classList.add(
+        "photo-card__title-row--multi"
+    );
+
+    secondRow.classList.add(
+        "photo-card__title-row--multi"
+    );
 
     const firstText=fullTitle
         .slice(0,breakPosition)
@@ -395,17 +394,15 @@ function layoutPhotoTitle(card){
         .trim();
 
     firstLine.textContent=firstText;
+    secondLine.textContent=remaining;
 
     secondRow.hidden=false;
-
     secondRow.append(actions);
 
     const secondWidth=getAvailableWidth(
         secondRow,
         actions
     );
-
-    secondLine.textContent=remaining;
 
     secondLine.classList.toggle(
         "photo-card__title-line--ellipsis",
@@ -416,6 +413,12 @@ function layoutPhotoTitle(card){
         )
     );
 }
+
+
+
+
+
+
 
 function getLineHeight(element){
     const style=getComputedStyle(element);
