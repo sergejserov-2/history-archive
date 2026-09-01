@@ -97,7 +97,7 @@ export function renderPhoto(photo){
 
             <div class="photo-card__content">
                 <div class="photo-card__title">
-                    <div class="photo-card__title-row">
+                    <div class="photo-card__title-row photo-card__title-row--first">
                         <span class="photo-card__title-line photo-card__title-line--first"></span>
                     </div>
 
@@ -113,9 +113,7 @@ export function renderPhoto(photo){
                     <span
                         class="photo-card__title-source"
                         data-full-title="${photo.title??""}"
-                    >
-                        ${photo.title??""}
-                    </span>
+                    ></span>
                 </div>
 
                 <div class="photo-card__author">
@@ -149,8 +147,7 @@ function getPhotoElementData(element){
         title:
             element.querySelector(
                 ".photo-card__title-source"
-            )?.dataset.fullTitle??
-            ""
+            )?.dataset.fullTitle??""
     };
 }
 
@@ -166,97 +163,90 @@ function updateListPhotos(list,photo){
 }
 
 function getTitleParts(card){
-    const title=card.querySelector(
-        ".photo-card__title"
-    );
-
-    const firstRow=card.querySelector(
-        ".photo-card__title-row:first-child"
-    );
-
-    const secondRow=card.querySelector(
-        ".photo-card__title-row--second"
-    );
-
-    const firstLine=card.querySelector(
-        ".photo-card__title-line--first"
-    );
-
-    const secondLine=card.querySelector(
-        ".photo-card__title-line--second"
-    );
-
-    const actions=card.querySelector(
-        ".photo-card__title-actions"
-    );
-
-    const source=card.querySelector(
-        ".photo-card__title-source"
-    );
-
     return{
-        title,
-        firstRow,
-        secondRow,
-        firstLine,
-        secondLine,
-        actions,
-        source
+        firstRow:card.querySelector(
+            ".photo-card__title-row--first"
+        ),
+        secondRow:card.querySelector(
+            ".photo-card__title-row--second"
+        ),
+        firstLine:card.querySelector(
+            ".photo-card__title-line--first"
+        ),
+        secondLine:card.querySelector(
+            ".photo-card__title-line--second"
+        ),
+        actions:card.querySelector(
+            ".photo-card__title-actions"
+        ),
+        source:card.querySelector(
+            ".photo-card__title-source"
+        )
     };
 }
 
 function getFullTitle(card){
-    const source=card.querySelector(
+    return card.querySelector(
         ".photo-card__title-source"
-    );
-
-    return source?.dataset.fullTitle??"";
+    )?.dataset.fullTitle??"";
 }
 
-function getAvailableWidth(element){
-    return element.getBoundingClientRect().width;
+function getTextWidth(element,text){
+    const probe=document.createElement("span");
+
+    probe.textContent=text;
+
+    const style=getComputedStyle(element);
+
+    probe.style.position="absolute";
+    probe.style.visibility="hidden";
+    probe.style.pointerEvents="none";
+    probe.style.whiteSpace="nowrap";
+    probe.style.font=style.font;
+    probe.style.fontSize=style.fontSize;
+    probe.style.fontWeight=style.fontWeight;
+    probe.style.fontFamily=style.fontFamily;
+    probe.style.letterSpacing=style.letterSpacing;
+
+    document.body.append(probe);
+
+    const width=probe.getBoundingClientRect().width;
+
+    probe.remove();
+
+    return width;
 }
 
-function fitsLine(line,text){
-    line.textContent=text;
-
-    return(
-        line.scrollWidth<=
-        getAvailableWidth(
-            line.parentElement
-        )+1
-    );
-}
-
-function fitsSecondLine(
-    line,
-    actions,
-    text
-){
-    line.textContent=text;
-
-    const row=line.parentElement;
-    const gap=parseFloat(
+function getRowGap(row){
+    return parseFloat(
         getComputedStyle(row).gap
     )||0;
+}
 
-    const textWidth=
-        line.getBoundingClientRect().width;
+function getFirstLineWidth(row){
+    return row.getBoundingClientRect().width;
+}
 
-    const actionsWidth=
-        actions.getBoundingClientRect().width;
-
+function getSecondLineWidth(row,actions){
     return(
-        textWidth+
-        actionsWidth+
-        gap<=
-        row.getBoundingClientRect().width+1
+        row.getBoundingClientRect().width-
+        actions.getBoundingClientRect().width-
+        getRowGap(row)
     );
+}
+
+function fitsText(element,text,width){
+    return getTextWidth(
+        element,
+        text
+    )<=width+0.5;
 }
 
 function findMaximumText(
+    element,
     value,
-    callback
+    width,
+    suffix=""
 ){
     let start=1;
     let end=value.length;
@@ -267,12 +257,23 @@ function findMaximumText(
             (start+end)/2
         );
 
-        const text=value
-            .slice(0,middle)
-            .trimEnd();
+        const text=
+            value
+                .slice(0,middle)
+                .trimEnd()+
+            suffix;
 
-        if(callback(text)){
-            result=text;
+        if(
+            fitsText(
+                element,
+                text,
+                width
+            )
+        ){
+            result=value
+                .slice(0,middle)
+                .trimEnd();
+
             start=middle+1;
         }else{
             end=middle-1;
@@ -282,7 +283,40 @@ function findMaximumText(
     return result;
 }
 
-function splitTitle(card){
+function findBreakPosition(
+    value,
+    element,
+    width
+){
+    const maximum=findMaximumText(
+        element,
+        value,
+        width
+    );
+
+    if(!maximum){
+        return 0;
+    }
+
+    let position=maximum.length;
+
+    while(
+        position>0&&
+        !/[\s-]/.test(
+            value[position-1]
+        )
+    ){
+        position--;
+    }
+
+    if(position>0){
+        return position;
+    }
+
+    return maximum.length;
+}
+
+function layoutPhotoTitle(card){
     const{
         firstRow,
         secondRow,
@@ -303,72 +337,90 @@ function splitTitle(card){
 
     const fullTitle=getFullTitle(card);
 
-    firstLine.textContent="";
-    secondLine.textContent="";
     firstRow.hidden=false;
     secondRow.hidden=false;
 
+    firstLine.textContent="";
+    secondLine.textContent="";
+
+    const firstWidth=getFirstLineWidth(
+        firstRow
+    );
+
+    const secondWidth=getSecondLineWidth(
+        secondRow,
+        actions
+    );
+
     if(
-        fitsSecondLine(
+        fitsText(
             secondLine,
-            actions,
-            fullTitle
+            fullTitle,
+            secondWidth
         )
     ){
         firstRow.hidden=true;
+
         secondLine.textContent=fullTitle;
-        return;
-    }
 
-    const firstPart=findMaximumText(
-        fullTitle,
-        text=>fitsLine(
-            firstLine,
-            text
-        )
-    );
-
-    firstLine.textContent=firstPart;
-
-    let remaining=fullTitle
-        .slice(firstPart.length)
-        .trimStart();
-
-    if(!remaining){
-        secondRow.hidden=true;
         return;
     }
 
     if(
-        fitsSecondLine(
-            secondLine,
-            actions,
-            remaining
+        fitsText(
+            firstLine,
+            fullTitle,
+            firstWidth
         )
     ){
-        secondLine.textContent=remaining;
+        firstLine.textContent=fullTitle;
+
+        secondLine.textContent="";
+
         return;
     }
 
-    const secondPart=findMaximumText(
-        remaining,
-        text=>fitsSecondLine(
+    const breakPosition=findBreakPosition(
+        fullTitle,
+        firstLine,
+        firstWidth
+    );
+
+    const firstText=
+        fullTitle
+            .slice(0,breakPosition)
+            .trim();
+
+    let remaining=
+        fullTitle
+            .slice(breakPosition)
+            .trim();
+
+    firstLine.textContent=firstText;
+
+    if(
+        fitsText(
             secondLine,
-            actions,
-            `${text}...`
+            remaining,
+            secondWidth
         )
+    ){
+        secondLine.textContent=remaining;
+
+        return;
+    }
+
+    const secondText=findMaximumText(
+        secondLine,
+        remaining,
+        secondWidth,
+        "..."
     );
 
     secondLine.textContent=
-        secondPart
-            ?`${secondPart}...`
+        secondText
+            ?`${secondText}...`
             :"...";
-}
-
-function layoutPhotoTitle(card){
-    requestAnimationFrame(()=>{
-        splitTitle(card);
-    });
 }
 
 function getLineHeight(element){
@@ -454,8 +506,10 @@ function layoutPhotoMeta(card){
 }
 
 function layoutPhotoText(card){
-    layoutPhotoTitle(card);
-    layoutPhotoMeta(card);
+    requestAnimationFrame(()=>{
+        layoutPhotoTitle(card);
+        layoutPhotoMeta(card);
+    });
 }
 
 export function insertPhoto(photo){
@@ -479,9 +533,7 @@ export function insertPhoto(photo){
         getItem:getPhotoElementData
     });
 
-    requestAnimationFrame(()=>{
-        layoutPhotoText(element);
-    });
+    layoutPhotoText(element);
 
     return element;
 }
@@ -504,9 +556,7 @@ export async function addPhotoToList(photo){
 
     await show(element);
 
-    requestAnimationFrame(()=>{
-        layoutPhotoText(element);
-    });
+    layoutPhotoText(element);
 
     return element;
 }
@@ -566,9 +616,7 @@ export async function updatePhotoInList(photo){
         photo
     );
 
-    requestAnimationFrame(()=>{
-        layoutPhotoText(element);
-    });
+    layoutPhotoText(element);
 
     return element;
 }
