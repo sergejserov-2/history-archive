@@ -227,11 +227,39 @@ function getAvailableWidth(row,actions=null){
     );
 }
 
-function fitsWidth(line,text,width){
-    line.textContent=text;
+function getTextWidth(element,text){
+    const measure=document.createElement("span");
+    const style=getComputedStyle(element);
 
-    return line.scrollWidth<=width+1;
+    measure.textContent=text;
+    measure.style.position="fixed";
+    measure.style.visibility="hidden";
+    measure.style.pointerEvents="none";
+    measure.style.whiteSpace="nowrap";
+    measure.style.width="auto";
+    measure.style.minWidth="max-content";
+    measure.style.fontFamily=style.fontFamily;
+    measure.style.fontSize=style.fontSize;
+    measure.style.fontWeight=style.fontWeight;
+    measure.style.fontStyle=style.fontStyle;
+    measure.style.letterSpacing=style.letterSpacing;
+
+    document.body.append(measure);
+
+    const width=measure.getBoundingClientRect().width;
+
+    measure.remove();
+
+    return width;
 }
+
+function fitsWidth(line,text,width){
+    return getTextWidth(
+        line,
+        text
+    )<=width+1;
+}
+
 
 function findBreakPosition(line,text,width){
     const words=text.split(/\s+/);
