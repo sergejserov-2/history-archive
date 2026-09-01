@@ -128,7 +128,7 @@
 
 .photo-card__actions {
     flex: 0 0 auto;
-
+    gap:var(--space-4);
     display: flex;
 }
 
