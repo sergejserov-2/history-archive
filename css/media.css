@@ -95,12 +95,18 @@
     overflow: hidden;
 }
 
-.photo-card__title {
-    min-height: calc(
-        var(--font-size-lg) * 1.3
-    );
+.photo-card__title-line {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-4);
 
-    padding:
+    max-width: 100%;
+
+    break-inside: avoid;
+    white-space: nowrap;
+
+
+       padding:
         var(--space-5)
         var(--space-5)
         3px;
@@ -114,18 +120,6 @@
 
     hyphens: auto;
     overflow-wrap: break-word;
-}
-
-
-.photo-card__title-line {
-    display: inline-flex;
-    align-items: baseline;
-    gap: var(--space-4);
-
-    max-width: 100%;
-
-    break-inside: avoid;
-    white-space: nowrap;
 }
 
 .photo-card__title-text {
