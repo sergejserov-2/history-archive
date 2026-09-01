@@ -377,7 +377,7 @@
     align-items:center;
     justify-content:center;
 
-    min-height:38px;
+    min-height:40px;
     padding:0 var(--space-8);
 
     background:rgba(220,170,40,.18);
@@ -423,6 +423,7 @@
 .entity-list-row {
     align-items:center;
     gap:var(--space-8);
+    height: 32px;
     padding:var(--space-5) var(--space-8);
     background:var(--color-surface-dark);
     border-top:var(--border-row);
@@ -474,7 +475,7 @@
     display:grid;
 
     grid-template-columns:
-        150px
+        175px
         minmax(0,1fr);
 }
 
