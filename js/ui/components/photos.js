@@ -97,11 +97,15 @@ export function renderPhoto(photo){
             </div>
 
             <div class="photo-card__content">
-                <div class="photo-card__title">
+                <span class="photo-card__title-line">
                     <span class="photo-card__title-text">
                         ${photo.title??""}
-                    </span>&nbsp;${adminEdit("photo",photo.id)}&nbsp;${adminDelete("photo",photo.id)}
-                </div>
+                    </span>
+                
+                    ${adminEdit("photo",photo.id)}
+                    ${adminDelete("photo",photo.id)}
+                </span>
+
 
                 <div class="photo-card__author">
                     ${renderPhotoMeta(photo)}
