@@ -117,19 +117,27 @@
     align-items: baseline;
 
     gap: var(--space-4);
+}
 
-    white-space: nowrap;
+.photo-card__title-row--first {
+    width: 100%;
+}
+
+.photo-card__title-row--second {
+    width: 100%;
 }
 
 .photo-card__title-line {
     min-width: 0;
+
+    display: block;
 
     hyphens: auto;
     overflow-wrap: break-word;
 }
 
 .photo-card__title-row--first .photo-card__title-line {
-    flex: 1 1 auto;
+    width: 100%;
 }
 
 .photo-card__title-row--second .photo-card__title-line {
@@ -140,6 +148,7 @@
     flex: 0 0 auto;
 
     display: flex;
+    align-items: center;
 
     gap: var(--space-4);
 
@@ -195,6 +204,7 @@
 
     height: 230px;
 }
+
 
 
 
