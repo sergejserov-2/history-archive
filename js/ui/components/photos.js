@@ -1,3 +1,4 @@
+
 import{openPhotoModal}from"./modalReload.js";
 import{renderLoadingPlaceholder}from"./loadingPlaceholder.js";
 import{adminEdit,adminDelete,adminAdd}from"./adminButtons.js";
@@ -20,9 +21,11 @@ export function getPhotoData(photo){
 function renderPhotoMedia(photo){
     const uploading=photo.isUploading===true;
     const hasPreview=Boolean(photo.previewPath);
+
     if(uploading&&!hasPreview){
         return renderLoadingPlaceholder();
     }
+
     if(hasPreview){
         return`
             ${uploading?renderLoadingPlaceholder():""}
@@ -34,6 +37,7 @@ function renderPhotoMedia(photo){
             >
         `;
     }
+
     return`
         <div class="photo-card__placeholder">
             Фото отсутствует
@@ -44,17 +48,18 @@ function renderPhotoMedia(photo){
 function renderPhotoMeta(photo){
     const author=photo.author?.trim()??"";
     const date=getPhotoPeriod(photo);
+
     if(author&&date){
         return`
             <span class="photo-card__author-name">
                 ${author}
-            </span>
-            <span class="photo-card__meta-separator">, </span>
+            </span>,
             <span class="photo-card__date">
                 ${date}
             </span>
         `;
     }
+
     if(author){
         return`
             <span class="photo-card__author-name">
@@ -62,6 +67,7 @@ function renderPhotoMeta(photo){
             </span>
         `;
     }
+
     if(date){
         return`
             <span class="photo-card__date">
@@ -69,11 +75,13 @@ function renderPhotoMeta(photo){
             </span>
         `;
     }
+
     return"";
 }
 
 export function renderPhoto(photo){
     const uploading=photo.isUploading===true;
+
     return`
         <div
             class="photo-card${uploading?" photo-card--uploading":""}"
@@ -92,10 +100,7 @@ export function renderPhoto(photo){
                 <div class="photo-card__title">
                     <span class="photo-card__title-text">
                         ${photo.title??""}
-                    </span>
-
-                    ${adminEdit("photo",photo.id)}
-                    ${adminDelete("photo",photo.id)}
+                    </span>&nbsp;${adminEdit("photo",photo.id)}&nbsp;${adminDelete("photo",photo.id)}
                 </div>
 
                 <div class="photo-card__author">
@@ -108,20 +113,38 @@ export function renderPhoto(photo){
 
 function createPhotoElement(photo){
     const template=document.createElement("template");
+
     template.innerHTML=renderPhoto(photo).trim();
+
     return template.content.firstElementChild;
 }
 
 function getPhotoElementData(element){
     return{
-        meta:element.querySelector(".photo-card__date")?.textContent.trim()??"",
-        author:element.querySelector(".photo-card__author-name")?.textContent.trim()??"",
-        title:element.querySelector(".photo-card__title-text")?.textContent.trim()??""
+        meta:
+            element.querySelector(
+                ".photo-card__date"
+            )?.textContent.trim()??"",
+
+        author:
+            element.querySelector(
+                ".photo-card__author-name"
+            )?.textContent.trim()??"",
+
+        title:
+            element.querySelector(
+                ".photo-card__title-text"
+            )?.dataset.fullTitle??
+            element.querySelector(
+                ".photo-card__title-text"
+            )?.textContent.trim()??
+            ""
     };
 }
 
 function updateListPhotos(list,photo){
     if(!list)return;
+
     list.photos=[
         ...(list.photos??[]).filter(
             item=>item.id!==photo.id
@@ -130,133 +153,147 @@ function updateListPhotos(list,photo){
     ];
 }
 
-export function insertPhoto(photo){
-    const list=document.querySelector(".photos-list");
-    if(!list)return null;
-    const element=createPhotoElement(photo);
-    if(!element)return null;
-    insertSortedElement({
-        container:list,
-        element,
-        item:getPhotoData(photo),
-        selector:".photo-card:not(.photo-card--add)",
-        direction:"asc",
-        getItem:getPhotoElementData
-    });
-    requestAnimationFrame(()=>layoutPhotoText(element));
-    return element;
-}
+function getLineHeight(element){
+    const style=getComputedStyle(element);
+    const value=parseFloat(style.lineHeight);
 
-export async function addPhotoToList(photo){
-    const element=insertPhoto(photo);
-    if(!element)return null;
-    const list=element.parentElement;
-    updateListPhotos(list,photo);
-    await new Promise(requestAnimationFrame);
-    await show(element);
-    requestAnimationFrame(()=>layoutPhotoText(element));
-    return element;
-}
-
-export async function removePhotoFromList(id){
-    const element=document.querySelector(
-        `.photo-card[data-photo-id="${id}"]`
-    );
-    if(!element)return;
-    const list=element.parentElement;
-    await hide(element);
-    if(list){
-        list.photos=(list.photos??[]).filter(
-            photo=>photo.id!==id
-        );
+    if(Number.isFinite(value)){
+        return value;
     }
-    element.remove();
+
+    return parseFloat(style.fontSize)*1.3;
 }
 
-export async function updatePhotoInList(photo){
-    const oldElement=document.querySelector(
-        `.photo-card[data-photo-id="${photo.id}"]`
+function getTitleText(card){
+    const text=card.querySelector(
+        ".photo-card__title-text"
     );
-    if(!oldElement){
-        return await addPhotoToList(photo);
+
+    if(!text)return null;
+
+    if(!text.dataset.fullTitle){
+        text.dataset.fullTitle=text.textContent.trim();
     }
-    const list=oldElement.parentElement;
-    oldElement.remove();
-    const element=createPhotoElement(photo);
-    if(!element)return null;
-    insertSortedElement({
-        container:list,
-        element,
-        item:getPhotoData(photo),
-        selector:".photo-card:not(.photo-card--add)",
-        direction:"asc",
-        getItem:getPhotoElementData
-    });
-    updateListPhotos(list,photo);
-    requestAnimationFrame(()=>layoutPhotoText(element));
-    return element;
+
+    return text;
 }
 
-function layoutPhotoText(card){
-    layoutPhotoTitle(card);
-    layoutPhotoMeta(card);
-}
-
-function layoutPhotoTitle(card){
-    const title=card.querySelector(".photo-card__title");
-    const text=card.querySelector(".photo-card__title-text");
-    if(!title||!text)return;
-
-    text.textContent=text.dataset.fullTitle??text.textContent;
-    text.dataset.fullTitle=text.textContent;
-
-    const buttons=[
-        ...title.querySelectorAll(".admin-button")
+function getTitleButtons(card){
+    return[
+        ...card.querySelectorAll(
+            ".photo-card__title .admin-button"
+        )
     ];
+}
 
-    if(!buttons.length)return;
+function getButtonTop(button){
+    return Math.round(
+        button.getBoundingClientRect().top
+    );
+}
 
-    const buttonWidth=buttons.reduce(
-        (width,button)=>width+button.getBoundingClientRect().width,
-        0
+function titleUsesMoreThanTwoLines(title,buttons){
+    const titleTop=Math.round(
+        title.getBoundingClientRect().top
     );
 
-    const style=getComputedStyle(title);
-    const gap=parseFloat(
-        style.columnGap||
-        style.gap||
-        0
+    const lineHeight=getLineHeight(title);
+
+    return buttons.some(
+        button=>
+            getButtonTop(button)-
+            titleTop>
+            lineHeight*1.5
+    );
+}
+
+function buttonsAreSplit(buttons){
+    if(buttons.length<2){
+        return false;
+    }
+
+    const firstTop=getButtonTop(
+        buttons[0]
     );
 
-    const available=title.clientWidth-buttonWidth-gap;
-    if(available<=0)return;
+    return buttons.some(
+        button=>
+            Math.abs(
+                getButtonTop(button)-
+                firstTop
+            )>2
+    );
+}
 
-    const canvas=document.createElement("canvas");
-    const context=canvas.getContext("2d");
-
-    context.font=[
-        style.fontWeight,
-        style.fontSize,
-        style.fontFamily
-    ].join(" ");
-
-    const full=text.dataset.fullTitle??"";
+function hasTextBeforeButtons(title,text,buttons){
+    const titleRect=title.getBoundingClientRect();
+    const textRect=text.getBoundingClientRect();
 
     if(
-        context.measureText(full).width<=available
+        textRect.width<=0||
+        textRect.height<=0
     ){
+        return false;
+    }
+
+    const firstButton=buttons[0];
+
+    if(!firstButton){
+        return true;
+    }
+
+    const buttonRect=
+        firstButton.getBoundingClientRect();
+
+    return(
+        buttonRect.top>=titleRect.top&&
+        text.textContent.trim().length>0
+    );
+}
+
+function titleFits(card){
+    const title=card.querySelector(
+        ".photo-card__title"
+    );
+
+    const text=getTitleText(card);
+    const buttons=getTitleButtons(card);
+
+    if(
+        !title||
+        !text||
+        !buttons.length
+    ){
+        return true;
+    }
+
+    return(
+        !titleUsesMoreThanTwoLines(
+            title,
+            buttons
+        )&&
+        !buttonsAreSplit(buttons)&&
+        hasTextBeforeButtons(
+            title,
+            text,
+            buttons
+        )
+    );
+}
+
+function findTitleText(card,fullTitle){
+    const text=getTitleText(card);
+
+    if(!text)return;
+
+    text.textContent=fullTitle;
+
+    if(titleFits(card)){
         return;
     }
 
-    const lineHeight=
-        parseFloat(style.fontSize)*
-        parseFloat(style.lineHeight);
-
-    const maxHeight=lineHeight*2;
-    title.style.maxHeight=`${maxHeight}px`;
-
-    let start=0;
-    let end=full.length;
+    let start=1;
+    let end=fullTitle.length;
     let result="";
 
     while(start<=end){
@@ -265,13 +302,11 @@ function layoutPhotoTitle(card){
         );
 
         const value=
-            `${full.slice(0,middle)}...`;
+            `${fullTitle.slice(0,middle).trimEnd()}...`;
 
         text.textContent=value;
 
-        if(
-            title.scrollHeight<=maxHeight
-        ){
+        if(titleFits(card)){
             result=value;
             start=middle+1;
         }else{
@@ -279,36 +314,77 @@ function layoutPhotoTitle(card){
         }
     }
 
-    text.textContent=result;
-}
-
-function layoutPhotoMeta(card){
-    const meta=card.querySelector(".photo-card__author");
-    const author=meta?.querySelector(".photo-card__author-name");
-    const date=meta?.querySelector(".photo-card__date");
-    if(!meta||!author||!date)return;
-
-    author.textContent=
-        author.dataset.fullAuthor??
-        author.textContent;
-
-    author.dataset.fullAuthor=
-        author.textContent;
-
-    const style=getComputedStyle(meta);
-    const lineHeight=
-        parseFloat(style.fontSize)*
-        parseFloat(style.lineHeight);
-
-    const maxHeight=lineHeight*2;
-
-    if(meta.scrollHeight<=maxHeight){
+    if(result){
+        text.textContent=result;
         return;
     }
 
-    const full=author.dataset.fullAuthor;
-    let start=0;
-    let end=full.length;
+    text.textContent="...";
+}
+
+function layoutPhotoTitle(card){
+    const text=getTitleText(card);
+
+    if(!text)return;
+
+    const fullTitle=
+        text.dataset.fullTitle??"";
+
+    text.textContent=fullTitle;
+
+    requestAnimationFrame(()=>{
+        findTitleText(
+            card,
+            fullTitle
+        );
+    });
+}
+
+function getMetaHeight(meta){
+    const range=document.createRange();
+
+    range.selectNodeContents(meta);
+
+    return range.getBoundingClientRect().height;
+}
+
+function layoutPhotoMeta(card){
+    const meta=card.querySelector(
+        ".photo-card__author"
+    );
+
+    const author=meta?.querySelector(
+        ".photo-card__author-name"
+    );
+
+    const date=meta?.querySelector(
+        ".photo-card__date"
+    );
+
+    if(!meta||!author||!date){
+        return;
+    }
+
+    if(!author.dataset.fullAuthor){
+        author.dataset.fullAuthor=
+            author.textContent.trim();
+    }
+
+    author.textContent=
+        author.dataset.fullAuthor;
+
+    const lineHeight=getLineHeight(meta);
+    const maxHeight=lineHeight*2;
+
+    if(getMetaHeight(meta)<=maxHeight+1){
+        return;
+    }
+
+    const fullAuthor=
+        author.dataset.fullAuthor;
+
+    let start=1;
+    let end=fullAuthor.length;
     let result="";
 
     while(start<=end){
@@ -316,13 +392,16 @@ function layoutPhotoMeta(card){
             (start+end)/2
         );
 
-        author.textContent=
-            `${full.slice(0,middle)}...`;
+        const value=
+            `${fullAuthor.slice(0,middle).trimEnd()}...`;
+
+        author.textContent=value;
 
         if(
-            meta.scrollHeight<=maxHeight
+            getMetaHeight(meta)<=
+            maxHeight+1
         ){
-            result=author.textContent;
+            result=value;
             start=middle+1;
         }else{
             end=middle-1;
@@ -332,20 +411,146 @@ function layoutPhotoMeta(card){
     author.textContent=result;
 }
 
-export function renderPhotos(photos,objectId=null){
+function layoutPhotoText(card){
+    layoutPhotoTitle(card);
+    layoutPhotoMeta(card);
+}
+
+export function insertPhoto(photo){
+    const list=document.querySelector(
+        ".photos-list"
+    );
+
+    if(!list)return null;
+
+    const element=createPhotoElement(photo);
+
+    if(!element)return null;
+
+    insertSortedElement({
+        container:list,
+        element,
+        item:getPhotoData(photo),
+        selector:
+            ".photo-card:not(.photo-card--add)",
+        direction:"asc",
+        getItem:getPhotoElementData
+    });
+
+    requestAnimationFrame(()=>{
+        layoutPhotoText(element);
+    });
+
+    return element;
+}
+
+export async function addPhotoToList(photo){
+    const element=insertPhoto(photo);
+
+    if(!element)return null;
+
+    const list=element.parentElement;
+
+    updateListPhotos(
+        list,
+        photo
+    );
+
+    await new Promise(
+        requestAnimationFrame
+    );
+
+    await show(element);
+
+    requestAnimationFrame(()=>{
+        layoutPhotoText(element);
+    });
+
+    return element;
+}
+
+export async function removePhotoFromList(id){
+    const element=document.querySelector(
+        `.photo-card[data-photo-id="${id}"]`
+    );
+
+    if(!element)return;
+
+    const list=element.parentElement;
+
+    await hide(element);
+
+    if(list){
+        list.photos=
+            (list.photos??[]).filter(
+                photo=>photo.id!==id
+            );
+    }
+
+    element.remove();
+}
+
+export async function updatePhotoInList(photo){
+    const oldElement=document.querySelector(
+        `.photo-card[data-photo-id="${photo.id}"]`
+    );
+
+    if(!oldElement){
+        return await addPhotoToList(
+            photo
+        );
+    }
+
+    const list=oldElement.parentElement;
+
+    oldElement.remove();
+
+    const element=createPhotoElement(photo);
+
+    if(!element)return null;
+
+    insertSortedElement({
+        container:list,
+        element,
+        item:getPhotoData(photo),
+        selector:
+            ".photo-card:not(.photo-card--add)",
+        direction:"asc",
+        getItem:getPhotoElementData
+    });
+
+    updateListPhotos(
+        list,
+        photo
+    );
+
+    requestAnimationFrame(()=>{
+        layoutPhotoText(element);
+    });
+
+    return element;
+}
+
+export function renderPhotos(
+    photos,
+    objectId=null
+){
     const sortedPhotos=sortEntities(
         (photos??[]).map(photo=>({
             photo,
             ...getPhotoData(photo)
         }))
-    ).map(item=>item.photo);
+    ).map(
+        item=>item.photo
+    );
 
     const cards=[
         adminAdd(
             "add-photo",
             "Добавить фото",
             {
-                className:"photo-card photo-card--add",
+                className:
+                    "photo-card photo-card--add",
                 attributes:{
                     "data-photo-drag":""
                 }
@@ -361,17 +566,25 @@ export function renderPhotos(photos,objectId=null){
     `;
 
     setTimeout(()=>{
-        const photosList=document.querySelector(".photos-list");
+        const photosList=document.querySelector(
+            ".photos-list"
+        );
+
         if(!photosList)return;
 
         photosList.photos=sortedPhotos;
 
         photosList.querySelectorAll(
             ".photo-card:not(.photo-card--add)"
-        ).forEach(layoutPhotoText);
+        ).forEach(
+            layoutPhotoText
+        );
 
         photosList.onclick=event=>{
-            if(photosList.dataset.photoDragMoved==="true"){
+            if(
+                photosList.dataset
+                    .photoDragMoved==="true"
+            ){
                 return;
             }
 
@@ -379,17 +592,25 @@ export function renderPhotos(photos,objectId=null){
                 ".photo-card__media"
             );
 
-            if(!media||!photosList.contains(media)){
+            if(
+                !media||
+                !photosList.contains(media)
+            ){
                 return;
             }
 
-            if(media.dataset.loading==="true"){
+            if(
+                media.dataset.loading==="true"
+            ){
                 return;
             }
 
-            const photo=photosList.photos?.find(
-                item=>item.id===media.dataset.photoId
-            );
+            const photo=
+                photosList.photos?.find(
+                    item=>
+                        item.id===
+                        media.dataset.photoId
+                );
 
             if(!photo?.storagePath){
                 return;
@@ -411,7 +632,8 @@ export function renderPhotos(photos,objectId=null){
                 photo,
                 {
                     id:objectId,
-                    photos:photosList.photos
+                    photos:
+                        photosList.photos
                 }
             );
         };
@@ -419,3 +641,4 @@ export function renderPhotos(photos,objectId=null){
 
     return html;
 }
+
